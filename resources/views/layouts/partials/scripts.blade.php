@@ -112,6 +112,20 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
                 });
+
+                $.ajax({
+                    url: linkURL,
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.status == 200) {
+                            fireSuccessMessage('{{ $moduleName }} Deleted successfully.');
+                            $('.datatableMain').DataTable().ajax.reload();
+                        } else {
+                            fireErrorMessage(response.error);
+                        }
+                    }
+                });
+
             }
         });
     });
@@ -175,25 +189,11 @@
     });
 
     function fireSuccessMessage(message) {
-        saberToast.success({
-            title: "Success",
-            text: ""+message+"",
-            delay: 200,
-            duration: 1500,
-            rtl: false,
-            position: "top-right"
-        });
+        Swal.fire('Success', 'Success.', 'success');
     }
 
     function fireErrorMessage(message) {
-        saberToast.error({
-            title: "Error",
-            text: ""+message+"",
-            delay: 200,
-            duration: 1500,
-            rtl: false,
-            position: "top-right"
-        })
+        Swal.fire('Error', 'Oops something went wrong.', 'success');
     }
 
     if (hasSessionMessage) {

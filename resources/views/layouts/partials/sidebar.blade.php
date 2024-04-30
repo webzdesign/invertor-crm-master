@@ -25,7 +25,7 @@
         <li>
             <a href="{{ route('roles.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('roles*') ? 'true' : 'false' }}">
                 <div class="icnBx d-flex align-items-center justify-content-center">
-                    <i class="fa fa-dashboard text-white" aria-hidden="true"></i>
+                    <i class="fa fa-wrench text-white" aria-hidden="true"></i>
                 </div>
                 <span class="d-none-add">Roles</span>
             </a>

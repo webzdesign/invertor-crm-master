@@ -3,7 +3,7 @@
 @section('content')
 {{ Config::set('app.module', $moduleName) }}
 @section('create_button')
-<div class="d-flex align-items-center justify-content-between filterPanelbtn my-2">
+<div class="d-flex align-items-center justify-content-between filterPanelbtn my-2 flex-wrap">
     <h2 class="f-24 f-700 c-36 mb-0">Manage {{ $moduleName }}</h2>
     {{-- @permission("roles.create") --}}
     <a href="{{ route('roles.create') }}" class="btn-primary f-500 f-14">
@@ -23,7 +23,7 @@
 @endsection
 <div class="cards">
     <div class="row m-0 filterColumn">
-        <div class="col-xl-2 col-sm-4 position-relative">
+        <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Status</label>
                 <select name="filterStatus" id="filterStatus" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Status ---">
