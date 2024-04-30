@@ -161,10 +161,19 @@ class RoleController extends Controller
     {
         $id = decrypt($id);
 
-        $role = Role::find($id);
-        $role->delete();
+        DB::beginTransaction();
 
-        return response()->json(['success' => 'Role Deleted Successfully.','status' => 200]);
+        try {
+            Role::find($id)->delete();
+            PermissionRole::where('role_id', $id)->delete();
+
+            DB::commit();
+            return response()->json(['success' => 'Role Deleted Successfully.','status' => 200]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Oops! Something went wrong.','status' => 200]);
+        }
     }
 
     public function status($id)

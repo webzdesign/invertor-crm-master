@@ -189,11 +189,11 @@
     });
 
     function fireSuccessMessage(message) {
-        Swal.fire('Success', 'Success.', 'success');
+        Swal.fire('Success', message, 'success');
     }
 
     function fireErrorMessage(message) {
-        Swal.fire('Error', 'Oops something went wrong.', 'success');
+        Swal.fire('Error', message, 'success');
     }
 
     if (hasSessionMessage) {

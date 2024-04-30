@@ -21,16 +21,27 @@
             $authUser = auth()->user();
         @endphp
 
-        {{-- @permission('roles.view') --}}
+        {{-- @permission('users.view')
         <li>
-            <a href="{{ route('roles.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('roles*') ? 'true' : 'false' }}">
+            <a href="{{ route('users.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('users*') ? 'active' : '' }}">
                 <div class="icnBx d-flex align-items-center justify-content-center">
-                    <i class="fa fa-wrench text-white" aria-hidden="true"></i>
+                    <i class="fa fa-users text-white" aria-hidden="true"></i>
+                </div>
+                <span class="d-none-add">Users</span>
+            </a>
+        </li>
+        @endpermission --}}
+
+        @permission('roles.view')
+        <li>
+            <a href="{{ route('roles.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('roles*') ? 'active' : '' }}">
+                <div class="icnBx d-flex align-items-center justify-content-center">
+                    <i class="fa fa-lock text-white" aria-hidden="true"></i>
                 </div>
                 <span class="d-none-add">Roles</span>
             </a>
         </li>
-        {{-- @endpermission --}}
+        @endpermission
 
 
 
