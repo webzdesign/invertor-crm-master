@@ -26,9 +26,9 @@ class Helper {
             if ($setting->favicon && @file_exists(storage_path("public/settings/favicon/" . $setting->favicon))) {
                 return "storage/app/public/settings/favicon/" . $setting->favicon;
             }
-            return self::$favIcon;
+            return self::$favIcon . '?time=' . time();
         } else {
-            return self::$favIcon;
+            return self::$favIcon . '?time=' . time();
         }
     }
 
@@ -40,9 +40,9 @@ class Helper {
             if ($setting->logo && @file_exists(storage_path("public/settings/logo/" . $setting->logo))) {
                 return "storage/app/public/settings/logo/" . $setting->logo;
             }
-            return self::$appLogo;
+            return self::$appLogo . '?time=' . time();
         } else {
-            return self::$appLogo;
+            return self::$appLogo . '?time=' . time();
         }
     }
 }
