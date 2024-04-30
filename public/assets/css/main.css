@@ -437,7 +437,7 @@ button:disabled svg path {
     position: relative;
     z-index: 9999;
     backdrop-filter: blur(8px);
-    background: #ffffff45;
+    background: #ffffff1a;
 }
 
 .loginCard form .form-group label svg {

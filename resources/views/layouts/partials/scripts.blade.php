@@ -14,7 +14,6 @@
 <script src="{{ asset('assets/js/jquery-validate.min.js') }}"></script>
 <script src="{{ asset('assets/js/jqueryAdditional.min.js') }}"></script>
 <script src="{{ asset('assets/js/lodash.min.js') }}"></script>
-<script src="{{ asset('assets/js/notification.js') }}"></script>
 <script src="{{ asset('assets/js/select2_4_0_13.min.js') }}"></script>
 
 <script type="text/html" id="searchPannel">

@@ -124,6 +124,8 @@ return [
     ],
 
     'aliases' => [
-        'Helper' => \App\Helpers\Helper::class
+        'Helper' => \App\Helpers\Helper::class,
+        'Config' => Illuminate\Support\Facades\Config::class,
+        'DataTables' => Yajra\DataTables\Facades\DataTables::class,
     ],
 ];

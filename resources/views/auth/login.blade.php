@@ -18,9 +18,6 @@
         .btn-primary{
             height: 40px !important;
         }
-        section {
-            background: #292929!important;
-        }
     </style>
 </head>
 <body id="loginAnimation">
@@ -71,8 +68,22 @@
 <script src="{{ asset('assets/js/jquery3-6-0.min.js') }}"></script>
 <script src="{{ asset('assets/js/jquery-validate.min.js') }}"></script>
 <script src="{{ asset('assets/js/jqueryAdditional.js') }}"></script>
+<script src="{{ asset('assets/js/three.r134.min.js') }}"></script>
+<script src="{{ asset('assets/js/vanta.net.min.js') }}"></script>
 
 <script>
+
+VANTA.NET({
+  el: "#loginAnimation",
+  mouseControls: true,
+  touchControls: true,
+  gyroControls: false,
+  minHeight: 200.00,
+  minWidth: 200.00,
+  scale: 1.00,
+  scaleMobile: 1.00
+})
+
     $(document).ready(function(){
 
         $("#loginForm").validate({

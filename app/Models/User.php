@@ -77,7 +77,7 @@ class User extends Authenticatable
                 if (session()->get('userPermissionsListsTime') > time()) {
                     $userPermissionsLists = session()->get('userPermissionsLists');
                 } else {
-                    $userPermissionsLists = User::select('permissions.slug', 'users.id')->join('user_roles', 'users.id', '=', 'user_roles.user_id')->join('roles', 'user_roles.role_id', '=', 'roles.id')->join('permission_roles', 'roles.id', '=', 'permission_roles.role_id')->join('permissions', 'permission_roles.permission_id', '=', 'permissions.id')->where('users.id', auth()->user()->id)->pluck('id', 'slug')->toArray();
+                    $userPermissionsLists = User::select('permissions.slug', 'users.id')->join('user_roles', 'users.id', '=', 'user_roles.user_id')->join('roles', 'user_roles.role_id', '=', 'roles.id')->join('permission_role', 'roles.id', '=', 'permission_role.role_id')->join('permissions', 'permission_role.permission_id', '=', 'permissions.id')->where('users.id', auth()->user()->id)->pluck('id', 'slug')->toArray();
 
                     $permissionExpiry = time() + (10 * 60);
 
@@ -85,7 +85,7 @@ class User extends Authenticatable
                     session()->put('userPermissionsListsTime', $permissionExpiry);
                 }
             } else {
-                $userPermissionsLists = User::select('permissions.slug', 'users.id')->join('user_roles', 'users.id', '=', 'user_roles.user_id')->join('roles', 'user_roles.role_id', '=', 'roles.id')->join('permission_roles', 'roles.id', '=', 'permission_roles.role_id')->join('permissions', 'permission_roles.permission_id', '=', 'permissions.id')->where('users.id', auth()->user()->id)->pluck('id', 'slug')->toArray();
+                $userPermissionsLists = User::select('permissions.slug', 'users.id')->join('user_roles', 'users.id', '=', 'user_roles.user_id')->join('roles', 'user_roles.role_id', '=', 'roles.id')->join('permission_role', 'roles.id', '=', 'permission_role.role_id')->join('permissions', 'permission_role.permission_id', '=', 'permissions.id')->where('users.id', auth()->user()->id)->pluck('id', 'slug')->toArray();
 
                 $permissionExpiry = time() + (10 * 60);
 

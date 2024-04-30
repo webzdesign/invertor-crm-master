@@ -17,8 +17,8 @@ class ModuleAccessor
 
             $hasPermission = User::join('user_roles', 'users.id', '=', 'user_roles.user_id')
             ->join('roles', 'user_roles.role_id', '=', 'roles.id')
-            ->join('permission_roles', 'roles.id', '=', 'permission_roles.role_id')
-            ->join('permissions', 'permission_roles.permission_id', '=', 'permissions.id')
+            ->join('permission_role', 'roles.id', '=', 'permission_role.role_id')
+            ->join('permissions', 'permission_role.permission_id', '=', 'permissions.id')
             ->where('users.id', auth()->user()->id)
             ->where('permissions.slug', $module)
             ->exists();

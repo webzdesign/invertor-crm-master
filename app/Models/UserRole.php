@@ -10,6 +10,8 @@ class UserRole extends Model
 {
     use HasFactory,SoftDeletes; 
 
+    protected $table = "user_roles";
+
     protected $fillable = [
         'user_id',
         'role_id',
