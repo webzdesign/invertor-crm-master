@@ -152,30 +152,6 @@
 <script>
 $(document).ready(function(){
 
-    $("#country").select2({
-        width: '100%',
-        allowClear: true,
-        placeholder: "--- Select a Country ---"
-    })
-
-    $("#state").select2({
-        width: '100%',
-        allowClear: true,
-        placeholder: "--- Select a State ---"
-    })
-
-    $("#city").select2({
-        width: '100%',
-        allowClear: true,
-        placeholder: "--- Select a City ---"
-    })
-
-    $("#role").select2({
-        width: '100%',
-        allowClear: true,
-        placeholder: "--- Select a Role ---"
-    })
-
     $('#country').on('change', function (event) {
         let country = event.target.value;
 

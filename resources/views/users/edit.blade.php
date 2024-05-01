@@ -54,7 +54,7 @@
 
                 <div class="col-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Password: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Password: </label>
                         <input type="password" name="password" id="password" value="{{ old('password') }}" class="form-control" placeholder="Create password">
                         @if ($errors->has('password'))
                             <span class="text-danger d-block">{{ $errors->first('password') }}</span>
@@ -64,7 +64,7 @@
 
                 <div class="col-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Confirm Password: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Confirm Password: </label>
                         <input type="password" name="confirm_password" id="confirm-password" value="{{ old('confirm_password') }}" class="form-control" placeholder="Confirm new password">
                         @if ($errors->has('confirm_password'))
                             <span class="text-danger d-block">{{ $errors->first('confirm_password') }}</span>
@@ -160,29 +160,7 @@
 <script>
 $(document).ready(function(){
 
-    $("#country").select2({
-        width: '100%',
-        allowClear: true,
-        placeholder: "--- Select a Country ---"
-    })
-
-    $("#state").select2({
-        width: '100%',
-        allowClear: true,
-        placeholder: "--- Select a State ---"
-    })
-
-    $("#city").select2({
-        width: '100%',
-        allowClear: true,
-        placeholder: "--- Select a City ---"
-    })
-
-    $("#role").select2({
-        width: '100%',
-        allowClear: true,
-        placeholder: "--- Select a Role ---"
-    })
+   
 
     $('#country').on('change', function (event) {
         let country = event.target.value;
@@ -275,7 +253,6 @@ $(document).ready(function(){
                 required: true
             },
             'password' : {
-                required: true,
                 minlength: 8,
                 maxlength: 16
             },
@@ -311,7 +288,6 @@ $(document).ready(function(){
                 required: 'Select a role.'
             },
             'password' : {
-                required: 'Create a password.',
                 minlength: 'Minimum length should be 8 characters.',
                 maxlength: 'Maximum length should be 16 characters.'
             },

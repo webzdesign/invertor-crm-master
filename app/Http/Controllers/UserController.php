@@ -26,9 +26,7 @@ class UserController extends Controller
             return view('users.index', compact('moduleName', 'roles'));
         }
 
-        $users = User::with(['roles', 'addedby', 'updatedby'])->whereHas("role", function($query) {
-            $query->where('roles.id', "!=", 1);
-        })->select('users.*');
+        $users = User::with(['roles', 'addedby', 'updatedby']);
 
         if ($filterRole = $request->filterRole) {
             if ($filterRole != '') {
@@ -50,13 +48,13 @@ class UserController extends Controller
 
         return dataTables()->eloquent($users)
             ->editColumn('addedby.name', function($user) {
-                return "<span data-mdb-toggle='tooltip' title='".date('d-m-Y h:i:s A', strtotime($user->created_at))."'>".$user->addedby->name."</span>";
+                return "<span data-mdb-toggle='tooltip' title='".date('d-m-Y h:i:s A', strtotime($user->created_at))."'>".($user->addedby->name ?? '-')."</span>";
             })
             ->editColumn('updatedby.name', function($user) {
-                if ($user->updatedby->name != '-') {
-                    return "<span data-mdb-toggle='tooltip' title='".date('d-m-Y h:i:s A', strtotime($user->updated_at))."'>".$user->updatedby->name."</span>";
+                if (($user->updatedby->name ?? '') != '-') {
+                    return "<span data-mdb-toggle='tooltip' title='".date('d-m-Y h:i:s A', strtotime($user->updated_at))."'>".($user->updatedby->name ?? '-')."</span>";
                 } else {
-                    return $user->updatedby->name;
+                    return ($user->updatedby->name ?? '-');
                 }
             })
             ->editColumn("role.name", function($users) {

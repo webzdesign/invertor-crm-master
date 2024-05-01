@@ -29,7 +29,6 @@ class UserRequest extends FormRequest
                 'name'                  => 'required',
                 'email'                 => "required|email|unique:users,email,{$id},id,deleted_at,NULL",
                 'role'                  => 'required',
-                'password'              => 'required|min:8|max:16',
                 'confirm_password'      => 'same:password',
                 'country'               => "required",
                 'state'                 => "required",
