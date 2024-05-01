@@ -14,7 +14,7 @@
     <div class="cards">
         <div class="cardsBody pb-0">
             <div class="row">
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Name: <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" value="{{ old('name') }}" class="form-control" placeholder="Enter name">
@@ -24,7 +24,7 @@
                     </div>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Email: <span class="text-danger">*</span></label>
                         <input type="email" name="email" id="email" value="{{ old('email') }}" class="form-control" placeholder="Enter email">
@@ -34,7 +34,7 @@
                     </div>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Roles: <span class="text-danger">*</span></label>
                         <select name="role" id="role" class="select2 select2-hidden-accessible" data-placeholder="--- Select Role ---">
@@ -52,7 +52,7 @@
                     </div>
                 </div>
 
-                <div class="col-6">
+                <div class="col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Password: <span class="text-danger">*</span></label>
                         <input type="password" name="password" id="password" value="{{ old('password') }}" class="form-control" placeholder="Create password">
@@ -62,7 +62,7 @@
                     </div>
                 </div>
 
-                <div class="col-6">
+                <div class="col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Confirm Password: <span class="text-danger">*</span></label>
                         <input type="password" name="confirm_password" id="confirm-password" value="{{ old('confirm_password') }}" class="form-control" placeholder="Confirm new password">
@@ -72,7 +72,7 @@
                     </div>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Country: <span class="text-danger">*</span></label>
                         <select name="country" id="country" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Country ---">
@@ -91,7 +91,7 @@
                     </div>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">State: <span class="text-danger">*</span></label>
                         <select name="state" id="state" class="select2 select2-hidden-accessible" data-placeholder="--- Select a State ---">
@@ -103,7 +103,7 @@
                     </div>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">City: <span class="text-danger">*</span></label>
                         <select name="city" id="city" class="select2 select2-hidden-accessible" data-placeholder="--- Select a City ---">
