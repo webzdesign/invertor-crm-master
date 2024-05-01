@@ -73,26 +73,8 @@ class User extends Authenticatable
         if (in_array(1,auth()->user()->roles->pluck("id")->all())) {
             return (bool) true;
         } else {
-            if (session()->has('userPermissionsLists') && session()->has('userPermissionsListsTime')) {
-                if (session()->get('userPermissionsListsTime') > time()) {
-                    $userPermissionsLists = session()->get('userPermissionsLists');
-                } else {
-                    $userPermissionsLists = User::select('permissions.slug', 'users.id')->join('user_roles', 'users.id', '=', 'user_roles.user_id')->join('roles', 'user_roles.role_id', '=', 'roles.id')->join('permission_role', 'roles.id', '=', 'permission_role.role_id')->join('permissions', 'permission_role.permission_id', '=', 'permissions.id')->where('users.id', auth()->user()->id)->pluck('id', 'slug')->toArray();
-
-                    $permissionExpiry = time() + (10 * 60);
-
-                    session()->put('userPermissionsLists', $userPermissionsLists);
-                    session()->put('userPermissionsListsTime', $permissionExpiry);
-                }
-            } else {
-                $userPermissionsLists = User::select('permissions.slug', 'users.id')->join('user_roles', 'users.id', '=', 'user_roles.user_id')->join('roles', 'user_roles.role_id', '=', 'roles.id')->join('permission_role', 'roles.id', '=', 'permission_role.role_id')->join('permissions', 'permission_role.permission_id', '=', 'permissions.id')->where('users.id', auth()->user()->id)->pluck('id', 'slug')->toArray();
-
-                $permissionExpiry = time() + (10 * 60);
-
-                session()->put('userPermissionsLists', $userPermissionsLists);
-                session()->put('userPermissionsListsTime', $permissionExpiry);
-            }
-
+            $userPermissionsLists = User::select('permissions.slug', 'users.id')->join('user_roles', 'users.id', '=', 'user_roles.user_id')->join('roles', 'user_roles.role_id', '=', 'roles.id')->join('permission_role', 'roles.id', '=', 'permission_role.role_id')->join('permissions', 'permission_role.permission_id', '=', 'permissions.id')->where('users.id', auth()->user()->id)->pluck('id', 'slug')->toArray();
+            
             return (bool) isset($userPermissionsLists[$per]);
         }
     }
@@ -106,5 +88,20 @@ class User extends Authenticatable
         return $this->belongsTo(User::class, 'updated_by')->withDefault([
             'name' => '-',
         ]);
+    }
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function state()
+    {
+        return $this->belongsTo(State::class);
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class);
     }
 }

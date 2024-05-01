@@ -63,9 +63,9 @@
         </div>
         <div class="cardsFooter d-flex justify-content-center">
             <a href="{{ route('roles.index') }}">
-                <button type="button" class="btn-default f-500 f-14">cancel</button>
+                <button type="button" class="btn-default f-500 f-14">Cancel</button>
             </a>
-            <button type="submit" class="btn-primary f-500 f-14">Save changes</button>
+            <button type="submit" class="btn-primary f-500 f-14">Save</button>
         </div>
     </div>
 </form>

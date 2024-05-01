@@ -8,26 +8,22 @@ use App\Models\PermissionRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\Permission;
+use App\Models\UserRole;
+use App\Helpers\Helper;
 use App\Models\Role;
 
 class RoleController extends Controller
 {
-    protected $moduleName;
+    protected $moduleName = 'Roles';
 
-    public function __construct()
+    public function index(Request $request)
     {
-        $this->moduleName = 'Role';
-    }   
+        if (!$request->ajax()) {
+            $moduleName = $this->moduleName;
+            return view('roles.index', compact('moduleName'));
+        }
 
-    public function index()
-    {
-        $moduleName = $this->moduleName;
-        return view('roles.index', compact('moduleName'));
-    }
-
-    public function DataTable(Request $request)
-    {
-        $roles = Role::with(['addedby', 'updatedby'])->where("roles.id", "!=", 1)->select('roles.*');
+        $roles = Role::with(['addedby', 'updatedby'])->select('roles.*');
 
         if (isset($request->filterStatus)) {
             if ($request->filterStatus != '') {
@@ -63,12 +59,30 @@ class RoleController extends Controller
                     $action .= view('buttons.view', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("roles.activeinactive")) {
-                    $url = route("roles.activeinactive", encrypt($variable->id));
-                    $action .= view('buttons.status', compact('variable', 'url'));
+                    $eId = encrypt($variable->id);
+                    $url = route("roles.activeinactive", $eId);
+                    $attr = " style='background:#ffc107;' data-isadmin='false' ";
+
+                    if ($variable->id == '1') {
+                        $attr = "style='background:#d5b24aa8;' data-isadmin='true' ";
+                    }
+
+                    if ($variable->status == 0) {
+                        $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn'><a data-bs-toggle='tooltip' title='Active' href='{$url}' {$attr} id='role-activate' class='editBtn modal-activate-btn' data-uniqueid='{$eId}'> <i class='fa fa-check text-dark' aria-hidden='true'></i> </a></div></div>";
+                    } else {
+                        $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn'><a data-bs-toggle='tooltip' title='Deactive' href='{$url}' {$attr} id='role-deactivate' class='editBtn modal-deactivate-btn' data-uniqueid='{$eId}'> <i class='fa fa-close text-dark' aria-hidden='true'></i> </a></div></div>";
+                    }
                 }
                 if (auth()->user()->hasPermission("roles.delete")) {
-                    $url = route("roles.delete", encrypt($variable->id));
-                    $action .= view('buttons.delete', compact('variable', 'url')); 
+                    $eId = encrypt($variable->id);
+                    $url = route("roles.delete", $eId);
+                    $attr = " data-isadmin='false' ";
+
+                    if ($variable->id == '1') {
+                        $attr = "style='background:#c3293787;' data-isadmin='true' ";
+                    }
+
+                    $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn'><a data-bs-toggle='tooltip' title='Delete' href='{$url}' id='role-delete' {$attr} class='deleteBtn modal-delete-btn' data-uniqueid='{$eId}'> <i class='fa fa-trash text-white' aria-hidden='true'></i> </a></div></div>"; 
                 }
                 $action .= '</div>';
                 
@@ -88,7 +102,7 @@ class RoleController extends Controller
 
     public function create()
     {
-        $moduleName = $this->moduleName;
+        $moduleName = 'Role';
         $permission = Permission::get()->groupBy('model');
         $url = url('/');
 
@@ -117,7 +131,7 @@ class RoleController extends Controller
     {
         $id = decrypt($id);   
         $role = Role::find($id);
-        $moduleName = $this->moduleName;
+        $moduleName = 'Role';
         $permission = Permission::get()->groupBy('model');  
         
         $rolePermissions = PermissionRole::where('role_id', $id)->pluck('permission_id')->toArray();
@@ -130,7 +144,7 @@ class RoleController extends Controller
     {
         $id = decrypt($id);   
         $role = Role::find($id);
-        $moduleName = $this->moduleName;
+        $moduleName = 'Role';
         $permission = Permission::get()->groupBy('model');  
          
         $url = url('/');
@@ -161,6 +175,14 @@ class RoleController extends Controller
     {
         $id = decrypt($id);
 
+        if ($id == '1') {
+            return response()->json(['error' => 'Can\'t delete system defined role.','status' => 500]);
+        }
+
+        if (UserRole::where('role_id', $id)->exists()) {
+            return response()->json(['error' => 'Can\'t delete this role. This role is assigned to some users.','status' => 500]);
+        }
+
         DB::beginTransaction();
 
         try {
@@ -172,7 +194,7 @@ class RoleController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Oops! Something went wrong.','status' => 200]);
+            return response()->json(['error' => Helper::$errorMessage,'status' => 500]);
         }
     }
 

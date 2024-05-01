@@ -11,9 +11,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+
         $middleware->alias([
-            'ModuleAccessor' => \App\Http\Middleware\ModuleAccessor::class
+            'ModuleAccessor' => \App\Http\Middleware\ModuleAccessor::class,
+            'StatusChecker' => \App\Http\Middleware\StatusChecker::class
         ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

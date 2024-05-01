@@ -15,6 +15,7 @@
 <script src="{{ asset('assets/js/jqueryAdditional.min.js') }}"></script>
 <script src="{{ asset('assets/js/lodash.min.js') }}"></script>
 <script src="{{ asset('assets/js/select2_4_0_13.min.js') }}"></script>
+<script src="{{ asset('assets/js/custom.js') }}"></script>
 
 <script type="text/html" id="searchPannel">
     <input class="form-control f-14" placeholder="Search here">
@@ -193,7 +194,7 @@
     }
 
     function fireErrorMessage(message) {
-        Swal.fire('Error', message, 'success');
+        Swal.fire('Error', message, 'error');
     }
 
     if (hasSessionMessage) {

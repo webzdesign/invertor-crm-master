@@ -21,6 +21,8 @@ class ModuleAccessor
             ->join('permissions', 'permission_role.permission_id', '=', 'permissions.id')
             ->where('users.id', auth()->user()->id)
             ->where('permissions.slug', $module)
+            ->where('users.status', '1')
+            ->where('roles.status', '1')
             ->exists();
 
             if ($hasPermission) {

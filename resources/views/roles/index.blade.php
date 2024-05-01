@@ -74,7 +74,7 @@
             },
             "dom":"<'filterHeader d-block-500 cardsHeader'l<'#filterInput'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
             ajax: {
-                "url": "{{ route('roles.getallroles') }}",
+                "url": "{{ route('roles.index') }}",
                 "dataType": "json",
                 "type": "POST",
                 "data" : {
@@ -132,6 +132,132 @@
             $('body').find('#filterStatus').val('').trigger('change');
             ServerDataTable.ajax.reload();
         });
+
+        $(document).on('click', '#role-delete', function(e) {
+            e.preventDefault();
+            var linkURL = $(this).attr("href");
+
+            if (!$(this).data('isadmin')) {
+                Swal.fire({
+                    title: 'Are you sure want to Delete?',
+                    text: "As that can't be undone by doing reverse.",
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.value) {
+
+                        $.ajaxSetup({
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            }
+                        });
+
+                        $.ajax({
+                            url: linkURL,
+                            type: 'GET',
+                            success: function(response) {
+                                if (response.status == 200) {
+                                    fireSuccessMessage('{{ $moduleName }} Deleted successfully.');
+                                    $('.datatableMain').DataTable().ajax.reload();
+                                } else {
+                                    fireErrorMessage(response.error);
+                                }
+                            }
+                        });
+
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: 'Can\'t Delete!',
+                    text: "You can\'t delete system defined roles.",
+                    icon: 'info'
+                })
+            }
+        });
+
+
+        $(document).on('click', '#role-activate', function(e) {
+            e.preventDefault();
+            var linkURL = $(this).attr("href");
+
+            if (!$(this).data('isadmin')) {
+                Swal.fire({
+                    title: 'Are you sure want to Activate?',
+                    text: "As that can be undone by doing reverse.",
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.value) {
+                        $.ajax({
+                            url: linkURL,
+                            type: 'GET',
+                            success: function(response) {
+                                if (response.status == 200) {
+                                    fireSuccessMessage(response.success);
+                                    $('.datatableMain').DataTable().ajax.reload();
+                                } else {
+                                    fireErrorMessage('Something went wrong.');
+                                }
+                            }
+                        });
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: 'Can\'t Change Status!',
+                    text: "You can\'t change status of system defined role.",
+                    icon: 'info'
+                })
+            }
+
+        });
+
+        $(document).on('click', '#role-deactivate', function(e) {
+            e.preventDefault();
+            var linkURL = $(this).attr("href");
+
+            if (!$(this).data('isadmin')) {
+                Swal.fire({
+                    title: 'Are you sure want to De-Activate?',
+                    text: "As that can be undone by doing reverse.",
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.value) {
+                        $.ajax({
+                            url: linkURL,
+                            type: 'GET',
+                            success: function(response) {
+                                if (response.status == 200) {
+                                    fireSuccessMessage(response.success);
+                                    $('.datatableMain').DataTable().ajax.reload();
+                                } else {
+                                    fireErrorMessage('Something went wrong.');
+                                }
+                            }
+                        });
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: 'Can\'t Change Status!',
+                    text: "You can\'t change status of system defined role.",
+                    icon: 'info'
+                })
+            }
+
+        });
+
     });
 </script>
 @endsection

@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Helpers\Helper;
 
 Auth::routes();
 
@@ -16,28 +18,47 @@ Route::get('/register', function () {
 });
 
 Route::group(["middleware" => "auth"], function () {
-    Route::get('dashboard', [\App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
+    Route::group(["middleware" => "StatusChecker"], function () {
+        Route::get('dashboard', [\App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
 
-    Route::get('users', [UserController::class, 'index'])->name('users.index')->middleware('ModuleAccessor:users.view');
-    Route::post('users/getallusers', [UserController::class, 'DataTable'])->name('users.getallusers');
-    Route::get('users/create', [UserController::class, 'create'])->name('users.create')->middleware('ModuleAccessor:users.create');
-    Route::get('users/{id}/view', [UserController::class, 'show'])->name('users.view')->middleware('ModuleAccessor:users.view');
-    Route::get('users/{id}/edit', [UserController::class, 'edit'])->name('users.edit')->middleware('ModuleAccessor:users.edit');
-    Route::post('users/store', [UserController::class, 'store'])->name('users.store');
-    Route::put('users/{id}/update', [UserController::class, 'update'])->name('users.update');
-    Route::get('users/{id}/delete', [UserController::class, 'destroy'])->name('users.delete')->middleware('ModuleAccessor:users.delete');
-    Route::get('users/{id}/status', [UserController::class, 'status'])->name('users.activeinactive')->middleware('ModuleAccessor:users.activeinactive');
-    Route::post('/checkUserPhoneNumber', [UserController::class, 'checkUserPhoneNumber']);
+        /** Users **/
+        Route::match(['GET', 'POST'], 'users', [UserController::class, 'index'])->name('users.index')->middleware('ModuleAccessor:users.view');
+        Route::get('users/create', [UserController::class, 'create'])->name('users.create')->middleware('ModuleAccessor:users.create');
+        Route::get('users/{id}/view', [UserController::class, 'show'])->name('users.view')->middleware('ModuleAccessor:users.view');
+        Route::get('users/{id}/edit', [UserController::class, 'edit'])->name('users.edit')->middleware('ModuleAccessor:users.edit');
+        Route::post('users/store', [UserController::class, 'store'])->name('users.store');
+        Route::put('users/{id}/update', [UserController::class, 'update'])->name('users.update');
+        Route::get('users/{id}/delete', [UserController::class, 'destroy'])->name('users.delete')->middleware('ModuleAccessor:users.delete');
+        Route::get('users/{id}/status', [UserController::class, 'status'])->name('users.activeinactive')->middleware('ModuleAccessor:users.activeinactive');
+        Route::post('checkUserEmail', [UserController::class, 'checkUserEmail']);
+        /** Users **/
 
-    Route::get('/roles', [RoleController::class, 'index'])->name('roles.index')->middleware('ModuleAccessor:roles.view');
-    Route::post('roles/getallroles', [RoleController::class, 'DataTable'])->name('roles.getallroles');
-    Route::get('roles/create', [RoleController::class, 'create'])->name('roles.create')->middleware('ModuleAccessor:roles.create');
-    Route::post('roles/store', [RoleController::class, 'store'])->name('roles.store');
-    Route::get('roles/{id}/edit', [RoleController::class, 'edit'])->name('roles.edit')->middleware('ModuleAccessor:roles.edit');
-    Route::put('roles/{id}/update', [RoleController::class, 'update'])->name('roles.update');
-    Route::get('roles/{id}/view', [RoleController::class, 'show'])->name('roles.view')->middleware('ModuleAccessor:roles.view');
-    Route::get('roles/{id}/delete', [RoleController::class, 'destroy'])->name('roles.delete')->middleware('ModuleAccessor:roles.delete');
-    Route::get('roles/{id}/status', [RoleController::class, 'status'])->name('roles.activeinactive')->middleware('ModuleAccessor:roles.activeinactive');
-    Route::post('roles/checkRoleExist', [RoleController::class, 'checkRoleExist']);
+        /** Roles **/
+        Route::match(['GET', 'POST'], 'roles', [RoleController::class, 'index'])->name('roles.index')->middleware('ModuleAccessor:roles.view');
+        Route::get('roles/create', [RoleController::class, 'create'])->name('roles.create')->middleware('ModuleAccessor:roles.create');
+        Route::post('roles/store', [RoleController::class, 'store'])->name('roles.store');
+        Route::get('roles/{id}/edit', [RoleController::class, 'edit'])->name('roles.edit')->middleware('ModuleAccessor:roles.edit');
+        Route::put('roles/{id}/update', [RoleController::class, 'update'])->name('roles.update');
+        Route::get('roles/{id}/view', [RoleController::class, 'show'])->name('roles.view')->middleware('ModuleAccessor:roles.view');
+        Route::get('roles/{id}/delete', [RoleController::class, 'destroy'])->name('roles.delete')->middleware('ModuleAccessor:roles.delete');
+        Route::get('roles/{id}/status', [RoleController::class, 'status'])->name('roles.activeinactive')->middleware('ModuleAccessor:roles.activeinactive');
+        Route::post('roles/checkRoleExist', [RoleController::class, 'checkRoleExist']);
+        /** Roles **/
 
+        /** Categories **/
+        Route::match(['GET', 'POST'], 'categories', [CategoryController::class, 'index'])->name('categories.index')->middleware('ModuleAccessor:categories.view');
+        Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create')->middleware('ModuleAccessor:categories.create');
+        Route::post('categories/store', [CategoryController::class, 'store'])->name('categories.store');
+        Route::get('categories/{id}/edit', [CategoryController::class, 'edit'])->name('categories.edit')->middleware('ModuleAccessor:categories.edit');
+        Route::put('categories/{id}/update', [CategoryController::class, 'update'])->name('categories.update');
+        Route::get('categories/{id}/view', [CategoryController::class, 'show'])->name('categories.view')->middleware('ModuleAccessor:categories.view');
+        Route::get('categories/{id}/delete', [CategoryController::class, 'destroy'])->name('categories.delete')->middleware('ModuleAccessor:categories.delete');
+        Route::get('categories/{id}/status', [CategoryController::class, 'status'])->name('categories.activeinactive')->middleware('ModuleAccessor:categories.activeinactive');
+        /** Categories **/
+
+        /** Common **/
+        Route::post('getStates', [Helper::class, 'getStates'])->name('getStates');
+        Route::post('getCities', [Helper::class, 'getCities'])->name('getCities');
+        /** Common **/
+    });
 });

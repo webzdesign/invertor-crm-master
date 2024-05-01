@@ -21,7 +21,7 @@
             $authUser = auth()->user();
         @endphp
 
-        {{-- @permission('users.view')
+        @permission('users.view')
         <li>
             <a href="{{ route('users.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('users*') ? 'active' : '' }}">
                 <div class="icnBx d-flex align-items-center justify-content-center">
@@ -30,7 +30,7 @@
                 <span class="d-none-add">Users</span>
             </a>
         </li>
-        @endpermission --}}
+        @endpermission
 
         @permission('roles.view')
         <li>
@@ -39,6 +39,17 @@
                     <i class="fa fa-lock text-white" aria-hidden="true"></i>
                 </div>
                 <span class="d-none-add">Roles</span>
+            </a>
+        </li>
+        @endpermission
+
+        @permission('categories.view')
+        <li>
+            <a href="{{ route('categories.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('categories*') ? 'active' : '' }}">
+                <div class="icnBx d-flex align-items-center justify-content-center">
+                    <i class="fa fa-list-alt text-white" aria-hidden="true"></i>
+                </div>
+                <span class="d-none-add">Categories</span>
             </a>
         </li>
         @endpermission

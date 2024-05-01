@@ -20,7 +20,6 @@ class CountryStateCitySeeder extends Seeder
                 $newCountry[] = array('id' => $dataInputRecord[0], 'name' => $dataInputRecord[1], 'status' => 1);
                 if(count($newCountry) == 2000) {
                     Country::upsert($newCountry, ['id'], ['name']);
-                    echo count($newCountry) . " Countries upserted.\n";
                     $newCountry = array();
                 }
             }
@@ -28,6 +27,7 @@ class CountryStateCitySeeder extends Seeder
             
             if(count($newCountry) > 0) {
                 Country::upsert($newCountry, ['id'], ['name']);
+                echo count($newCountry) . " Countries upserted.\n";
             }
             unset($newCountry);
         }

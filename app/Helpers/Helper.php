@@ -2,12 +2,17 @@
 
 namespace App\Helpers;
 
+use \Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 use App\Models\Setting;
+use App\Models\State;
+use App\Models\City;
 
 class Helper {
 
     public static $appLogo = 'assets/images/logo.png';
     public static $favIcon = 'assets/images/favicon.ico';
+    public static $errorMessage = 'Oops! Something went wrong.';
 
     public static function getAppTitle()
     {
@@ -44,5 +49,31 @@ class Helper {
         } else {
             return self::$appLogo . '?time=' . time();
         }
+    }
+
+    public function getStates(Request $request) {
+        $states = State::where('country_id', $request->id)->active()->select('id', 'name as text')->pluck('text', 'id')->toArray();
+        $html = '';
+
+        foreach ($states as $id => $state) {
+            $html .= "<option value='{$id}'> {$state} </option>";
+        }
+
+        return response()->json(['status' => true, 'states' => $html]);
+    }
+
+    public function getCities(Request $request) {
+        $cities = City::where('state_id', $request->id)->active()->select('id', 'name as text')->pluck('text', 'id')->toArray();
+        $html = '';
+
+        foreach ($cities as $id => $city) {
+            $html .= "<option value='{$id}'> {$city} </option>";
+        }
+
+        return response()->json(['status' => true, 'cities' => $html]);
+    }
+
+    public static function logger($message, $type = 'error') {
+        Log::$type($message);
     }
 }

@@ -6,28 +6,26 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\UserRequest;
 use Illuminate\Http\Request;
+use App\Helpers\Helper;
+use App\Models\Country;
+use App\Models\State;
+use App\Models\City;
 use App\Models\User;
 use App\Models\Role;
 
 class UserController extends Controller
 {
-    protected $moduleName;
+    protected $moduleName = 'Users';
 
-    public function __construct()
+    public function index(Request $request)
     {
-        $this->moduleName = 'Users';
-    }
+        if (!$request->ajax()) {
+            $moduleName = $this->moduleName;
+            $roles = Role::active()->get();
+    
+            return view('users.index', compact('moduleName', 'roles'));
+        }
 
-    public function index()
-    {
-        $moduleName = $this->moduleName;
-        $roles = Role::active()->exceptSuperAdmin()->get();
-
-        return view('users.index', compact('moduleName', 'roles'));
-    }
-
-    public function DataTable(Request $request)
-    {
         $users = User::with(['roles', 'addedby', 'updatedby'])->whereHas("role", function($query) {
             $query->where('roles.id', "!=", 1);
         })->select('users.*');
@@ -108,11 +106,12 @@ class UserController extends Controller
 
     public function create()
     {
-        $moduleName = $this->moduleName;
-        $roles = Role::active()->exceptSuperAdmin()->get();
+        $moduleName = 'User';
+        $roles = Role::active()->get();
+        $countries = Country::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $url = url('/');
 
-        return view('users.create', compact('moduleName', 'roles'));
+        return view('users.create', compact('moduleName', 'roles', 'countries'));
     }
 
     public function store(UserRequest $request)
@@ -123,58 +122,72 @@ class UserController extends Controller
             $user = new User();
             $user->name = $request->name;
             $user->email = $request->email;
-            $user->phone = $request->phone;
             $user->password = Hash::make($request->password);
-            $user->added_by = Auth()->User()->id;
+            $user->address_line_1 = $request->address_line_1;
+            $user->address_line_2 = $request->address_line_2;
+            $user->country_id = $request->country;
+            $user->state_id = $request->state;
+            $user->city_id = $request->city;
+            $user->added_by = auth()->user()->id;
             $user->save();
             $user->roles()->attach($request->role);
 
             DB::commit();
 
-            return response()->json(['success' => $this->moduleName.' Added Successfully.', 'status' => 200]);
+            return redirect()->route('users.index')->with('success', 'User Created successfully.');
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage(), 'status' => 500]);
+            Helper::logger($e->getMessage(), 'critical');
+            return redirect()->back()->with(['error' => Helper::$errorMessage]);
         }
     }
 
     public function edit($id)
     {
+        $moduleName = 'User';
         $user = User::with('roles')->where('id', decrypt($id))->first();
-        $roles = Role::active()->exceptSuperAdmin()->get();
-        
-        return view('users.edit', compact('moduleName', 'user', 'roles'));
+        $roles = Role::active()->get();
+        $countries = Country::active()->select('id', 'name')->pluck('name', 'id')->toArray();
+        $states = State::active()->where('country_id', $user->country_id)->select('id', 'name')->pluck('name', 'id')->toArray();
+        $cities = City::active()->where('state_id', $user->state_id)->select('id', 'name')->pluck('name', 'id')->toArray();
+
+        return view('users.edit', compact('moduleName', 'user', 'roles', 'countries', 'states', 'cities', 'id'));
     }
 
-    public function update(UserRequest $request)
+    public function update(UserRequest $request, $id)
     {
         try {
             DB::beginTransaction();
 
-            $user = User::find(decrypt($request->id));
+            $user = User::find(decrypt($id));
             $user->name = $request->name;
             $user->email = $request->email;
-            $user->phone = $request->phone;
-            $user->password =  isset($request->password) ? Hash::make($request->password) : $user->password;
-            $user->updated_by = Auth()->User()->id;
+            $user->country_id = $request->country;
+            $user->state_id = $request->state;
+            $user->city_id = $request->city;
+            $user->address_line_1 = $request->address_line_1;
+            $user->address_line_2 = $request->address_line_2;
+            $user->password =  !empty(trim($request->password)) ? Hash::make($request->password) : $user->password;
+            $user->updated_by = auth()->user()->id;
             $user->save();
             $user->roles()->sync($request->role);
 
             DB::commit();
     
-            return response()->json(['success' => $this->moduleName.' Updated Successfully.', 'status' => 200]);
+            return redirect()->route('users.index')->with('success', 'User Updated successfully.');
             
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage(), 'status' => 500]);
+            return redirect()->back()->with(['error' => Helper::$errorMessage]);
         }
     }
 
     public function show($id)
     {
-        $data['user'] = User::with('roles')->where('id', decrypt($id))->get();
-        $data['roles'] = Role::active()->get();
-        
-        return response()->json($data);
+        $moduleName = 'User';
+        $user = User::with('roles')->where('id', decrypt($id))->first();
+        $roles = Role::active()->get();
+
+        return view('users.view', compact('moduleName', 'user', 'roles'));
     }
 
     public function destroy($id)
@@ -185,7 +198,7 @@ class UserController extends Controller
             $user->delete();
             return response()->json(['success' => $this->moduleName.' Deleted Successfully.', 'status' => 200]);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage(), 'status' => 500]);
+            return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
         }
     }
 
@@ -202,21 +215,18 @@ class UserController extends Controller
                 return response()->json(['success' => $this->moduleName.' deactivated successfully.', 'status' => 200]);
             }
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage(), 'status' => 500]);
+            return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
         }        
     }
 
-    public function checkUserPhoneNumber(Request $request)
+    public function checkUserEmail(Request $request)
     {
-        if (!isset($request->uid)) {
-            $user = User::where('phone', $request->phone)->first();
-        } else {
-            $user = User::where('phone', $request->phone)->where('id', '!=', decrypt($request->uid))->first();
+        $user = User::where('email', trim($request->email));
+
+        if ($request->has('id') && !empty(trim($request->id))) {
+            $user = $user->where('id', '!=', decrypt($request->id));
         }
-        if ($user) {
-            return response()->json(false);
-        } else {
-            return response()->json(true);
-        }
+
+        return response()->json($user->doesntExist());
     }
 }

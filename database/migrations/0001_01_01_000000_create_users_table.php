@@ -17,11 +17,16 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->tinyInteger('status')->default(1)->comment('0 = InActive | 1 = Active');
             $table->string('profile')->nullable();
-            $table->bigInteger('phone');
+            $table->bigInteger('phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->unsignedBigInteger('added_by');
             $table->unsignedBigInteger('updated_by')->nullable();
+            $table->text('address_line_1')->nullable();
+            $table->text('address_line_2')->nullable();
+            $table->unsignedBigInteger('country_id')->nullable();
+            $table->unsignedBigInteger('state_id')->nullable();
+            $table->unsignedBigInteger('city_id')->nullable();
             $table->softDeletes();
             $table->rememberToken();
             $table->timestamps();
