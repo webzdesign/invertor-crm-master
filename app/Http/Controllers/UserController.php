@@ -79,12 +79,16 @@ class UserController extends Controller
                     $action .= view('buttons.view', compact('variable', 'url')); 
                 }
                 if (auth()->user()->hasPermission("users.activeinactive")) {
-                    $url = route("users.activeinactive", encrypt($variable->id));
-                    $action .= view('buttons.status', compact('variable', 'url')); 
+                    if ($users->id !== auth()->user()->id) {
+                        $url = route("users.activeinactive", encrypt($variable->id));
+                        $action .= view('buttons.status', compact('variable', 'url')); 
+                    }
                 }
                 if (auth()->user()->hasPermission("users.delete")) {
-                    $url = route("users.delete", encrypt($variable->id));
-                    $action .= view('buttons.delete', compact('variable', 'url')); 
+                    if ($users->id !== auth()->user()->id) { 
+                        $url = route("users.delete", encrypt($variable->id));
+                        $action .= view('buttons.delete', compact('variable', 'url')); 
+                    }
                 }
                 $action .= '</div>';
 
