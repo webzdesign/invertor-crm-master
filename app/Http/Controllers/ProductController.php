@@ -61,7 +61,7 @@ class ProductController extends Controller
                 if (auth()->user()->hasPermission("products.edit")) {
                     $eId = encrypt($variable->id);
                     $url = route("products.image", $eId);
-                    $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn' ><a data-bs-toggle='tooltip' style='background:#ffc107 !important;' title='Active' href='{$url}' class='editBtn'> <i class='fa fa-image text-dark' aria-hidden='true'></i> </a></div></div>"; 
+                    $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn' ><a data-bs-toggle='tooltip' style='background:#ffc107 !important;' title='Alter Images' href='{$url}' class='editBtn'> <i class='fa fa-image text-dark' aria-hidden='true'></i> </a></div></div>"; 
                 }
                 if (auth()->user()->hasPermission("products.view")) {
                     $url = route("products.view", encrypt($variable->id));
