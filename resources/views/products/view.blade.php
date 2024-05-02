@@ -80,27 +80,6 @@
                 </div>
             </div>
 
-            <div class="col-md-12 col-sm-12">
-                <div class="form-group">
-                    <label class="c-gr f-500 f-16 w-100 mb-2">Images:</label>
-                    <div>            
-                    <div id="uploaded_image">
-                        <div class="row mt-3 sort_images">
-                        @forelse($images as $image)
-                            <div class="col-md-2 mb-3 imageListitem">
-                            <div style=" border: 1px solid #c7c7c7">
-                                <img src="{{ $image->image }}" class="getdata w-100 shadow-1-strong rounded" style="object-fit: cover;height:100px;" data-switchid="{{$image->id}}" />
-                            </div>
-                            </div>
-                        @empty
-                        @endforelse
-                        </div>
-                        </div>  
-
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
     
