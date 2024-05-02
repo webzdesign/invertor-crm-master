@@ -14,7 +14,7 @@
                 </linearGradient>
             </defs>
         </svg>
-        Create New {{ $moduleName }}
+        Add Category
     </a>
     @endpermission
 </div>

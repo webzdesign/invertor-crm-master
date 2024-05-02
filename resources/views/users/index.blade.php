@@ -14,7 +14,7 @@
                 </linearGradient>
             </defs>
         </svg>
-        Create New {{ $moduleName }}
+        Add User
     </a>
     @endpermission
 </div>

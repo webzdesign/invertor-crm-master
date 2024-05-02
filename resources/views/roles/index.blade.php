@@ -16,7 +16,7 @@
                 </linearGradient>
             </defs>
         </svg>
-        Create New {{ $moduleName }}
+        Add Role
     </a>
     {{-- @endpermission --}}
 </div>
