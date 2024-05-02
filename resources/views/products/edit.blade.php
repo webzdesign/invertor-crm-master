@@ -115,11 +115,13 @@ $(document).ready(function(){
             },
             pprice: {
                 required: true,
-                number: true
+                number: true,
+                min: 0
             },
             sprice: {
                 required: true,
-                number: true
+                number: true,
+                min: 0
             },
         },
         messages: {
@@ -135,11 +137,13 @@ $(document).ready(function(){
             },
             pprice: {
                 required: "Purchase price is required.",
-                number: "Enter valid price format."
+                number: "Enter valid price format.",
+                min: "Price can not be in negative amount."
             },
             sprice: {
                 required: "Sales price is required.",
                 number: "Enter valid price format.",
+                min: "Price can not be in negative amount."
             },
         },
         errorPlacement: function(error, element) {
