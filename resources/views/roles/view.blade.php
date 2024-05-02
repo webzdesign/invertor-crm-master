@@ -9,13 +9,13 @@
 
 @section('content')
 {{ Config::set('app.module',$moduleName) }}
-<h2 class="f-24 f-700 c-36 my-2">{{ $moduleName }}</h2>
+<h2 class="f-24 f-700 c-36 my-2"> View {{ $moduleName }}</h2>
     <div class="cards">
         <div class="cardsBody pb-0">
             <div class="row">
                 <div class="col-xl-12 col-md-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Role Name *</label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Role Name </label>
                         <input type="text" name="name" id="name" class="form-control" placeholder="Enter role name here..." value="{{ $role->name }}" disabled>
                     </div>
                 </div>
@@ -55,7 +55,7 @@
         </div>
         <div class="cardsFooter d-flex justify-content-center">
             <a href="{{ route('roles.index') }}">
-                <button type="button" class="btn-default f-500 f-14">cancel</button>
+                <button type="button" class="btn-default f-500 f-14">Cancel</button>
             </a>
         </div>
     </div>

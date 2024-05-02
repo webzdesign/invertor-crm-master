@@ -10,6 +10,8 @@ class Role extends Model
 {
     use HasFactory,SoftDeletes;
 
+    public $guarded = [];
+
     public function permissions()
     {
         return $this->belongsToMany(\App\Models\Permission::class);

@@ -21,7 +21,7 @@ class UserController extends Controller
     {
         if (!$request->ajax()) {
             $moduleName = $this->moduleName;
-            $roles = Role::active()->get();
+            $roles = Role::get();
     
             return view('users.index', compact('moduleName', 'roles'));
         }

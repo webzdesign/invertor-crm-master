@@ -44,7 +44,7 @@
 
                         <li class="dropdown middleContent p-0 userMenu">
                             <form method="POST" action="{{ route('logout') }}"> @csrf
-                                <button class="btn btn-primary" type="submit" style="color: white;">Logout</button>
+                                <button class="btn btn-primary" type="submit" style="color: white;background:#ffffff47!important;">Logout</button>
                             </form>
                         </li>
 

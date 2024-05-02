@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 
-class Category extends Model
+class Product extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -22,15 +22,20 @@ class Category extends Model
         return $this->belongsTo(User::class, 'updated_by')->withDefault([
             'name' => '-',
         ]);
-    }
-
-    public function product()
-    {
-        return $this->hasMany(Product::class);
-    }
+    }    
 
     public function scopeActive($query)
     {
         return $query->where('status', 1);
-    }    
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function images()
+    {
+        return $this->belongsTo(ProductImage::class, 'product_id', 'id');
+    }
 }

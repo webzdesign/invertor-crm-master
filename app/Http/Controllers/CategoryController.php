@@ -6,6 +6,7 @@ use App\Http\Requests\CategoryRequest;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Helpers\Helper;
+use App\Models\Product;
 
 class CategoryController extends Controller
 {
@@ -16,7 +17,7 @@ class CategoryController extends Controller
             $moduleName = $this->moduleName;    
             return view('categories.index', compact('moduleName'));
         }
-
+        
         $categories = Category::query();
 
         if (isset($request->filterStatus)) {
@@ -40,24 +41,24 @@ class CategoryController extends Controller
                 $variable = $users;
 
                 $action = "";
-                // $action .= '<div class="whiteSpace">';
-                // if (auth()->user()->hasPermission("categories.edit")) {
-                //     $url = route("categories.edit", encrypt($variable->id));
-                //     $action .= view('buttons.edit', compact('variable', 'url')); 
-                // }
-                // if (auth()->user()->hasPermission("categories.view")) {
-                //     $url = route("categories.view", encrypt($variable->id));
-                //     $action .= view('buttons.view', compact('variable', 'url')); 
-                // }
-                // if (auth()->user()->hasPermission("categories.activeinactive")) {
-                //     $url = route("categories.activeinactive", encrypt($variable->id));
-                //     $action .= view('buttons.status', compact('variable', 'url')); 
-                // }
-                // if (auth()->user()->hasPermission("categories.delete")) {
-                //     $url = route("categories.delete", encrypt($variable->id));
-                //     $action .= view('buttons.delete', compact('variable', 'url')); 
-                // }
-                // $action .= '</div>';
+                $action .= '<div class="whiteSpace">';
+                if (auth()->user()->hasPermission("categories.edit")) {
+                    $url = route("categories.edit", encrypt($variable->id));
+                    $action .= view('buttons.edit', compact('variable', 'url')); 
+                }
+                if (auth()->user()->hasPermission("categories.view")) {
+                    $url = route("categories.view", encrypt($variable->id));
+                    $action .= view('buttons.view', compact('variable', 'url')); 
+                }
+                if (auth()->user()->hasPermission("categories.activeinactive")) {
+                    $url = route("categories.activeinactive", encrypt($variable->id));
+                    $action .= view('buttons.status', compact('variable', 'url')); 
+                }
+                if (auth()->user()->hasPermission("categories.delete")) {
+                    $url = route("categories.delete", encrypt($variable->id));
+                    $action .= view('buttons.delete', compact('variable', 'url')); 
+                }
+                $action .= '</div>';
 
                 return $action;
             })
@@ -71,5 +72,90 @@ class CategoryController extends Controller
             ->rawColumns(['action', 'status', 'addedby.name', 'updatedby.name'])
             ->addIndexColumn()
             ->make(true);
+    }
+
+    public function checkCategory(Request $request) {
+        $category = Category::where('slug', Helper::slug(trim($request->name)));
+
+        if ($request->has('id') && !empty(trim($request->id))) {
+            $category = $category->where('id', '!=', decrypt($request->id));
+        }
+
+        return response()->json($category->doesntExist());
+    }
+
+    public function create(Request $request) {
+        $moduleName = 'Category';
+        return view('categories.create', compact('moduleName'));
+    }
+
+    public function store(CategoryRequest $request)
+    {
+        $user = new Category();
+        $user->name = $request->name;
+        $user->slug = Helper::slug($request->name);
+        $user->added_by = auth()->user()->id;
+        $user->save();
+
+        return redirect()->route('categories.index')->with('success', 'Category Created successfully.');
+    }
+
+    public function edit($id)
+    {
+        $moduleName = 'Category';
+        $category = Category::where('id', decrypt($id))->first();
+
+        return view('categories.edit', compact('moduleName', 'id', 'category'));
+    }
+
+    public function update(CategoryRequest $request, $id)
+    {
+        $user = Category::find(decrypt($id));
+        $user->name = $request->name;
+        $user->slug = Helper::slug($request->name);
+        $user->updated_by = auth()->user()->id;
+        $user->save();
+
+        return redirect()->route('categories.index')->with('success', 'Category Updated successfully.');
+    }
+
+    public function show($id)
+    {
+        $moduleName = 'Category';
+        $category = Category::where('id', decrypt($id))->first();
+
+        return view('categories.view', compact('moduleName', 'category'));
+    }
+
+    public function destroy($id)
+    {
+        $category = Category::find(decrypt($id));
+
+        if (Product::where('category_id', $category->id)->exists()) {
+            return response()->json(['error' => 'This category contains some products.', 'status' => 500]);
+        }
+
+        if ($category->delete()) {
+            return response()->json(['success' => 'Category Deleted Successfully.', 'status' => 200]);            
+        } else {
+            return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
+        }
+    }
+
+    public function status($id)
+    {
+        try {
+            $user = Category::find(decrypt($id));
+            $user->status = $user->status == 1 ? 0 : 1;
+            $user->save();
+
+            if ($user->status == 1) {
+                return response()->json(['success' => 'Category activated successfully.', 'status' => 200]);
+            } else {
+                return response()->json(['success' => 'Category deactivated successfully.', 'status' => 200]);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
+        }        
     }
 }

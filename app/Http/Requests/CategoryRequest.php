@@ -11,7 +11,7 @@ class CategoryRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,8 +21,16 @@ class CategoryRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            //
-        ];
+        if (request()->method() == 'PUT') {
+            $id = decrypt($this->id);
+            return ['name' => "required|unique:categories,name,{$id}"];
+        } else {
+            return ['name' => "required|unique:categories,name"];
+        }
+    }
+
+    public function messages(): array
+    {
+        return ['name.required' => 'Name is required.', 'name.unique' => 'This category is already exists.'];
     }
 }

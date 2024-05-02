@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
@@ -54,7 +56,33 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('categories/{id}/view', [CategoryController::class, 'show'])->name('categories.view')->middleware('ModuleAccessor:categories.view');
         Route::get('categories/{id}/delete', [CategoryController::class, 'destroy'])->name('categories.delete')->middleware('ModuleAccessor:categories.delete');
         Route::get('categories/{id}/status', [CategoryController::class, 'status'])->name('categories.activeinactive')->middleware('ModuleAccessor:categories.activeinactive');
+        Route::post('checkCategory', [CategoryController::class, 'checkCategory']);
         /** Categories **/
+
+        /** Products **/
+        Route::match(['GET', 'POST'], 'products', [ProductController::class, 'index'])->name('products.index')->middleware('ModuleAccessor:products.view');
+        Route::get('products/create', [ProductController::class, 'create'])->name('products.create')->middleware('ModuleAccessor:products.create');
+        Route::post('products/store', [ProductController::class, 'store'])->name('products.store');
+        Route::get('products/{id}/edit', [ProductController::class, 'edit'])->name('products.edit')->middleware('ModuleAccessor:products.edit');
+        Route::put('products/{id}/update', [ProductController::class, 'update'])->name('products.update');
+        Route::get('products/{id}/view', [ProductController::class, 'show'])->name('products.view')->middleware('ModuleAccessor:products.view');
+        Route::get('products/{id}/delete', [ProductController::class, 'destroy'])->name('products.delete')->middleware('ModuleAccessor:products.delete');
+        Route::get('products/{id}/status', [ProductController::class, 'status'])->name('products.activeinactive')->middleware('ModuleAccessor:products.activeinactive');
+        Route::post('checkProduct', [ProductController::class, 'checkProduct']);
+        Route::get('products-image/{id}', [ProductController::class, 'images'])->name('products.image');
+        Route::post('product-image/{id}', [ProductController::class, 'saveProductImage'])->name('product-image');
+        Route::delete('remove-product-images', [ProductController::class, 'deleteImage'])->name('remove-product-images');
+        /** Products **/
+
+        /** Purchase Order **/
+        Route::match(['GET', 'POST'], 'purchase-orders', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index')->middleware('ModuleAccessor:purchase-orders.view');
+        Route::get('purchase-orders/create', [PurchaseOrderController::class, 'create'])->name('purchase-orders.create')->middleware('ModuleAccessor:purchase-orders.create');
+        Route::post('purchase-orders/store', [PurchaseOrderController::class, 'store'])->name('purchase-orders.store');
+        Route::get('purchase-orders/{id}/edit', [PurchaseOrderController::class, 'edit'])->name('purchase-orders.edit')->middleware('ModuleAccessor:purchase-orders.edit');
+        Route::put('purchase-orders/{id}/update', [PurchaseOrderController::class, 'update'])->name('purchase-orders.update');
+        Route::get('purchase-orders/{id}/view', [PurchaseOrderController::class, 'show'])->name('purchase-orders.view')->middleware('ModuleAccessor:purchase-orders.view');
+        Route::get('purchase-orders/{id}/delete', [PurchaseOrderController::class, 'destroy'])->name('purchase-orders.delete')->middleware('ModuleAccessor:purchase-orders.delete');
+        /** Purchase Order **/
 
         /** Common **/
         Route::post('getStates', [Helper::class, 'getStates'])->name('getStates');

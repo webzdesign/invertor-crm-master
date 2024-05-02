@@ -76,4 +76,18 @@ class Helper {
     public static function logger($message, $type = 'error') {
         Log::$type($message);
     }
+
+    public static function slug($string, $separator = '-')
+    {
+        $string = preg_replace("/[^a-zA-Z0-9\/_|+ -]/", '', $string);
+        $string = trim($string, $separator);
+        if (function_exists('mb_strtolower')) {
+            $string = mb_strtolower($string);
+        } else {
+            $string = strtolower($string);
+        }
+        $string = preg_replace("/[\/_|+ -]+/", $separator, $string);
+
+        return $string;
+    }
 }

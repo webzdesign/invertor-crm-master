@@ -54,6 +54,28 @@
         </li>
         @endpermission
 
+        @permission('products.view')
+        <li>
+            <a href="{{ route('products.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('products*') ? 'active' : '' }}">
+                <div class="icnBx d-flex align-items-center justify-content-center">
+                    <i class="fa fa-product-hunt text-white" aria-hidden="true"></i>
+                </div>
+                <span class="d-none-add">Products</span>
+            </a>
+        </li>
+        @endpermission
+
+        @permission('purchase-orders.view')
+        <li>
+            <a href="{{ route('purchase-orders.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('purchase-orders*') ? 'active' : '' }}">
+                <div class="icnBx d-flex align-items-center justify-content-center">
+                    <i class="fa fa-shopping-bag text-white" aria-hidden="true"></i>
+                </div>
+                <span class="d-none-add">Purchase Order</span>
+            </a>
+        </li>
+        @endpermission
+
 
 
 
