@@ -27,7 +27,7 @@
         <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Category</label>
-                <select name="filterCategory" id="filterCategory" class="select2 select2-hidden-accessible" data-placeholder="--- Select Role ---">
+                <select name="filterCategory" id="filterCategory" class="select2 select2-hidden-accessible" data-placeholder="--- Select Category ---">
                     @forelse($categories as $category)
                     @if($loop->first)
                     <option value="" selected> --- Select Category --- </option>
