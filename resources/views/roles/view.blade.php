@@ -39,7 +39,6 @@
                                     @if($loop->first)
                                     <li class="list-group-item inline bg-transparent border-0 p-0 mb-2">
                                         <label class="c-gr f-500 f-16 w-100 mb-2">
-                                            <input type="checkbox" class="form-check-input selectDeselect" disabled>
                                             {{ $v->model }}</label>
                                     </li>
                                     @endif

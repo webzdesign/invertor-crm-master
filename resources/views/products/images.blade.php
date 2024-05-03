@@ -69,6 +69,11 @@
 
         </div>
       </div>
+      <div class="cardsFooter d-flex justify-content-center">
+        <a href="{{ route('products.index') }}">
+            <button type="button" class="btn-default f-500 f-14">Cancel</button>
+        </a>
+      </div>
   </div>
 
 @endsection
