@@ -119,8 +119,8 @@
                 "dataType": "json",
                 "type": "POST",
                 "data" : {
-                    filterStatus:function() {
-                        return $("#filterStatus").val();
+                    filterSupplier:function() {
+                        return $("#filterSupplier").val();
                     },
                     filterFrom: function () {
                         return $('#filterFrom').val();
@@ -162,8 +162,11 @@
 
         /* filter Datatable */
         $('body').on('change', '#filterFrom, #filterTo, #filterSupplier', function(e){
-            var filterStatus = $(this).val();
-            if (filterStatus != '') {
+            var filterSupplier = $('#filterSupplier').val();
+            var filterFrom = $('#filterFrom').val();
+            var filterTo = $('#filterTo').val();
+
+            if (filterSupplier != '' || filterFrom != '' || filterTo != '') {
                 $('body').find('.clearData').show();
             } else {
                 $('body').find('.clearData').hide();

@@ -92,6 +92,9 @@
 <script>
 $(document).ready(function(){
 
+    $.validator.addMethod("noSpace", function(value, element) { 
+        return value.indexOf(" ") < 0 && value != ""; 
+    }, "Space are not allowed");
 
     $("#addProduct").validate({
         rules: {
@@ -103,6 +106,7 @@ $(document).ready(function(){
             },
             unique_number: {
                 required: true,
+                noSpace: true,
                 remote: {
                     url: "{{ url('checkProduct') }}",
                     type: "POST",
