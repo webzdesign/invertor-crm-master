@@ -92,7 +92,7 @@ class Helper {
     }
 
     public static function generateOrderNumber () {
-        $orderNo = PurchaseOrder::latest()->select('id')->first()->id + 1 ?? 1;
+        $orderNo = (PurchaseOrder::latest()->select('id')->first()->id ?? 0) + 1;
         $prefix = date('-Y-');
         $orderNo = sprintf('%05d', $orderNo);
         $orderNo = "PO{$prefix}{$orderNo}";
