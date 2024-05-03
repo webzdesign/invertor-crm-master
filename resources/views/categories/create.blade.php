@@ -4,7 +4,7 @@
 <li class="f-14 f-400 c-7b">
     /
 </li>
-<li class="f-14 f-400 c-36">Add {{ $moduleName }} </li>
+<li class="f-14 f-400 c-36">Add  </li>
 @endsection
 
 @section('content')

@@ -4,7 +4,7 @@
     <li class="f-14 f-400 c-7b">
         /
     </li>
-    <li class="f-14 f-400 c-36">Edit {{ $moduleName }} </li>
+    <li class="f-14 f-400 c-36">Edit </li>
 @endsection
 
 @section('css')
@@ -131,7 +131,13 @@
                                                     <div style="min-width: 200px;width: 100%" class="removable-product">
                                                         <select name="product[{{ $key }}]" data-indexid="{{ $key }}" id="product-{{ $key }}" class="select2 select2-hidden-accessible m-product" style="width:100%" data-placeholder="Select a Product">
                                                             <option value="" >Select Product </option>
-                                                            @forelse ($item?->category?->product ?? [] as $product)
+                                                            @php
+                                                                $cats = [];
+                                                                if ($item?->category?->status == 1) {
+                                                                    $cats = $item?->category?->product ?? [];
+                                                                }
+                                                            @endphp
+                                                            @forelse ($cats as $product)
                                                             <option value="{{ $product->id }}" data-price="{{ $product->purchase_price }}"  @if($product->id == $item->product_id) selected @endif > {{ $product->name }} </option>
                                                             @empty
                                                             <option value="" data-price="0" selected> --- No Product Available --- </option>
@@ -143,21 +149,21 @@
 
                                                 <td style="">
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="{{ $key }}" value="{{ $item->qty }}" name="quantity[{{ $key }}]" id="quantity-{{ $key }}" pattern="^\d*(\.\d{0,2})?$" class="form-control m-quantity" style="background:#ffffff">
+                                                        <input type="number" data-indexid="{{ $key }}" value="{{ $item->qty }}" name="quantity[{{ $key }}]" id="quantity-{{ $key }}" class="form-control m-quantity" style="background:#ffffff">
                                                     </div>
                                                 </td>
 
 
                                                 <td style="">
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="{{ $key }}" value="{{ $item->price }}" name="price[{{ $key }}]" id="price-{{ $key }}" pattern="^\d*(\.\d{0,2})?$" class="form-control m-price" style="background:#ffffff">
+                                                        <input type="number" data-indexid="{{ $key }}" value="{{ $item->price }}" name="price[{{ $key }}]" id="price-{{ $key }}" class="form-control m-price" style="background:#ffffff">
                                                     </div>
                                                 </td>
 
 
                                                 <td style="">
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="{{ $key }}" value="{{ $item->expense }}" name="expense[{{ $key }}]" id="expense-{{ $key }}" pattern="^\d*(\.\d{0,2})?$" class="form-control m-expense" style="background:#ffffff">
+                                                        <input type="number" data-indexid="{{ $key }}" value="{{ $item->expense }}" name="expense[{{ $key }}]" id="expense-{{ $key }}" class="form-control m-expense" style="background:#ffffff">
                                                     </div>
                                                 </td>
 
@@ -213,21 +219,21 @@
 
                                                 <td style="">
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="0" name="quantity[0]" id="quantity-0" pattern="^\d*(\.\d{0,2})?$" class="form-control m-quantity" style="background:#ffffff">
+                                                        <input type="number" data-indexid="0" name="quantity[0]" id="quantity-0" class="form-control m-quantity" style="background:#ffffff">
                                                     </div>
                                                 </td>
 
 
                                                 <td style="">
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="0" name="price[0]" id="price-0" pattern="^\d*(\.\d{0,2})?$" class="form-control m-price" style="background:#ffffff">
+                                                        <input type="number" data-indexid="0" name="price[0]" id="price-0" class="form-control m-price" style="background:#ffffff">
                                                     </div>
                                                 </td>
 
 
                                                 <td style="">
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="0" name="expense[0]" id="expense-0" pattern="^\d*(\.\d{0,2})?$" class="form-control m-expense" style="background:#ffffff">
+                                                        <input type="number" data-indexid="0" name="expense[0]" id="expense-0" class="form-control m-expense" style="background:#ffffff">
                                                     </div>
                                                 </td>
 
@@ -538,6 +544,16 @@
                     $(`#remarks-${indexId}`).val(null);
                     calculateAmount(indexId);
                 }
+
+                let that = $(this);
+
+                $('.m-product').not(this).each(function (index, element) {
+                    if ($(element).val() !== null && thisId == $(element).val()) {
+                        $(that).val(null).trigger('change');
+                        Swal.fire('Warning', 'Product is already selected.', 'warning');
+                        return false;
+                    }
+                });
             });
 
             $(document).on('change', '.m-quantity, .m-price, .m-expense', function (event) {

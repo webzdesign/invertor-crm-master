@@ -40,7 +40,7 @@ class PurchaseOrderController extends Controller
         }
 
         if ($request->has('filterTo') && !empty(trim($request->filterTo))) {
-            $po = $po->where('date', '>=', date('Y-m-d H:i:s', strtotime($request->filterTo)));
+            $po = $po->where('date', '<=', date('Y-m-d H:i:s', strtotime($request->filterTo)));
         }
 
         if (isset($request->order[0]['column']) && $request->order[0]['column'] == 0) {

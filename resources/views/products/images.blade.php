@@ -34,7 +34,7 @@
 <li class="f-14 f-400 c-7b">
     /
 </li>
-<li class="f-14 f-400 c-36">{{ $moduleName }} </li>
+<li class="f-14 f-400 c-36"> Upload Images </li>
 @endsection
 
 @section('content')
@@ -46,8 +46,8 @@
           <div class="col-md-12 col-sm-12">
 
           <span class="error" id="filePondErr">  </span>
-          <span class="errorContainingImage" style="color:red"></span>
           <div class="dropzone" id="file-dropzone"></div>
+          <span class="errorContainingImage" style="color:red"></span>
 
           <div id="uploaded_image">
           <div class="row mt-3 sort_images">
@@ -90,6 +90,7 @@
         headers: {'X-CSRF-TOKEN': "{{ csrf_token() }}"},
         init: function() {
             this.on("error", function(file, message){
+              $(".errorContainingImage").html("Only jpeg, jpg and png file format supported.");
                 $(this).closest('.dz-error-message').remove()
             });
         },

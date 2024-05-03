@@ -4,7 +4,7 @@
     <li class="f-14 f-400 c-7b">
         /
     </li>
-    <li class="f-14 f-400 c-36">View {{ $moduleName }} </li>
+    <li class="f-14 f-400 c-36">View </li>
 @endsection
 
 @section('css')
@@ -31,7 +31,7 @@
                     <div class="col-md-4 fieldDiv_4262" style="">
                         <div class="form-group">
                             <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number:
-                                <span class="text-danger">*</span>
+                                
                             </label>
 
                             <input class="form-control" id="order_number" placeholder="" type="text" value="{{ $po->order_no }}" readonly style="background:#efefef">
@@ -41,7 +41,7 @@
                     <div class="col-md-4 fieldDiv_4263" style="">
                         <div class="form-group">
                             <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Date:
-                                <span class="text-danger">*</span>
+                                
                             </label>
                             <input type="text" readonly name="order_date" placeholder="Order Date" id="order_date" value="{{ date('d-m-Y', strtotime($po->date)) }}" class="form-control datepicker" style="background:#efefef">
 
@@ -52,7 +52,7 @@
                         <!-- Datasource -->
                         <div class="form-group">
                             <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Supplier:
-                                <span class="text-danger">*</span>
+                                
                             </label>
                             <input type="text" readonly class="form-control" value="{{ $po->supplier->name }}">
                             </select>
@@ -75,15 +75,15 @@
                                         <thead>
                                             <tr>
 
-                                                <th style="">Category <span class="text-danger">*</span> </th>
+                                                <th style="">Category  </th>
 
-                                                <th style="">Product <span class="text-danger">*</span> </th>
+                                                <th style="">Product  </th>
 
-                                                <th style="">Quantity <span class="text-danger">*</span> </th>
+                                                <th style="">Quantity  </th>
 
-                                                <th style="">Price <span class="text-danger">*</span> </th>
+                                                <th style="">Price  </th>
 
-                                                <th style="">Expense <span class="text-danger">*</span> </th>
+                                                <th style="">Expense  </th>
 
                                                 <th style="">Amount </th>
 
@@ -97,14 +97,14 @@
 
                                                 <td>
                                                     <div style="min-width: 200px;width: 100%" class="removable-category">
-                                                        <input type="text" readonly class="form-control" value="{{ $item->category->name }}">
+                                                        <input type="text" readonly class="form-control" value="{{ $item->category->status == 1 ? $item->category->name : '' }}">
                                                     </div>
                                                 </td>
 
 
                                                 <td>
                                                     <div style="min-width: 200px;width: 100%" class="removable-product">
-                                                        <input type="text" readonly class="form-control" value="{{ $item->product->name }}">
+                                                        <input type="text" readonly class="form-control" value="{{ $item->category->status == 1 ? $item->product->name : '' }}">
                                                     </div>
                                                 </td>
 

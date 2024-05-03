@@ -41,6 +41,12 @@ class PermissionSeeder extends Seeder
             ['name' => 'Edit Purchase Orders', 'slug' => 'purchase-orders.edit', 'model' => 'PurchaseOrder', 'description' => 'Can edit Purchase Orders', 'added_by' => 1],
             ['name' => 'View Purchase Orders', 'slug' => 'purchase-orders.view', 'model' => 'PurchaseOrder', 'description' => 'Can view Purchase Orders', 'added_by' => 1],
             ['name' => 'Delete Purchase Orders', 'slug' => 'purchase-orders.delete', 'model' => 'PurchaseOrder', 'description' => 'Can delete Purchase Orders', 'added_by' => 1],
+
+            ['name' => 'Add Procurement Cost', 'slug' => 'procurement-cost.create', 'model' => 'ProcurementCost', 'description' => 'Can add Procurement Cost', 'added_by' => 1],
+            ['name' => 'Edit Procurement Cost', 'slug' => 'procurement-cost.edit', 'model' => 'ProcurementCost', 'description' => 'Can edit Procurement Cost', 'added_by' => 1],
+            ['name' => 'View Procurement Cost', 'slug' => 'procurement-cost.view', 'model' => 'ProcurementCost', 'description' => 'Can view Procurement Cost', 'added_by' => 1],
+            ['name' => 'Delete Procurement Cost', 'slug' => 'procurement-cost.delete', 'model' => 'ProcurementCost', 'description' => 'Can delete Procurement Cost', 'added_by' => 1],
+            ['name' => 'Active/Inactive Procurement Cost', 'slug' => 'procurement-cost.activeinactive', 'model' => 'ProcurementCost', 'description' => 'Can Activate or deactivate Procurement Cost', 'added_by' => 1],
         ];
 
         foreach ($permissions as $permission) {

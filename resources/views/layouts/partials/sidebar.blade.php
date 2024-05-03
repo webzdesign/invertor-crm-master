@@ -76,6 +76,17 @@
         </li>
         @endpermission
 
+        @permission('procurement-cost.view')
+        <li>
+            <a href="{{ route('procurement-cost.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('procurement-cost*') ? 'active' : '' }}">
+                <div class="icnBx d-flex align-items-center justify-content-center">
+                    <i class="fa fa-money text-white" aria-hidden="true"></i>
+                </div>
+                <span class="d-none-add"> Procurement Cost </span>
+            </a>
+        </li>
+        @endpermission
+
 
 
 

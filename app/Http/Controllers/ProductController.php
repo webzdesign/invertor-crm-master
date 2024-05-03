@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\ProductImage;
 use App\Models\Category;
 use App\Helpers\Helper;
+use App\Models\ProcurementCost;
 use App\Models\Product;
 
 class ProductController extends Controller
@@ -199,8 +200,24 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
-        if (Product::find(decrypt($id))->delete()) {
-            return response()->json(['success' => 'Product Deleted Successfully.', 'status' => 200]);            
+        $product = Product::where('id', decrypt($id));
+
+        if ($product->exists()) {
+
+            $product->delete();
+
+            $images = ProductImage::where('product_id', decrypt($id))->select('name')->pluck('name')->toArray();
+
+            foreach ($images as $image) {
+                if (file_exists(storage_path("app/public/product-images/{$image}"))) {
+                    unlink(storage_path("app/public/product-images/{$image}"));
+                }
+            }
+
+            ProductImage::where('product_id', decrypt($id))->delete();
+            ProcurementCost::where('product_id', decrypt($id))->delete();
+
+            return response()->json(['success' => 'Product deleted Successfully.', 'status' => 200]);            
         } else {
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
         }

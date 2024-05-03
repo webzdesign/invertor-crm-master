@@ -6,6 +6,7 @@ use App\Http\Requests\CategoryRequest;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Helpers\Helper;
+use App\Models\ProcurementCost;
 use App\Models\Product;
 
 class CategoryController extends Controller
@@ -136,6 +137,7 @@ class CategoryController extends Controller
         }
 
         if ($category->delete()) {
+            ProcurementCost::where('category_id', decrypt($id))->delete();
             return response()->json(['success' => 'Category Deleted Successfully.', 'status' => 200]);            
         } else {
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);

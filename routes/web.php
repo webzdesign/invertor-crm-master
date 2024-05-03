@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProcurementCostController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
@@ -84,6 +85,18 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('purchase-orders/{id}/delete', [PurchaseOrderController::class, 'destroy'])->name('purchase-orders.delete')->middleware('ModuleAccessor:purchase-orders.delete');
         Route::post('get-products-on-category', [PurchaseOrderController::class, 'productsOnCategory'])->name('get-products-on-category');
         /** Purchase Order **/
+
+        /** Procurement Cost **/
+        Route::match(['GET', 'POST'], 'procurement-cost', [ProcurementCostController::class, 'index'])->name('procurement-cost.index')->middleware('ModuleAccessor:procurement-cost.view');
+        Route::get('procurement-cost/create', [ProcurementCostController::class, 'create'])->name('procurement-cost.create')->middleware('ModuleAccessor:procurement-cost.create');
+        Route::post('procurement-cost/store', [ProcurementCostController::class, 'store'])->name('procurement-cost.store');
+        Route::get('procurement-cost/{id}/edit', [ProcurementCostController::class, 'edit'])->name('procurement-cost.edit')->middleware('ModuleAccessor:procurement-cost.edit');
+        Route::put('procurement-cost/{id}/update', [ProcurementCostController::class, 'update'])->name('procurement-cost.update');
+        Route::get('procurement-cost/{id}/view', [ProcurementCostController::class, 'show'])->name('procurement-cost.view')->middleware('ModuleAccessor:procurement-cost.view');
+        Route::get('procurement-cost/{id}/delete', [ProcurementCostController::class, 'destroy'])->name('procurement-cost.delete')->middleware('ModuleAccessor:procurement-cost.delete');
+        Route::get('procurement-cost/{id}/status', [ProcurementCostController::class, 'status'])->name('procurement-cost.activeinactive')->middleware('ModuleAccessor:procurement-cost.activeinactive');
+        Route::post('procurement-cost/check', [ProcurementCostController::class, 'check']);
+        /** Procurement Cost **/
 
         /** Common **/
         Route::post('getStates', [Helper::class, 'getStates'])->name('getStates');

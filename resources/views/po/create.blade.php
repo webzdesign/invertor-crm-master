@@ -4,7 +4,7 @@
     <li class="f-14 f-400 c-7b">
         /
     </li>
-    <li class="f-14 f-400 c-36">Add {{ $moduleName }} </li>
+    <li class="f-14 f-400 c-36">Add </li>
 @endsection
 
 @section('css')
@@ -140,21 +140,21 @@
 
                                                 <td style="">
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="0" name="quantity[0]" id="quantity-0" pattern="^\d*(\.\d{0,2})?$" class="form-control m-quantity" style="background:#ffffff">
+                                                        <input type="number" data-indexid="0" name="quantity[0]" id="quantity-0" class="form-control m-quantity" style="background:#ffffff">
                                                     </div>
                                                 </td>
 
 
                                                 <td style="">
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="0" name="price[0]" id="price-0" pattern="^\d*(\.\d{0,2})?$" class="form-control m-price" style="background:#ffffff">
+                                                        <input type="number" data-indexid="0" name="price[0]" id="price-0" class="form-control m-price" style="background:#ffffff">
                                                     </div>
                                                 </td>
 
 
                                                 <td style="">
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="0" name="expense[0]" id="expense-0" pattern="^\d*(\.\d{0,2})?$" class="form-control m-expense" style="background:#ffffff">
+                                                        <input type="number" data-indexid="0" name="expense[0]" id="expense-0" class="form-control m-expense" style="background:#ffffff">
                                                     </div>
                                                 </td>
 
@@ -406,9 +406,9 @@
                 });
 
                 $('.mt-quantity').val(mtQuantity);
-                $('.mt-price').val(mtPrice);
-                $('.mt-expense').val(mtExpense);
-                $('.mt-amount').val(mtAmount);
+                $('.mt-price').val(mtPrice.toFixed(2));
+                $('.mt-expense').val(mtExpense.toFixed(2));
+                $('.mt-amount').val(mtAmount.toFixed(2));
 
                 /** Final Total for Each Row **/
             }
@@ -472,6 +472,16 @@
                     $(`#remarks-${indexId}`).val(null);
                     calculateAmount(indexId);
                 }
+
+                let that = $(this);
+
+                $('.m-product').not(this).each(function (index, element) {
+                    if ($(element).val() !== null && thisId == $(element).val()) {
+                        $(that).val(null).trigger('change');
+                        Swal.fire('Warning', 'Product is already selected.', 'warning');
+                        return false;
+                    }
+                });
             });
 
             $(document).on('change', '.m-quantity, .m-price, .m-expense', function (event) {
