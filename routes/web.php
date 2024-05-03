@@ -82,6 +82,7 @@ Route::group(["middleware" => "auth"], function () {
         Route::put('purchase-orders/{id}/update', [PurchaseOrderController::class, 'update'])->name('purchase-orders.update');
         Route::get('purchase-orders/{id}/view', [PurchaseOrderController::class, 'show'])->name('purchase-orders.view')->middleware('ModuleAccessor:purchase-orders.view');
         Route::get('purchase-orders/{id}/delete', [PurchaseOrderController::class, 'destroy'])->name('purchase-orders.delete')->middleware('ModuleAccessor:purchase-orders.delete');
+        Route::post('get-products-on-category', [PurchaseOrderController::class, 'productsOnCategory'])->name('get-products-on-category');
         /** Purchase Order **/
 
         /** Common **/

@@ -28,4 +28,14 @@ class PurchaseOrder extends Model
     {
         return $this->hasMany(PurchaseOrderItem::class, 'po_id', 'id');
     }
+
+    public function total()
+    {
+        return $this->items()->sum('amount') ?? 0;
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

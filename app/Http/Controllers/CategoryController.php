@@ -97,7 +97,7 @@ class CategoryController extends Controller
         $user->added_by = auth()->user()->id;
         $user->save();
 
-        return redirect()->route('categories.index')->with('success', 'Category Created successfully.');
+        return redirect()->route('categories.index')->with('success', 'Category added successfully.');
     }
 
     public function edit($id)

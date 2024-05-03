@@ -29,6 +29,12 @@ class RoleSeeder extends Seeder
                 'slug' => 'driver',
                 'description' => 'Driver',
                 'added_by'  => 1
+            ],
+            [
+                'name' => 'Supplier',
+                'slug' => 'supplier',
+                'description' => 'Supplier',
+                'added_by'  => 1
             ]
         ];
 

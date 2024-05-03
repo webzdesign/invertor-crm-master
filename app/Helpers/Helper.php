@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use \Illuminate\Support\Facades\Log;
+use App\Models\PurchaseOrder;
 use Illuminate\Http\Request;
 use App\Models\Setting;
 use App\Models\State;
@@ -77,8 +78,7 @@ class Helper {
         Log::$type($message);
     }
 
-    public static function slug($string, $separator = '-')
-    {
+    public static function slug($string, $separator = '-') {
         $string = preg_replace("/[^a-zA-Z0-9\/_|+ -]/", '', $string);
         $string = trim($string, $separator);
         if (function_exists('mb_strtolower')) {
@@ -89,5 +89,14 @@ class Helper {
         $string = preg_replace("/[\/_|+ -]+/", $separator, $string);
 
         return $string;
+    }
+
+    public static function generateOrderNumber () {
+        $orderNo = PurchaseOrder::latest()->select('id')->first()->id + 1 ?? 1;
+        $prefix = date('-Y-');
+        $orderNo = sprintf('%05d', $orderNo);
+        $orderNo = "PO{$prefix}{$orderNo}";
+
+        return $orderNo;
     }
 }

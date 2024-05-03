@@ -157,7 +157,7 @@ class ProductController extends Controller
         $product->added_by = auth()->user()->id;
         $product->save();
 
-        return redirect()->route('products.index')->with('success', 'Product Created successfully.');
+        return redirect()->route('products.index')->with('success', 'Product added successfully.');
     }
 
     public function edit($id)

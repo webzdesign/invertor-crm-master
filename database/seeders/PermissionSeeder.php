@@ -38,9 +38,9 @@ class PermissionSeeder extends Seeder
             ['name' => 'Active/Inactive Products', 'slug' => 'products.activeinactive', 'model' => 'Product', 'description' => 'Can Activate or deactivate Products', 'added_by' => 1],
 
             ['name' => 'Add Purchase Orders', 'slug' => 'purchase-orders.create', 'model' => 'PurchaseOrder', 'description' => 'Can add Purchase Orders', 'added_by' => 1],
-            // ['name' => 'Edit Purchase Orders', 'slug' => 'purchase-orders.edit', 'model' => 'PurchaseOrder', 'description' => 'Can edit Purchase Orders', 'added_by' => 1],
-            // ['name' => 'View Purchase Orders', 'slug' => 'purchase-orders.view', 'model' => 'PurchaseOrder', 'description' => 'Can view Purchase Orders', 'added_by' => 1],
-            // ['name' => 'Delete Purchase Orders', 'slug' => 'purchase-orders.delete', 'model' => 'PurchaseOrder', 'description' => 'Can delete Purchase Orders', 'added_by' => 1],
+            ['name' => 'Edit Purchase Orders', 'slug' => 'purchase-orders.edit', 'model' => 'PurchaseOrder', 'description' => 'Can edit Purchase Orders', 'added_by' => 1],
+            ['name' => 'View Purchase Orders', 'slug' => 'purchase-orders.view', 'model' => 'PurchaseOrder', 'description' => 'Can view Purchase Orders', 'added_by' => 1],
+            ['name' => 'Delete Purchase Orders', 'slug' => 'purchase-orders.delete', 'model' => 'PurchaseOrder', 'description' => 'Can delete Purchase Orders', 'added_by' => 1],
         ];
 
         foreach ($permissions as $permission) {

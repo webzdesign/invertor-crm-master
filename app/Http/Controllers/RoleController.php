@@ -124,7 +124,7 @@ class RoleController extends Controller
        
         DB::commit();
         
-        return redirect()->route('roles.index')->with('success', 'Role created successfully');
+        return redirect()->route('roles.index')->with('success', 'Role added successfully');
     }
 
     public function show($id)
