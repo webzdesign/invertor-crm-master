@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
-use App\Http\Requests\PurchaseOrderRequest;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
 use App\Models\PurchaseOrder;
@@ -31,8 +29,8 @@ class PurchaseOrderController extends Controller
 
         $po = PurchaseOrder::with(['items', 'addedby', 'updatedby']);
 
-        if ($request->has('filterStatus') && !empty(trim($request->filterStatus))) {
-            $po = $po->where('supplier_id', $request->filterStatus);
+        if ($request->has('filterSupplier') && !empty(trim($request->filterSupplier))) {
+            $po = $po->where('supplier_id', $request->filterSupplier);
         }
 
         if ($request->has('filterFrom') && !empty(trim($request->filterFrom))) {
@@ -95,7 +93,7 @@ class PurchaseOrderController extends Controller
             $builder->where('roles.id', 4);
         })->select('users.id as id', 'users.name as name')->pluck('name', 'id')->toArray();
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
-        $orderNo = Helper::generateOrderNumber();
+        $orderNo = Helper::generatePurchaseOrderNumber();
 
         return view('po.create', compact('moduleName', 'suppliers', 'categories', 'orderNo'));
     }
@@ -138,7 +136,7 @@ class PurchaseOrderController extends Controller
             'expense.*.min' => 'Quantity can\'t be less than 0.'
         ]);
 
-        $orderNo = Helper::generateOrderNumber();
+        $orderNo = Helper::generatePurchaseOrderNumber();
         $userId = auth()->user()->id;
 
         DB::beginTransaction();
@@ -207,11 +205,10 @@ class PurchaseOrderController extends Controller
             $builder->where('roles.id', 4);
         })->select('users.id as id', 'users.name as name')->pluck('name', 'id')->toArray();
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
-        $orderNo = Helper::generateOrderNumber();
         $po = PurchaseOrder::find(decrypt($id));
         $items = PurchaseOrderItem::with('category')->where('po_id', decrypt($id))->get();
 
-        return view('po.edit', compact('moduleName', 'suppliers', 'categories', 'orderNo', 'id', 'po', 'items'));
+        return view('po.edit', compact('moduleName', 'suppliers', 'categories', 'id', 'po', 'items'));
     }
 
     public function update(Request $request, $id)
@@ -312,11 +309,10 @@ class PurchaseOrderController extends Controller
             $builder->where('roles.id', 4);
         })->select('users.id as id', 'users.name as name')->pluck('name', 'id')->toArray();
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
-        $orderNo = Helper::generateOrderNumber();
         $po = PurchaseOrder::find(decrypt($id));
         $items = PurchaseOrderItem::with('category')->where('po_id', decrypt($id))->get();
 
-        return view('po.view', compact('moduleName', 'suppliers', 'categories', 'orderNo', 'po', 'items'));
+        return view('po.view', compact('moduleName', 'suppliers', 'categories', 'po', 'items'));
     }
 
     public function destroy(Request $request, $id)

@@ -5,6 +5,7 @@ namespace App\Helpers;
 use \Illuminate\Support\Facades\Log;
 use App\Models\PurchaseOrder;
 use Illuminate\Http\Request;
+use App\Models\SalesOrder;
 use App\Models\Setting;
 use App\Models\State;
 use App\Models\City;
@@ -91,11 +92,20 @@ class Helper {
         return $string;
     }
 
-    public static function generateOrderNumber () {
+    public static function generatePurchaseOrderNumber () {
         $orderNo = (PurchaseOrder::latest()->select('id')->first()->id ?? 0) + 1;
         $prefix = date('-Y-');
         $orderNo = sprintf('%05d', $orderNo);
         $orderNo = "PO{$prefix}{$orderNo}";
+
+        return $orderNo;
+    }
+
+    public static function generateSalesOrderNumber () {
+        $orderNo = (SalesOrder::latest()->select('id')->first()->id ?? 0) + 1;
+        $prefix = date('-Y-');
+        $orderNo = sprintf('%05d', $orderNo);
+        $orderNo = "SO{$prefix}{$orderNo}";
 
         return $orderNo;
     }
