@@ -39,7 +39,7 @@
                 </select>
             </div>
         </div>
-        <div class="col-xl-2 col-sm-4 position-relative">
+        <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Status</label>
                 <select name="filterStatus" id="filterStatus" class="select2 select2-hidden-accessible" data-placeholder="--- Select Status ---">

@@ -28,7 +28,7 @@
 
                 <div class="row">
 
-                    <div class="col-md-4 fieldDiv_4262" style="">
+                    <div class="col-sm-6 col-md-4">
                         <div class="form-group">
                             <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number:
                                 
@@ -38,7 +38,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-4 fieldDiv_4263" style="">
+                    <div class="col-sm-6 col-md-4">
                         <div class="form-group">
                             <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Date:
                                 
@@ -48,7 +48,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-4 fieldDiv_4264" style="">
+                    <div class="col-sm-6 col-md-4">
                         <!-- Datasource -->
                         <div class="form-group">
                             <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Supplier:
@@ -59,7 +59,7 @@
                         </div>
                     </div>
 
-                    <div class="formDiv_600" data-formname="Items">
+                    <div>
                         <div class="col-md-12">
                             <div
                                 class="cardsHeader f-20 f-600 c-36 f-700 border-0 ps-0 tableHeading position-relative my-4">

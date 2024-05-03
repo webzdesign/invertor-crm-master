@@ -5,7 +5,7 @@
 @section('create_button')
 <div class="d-flex align-items-center justify-content-between filterPanelbtn my-2 flex-wrap">
     <h2 class="f-24 f-700 c-36 mb-0">Manage {{ $moduleName }}</h2>
-    {{-- @permission("roles.create") --}}
+    @permission("roles.create")
     <a href="{{ route('roles.create') }}" class="btn-primary f-500 f-14">
         <svg class="me-1" width="16" height="16" viewBox="0 0 16 16" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
             <path d="M8.00008 13.3332V7.99984M8.00008 7.99984V2.6665M8.00008 7.99984H13.3334M8.00008 7.99984H2.66675" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
@@ -18,7 +18,7 @@
         </svg>
         Add Role
     </a>
-    {{-- @endpermission --}}
+    @endpermission
 </div>
 @endsection
 <div class="cards">

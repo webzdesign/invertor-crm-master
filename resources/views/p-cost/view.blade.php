@@ -15,21 +15,21 @@
             <div class="row">
 
 
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Category: </label>
                         <input type="text" readonly class="form-control" value="{{ $cost->category->status == 1 ? $cost->category->name : '' }}">
                     </div>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Product: </label>
                         <input type="text" readonly class="form-control" value="{{ $cost->category->status == 1 ? $cost->product->name : '' }}">
                     </div>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Base Price: </label>
                         <input type="text" readonly id="base_price" value="{{ old('base_price', $cost->base_price) }}" class="form-control" placeholder="Enter Base Price">

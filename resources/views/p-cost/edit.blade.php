@@ -16,7 +16,7 @@
             <div class="row">
 
 
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Category: <span class="text-danger">*</span></label>
                         <select name="category" id="category" class="select2 select2-hidden-accessible category" style="width:100%" data-placeholder="Select a Category">
@@ -35,7 +35,7 @@
                     </div>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Product: <span class="text-danger">*</span></label>
                         <select name="product" id="product" class="select2 select2-hidden-accessible product" style="width:100%" data-placeholder="Select a Product">
@@ -58,7 +58,7 @@
                     </div>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Base Price: <span class="text-danger">*</span></label>
                         <input type="text" name="base_price" id="base_price" value="{{ old('base_price', $cost->base_price) }}" class="form-control" placeholder="Enter Base Price">
