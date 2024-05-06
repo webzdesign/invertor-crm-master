@@ -23,7 +23,7 @@ class RoleController extends Controller
             return view('roles.index', compact('moduleName'));
         }
 
-        $roles = Role::with(['addedby', 'updatedby'])->select('roles.*');
+        $roles = Role::with(['addedby', 'updatedby'])->where("roles.id", "!=", 1)->select('roles.*');
 
         if (isset($request->filterStatus)) {
             if ($request->filterStatus != '') {
@@ -59,30 +59,12 @@ class RoleController extends Controller
                     $action .= view('buttons.view', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("roles.activeinactive")) {
-                    $eId = encrypt($variable->id);
-                    $url = route("roles.activeinactive", $eId);
-                    $attr = " style='background:#ffc107;' data-isadmin='false' ";
-
-                    if ($variable->id == '1') {
-                        $attr = "style='background:#d5b24aa8;' data-isadmin='true' ";
-                    }
-
-                    if ($variable->status == 0) {
-                        $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn'><a data-bs-toggle='tooltip' title='Active' href='{$url}' {$attr} id='role-activate' class='editBtn modal-activate-btn' data-uniqueid='{$eId}'> <i class='fa fa-check text-dark' aria-hidden='true'></i> </a></div></div>";
-                    } else {
-                        $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn'><a data-bs-toggle='tooltip' title='Deactive' href='{$url}' {$attr} id='role-deactivate' class='editBtn modal-deactivate-btn' data-uniqueid='{$eId}'> <i class='fa fa-close text-dark' aria-hidden='true'></i> </a></div></div>";
-                    }
+                    $url = route("roles.activeinactive", encrypt($variable->id));
+                    $action .= view('buttons.status', compact('variable', 'url')); 
                 }
                 if (auth()->user()->hasPermission("roles.delete")) {
-                    $eId = encrypt($variable->id);
-                    $url = route("roles.delete", $eId);
-                    $attr = " data-isadmin='false' ";
-
-                    if ($variable->id == '1') {
-                        $attr = "style='background:#c3293787;' data-isadmin='true' ";
-                    }
-
-                    $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn'><a data-bs-toggle='tooltip' title='Delete' href='{$url}' id='role-delete' {$attr} class='deleteBtn modal-delete-btn' data-uniqueid='{$eId}'> <i class='fa fa-trash text-white' aria-hidden='true'></i> </a></div></div>"; 
+                    $url = route("roles.delete", encrypt($variable->id));
+                    $action .= view('buttons.delete', compact('variable', 'url')); 
                 }
                 $action .= '</div>';
                 
