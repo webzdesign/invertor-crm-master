@@ -285,7 +285,8 @@ $(document).ready(function(){
                 required: true
             },
             'postal_code' : {
-                required: true                
+                required: true,
+                maxlength: 8
             }
         },
         messages : {
@@ -323,7 +324,8 @@ $(document).ready(function(){
                 required: 'Select a City.'
             },
             'postal_code' : {
-                required: 'Enter postal code.'
+                required: 'Enter postal code.',
+                maxlength: 'Maximum 8 characters allowed for postal code.'
             }
         },
         errorPlacement: function(error, element) {

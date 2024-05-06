@@ -763,7 +763,8 @@
                         required: true
                     },
                     postal_code: {
-                        required: true
+                        required: true,
+                        maxlength: 8
                     },
                     address_line_1: {
                         required: true
@@ -838,7 +839,8 @@
                         required: "Select a city."
                     },
                     postal_code: {
-                        required: "Enter a postal code."
+                        required: "Enter a postal code.",
+                        maxlength: 'Maximum 8 characters allowed for postal code.'
                     },
                     address_line_1: {
                         required: "Enter address line 1."
