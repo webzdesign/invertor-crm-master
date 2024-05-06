@@ -661,7 +661,10 @@
                         required: true
                     },
                     customerphone: {
-                        required: true
+                        required: true,
+                        number: true,
+                        minlength: 6,
+                        maxlength: 15
                     },
                     customerfb: {
                         url: true
@@ -713,7 +716,10 @@
                         required: "Enter customer name."
                     },
                     customerphone: {
-                        required: "Enter customer phone number."
+                        required: "Enter customer phone number.",
+                        number: "Enter valid phone number.",
+                        minlength: "Phone number must consist of at least 6 digits.",
+                        maxlength: "Phone number can\'t have more than 15 digits."
                     },
                     customerfb: {
                         url: "Enter valid url."
