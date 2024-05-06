@@ -89,14 +89,23 @@
         url: "{{ route('product-image', $id) }}",
         acceptedFiles: ".jpeg,.jpg,.png",
         addRemoveLinks: true,
-        //maxFiles: 20,
+        maxFiles: 10,
         uploadMultiple :true,
+        maxFilesize: 1,
         //parallelUploads: 20,
         headers: {'X-CSRF-TOKEN': "{{ csrf_token() }}"},
         init: function() {
             this.on("error", function(file, message){
               $(".errorContainingImage").html("Only jpeg, jpg and png file format supported.");
                 $(this).closest('.dz-error-message').remove()
+            });
+
+            this.on("maxfilesexceeded", function(file){
+              $(".errorContainingImage").html("Only 10 files can upload at a time.");
+            });
+
+            this.on("maxfilesreached", function(file){
+              $(".errorContainingImage").html("Only 10 files can upload at a time.");
             });
         },
         removedfile: function(file) {
@@ -106,7 +115,7 @@
             fileRef.parentNode.removeChild(file.previewElement) : void 0;
         },
         success: function (file, response) {
-            $(".errorContainingImage").html("");
+            // $(".errorContainingImage").html("");
             this.removeFile(file);
             $('body').find('#uploaded_image').html('');
             $('body').find('#uploaded_image').html(response);

@@ -130,6 +130,7 @@ class UserController extends Controller
             $user->country_id = $request->country;
             $user->state_id = $request->state;
             $user->city_id = $request->city;
+            $user->postal_code = $request->postal_code;
             $user->added_by = auth()->user()->id;
             $user->save();
             $user->roles()->attach($request->role);
@@ -169,6 +170,7 @@ class UserController extends Controller
             $user->city_id = $request->city;
             $user->address_line_1 = $request->address_line_1;
             $user->address_line_2 = $request->address_line_2;
+            $user->postal_code = $request->postal_code;
             $user->password =  !empty(trim($request->password)) ? Hash::make($request->password) : $user->password;
             $user->updated_by = auth()->user()->id;
             $user->save();

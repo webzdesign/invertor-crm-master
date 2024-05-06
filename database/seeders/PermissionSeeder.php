@@ -47,6 +47,11 @@ class PermissionSeeder extends Seeder
             ['name' => 'View Procurement Cost', 'slug' => 'procurement-cost.view', 'model' => 'ProcurementCost', 'description' => 'Can view Procurement Cost', 'added_by' => 1],
             ['name' => 'Delete Procurement Cost', 'slug' => 'procurement-cost.delete', 'model' => 'ProcurementCost', 'description' => 'Can delete Procurement Cost', 'added_by' => 1],
             ['name' => 'Active/Inactive Procurement Cost', 'slug' => 'procurement-cost.activeinactive', 'model' => 'ProcurementCost', 'description' => 'Can Activate or deactivate Procurement Cost', 'added_by' => 1],
+
+            ['name' => 'Add Sales Orders', 'slug' => 'sales-orders.create', 'model' => 'SalesOrder', 'description' => 'Can add Sales Orders', 'added_by' => 1],
+            ['name' => 'Edit Sales Orders', 'slug' => 'sales-orders.edit', 'model' => 'SalesOrder', 'description' => 'Can edit Sales Orders', 'added_by' => 1],
+            ['name' => 'View Sales Orders', 'slug' => 'sales-orders.view', 'model' => 'SalesOrder', 'description' => 'Can view Sales Orders', 'added_by' => 1],
+            ['name' => 'Delete Sales Orders', 'slug' => 'sales-orders.delete', 'model' => 'SalesOrder', 'description' => 'Can delete Sales Orders', 'added_by' => 1],
         ];
 
         foreach ($permissions as $permission) {

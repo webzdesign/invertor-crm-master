@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProcurementCostController;
 use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
@@ -97,6 +98,17 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('procurement-cost/{id}/status', [ProcurementCostController::class, 'status'])->name('procurement-cost.activeinactive')->middleware('ModuleAccessor:procurement-cost.activeinactive');
         Route::post('procurement-cost/check', [ProcurementCostController::class, 'check']);
         /** Procurement Cost **/
+
+        /** Sales Order **/
+        Route::match(['GET', 'POST'], 'sales-orders', [SalesOrderController::class, 'index'])->name('sales-orders.index')->middleware('ModuleAccessor:sales-orders.view');
+        Route::get('sales-orders/create', [SalesOrderController::class, 'create'])->name('sales-orders.create')->middleware('ModuleAccessor:sales-orders.create');
+        Route::post('sales-orders/store', [SalesOrderController::class, 'store'])->name('sales-orders.store');
+        Route::get('sales-orders/{id}/edit', [SalesOrderController::class, 'edit'])->name('sales-orders.edit')->middleware('ModuleAccessor:sales-orders.edit');
+        Route::put('sales-orders/{id}/update', [SalesOrderController::class, 'update'])->name('sales-orders.update');
+        Route::get('sales-orders/{id}/view', [SalesOrderController::class, 'show'])->name('sales-orders.view')->middleware('ModuleAccessor:sales-orders.view');
+        Route::get('sales-orders/{id}/delete', [SalesOrderController::class, 'destroy'])->name('sales-orders.delete')->middleware('ModuleAccessor:sales-orders.delete');
+        Route::post('get-products-on-category-so', [SalesOrderController::class, 'productsOnCategory'])->name('get-products-on-category-so');
+        /** Sales Order **/
 
         /** Common **/
         Route::post('getStates', [Helper::class, 'getStates'])->name('getStates');

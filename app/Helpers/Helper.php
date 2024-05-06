@@ -55,7 +55,7 @@ class Helper {
 
     public function getStates(Request $request) {
         $states = State::where('country_id', $request->id)->active()->select('id', 'name as text')->pluck('text', 'id')->toArray();
-        $html = '';
+        $html = '<option value="" selected> --- Select a State --- </option>';
 
         foreach ($states as $id => $state) {
             $html .= "<option value='{$id}'> {$state} </option>";
@@ -66,7 +66,7 @@ class Helper {
 
     public function getCities(Request $request) {
         $cities = City::where('state_id', $request->id)->active()->select('id', 'name as text')->pluck('text', 'id')->toArray();
-        $html = '';
+        $html = '<option value="" selected> --- Select a State --- </option>';
 
         foreach ($cities as $id => $city) {
             $html .= "<option value='{$id}'> {$city} </option>";

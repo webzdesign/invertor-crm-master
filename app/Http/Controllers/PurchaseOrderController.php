@@ -327,7 +327,7 @@ class PurchaseOrderController extends Controller
             Stock::where('type', '0')->where('form', '1')->where('form_record_id', $poId)->delete();
 
             DB::commit();
-            return response()->json(['success' => $this->moduleName.' Deleted Successfully.', 'status' => 200]);
+            return response()->json(['success' => 'Purchase order deleted successfully.', 'status' => 200]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);

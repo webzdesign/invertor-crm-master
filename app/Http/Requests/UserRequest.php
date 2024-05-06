@@ -35,6 +35,7 @@ class UserRequest extends FormRequest
                 'city'                  => "required",
                 'address_line_1'        => "required",
                 'address_line_2'        => "required",
+                'postal_code'           => "required"
             ];
         } else {
             return [
@@ -48,6 +49,7 @@ class UserRequest extends FormRequest
                 'city'                  => "required",
                 'address_line_1'        => "required",
                 'address_line_2'        => "required",
+                'postal_code'           => "required"
             ];
         }
     }
@@ -69,6 +71,7 @@ class UserRequest extends FormRequest
             'country.required'              => 'Select a Country.',
             'state.required'                => 'Select a State.',
             'city.required'                 => 'Select a City.',
+            'postal_code.required'          => 'Enter postal code.',
         ];
     }
 }

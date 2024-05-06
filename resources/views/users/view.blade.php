@@ -14,45 +14,52 @@
     <div class="cards">
         <div class="cardsBody pb-0">
             <div class="row">
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Name: </label>
                         <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" class="form-control" placeholder="Enter name" readonly>
                     </div>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Email: </label>
                         <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" class="form-control" placeholder="Enter email" readonly>
                     </div>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Roles: </label>
                         <input type="text" class="form-control" readonly value="{{ implode(', ', $user->roles->pluck('name')->toArray() ?? []) ?? '' }}" >
                     </div>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-3 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Country: </label>
                         <input type="text" class="form-control" readonly value="{{ $user->country->name ?? '' }}">
                     </div>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-3 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">State: </label>
                         <input type="text" class="form-control" readonly value="{{ $user->state->name ?? '' }}">
                     </div>
                 </div>
 
-                <div class="col-4">
+                <div class="col-md-3 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">City: </label>
                         <input type="text" class="form-control" readonly value="{{ $user->city->name ?? '' }}">
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code: </label>
+                        <input type="text" name="postal_code" id="postal_code" value="{{ $user->postal_code }}" class="form-control" readonly>
                     </div>
                 </div>
 

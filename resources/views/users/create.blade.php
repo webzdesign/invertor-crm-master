@@ -72,7 +72,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 col-sm-6">
+                <div class="col-md-3 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Country: <span class="text-danger">*</span></label>
                         <select name="country" id="country" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Country ---">
@@ -91,7 +91,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 col-sm-6">
+                <div class="col-md-3 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">State: <span class="text-danger">*</span></label>
                         <select name="state" id="state" class="select2 select2-hidden-accessible" data-placeholder="--- Select a State ---">
@@ -103,7 +103,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 col-sm-6">
+                <div class="col-md-3 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">City: <span class="text-danger">*</span></label>
                         <select name="city" id="city" class="select2 select2-hidden-accessible" data-placeholder="--- Select a City ---">
@@ -111,6 +111,16 @@
                         </select>
                         @if ($errors->has('city'))
                             <span class="text-danger d-block">{{ $errors->first('city') }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-sm-6">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code: <span class="text-danger">*</span></label>
+                        <input type="text" name="postal_code" id="postal_code" value="{{ old('postal_code') }}" class="form-control" placeholder="Enter postal code">
+                        @if ($errors->has('postal_code'))
+                            <span class="text-danger d-block">{{ $errors->first('postal_code') }}</span>
                         @endif
                     </div>
                 </div>
@@ -263,6 +273,9 @@ $(document).ready(function(){
             },
             'city' : {
                 required: true
+            },
+            'postal_code' : {
+                required: true                
             }
         },
         messages : {
@@ -299,6 +312,9 @@ $(document).ready(function(){
             },
             'city' : {
                 required: 'Select a City.'
+            },
+            'postal_code' : {
+                required: 'Enter postal code.'
             }
         },
         errorPlacement: function(error, element) {

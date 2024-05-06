@@ -23,53 +23,164 @@
 @section('content')
     {{ Config::set('app.module', $moduleName) }}
     <h2 class="f-24 f-700 c-36 my-2">Edit {{ $moduleName }}</h2>
-    <form action="{{ route('purchase-orders.update', $id) }}" method="POST" id="addPo"> @csrf @method('PUT')
+    <form action="{{ route('sales-orders.update', $id) }}" method="POST" id="addSo"> @csrf @method('PUT')
         <div class="cards">
             <div class="cardsBody pb-0">
 
                 <div class="row">
 
-                    <div class="col-sm-6 col-md-4">
+                    <div class="col-sm-12 col-md-2">
                         <div class="form-group">
                             <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number:</label>
-
-                            <input class="form-control" id="order_number" type="text" value="{{ $po->order_no }}" readonly style="background:#efefef">
+                            <input class="form-control" id="order_number" type="text" value="{{ $so->order_no }}" readonly style="background:#efefef">
                         </div>
                     </div>
 
-                    <div class="col-sm-6 col-md-4">
+                    <div class="col-sm-12 col-md-2">
                         <div class="form-group">
                             <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Date:
                                 <span class="text-danger">*</span>
                             </label>
-                            <input type="text" readonly name="order_date" placeholder="Order Date" id="order_date" value="{{ date('d-m-Y', strtotime($po->date)) }}" class="form-control datepicker" style="background:#ffffff">
-                            @if ($errors->has('order_date'))
-                                <span class="text-danger d-block">{{ $errors->first('order_date') }}</span>
+                            <input type="text" readonly name="order_date" placeholder="Order Date" id="order_date" 
+                                class="form-control datepicker"
+                                value="{{ old('order_date', date('Y-m-d', strtotime($so->date))) }}"
+                                style="background:#ffffff">
+                                @if ($errors->has('order_date'))
+                                    <span class="text-danger d-block">{{ $errors->first('order_date') }}</span>
+                                @endif
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12 col-md-2">
+                        <div class="form-group">
+                            <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Delivery Date:
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" readonly name="order_del_date" placeholder="Order Delivery Date" id="order_del_date" value="{{ old('order_del_date', date('Y-m-d', strtotime($so->delivery_date))) }}" class="form-control datepicker" style="background:#ffffff">
+                            @if ($errors->has('order_del_date'))
+                                <span class="text-danger d-block">{{ $errors->first('order_del_date') }}</span>
                             @endif
                         </div>
                     </div>
 
-                    <div class="col-sm-6 col-md-4">
-                        <!-- Datasource -->
+                    <div class="col-sm-12 col-md-2">
                         <div class="form-group">
-                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Supplier:
+                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Name:
                                 <span class="text-danger">*</span>
                             </label>
-                            <select name="supplier" id="supplier" class="select2-hidden-accessible select2" data-placeholder="--- Select a Supplier ---">
-                                @forelse($suppliers as $sid => $supplier)
-                                @if($loop->first)
-                                <option value="" selected> --- Select a Supplier --- </option>
-                                @endif
-                                <option value="{{ $sid }}" @if($sid == $po->supplier_id) selected @endif >{{ $supplier }}</option>
-                                @empty
-                                <option value="" selected> --- No Supplier Available --- </option>
-                                @endforelse
-                            </select>
-                            @if ($errors->has('supplier'))
-                                <span class="text-danger d-block">{{ $errors->first('supplier') }}</span>
+                            <input type="text" class="form-control" id="customer-name" placeholder="Enter customer name" name="customername" value="{{ old('customername', $so->customer_name) }}">
+                            @if ($errors->has('customername'))
+                                <span class="text-danger d-block">{{ $errors->first('customername') }}</span>
                             @endif
                         </div>
                     </div>
+
+                    <div class="col-sm-12 col-md-2">
+                        <div class="form-group">
+                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Phone Number:
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" name="customerphone" id="customer-phone" placeholder="Enter customer phone number" value="{{ old('customerphone', $so->customer_phone) }}">
+                            @if ($errors->has('customerphone'))
+                                <span class="text-danger d-block">{{ $errors->first('customerphone') }}</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="col-sm-12 col-md-2">
+                        <div class="form-group">
+                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Facebook URL:
+                            </label>
+                            <input type="url" class="form-control" name="customerfb" id="customer-fb" placeholder="Enter customer facebook url" value="{{ old('customerfb', $so->customer_facebook) }}">
+                            @if ($errors->has('customerfb'))
+                                <span class="text-danger d-block">{{ $errors->first('customerfb') }}</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 col-sm-12">
+                        <div class="form-group">
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Country: <span class="text-danger">*</span></label>
+                            <select name="country" id="country" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Country ---">
+                                @forelse($countries as $cid => $cname)
+                                    @if($loop->first)
+                                    <option value="" selected> --- Select a Country --- </option>
+                                    @endif
+                                    <option value="{{ $cid }}" @if($cid == $so->customer_country) selected @endif > {{ $cname }} </option>
+                                @empty                                
+                                    <option value=""> --- No Country Found --- </option>
+                                @endforelse
+                            </select>
+                            @if ($errors->has('country'))
+                                <span class="text-danger d-block">{{ $errors->first('country') }}</span>
+                            @endif
+                        </div>
+                    </div>
+    
+                    <div class="col-md-3 col-sm-12">
+                        <div class="form-group">
+                            <label class="c-gr f-500 f-16 w-100 mb-2">State: <span class="text-danger">*</span></label>
+                            <select name="state" id="state" class="select2 select2-hidden-accessible" data-placeholder="--- Select a State ---">
+                                @forelse($states as $sid => $sname)
+                                    <option value="{{ $sid }}" @if($sid == $so->customer_state) selected @endif > {{ $sname }} </option>
+                                @empty
+                                    <option value=""> --- No State Found --- </option>
+                                @endforelse
+                            </select>
+                            @if ($errors->has('state'))
+                                <span class="text-danger d-block">{{ $errors->first('state') }}</span>
+                            @endif
+                        </div>
+                    </div>
+    
+                    <div class="col-md-3 col-sm-12">
+                        <div class="form-group">
+                            <label class="c-gr f-500 f-16 w-100 mb-2">City: <span class="text-danger">*</span></label>
+                            <select name="city" id="city" class="select2 select2-hidden-accessible" data-placeholder="--- Select a City ---">
+                                @forelse($cities as $ctid => $ctname)
+                                    <option value="{{ $ctid }}" @if($ctid == $so->customer_city) selected @endif > {{ $ctname }} </option>
+                                @empty
+                                    <option value=""> --- No City Found --- </option>
+                                @endforelse
+                            </select>
+                            @if ($errors->has('city'))
+                                <span class="text-danger d-block">{{ $errors->first('city') }}</span>
+                            @endif
+                        </div>
+                    </div>
+    
+                    <div class="col-md-3 col-sm-12">
+                        <div class="form-group">
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code: <span class="text-danger">*</span></label>
+                            <input type="text" name="postal_code" id="postal_code" value="{{ old('postal_code', $so->customer_postal_code) }}" class="form-control" placeholder="Enter postal code">
+                            @if ($errors->has('postal_code'))
+                                <span class="text-danger d-block">{{ $errors->first('postal_code') }}</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Address Line 1: <span class="text-danger">*</span></label>
+                            <textarea name="address_line_1" id="address_line_1" class="form-control" style="height: 60px;">{{ old('address_line_1', $so->customer_address_line_1) }}</textarea>
+                            @if ($errors->has('address_line_1'))
+                                <span class="text-danger d-block">{{ $errors->first('address_line_1') }}</span>
+                            @endif
+                        </div>
+                    </div>
+    
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Address Line 2: <span class="text-danger">*</span></label>
+                            <textarea name="address_line_2" id="address_line_2" class="form-control" style="height: 60px;">{{ old('address_line_2', $so->customer_address_line_2) }}</textarea>
+                            @if ($errors->has('address_line_2'))
+                                <span class="text-danger d-block">{{ $errors->first('address_line_2') }}</span>
+                            @endif
+                        </div>
+                    </div>
+
+
+
 
                     <div>
                         <div class="col-md-12">
@@ -91,11 +202,11 @@
 
                                                 <th style="">Product <span class="text-danger">*</span> </th>
 
+                                                <th style="width:100px;">Available Stock </th>
+
                                                 <th style="">Quantity <span class="text-danger">*</span> </th>
 
                                                 <th style="">Price <span class="text-danger">*</span> </th>
-
-                                                <th style="">Expense <span class="text-danger">*</span> </th>
 
                                                 <th style="">Amount </th>
 
@@ -106,7 +217,8 @@
                                         </thead>
 
                                         <tbody class="upsertable">
-                                            @forelse($items as $key => $item)
+
+                                            @forelse($so->items as $key => $item)
                                             <tr>
 
                                                 <td>
@@ -128,7 +240,7 @@
                                                 <td>
                                                     <div style="min-width: 200px;width: 100%" class="removable-product">
                                                         <select name="product[{{ $key }}]" data-indexid="{{ $key }}" id="product-{{ $key }}" class="select2 select2-hidden-accessible m-product" style="width:100%" data-placeholder="Select a Product">
-                                                            <option value="" >Select Product </option>
+                                                            <option value="">Select Product</option>
                                                             @php
                                                                 $cats = [];
                                                                 if ($item?->category?->status == 1) {
@@ -136,7 +248,7 @@
                                                                 }
                                                             @endphp
                                                             @forelse ($cats as $product)
-                                                            <option value="{{ $product->id }}" data-price="{{ $product->purchase_price }}"  @if($product->id == $item->product_id) selected @endif > {{ $product->name }} </option>
+                                                            <option value="{{ $product->id }}" data-price="{{ $product->purchase_price }}" data-availablestock="{{ $product->stockin->sum('qty') ?? 0 }}"  @if($product->id == $item->product_id) selected @endif > {{ $product->name }} </option>
                                                             @empty
                                                             <option value="" data-price="0" selected> --- No Product Available --- </option>
                                                             @endforelse
@@ -144,38 +256,35 @@
                                                     </div>
                                                 </td>
 
+                                                <td >
+                                                    <div style="min-width: 100px;">
+                                                        <input type="number" data-indexid="{{ $key }}" id="as-{{ $key }}" value="{{ $item->product->stockin->sum('qty') ?? 0 }}" class="form-control m-as" style="background:#efefef" readonly>
+                                                    </div>
+                                                </td>
 
                                                 <td style="">
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="{{ $key }}" value="{{ $item->qty }}" name="quantity[{{ $key }}]" id="quantity-{{ $key }}" class="form-control m-quantity" style="background:#ffffff">
+                                                        <input type="number" data-indexid="{{ $key }}" name="quantity[{{ $key }}]" id="quantity-{{ $key }}" class="form-control m-quantity" value="{{ $item->qty }}" style="background:#ffffff">
                                                     </div>
                                                 </td>
 
 
                                                 <td style="">
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="{{ $key }}" value="{{ $item->price }}" name="price[{{ $key }}]" id="price-{{ $key }}" class="form-control m-price" style="background:#ffffff">
+                                                        <input type="number" data-indexid="{{ $key }}" name="price[{{ $key }}]" id="price-{{ $key }}" class="form-control m-price" value="{{ $item->price }}" style="background:#ffffff">
+                                                    </div>
+                                                </td>
+
+                                                <td style="">
+                                                    <div style="min-width: 200px;">
+                                                        <input type="number" data-indexid="{{ $key }}" name="amount[{{ $key }}]" id="amount-{{ $key }}"  class="form-control m-amount" value="{{ $item->amount }}" style="background:#efefef" readonly>
                                                     </div>
                                                 </td>
 
 
                                                 <td style="">
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="{{ $key }}" value="{{ $item->expense }}" name="expense[{{ $key }}]" id="expense-{{ $key }}" class="form-control m-expense" style="background:#ffffff">
-                                                    </div>
-                                                </td>
-
-
-                                                <td style="">
-                                                    <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="{{ $key }}" value="{{ $item->amount }}" name="amount[{{ $key }}]" id="amount-{{ $key }}"  class="form-control m-amount" style="background:#efefef" readonly>
-                                                    </div>
-                                                </td>
-
-
-                                                <td style="">
-                                                    <div style="min-width: 200px;">
-                                                        <input type="text" data-indexid="{{ $key }}" value="{{ $item->remarks }}" maxlength="255" name="remarks[{{ $key }}]" id="remarks-{{ $key }}" class="form-control m-remarks" style="background:#ffffff">
+                                                        <input type="text" data-indexid="{{ $key }}" tabindex="{{ $key }}" maxlength="255" name="remarks[{{ $key }}]" id="remarks-{{ $key }}" value="{{ $item->remarks }}" class="form-control m-remarks" style="background:#ffffff">
                                                     </div>
                                                 </td>
 
@@ -208,7 +317,7 @@
                                                 <td>
                                                     <div style="min-width: 200px;width: 100%" class="removable-product">
                                                         <select name="product[0]" data-indexid="0" id="product-0" class="select2 select2-hidden-accessible m-product" style="width:100%" data-placeholder="Select a Product">
-                                                            <option value="" data-select2-id="5">Select Product
+                                                            <option value="">Select Product
                                                             </option>
                                                         </select>
                                                     </div>
@@ -227,14 +336,6 @@
                                                         <input type="number" data-indexid="0" name="price[0]" id="price-0" class="form-control m-price" style="background:#ffffff">
                                                     </div>
                                                 </td>
-
-
-                                                <td style="">
-                                                    <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="0" name="expense[0]" id="expense-0" class="form-control m-expense" style="background:#ffffff">
-                                                    </div>
-                                                </td>
-
 
                                                 <td style="">
                                                     <div style="min-width: 200px;">
@@ -257,29 +358,26 @@
                                                 </td>
                                             </tr>
                                             @endforelse
+
                                         </tbody>
                                         <tfoot>
                                             <tr>
                                                 <td></td>
                                                 <td></td>
+                                                <td></td>
                                                 <td> 
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" class="form-control mt-quantity" style="background:#efefef" value="{{ $items->sum('qty') }}" readonly>
+                                                        <input type="number" class="form-control mt-quantity" style="background:#efefef" value="{{ $so->items->sum('qty') }}" readonly>
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" class="form-control mt-price" style="background:#efefef" value="{{ $items->sum('price') }}" readonly>
+                                                        <input type="number" class="form-control mt-price" style="background:#efefef" value="{{ $so->items->sum('price') }}" readonly>
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" class="form-control mt-expense" style="background:#efefef" value="{{ $items->sum('expense') }}" readonly>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div style="min-width: 200px;">
-                                                        <input type="number" class="form-control mt-amount" style="background:#efefef" value="{{ $items->sum('amount') }}" readonly>
+                                                        <input type="number" class="form-control mt-amount" style="background:#efefef" value="{{ $so->items->sum('amount') }}" readonly>
                                                     </div>
                                                 </td>
                                                 <td></td>
@@ -292,6 +390,9 @@
                         </div>
                     </div>
                 </div>
+
+
+
 
 @if($errors->any())
 <div class="alert alert-danger" role="alert">
@@ -308,14 +409,13 @@
 </div>
 @endif
 
-
             </div>
 
             <div class="cardsFooter d-flex justify-content-center">
-                <a href="{{ route('purchase-orders.index') }}">
+                <a href="{{ route('sales-orders.index') }}">
                     <button type="button" class="btn-default f-500 f-14">Cancel</button>
                 </a>
-                <button type="submit" class="btn-primary f-500 f-14">Save changes</button>
+                <button type="submit" class="btn-primary f-500 f-14">Save</button>
             </div>
         </div>
     </form>
@@ -327,13 +427,33 @@
             
             var categories = {!! json_encode($categories) !!};
             var categoriesHtml = `<option value="" selected> --- Select a Category --- </option>`;
-            let lastElementIndex = {{ count($items) > 0 ? count($items) : 0 }};
+            let lastElementIndex = {{ count($so->items) > 0 ? count($so->items) : 0 }};
 
             (function writeCategories() {
                 for (key in categories) {
                     categoriesHtml += `<option value="${key}"> ${categories[key]} </option>`;
                 }
             })();
+
+            $.validator.addMethod("inStock", function(value, element){
+                let dIndex = $(element).data('indexid');
+                let availableStock = parseInt($(`#as-${dIndex}`).val());
+                let stock = $(element).val();
+
+                if ($(`#product-${dIndex}`).val() == null || $(`#product-${dIndex}`).val() == '') {
+                    return true;
+                }
+
+                if (isNaN(availableStock) || availableStock === '' || availableStock === null) {
+                    availableStock = 0;
+                }
+
+                if (availableStock >= stock) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }, "Enter quantity out of avaialble stock."); 
 
             $(document).on('click', '.addNewRow', function (event) {
                 cloned = $('.upsertable').find('tr').eq(0).clone();
@@ -351,9 +471,9 @@
                     allowClear: true
                 });
 
+                cloned.find('.m-as').attr('id', `as-${lastElementIndex}`).attr('data-indexid', lastElementIndex).val(null);
                 cloned.find('.m-quantity').attr('id', `quantity-${lastElementIndex}`).attr('data-indexid', lastElementIndex).attr('name', `quantity[${lastElementIndex}]`).val(null);
                 cloned.find('.m-price').attr('id', `price-${lastElementIndex}`).attr('data-indexid', lastElementIndex).attr('name', `price[${lastElementIndex}]`).val(null);
-                cloned.find('.m-expense').attr('id', `expense-${lastElementIndex}`).attr('data-indexid', lastElementIndex).attr('name', `expense[${lastElementIndex}]`).val(null);
                 cloned.find('.m-amount').attr('id', `amount-${lastElementIndex}`).attr('data-indexid', lastElementIndex).attr('name', `amount[${lastElementIndex}]`).val(null);
                 cloned.find('.m-remarks').attr('id', `remarks-${lastElementIndex}`).attr('data-indexid', lastElementIndex).attr('name', `remarks[${lastElementIndex}]`).val(null);
 
@@ -378,6 +498,7 @@
                     required: true,
                     digits: true,
                     min: 1,
+                    inStock: true,
                     messages: {
                         required: "Enter quantity.",
                         digits: "Enter valid format.",
@@ -396,17 +517,6 @@
                     }
                 }); 
 
-                cloned.find('.m-expense').rules('add', {
-                    required: true,
-                    number: true,
-                    min: 0,
-                    messages: {
-                        required: "Enter expense.",
-                        number: "Enter valid format.",
-                        min: "Expense can\'t be less than 0.",
-                    }
-                }); 
-
             });
 
 
@@ -419,7 +529,6 @@
             let calculateAmount = (indexId = 0) => {
                 let quantity = $(`#quantity-${indexId}`).val();
                 let price = $(`#price-${indexId}`).val();
-                let expense = $(`#expense-${indexId}`).val();
 
                 if (isNaN(quantity) || quantity == '') {
                     quantity = 0;
@@ -428,25 +537,19 @@
                 if (isNaN(price) || price == '') {
                     price = 0;
                 }
-
-                if (isNaN(expense) || expense == '') {
-                    expense = 0;
-                }
-
-                let total = (parseFloat(price) * parseInt(quantity)) + parseFloat(expense);
+                
+                let total = (parseFloat(price) * parseInt(quantity));
 
                 $(`#amount-${indexId}`).val(total.toFixed(2));
 
                 /** Final Total for Each Row **/
                 let mtQuantity = 0;
                 let mtPrice = 0;
-                let mtExpense = 0;
                 let mtAmount = 0;
 
                 $('.upsertable > tr').each(function (index, element) {
                     let tempQuantity = $(this).find('.m-quantity').val();
                     let tempPrice = $(this).find('.m-price').val();
-                    let tempExpense = $(this).find('.m-expense').val();
                     let tempAmount = $(this).find('.m-amount').val();
 
                     if (isNaN(tempQuantity) || tempQuantity == '') {
@@ -457,24 +560,18 @@
                         tempPrice = 0;
                     }
 
-                    if (isNaN(tempExpense) || tempExpense == '') {
-                        tempExpense = 0;
-                    }
-
                     if (isNaN(tempAmount) || tempAmount == '') {
                         tempAmount = 0;
                     }
 
                     mtQuantity += parseInt(tempQuantity);
                     mtPrice += parseFloat(tempPrice);
-                    mtExpense += parseFloat(tempExpense);
                     mtAmount += parseFloat(tempAmount);
                 });
 
                 $('.mt-quantity').val(mtQuantity);
-                $('.mt-price').val(mtPrice);
-                $('.mt-expense').val(mtExpense);
-                $('.mt-amount').val(mtAmount);
+                $('.mt-price').val(mtPrice.toFixed(2));
+                $('.mt-amount').val(mtAmount.toFixed(2));
 
                 /** Final Total for Each Row **/
             }
@@ -485,7 +582,7 @@
 
                 if (thisId !== '') {
                     $.ajax({
-                        url: "{{ route('get-products-on-category') }}",
+                        url: "{{ route('get-products-on-category-so') }}",
                         type: 'POST',
                         data: {
                             id: thisId
@@ -516,9 +613,9 @@
                     });
                     $(`#quantity-${indexId}`).val(null);
                     $(`#price-${indexId}`).val(null);
-                    $(`#expense-${indexId}`).val(null);
                     $(`#amount-${indexId}`).val(null);
                     $(`#remarks-${indexId}`).val(null);
+                    $(`#as-${indexId}`).val(null);
                     calculateAmount(indexId);
                 }
             })
@@ -529,13 +626,14 @@
 
                 if (thisId !== '') {
                     $(`#price-${indexId}`).val($(this).find(':selected').data('price'));
+                    $(`#as-${indexId}`).val($(this).find(':selected').data('availablestock'));
                     calculateAmount(indexId);
                 } else {
                     $(`#quantity-${indexId}`).val(null);
                     $(`#price-${indexId}`).val(null);
-                    $(`#expense-${indexId}`).val(null);
                     $(`#amount-${indexId}`).val(null);
                     $(`#remarks-${indexId}`).val(null);
+                    $(`#as-${indexId}`).val(null);
                     calculateAmount(indexId);
                 }
 
@@ -550,11 +648,76 @@
                 });
             });
 
-            $(document).on('change', '.m-quantity, .m-price, .m-expense', function (event) {
+            $(document).on('change', '.m-quantity, .m-price', function (event) {
                 calculateAmount($(this).data('indexid'));
             });
 
+            $('#country').on('change', function (event) {
+                let country = event.target.value;
 
+                if (country !== '') {
+                    $.ajax({
+                        url: "{{ route('getStates') }}",
+                        type: 'POST',
+                        data: {
+                            id: country
+                        },
+                        beforeSend: function () {
+                            $('body').find('.LoaderSec').removeClass('d-none');                    
+                        },
+                        success: function (response) {
+                            if (response.status) {
+                                $('#state').empty().append(response.states);
+                                $("#state").select2({
+                                    width: '100%',
+                                    allowClear: true,
+                                    placeholder: "--- Select a State ---"
+                                });
+
+                                $('#city').empty();
+                                $("#city").select2({
+                                    width: '100%',
+                                    allowClear: true,
+                                    placeholder: "--- Select a City ---"
+                                });
+                            }
+                        },
+                        complete: function () {
+                            $('body').find('.LoaderSec').addClass('d-none');
+                        }
+                    });
+                }
+            });
+
+            $('#state').on('change', function (event) {
+                let state = event.target.value;
+                
+                if (state !== '') {
+                    $.ajax({
+                        url: "{{ route('getCities') }}",
+                        type: 'POST',
+                        data: {
+                            id: state
+                        },
+                        beforeSend: function () {
+                            $('body').find('.LoaderSec').removeClass('d-none');                    
+                        },
+                        success: function (response) {
+                            if (response.status) {
+                                $('#city').empty().append(response.cities);
+                                $("#city").select2({
+                                    width: '100%',
+                                    allowClear: true,
+                                    placeholder: "--- Select a City ---"
+                                });
+                            }
+                        },
+                        complete: function () {
+                            $('body').find('.LoaderSec').addClass('d-none');
+                        }
+                    });
+                }
+            });
 
             $('#order_date').datepicker({
                 format: 'dd-mm-yyyy',
@@ -563,15 +726,49 @@
                 orientation: "bottom"
             });
 
-            $("#addPo").validate({
+            $('#order_del_date').datepicker({
+                format: 'dd-mm-yyyy',
+                autoclose: true,
+                todayHighlight: true,
+                orientation: "bottom"
+            });
+
+            $("#addSo").validate({
                 rules: {
                     order_date: {
                         required: true
                     },
-                    supplier: {
+                    order_del_date: {
                         required: true
                     },
-                    @forelse ($items as $key => $item)
+                    customername: {
+                        required: true
+                    },
+                    customerphone: {
+                        required: true
+                    },
+                    customerfb: {
+                        url: true
+                    },
+                    country: {
+                        required: true
+                    },
+                    state: {
+                        required: true
+                    },
+                    city: {
+                        required: true
+                    },
+                    postal_code: {
+                        required: true
+                    },
+                    address_line_1: {
+                        required: true
+                    },
+                    address_line_2: {
+                        required: true
+                    },
+                    @forelse ($so->items as $key => $val)
                     'category[{{ $key }}]': {
                         required: true
                     },
@@ -582,13 +779,9 @@
                         required: true,
                         digits: true,
                         min: 1,
+                        inStock: true
                     },
                     'price[{{ $key }}]': {
-                        required: true,
-                        number: true,
-                        min: 0,
-                    },
-                    'expense[{{ $key }}]': {
                         required: true,
                         number: true,
                         min: 0,
@@ -604,27 +797,50 @@
                         required: true,
                         digits: true,
                         min: 1,
+                        inStock: true
                     },
                     'price[0]': {
                         required: true,
                         number: true,
                         min: 0,
-                    },
-                    'expense[0]': {
-                        required: true,
-                        number: true,
-                        min: 0,
-                    },
+                    }
                     @endforelse
                 },
                 messages: {
                     order_date: {
-                        required: "Select order date."
+                        required: "Select order date.",
                     },
-                    supplier: {
-                        required: "Select a supplier."
+                    order_del_date: {
+                        required: "Select order delivery date.",
                     },
-                    @forelse ($items as $key => $item)
+                    customername: {
+                        required: "Enter customer name."
+                    },
+                    customerphone: {
+                        required: "Enter customer phone number."
+                    },
+                    customerfb: {
+                        url: "Enter valid url."
+                    },
+                    country: {
+                        required: "Select a country."
+                    },
+                    state: {
+                        required: "Select a state."
+                    },
+                    city: {
+                        required: "Select a city."
+                    },
+                    postal_code: {
+                        required: "Enter a postal code."
+                    },
+                    address_line_1: {
+                        required: "Enter address line 1."
+                    },
+                    address_line_2: {
+                        required: "Enter address line 2."
+                    },
+                    @forelse ($so->items as $key => $val)
                     'category[{{ $key }}]': {
                         required: "Select a category."
                     },
@@ -640,11 +856,6 @@
                         required: "Enter price.",
                         number: "Enter valid format.",
                         min: "Price can\'t be less than 0.",
-                    },
-                    'expense[{{ $key }}]': {
-                        required: "Enter expense.",
-                        number: "Enter valid format.",
-                        min: "Expense can\'t be less than 0.",
                     },
                     @empty
                     'category[0]': {
@@ -662,12 +873,7 @@
                         required: "Enter price.",
                         number: "Enter valid format.",
                         min: "Price can\'t be less than 0.",
-                    },
-                    'expense[0]': {
-                        required: "Enter expense.",
-                        number: "Enter valid format.",
-                        min: "Expense can\'t be less than 0.",
-                    },
+                    }                        
                     @endforelse
                 },
                 errorPlacement: function(error, element) {

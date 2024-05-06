@@ -38,4 +38,14 @@ class Product extends Model
     {
         return $this->belongsTo(ProductImage::class, 'product_id', 'id');
     }
+
+    public function stockin()
+    {
+        return $this->hasMany(Stock::class, 'product_id')->where('type', '0')->where('form', '1')->where('qty', '>', '0');
+    }
+
+    public function stockout()
+    {
+        return $this->hasMany(Stock::class, 'product_id')->where('type', '1')->where('form', '2')->where('qty', '>', '0');
+    }
 }
