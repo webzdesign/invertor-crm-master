@@ -23,7 +23,7 @@ class UserController extends Controller
     {
         if (!$request->ajax()) {
             $moduleName = $this->moduleName;
-            $roles = Role::get();
+            $roles = Role::where('id', '!=', '4')->get();
     
             return view('users.index', compact('moduleName', 'roles'));
         }
@@ -113,7 +113,7 @@ class UserController extends Controller
     public function create()
     {
         $moduleName = 'User';
-        $roles = Role::active()->get();
+        $roles = Role::active()->where('id', '!=', '4')->get();
         $countries = Helper::getCountriesOrderBy();
 
         $permission = auth()->user()->roles->pluck('id')->toArray();
@@ -164,7 +164,7 @@ class UserController extends Controller
     {
         $moduleName = 'User';
         $user = User::with('roles')->where('id', decrypt($id))->first();
-        $roles = Role::active()->get();
+        $roles = Role::active()->where('id', '!=', '4')->get();
         $countries = Helper::getCountriesOrderBy();
         $states = State::active()->where('country_id', $user->country_id)->select('id', 'name')->pluck('name', 'id')->toArray();
         $cities = City::active()->where('state_id', $user->state_id)->select('id', 'name')->pluck('name', 'id')->toArray();

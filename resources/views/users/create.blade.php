@@ -186,7 +186,7 @@
                                         <li class="form-check">
                                             <input type="checkbox" class="form-check-input permission"
                                                 name="permission[]" id="{{ $v->id }}"
-                                                value="{{ $v->id }}" aria-label="...">
+                                                value="{{ $v->id }}" aria-label="..." checked>
                                             <label for="{{ $v->id }}"
                                                 class="form-check-label mb-0 f-14 f-500 aside-input-checbox">{{ $v->name }}</label>
                                         </li>
