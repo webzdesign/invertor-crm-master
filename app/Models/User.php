@@ -58,6 +58,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id');
     }
 
+    public function userpermission()
+    {
+        return $this->belongsToMany(Permission::class, 'user_permissions', 'user_id', 'permission_id');
+    }
+
     public function roles()
     {
         return $this->belongsToMany(Role::class,UserRole::class);
@@ -73,9 +78,28 @@ class User extends Authenticatable
         if (in_array(1,auth()->user()->roles->pluck("id")->all())) {
             return (bool) true;
         } else {
-            $userPermissionsLists = User::select('permissions.slug', 'users.id')->join('user_roles', 'users.id', '=', 'user_roles.user_id')->join('roles', 'user_roles.role_id', '=', 'roles.id')->join('permission_role', 'roles.id', '=', 'permission_role.role_id')->join('permissions', 'permission_role.permission_id', '=', 'permissions.id')->where('users.id', auth()->user()->id)->pluck('id', 'slug')->toArray();
+            $rolePermissions = User::select('permissions.slug', 'users.id')
+                                    ->join('user_roles', 'users.id', '=', 'user_roles.user_id')
+                                    ->join('roles', 'user_roles.role_id', '=', 'roles.id')
+                                    ->join('permission_role', 'roles.id', '=', 'permission_role.role_id')
+                                    ->join('permissions', 'permission_role.permission_id', '=', 'permissions.id')
+                                    ->where('users.id', auth()->user()->id)
+                                    ->pluck('id', 'slug')
+                                    ->toArray();
+
+            $userPermissions = User::select('permissions.slug', 'users.id')
+                                    ->join('user_permissions', 'users.id', '=', 'user_permissions.user_id')
+                                    ->join('permissions', 'user_permissions.permission_id', '=', 'permissions.id')
+                                    ->where('users.id', auth()->user()->id)
+                                    ->pluck('id', 'slug')
+                                    ->toArray();
             
-            return (bool) isset($userPermissionsLists[$per]);
+
+            if (isset($rolePermissions[$per]) or isset($userPermissions[$per])) {
+                return true;
+            }
+
+            return false;
         }
     }
     public function addedby()

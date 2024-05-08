@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\UserRequest;
+use App\Models\UserPermission;
+use App\Models\PermissionRole;
 use Illuminate\Http\Request;
+use App\Models\Permission;
 use App\Helpers\Helper;
-use App\Models\Country;
 use App\Models\State;
 use App\Models\City;
 use App\Models\User;
@@ -26,7 +28,9 @@ class UserController extends Controller
             return view('users.index', compact('moduleName', 'roles'));
         }
 
-        $users = User::with(['roles', 'addedby', 'updatedby']);
+        $users = User::with(['roles', 'addedby', 'updatedby'])->whereHas('role', function ($builder) {
+            $builder->where('roles.id', '!=', '4');
+        });
 
         if ($filterRole = $request->filterRole) {
             if ($filterRole != '') {
@@ -110,36 +114,47 @@ class UserController extends Controller
     {
         $moduleName = 'User';
         $roles = Role::active()->get();
-        $countries = Country::active()->select('id', 'name')->pluck('name', 'id')->toArray();
-        $url = url('/');
+        $countries = Helper::getCountriesOrderBy();
 
-        return view('users.create', compact('moduleName', 'roles', 'countries'));
+        $permission = auth()->user()->roles->pluck('id')->toArray();
+        $permission = PermissionRole::whereIn('role_id', $permission)->select('permission_id')->pluck('permission_id')->toArray();
+
+        $userPermission = UserPermission::where('user_id', auth()->user()->id)->select('permission_id')->pluck('permission_id')->toArray();
+        $permission = array_unique(array_merge($userPermission, $permission));
+
+        $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
+
+        return view('users.create', compact('moduleName', 'roles', 'countries', 'permission'));
     }
 
     public function store(UserRequest $request)
     {
+        DB::beginTransaction();
+
         try {
-            DB::beginTransaction();
             
             $user = new User();
             $user->name = $request->name;
             $user->email = $request->email;
             $user->password = Hash::make($request->password);
             $user->address_line_1 = $request->address_line_1;
-            $user->address_line_2 = $request->address_line_2;
+            $user->phone = preg_replace('/[^0-9]/', '', $request->phone);
+            $user->country_dial_code = $request->country_dial_code;
+            $user->country_iso_code = $request->country_iso_code;
             $user->country_id = $request->country;
-            $user->state_id = $request->state;
             $user->city_id = $request->city;
             $user->postal_code = $request->postal_code;
             $user->added_by = auth()->user()->id;
             $user->save();
+
             $user->roles()->attach($request->role);
+            $user->userpermission()->attach($request->permission);
 
             DB::commit();
-
             return redirect()->route('users.index')->with('success', 'User added successfully.');
 
         } catch (\Exception $e) {
+            DB::rollBack();
             Helper::logger($e->getMessage(), 'critical');
             return redirect()->back()->with(['error' => Helper::$errorMessage]);
         }
@@ -150,37 +165,55 @@ class UserController extends Controller
         $moduleName = 'User';
         $user = User::with('roles')->where('id', decrypt($id))->first();
         $roles = Role::active()->get();
-        $countries = Country::active()->select('id', 'name')->pluck('name', 'id')->toArray();
+        $countries = Helper::getCountriesOrderBy();
         $states = State::active()->where('country_id', $user->country_id)->select('id', 'name')->pluck('name', 'id')->toArray();
         $cities = City::active()->where('state_id', $user->state_id)->select('id', 'name')->pluck('name', 'id')->toArray();
 
-        return view('users.edit', compact('moduleName', 'user', 'roles', 'countries', 'states', 'cities', 'id'));
+        if (in_array(1, $user->roles->pluck('id')->toArray())) {
+            $userPermissions = Permission::select('id')->pluck('id')->toArray();
+        } else {
+            $userPermissions = UserPermission::where('user_id', $user->id)->select('permission_id')->pluck('permission_id')->toArray();
+        }
+
+        $permission = auth()->user()->roles->pluck('id')->toArray();
+        $permission = PermissionRole::whereIn('role_id', $permission)->select('permission_id')->pluck('permission_id')->toArray();
+
+        $temp = UserPermission::where('user_id', auth()->user()->id)->select('permission_id')->pluck('permission_id')->toArray();
+        $permission = array_unique(array_merge($temp, $permission));
+
+        $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
+
+        return view('users.edit', compact('moduleName', 'user', 'roles', 'countries', 'states', 'cities', 'id', 'userPermissions', 'permission'));
     }
 
     public function update(UserRequest $request, $id)
     {
+        DB::beginTransaction();
+
         try {
-            DB::beginTransaction();
 
             $user = User::find(decrypt($id));
             $user->name = $request->name;
             $user->email = $request->email;
+            $user->phone = preg_replace('/[^0-9]/', '', $request->phone);
+            $user->country_dial_code = $request->country_dial_code;
+            $user->country_iso_code = $request->country_iso_code;
             $user->country_id = $request->country;
-            $user->state_id = $request->state;
             $user->city_id = $request->city;
             $user->address_line_1 = $request->address_line_1;
-            $user->address_line_2 = $request->address_line_2;
             $user->postal_code = $request->postal_code;
             $user->password =  !empty(trim($request->password)) ? Hash::make($request->password) : $user->password;
             $user->updated_by = auth()->user()->id;
             $user->save();
-            $user->roles()->sync($request->role);
 
-            DB::commit();
-    
+            $user->roles()->sync($request->role);
+            $user->userpermission()->sync($request->permission);
+
+            DB::commit();    
             return redirect()->route('users.index')->with('success', 'User Updated successfully.');
             
         } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->back()->with(['error' => Helper::$errorMessage]);
         }
     }
@@ -191,17 +224,39 @@ class UserController extends Controller
         $user = User::with('roles')->where('id', decrypt($id))->first();
         $roles = Role::active()->get();
 
-        return view('users.view', compact('moduleName', 'user', 'roles'));
+        if (in_array(1, $user->roles->pluck('id')->toArray())) {
+            $userPermissions = Permission::select('id')->pluck('id')->toArray();
+        } else {
+            $userPermissions = UserPermission::where('user_id', $user->id)->select('permission_id')->pluck('permission_id')->toArray();
+        }
+
+        $permission = auth()->user()->roles->pluck('id')->toArray();
+        $permission = PermissionRole::whereIn('role_id', $permission)->select('permission_id')->pluck('permission_id')->toArray();
+
+        $temp = UserPermission::where('user_id', auth()->user()->id)->select('permission_id')->pluck('permission_id')->toArray();
+        $permission = array_unique(array_merge($temp, $permission));
+
+        $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
+
+        return view('users.view', compact('moduleName', 'user', 'roles', 'userPermissions', 'permission'));
     }
 
     public function destroy($id)
     {
+        DB::beginTransaction();
+
         try {
+
             $user = User::find(decrypt($id));
+            UserPermission::where('user_id', $user->id)->delete();
             $user->roles()->detach();
+            $user->userpermission()->detach();
             $user->delete();
-            return response()->json(['success' => $this->moduleName.' Deleted Successfully.', 'status' => 200]);
+
+            DB::commit();
+            return response()->json(['success' => $this->moduleName.' deleted successfully.', 'status' => 200]);
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
         }
     }
@@ -232,5 +287,88 @@ class UserController extends Controller
         }
 
         return response()->json($user->doesntExist());
+    }
+
+    public function register(Request $request, $role, $id = 1) {
+        if (is_null($role) || empty(trim($role))) {
+            abort(404);
+        }
+
+        try {
+            $role = decrypt($role);
+
+            if ($id !== 1) {
+                $id = decrypt($id) ?? 1;
+            }
+    
+            if (Role::find($role) !== null) {
+                if ($request->method() == 'GET') {
+    
+                    $url = url("register/{$role}/{$id}");
+                    $countries = Helper::getCountriesOrderBy();
+        
+                    return view('auth.register', compact('url', 'countries'));
+                } else if ($request->method() == 'POST') {
+        
+                    $this->validate($request, [
+                        'name' => 'required',
+                        'email' => "required|email|unique:users,email,NULL,id,deleted_at,NULL",
+                        'password' => 'required|min:8|max:16',
+                        'confirm_password' => 'same:password',
+                    ], [
+                        'name.required'                 => 'Name is required.',
+                        'email.required'                => 'Email is required.',
+                        'email.email'                   => 'Email format is invalid.',
+                        'email.unique'                  => 'This email is already exists.',
+                        'password.required'             => 'Create a Password.',
+                        'password.min'                  => 'Minimum length should be 8 characters.',
+                        'password.max'                  => 'Maximum length should be 16 characters.'
+                    ]);
+        
+                    if (Role::find($role) !== null) {
+                        $user = new User();
+                        $user->name = $request->name;
+                        $user->email = $request->email;
+                        $user->password = Hash::make($request->password);
+                        $user->country_id = $request->country;
+                        $user->postal_code = $request->postal_code;
+                        $user->added_by = $id;
+                        $user->save();
+            
+                        $user->roles()->attach($role);
+
+                        if (auth()->check()) {
+                            auth()->logout();
+                        }
+        
+                        session()->flush();
+                        $authenticate = auth()->attempt(['email' => $request->email, 'password' => $request->password]);
+        
+                        if ($authenticate) {
+                            return redirect()->intended('dashboard');
+                        } else {
+                            return redirect()->route('login')->with('success', 'Registration was successful.');
+                        }
+        
+                    } else {
+                        return redirect()->back()->with('error', 'This link is not valid for registration anymore.');
+                    }        
+        
+                } else {
+                    return redirect()->route('login');
+                }
+            } else {
+                return redirect()->back()->with('error', 'This link is not valid for registration.');
+            }
+        } catch(\Exception $e) {
+            Helper::logger($e->getMessage());
+            $response = redirect()->route('login');
+
+            if (!auth()->check()) {
+                return $response->with('error', 'This link is not valid for registration.');
+            }
+
+            return $response;
+        }
     }
 }

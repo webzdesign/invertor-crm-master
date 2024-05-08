@@ -16,7 +16,7 @@
                 </linearGradient>
             </defs>
         </svg>
-        Add Purchase Order
+        Add Storage
     </a>
     @endpermission
 </div>

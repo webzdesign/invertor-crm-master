@@ -50,6 +50,9 @@ class ProductController extends Controller
             ->addColumn("category", function($product) {
                 return $product->category->name ?? '';
             })
+            ->editColumn("unique_number", function ($product) {
+                return !empty(trim($product->unique_number)) ? $product->unique_number : '-';
+            })
             ->addColumn('action', function ($product) {
                 $variable = $product;
 
@@ -93,7 +96,7 @@ class ProductController extends Controller
     }
 
     public function checkProduct(Request $request) {
-        $product = Product::where('unique_number', trim($request->name));
+        $product = Product::whereNotNull('unique_number')->where('unique_number', trim($request->name));
 
         if ($request->has('id') && !empty(trim($request->id))) {
             $product = $product->where('id', '!=', decrypt($request->id));
@@ -193,9 +196,8 @@ class ProductController extends Controller
 
         $moduleName = 'Product';
         $product = Product::with(['images'])->where('id', $did)->first();
-        $images = ProductImage::select('id', 'name')->where('product_id', $did)->get();
 
-        return view('products.view', compact('moduleName', 'product', 'images'));
+        return view('products.view', compact('moduleName', 'product'));
     }
 
     public function destroy($id)

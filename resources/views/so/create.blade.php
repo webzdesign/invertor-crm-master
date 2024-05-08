@@ -8,14 +8,17 @@
 @endsection
 
 @section('css')
+<link rel="stylesheet" href="{{ asset('assets/css/intel.css') }}">
 <style>
     .customLayout th {
         white-space: nowrap;
         font-size: 13px;
     }
-
-    .srNumberClass {
-        font-size: 10px !important;
+    .iti__selected-flag {
+        height: 32px!important;
+    }
+    .iti--show-flags {
+        width: 100%!important;
     }
 </style>
 @endsection
@@ -29,28 +32,51 @@
 
                 <div class="row">
 
-                    <div class="col-sm-12 col-md-2">
+                    <div class="col-md-2 col-sm-12">
                         <div class="form-group">
-                            <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number:</label>
-                            <input class="form-control" id="order_number" placeholder="" type="text" value="{{ $orderNo }}" readonly style="background:#efefef">
+                            <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number :</label>
+                            <input class="form-control" id="order_number" type="text" value="{{ $orderNo }}" readonly style="background:#efefef">
                         </div>
                     </div>
 
-                    <div class="col-sm-12 col-md-2">
+                    <div class="col-md-3 col-sm-12">
                         <div class="form-group">
-                            <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Date:
+                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Name :
                                 <span class="text-danger">*</span>
                             </label>
-                            <input type="text" readonly name="order_date" placeholder="Order Date" id="order_date" value="{{ old('order_date') }}"
-                                class="form-control datepicker"
-                                style="background:#ffffff">
-                                @if ($errors->has('order_date'))
-                                    <span class="text-danger d-block">{{ $errors->first('order_date') }}</span>
-                                @endif
+                            <input type="text" class="form-control" id="customer-name" placeholder="Enter customer name" name="customername" value="{{ old('customername') }}">
+                            @if ($errors->has('customername'))
+                                <span class="text-danger d-block">{{ $errors->first('customername') }}</span>
+                            @endif
                         </div>
                     </div>
 
-                    <div class="col-sm-12 col-md-2">
+                    <div class="col-md-2 col-sm-12">
+                        <div class="form-group">
+                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Phone Number:
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" name="customerphone" id="customer-phone" value="{{ old('customerphone') }}">
+                            <input type="hidden" name="country_dial_code" id="country_dial_code">
+                            <input type="hidden" name="country_iso_code" id="country_iso_code" value="{{ old('country_iso_code') }}">
+                            @if ($errors->has('customerphone'))
+                                <span class="text-danger d-block">{{ $errors->first('customerphone') }}</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="col-md-3 col-sm-12">
+                        <div class="form-group">
+                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Facebook URL:
+                            </label>
+                            <input type="url" class="form-control" name="customerfb" id="customer-fb" placeholder="Enter customer facebook url" value="{{ old('customerfb') }}">
+                            @if ($errors->has('customerfb'))
+                                <span class="text-danger d-block">{{ $errors->first('customerfb') }}</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="col-md-2 col-sm-12">
                         <div class="form-group">
                             <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Delivery Date:
                                 <span class="text-danger">*</span>
@@ -62,85 +88,7 @@
                         </div>
                     </div>
 
-                    <div class="col-sm-12 col-md-2">
-                        <div class="form-group">
-                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Name:
-                                <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" class="form-control" id="customer-name" placeholder="Enter customer name" name="customername" value="{{ old('customername') }}">
-                            @if ($errors->has('customername'))
-                                <span class="text-danger d-block">{{ $errors->first('customername') }}</span>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="col-sm-12 col-md-2">
-                        <div class="form-group">
-                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Phone Number:
-                                <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" class="form-control" name="customerphone" id="customer-phone" placeholder="Enter customer phone number" value="{{ old('customerphone') }}">
-                            @if ($errors->has('customerphone'))
-                                <span class="text-danger d-block">{{ $errors->first('customerphone') }}</span>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="col-sm-12 col-md-2">
-                        <div class="form-group">
-                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Facebook URL:
-                            </label>
-                            <input type="url" class="form-control" name="customerfb" id="customer-fb" placeholder="Enter customer facebook url" value="{{ old('customerfb') }}">
-                            @if ($errors->has('customerfb'))
-                                <span class="text-danger d-block">{{ $errors->first('customerfb') }}</span>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="col-md-3 col-sm-12">
-                        <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">Country: <span class="text-danger">*</span></label>
-                            <select name="country" id="country" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Country ---">
-                                @forelse($countries as $cid => $cname)
-                                    @if($loop->first)
-                                    <option value="" selected> --- Select a Country --- </option>
-                                    @endif
-                                    <option value="{{ $cid }}"> {{ $cname }} </option>
-                                @empty                                
-                                    <option value=""> --- No Country Found --- </option>
-                                @endforelse
-                            </select>
-                            @if ($errors->has('country'))
-                                <span class="text-danger d-block">{{ $errors->first('country') }}</span>
-                            @endif
-                        </div>
-                    </div>
-    
-                    <div class="col-md-3 col-sm-12">
-                        <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">State: <span class="text-danger">*</span></label>
-                            <select name="state" id="state" class="select2 select2-hidden-accessible" data-placeholder="--- Select a State ---">
-                                <option value="" selected> --- Select State --- </option>
-                            </select>
-                            @if ($errors->has('state'))
-                                <span class="text-danger d-block">{{ $errors->first('state') }}</span>
-                            @endif
-                        </div>
-                    </div>
-    
-                    <div class="col-md-3 col-sm-12">
-                        <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">City: <span class="text-danger">*</span></label>
-                            <select name="city" id="city" class="select2 select2-hidden-accessible" data-placeholder="--- Select a City ---">
-                                <option value="" selected> --- Select City --- </option>
-                            </select>
-                            @if ($errors->has('city'))
-                                <span class="text-danger d-block">{{ $errors->first('city') }}</span>
-                            @endif
-                        </div>
-                    </div>
-    
-                    <div class="col-md-3 col-sm-12">
+                    <div class="col-md-2 col-sm-12">
                         <div class="form-group">
                             <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code: <span class="text-danger">*</span></label>
                             <input type="text" name="postal_code" id="postal_code" value="{{ old('postal_code') }}" class="form-control" placeholder="Enter postal code">
@@ -150,27 +98,34 @@
                         </div>
                     </div>
 
-                    <div class="col-12">
+                    <div class="col-md-2 col-sm-12">
                         <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">Address Line 1: <span class="text-danger">*</span></label>
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Status: <span class="text-danger">*</span></label>
+                            <select name="status" id="status" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Status ---">
+                                @forelse($statuses as $sid => $sname)
+                                    @if($loop->first)
+                                    <option value="" selected> --- Select a Status --- </option>
+                                    @endif
+                                    <option value="{{ $sid }}" > {{ $sname }} </option>
+                                @empty                                
+                                    <option value=""> --- No Status Found --- </option>
+                                @endforelse
+                            </select>
+                            @if ($errors->has('status'))
+                                <span class="text-danger d-block">{{ $errors->first('status') }}</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="col-md-8 col-sm-12">
+                        <div class="form-group">
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Address Line : <span class="text-danger">*</span></label>
                             <textarea name="address_line_1" id="address_line_1" class="form-control" style="height: 60px;">{{ old('address_line_1') }}</textarea>
                             @if ($errors->has('address_line_1'))
                                 <span class="text-danger d-block">{{ $errors->first('address_line_1') }}</span>
                             @endif
                         </div>
                     </div>
-    
-                    <div class="col-12">
-                        <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">Address Line 2: <span class="text-danger">*</span></label>
-                            <textarea name="address_line_2" id="address_line_2" class="form-control" style="height: 60px;">{{ old('order_line_2') }}</textarea>
-                            @if ($errors->has('address_line_2'))
-                                <span class="text-danger d-block">{{ $errors->first('address_line_2') }}</span>
-                            @endif
-                        </div>
-                    </div>
-
-
 
 
                     <div>
@@ -192,8 +147,6 @@
                                                 <th >Category <span class="text-danger">*</span> </th>
 
                                                 <th >Product <span class="text-danger">*</span> </th>
-
-                                                <th style="width:100px;">Available Stock </th>
 
                                                 <th >Quantity <span class="text-danger">*</span> </th>
 
@@ -225,20 +178,12 @@
                                                     </div>
                                                 </td>
 
-
                                                 <td>
                                                     <div style="min-width: 200px;width: 100%" class="removable-product">
                                                         <select name="product[0]" data-indexid="0" id="product-0" class="select2 select2-hidden-accessible m-product" style="width:100%" data-placeholder="Select a Product">
                                                             <option value="">Select Product
                                                             </option>
                                                         </select>
-                                                    </div>
-                                                </td>
-
-
-                                                <td >
-                                                    <div style="min-width: 100px;">
-                                                        <input type="number" data-indexid="0" id="as-0" class="form-control m-as" style="background:#efefef" readonly>
                                                     </div>
                                                 </td>
 
@@ -278,7 +223,6 @@
                                         </tbody>
                                         <tfoot>
                                             <tr>
-                                                <td></td>
                                                 <td></td>
                                                 <td></td>
                                                 <td> 
@@ -338,9 +282,35 @@
 @endsection
 
 @section('script')
+<script src="{{ asset('assets/js/intel.min.js') }}"></script>
     <script>
         $(document).ready(function() {
             
+            const input = document.querySelector('#customer-phone');
+            const errorMap = ["Phone number is invalid.", "Invalid country code", "Too short", "Too long"];
+
+            const iti = window.intlTelInput(input, {
+            initialCountry: "gb",
+            preferredCountries: ['gb', 'pk'],
+            utilsScript: "{{ asset('assets/js/intel2.js') }}"
+            });
+
+            $.validator.addMethod('inttel', function (value, element) {
+                    if (value.trim() == '' || iti.isValidNumber()) {
+                        return true;
+                    }
+                return false;
+            }, function (result, element) {
+                    return errorMap[iti.getValidationError()] || errorMap[0];
+            });
+
+            input.addEventListener('keyup', () => {
+                if (iti.isValidNumber()) {
+                    $('#country_dial_code').val(iti.s.dialCode);
+                    $('#country_iso_code').val(iti.j);
+                }
+            });
+
             var categories = {!! json_encode($categories) !!};
             var categoriesHtml = `<option value="" selected> --- Select a Category --- </option>`;
             let lastElementIndex = 0;
@@ -350,26 +320,6 @@
                     categoriesHtml += `<option value="${key}"> ${categories[key]} </option>`;
                 }
             })();
-
-            $.validator.addMethod("inStock", function(value, element){
-                let dIndex = $(element).data('indexid');
-                let availableStock = parseInt($(`#as-${dIndex}`).val());
-                let stock = $(element).val();
-
-                if ($(`#product-${dIndex}`).val() == null || $(`#product-${dIndex}`).val() == '') {
-                    return true;
-                }
-
-                if (isNaN(availableStock) || availableStock === '' || availableStock === null) {
-                    availableStock = 0;
-                }
-
-                if (availableStock >= stock) {
-                    return true;
-                } else {
-                    return false;
-                }
-            }, "Enter quantity out of avaialble stock."); 
 
             $(document).on('click', '.addNewRow', function (event) {
                 cloned = $('.upsertable').find('tr').eq(0).clone();
@@ -387,7 +337,6 @@
                     allowClear: true
                 });
 
-                cloned.find('.m-as').attr('id', `as-${lastElementIndex}`).attr('data-indexid', lastElementIndex).val(null);
                 cloned.find('.m-quantity').attr('id', `quantity-${lastElementIndex}`).attr('data-indexid', lastElementIndex).attr('name', `quantity[${lastElementIndex}]`).val(null);
                 cloned.find('.m-price').attr('id', `price-${lastElementIndex}`).attr('data-indexid', lastElementIndex).attr('name', `price[${lastElementIndex}]`).val(null);
                 cloned.find('.m-amount').attr('id', `amount-${lastElementIndex}`).attr('data-indexid', lastElementIndex).attr('name', `amount[${lastElementIndex}]`).val(null);
@@ -414,7 +363,6 @@
                     required: true,
                     digits: true,
                     min: 1,
-                    inStock: true,
                     messages: {
                         required: "Enter quantity.",
                         digits: "Enter valid format.",
@@ -439,6 +387,12 @@
             $(document).on('click', '.removeRow', function(event) {
                 if ($('.upsertable tr').length > 1) {
                     $(this).closest("tr").remove();                    
+                }
+
+                let iid = $(this).parent().parent().prev().find('.m-remarks').data('indexid');
+
+                if (typeof iid !== 'undefined' && iid !== '' && iid !== null) {
+                    calculateAmount(iid);
                 }
             });
 
@@ -529,9 +483,6 @@
                     });
                     $(`#quantity-${indexId}`).val(null);
                     $(`#price-${indexId}`).val(null);
-                    $(`#amount-${indexId}`).val(null);
-                    $(`#remarks-${indexId}`).val(null);
-                    $(`#as-${indexId}`).val(null);
                     calculateAmount(indexId);
                 }
             })
@@ -539,19 +490,8 @@
             $(document).on('change', '.m-product', function (event) {
                 let indexId = $(this).data('indexid');
                 let thisId = $(this).val();
-
-                if (thisId !== '') {
-                    $(`#price-${indexId}`).val($(this).find(':selected').data('price'));
-                    $(`#as-${indexId}`).val($(this).find(':selected').data('availablestock'));
-                    calculateAmount(indexId);
-                } else {
-                    $(`#quantity-${indexId}`).val(null);
-                    $(`#price-${indexId}`).val(null);
-                    $(`#amount-${indexId}`).val(null);
-                    $(`#remarks-${indexId}`).val(null);
-                    $(`#as-${indexId}`).val(null);
-                    calculateAmount(indexId);
-                }
+                
+                calculateAmount(indexId);
 
                 let that = $(this);
 
@@ -568,80 +508,6 @@
                 calculateAmount($(this).data('indexid'));
             });
 
-            $('#country').on('change', function (event) {
-                let country = event.target.value;
-
-                if (country !== '') {
-                    $.ajax({
-                        url: "{{ route('getStates') }}",
-                        type: 'POST',
-                        data: {
-                            id: country
-                        },
-                        beforeSend: function () {
-                            $('body').find('.LoaderSec').removeClass('d-none');                    
-                        },
-                        success: function (response) {
-                            if (response.status) {
-                                $('#state').empty().append(response.states);
-                                $("#state").select2({
-                                    width: '100%',
-                                    allowClear: true,
-                                    placeholder: "--- Select a State ---"
-                                });
-
-                                $('#city').empty();
-                                $("#city").select2({
-                                    width: '100%',
-                                    allowClear: true,
-                                    placeholder: "--- Select a City ---"
-                                });
-                            }
-                        },
-                        complete: function () {
-                            $('body').find('.LoaderSec').addClass('d-none');
-                        }
-                    });
-                }
-            });
-
-            $('#state').on('change', function (event) {
-                let state = event.target.value;
-                
-                if (state !== '') {
-                    $.ajax({
-                        url: "{{ route('getCities') }}",
-                        type: 'POST',
-                        data: {
-                            id: state
-                        },
-                        beforeSend: function () {
-                            $('body').find('.LoaderSec').removeClass('d-none');                    
-                        },
-                        success: function (response) {
-                            if (response.status) {
-                                $('#city').empty().append(response.cities);
-                                $("#city").select2({
-                                    width: '100%',
-                                    allowClear: true,
-                                    placeholder: "--- Select a City ---"
-                                });
-                            }
-                        },
-                        complete: function () {
-                            $('body').find('.LoaderSec').addClass('d-none');
-                        }
-                    });
-                }
-            });
-
-            $('#order_date').datepicker({
-                format: 'dd-mm-yyyy',
-                autoclose: true,
-                todayHighlight: true,
-                orientation: "bottom"
-            });
-
             $('#order_del_date').datepicker({
                 format: 'dd-mm-yyyy',
                 autoclose: true,
@@ -651,7 +517,7 @@
 
             $("#addSo").validate({
                 rules: {
-                    order_date: {
+                    status: {
                         required: true
                     },
                     order_del_date: {
@@ -661,6 +527,7 @@
                         required: true
                     },
                     customerphone: {
+                        inttel: true,
                         required: true,
                         number: true,
                         minlength: 6,
@@ -697,8 +564,7 @@
                     'quantity[0]': {
                         required: true,
                         digits: true,
-                        min: 1,
-                        inStock: true
+                        min: 1
                     },
                     'price[0]': {
                         required: true,
@@ -707,20 +573,14 @@
                     }
                 },
                 messages: {
-                    order_date: {
-                        required: "Select order date.",
+                    status: {
+                        required: "Select a status.",
                     },
                     order_del_date: {
                         required: "Select order delivery date.",
                     },
                     customername: {
                         required: "Enter customer name."
-                    },
-                    customerphone: {
-                        required: "Enter customer phone number.",
-                        number: "Enter valid phone number.",
-                        minlength: "Phone number must consist of at least 6 digits.",
-                        maxlength: "Phone number can\'t have more than 15 digits."
                     },
                     customerfb: {
                         url: "Enter valid url."

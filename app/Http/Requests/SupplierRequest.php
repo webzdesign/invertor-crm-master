@@ -4,14 +4,12 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UserRequest extends FormRequest
+class SupplierRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
@@ -19,32 +17,23 @@ class UserRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules()
+    public function rules(): array
     {
         if (request()->method() == 'PUT') {
             $id = decrypt($this->id);
             return [
                 'name'                  => 'required',
                 'email'                 => "required|email|unique:users,email,{$id},id,deleted_at,NULL",
-                'role'                  => 'required',
-                'confirm_password'      => 'same:password',
                 'country'               => "required",
-                'city'                  => "required",
-                'address_line_1'        => "required",
                 'postal_code'           => "required"
             ];
         } else {
             return [
                 'name'                  => 'required',
                 'email'                 => "required|email|unique:users,email,NULL,id,deleted_at,NULL",
-                'role'                  => 'required',
-                'password'              => 'required|min:8|max:16',
-                'confirm_password'      => 'same:password',
                 'country'               => "required",
-                'city'                  => "required",
-                'address_line_1'        => "required",
                 'postal_code'           => "required"
             ];
         }
@@ -57,14 +46,7 @@ class UserRequest extends FormRequest
             'email.required'                => 'Email is required.',
             'email.email'                   => 'Email format is invalid.',
             'email.unique'                  => 'This email is already exists.',
-            'role.required'                 => 'Select a role.',
-            'password.required'             => 'Create a Password.',
-            'password.min'                  => 'Minimum length should be 8 characters.',
-            'password.max'                  => 'Maximum length should be 16 characters.',
-            'confirm_password.same'     => 'Both password field must be matched.',
-            'address_line_1.required'       => 'Address Line 1 is required.',
             'country.required'              => 'Select a Country.',
-            'city.required'                 => 'Select a City.',
             'postal_code.required'          => 'Enter postal code.',
         ];
     }

@@ -14,7 +14,7 @@ use App\Models\User;
 
 class PurchaseOrderController extends Controller
 {
-    protected $moduleName = 'Purchase Orders';
+    protected $moduleName = 'Storage';
 
     public function index(Request $request)
     {
@@ -88,7 +88,7 @@ class PurchaseOrderController extends Controller
 
     public function create()
     {
-        $moduleName = 'Purchase Order';
+        $moduleName = 'Storage';
         $suppliers = User::whereHas('role', function ($builder) {
             $builder->where('roles.id', 4);
         })->select('users.id as id', 'users.name as name')->pluck('name', 'id')->toArray();
@@ -113,15 +113,12 @@ class PurchaseOrderController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-            'order_date' => 'required',
             'supplier' => 'required',
             'category.*' => 'required',
             'product.*' => 'required',
             'quantity.*' => 'required|numeric|min:1',
-            'price.*' => 'required|numeric|min:0',
-            'expense.*' => 'required|numeric|min:0'
+            'price.*' => 'required|numeric|min:0'
         ], [
-            'order_date.required' => 'Select order date.',
             'supplier.required' => 'Select a supplier.',
             'category.*' => 'Select a category.',
             'product.*' => 'Select a product.',
@@ -130,10 +127,7 @@ class PurchaseOrderController extends Controller
             'quantity.*.min' => 'Quantity can\'t be less than 1.',
             'price.*.required' => 'Enter Price.',
             'price.*.numeric' => 'Enter valid format.',
-            'price.*.min' => 'Quantity can\'t be less than 0.',
-            'expense.*.required' => 'Enter expense.',
-            'expense.*.numeric' => 'Enter valid format.',
-            'expense.*.min' => 'Quantity can\'t be less than 0.'
+            'price.*.min' => 'Quantity can\'t be less than 0.'
         ]);
 
         $orderNo = Helper::generatePurchaseOrderNumber();
@@ -149,7 +143,7 @@ class PurchaseOrderController extends Controller
                 $po->order_no = $orderNo;
                 $po->supplier_id = $request->supplier;
                 $po->added_by = $userId;
-                $po->date = date('Y-m-d H:i:s', strtotime($request->order_date));
+                $po->date = now();
                 $po->save();
 
                 $poId = $po->id;
@@ -162,7 +156,6 @@ class PurchaseOrderController extends Controller
                         'category_id' => $request->category[$key] ?? '',
                         'product_id' => $product,
                         'price' => floatval($request->price[$key]) ?? 0,
-                        'expense' => floatval($request->expense[$key]) ?? 0,
                         'qty' => intval($request->quantity[$key]) ?? 0,
                         'amount' => floatval($request->amount[$key]) ?? 0,
                         'remarks' => $request->remarks[$key] ?? '',
@@ -184,10 +177,10 @@ class PurchaseOrderController extends Controller
                 Stock::insert($poItemForStock);
 
                 DB::commit();
-                return redirect()->route('purchase-orders.index')->with('success', 'Purchase order added successfully.');
+                return redirect()->route('purchase-orders.index')->with('success', 'Stock added into storage successfully.');
             } else {
                 DB::rollBack();
-                return redirect()->back()->with('error', 'Select at least a product to add purchase order.');
+                return redirect()->back()->with('error', 'Select at least a product to add stock in storage.');
             }
 
         } catch (\Exception $e) {
@@ -200,7 +193,7 @@ class PurchaseOrderController extends Controller
 
     public function edit(Request $request, $id)
     {
-        $moduleName = 'Purchase Order';
+        $moduleName = 'Storage';
         $suppliers = User::whereHas('role', function ($builder) {
             $builder->where('roles.id', 4);
         })->select('users.id as id', 'users.name as name')->pluck('name', 'id')->toArray();
@@ -215,15 +208,12 @@ class PurchaseOrderController extends Controller
     {
 
         $this->validate($request, [
-            'order_date' => 'required',
             'supplier' => 'required',
             'category.*' => 'required',
             'product.*' => 'required',
             'quantity.*' => 'required|numeric|min:1',
-            'price.*' => 'required|numeric|min:0',
-            'expense.*' => 'required|numeric|min:0'
+            'price.*' => 'required|numeric|min:0'
         ], [
-            'order_date.required' => 'Select order date.',
             'supplier.required' => 'Select a supplier.',
             'category.*' => 'Select a category.',
             'product.*' => 'Select a product.',
@@ -232,10 +222,7 @@ class PurchaseOrderController extends Controller
             'quantity.*.min' => 'Quantity can\'t be less than 1.',
             'price.*.required' => 'Enter Price.',
             'price.*.numeric' => 'Enter valid format.',
-            'price.*.min' => 'Quantity can\'t be less than 0.',
-            'expense.*.required' => 'Enter expense.',
-            'expense.*.numeric' => 'Enter valid format.',
-            'expense.*.min' => 'Quantity can\'t be less than 0.'
+            'price.*.min' => 'Quantity can\'t be less than 0.'
         ]);
 
         $userId = auth()->user()->id;
@@ -250,7 +237,7 @@ class PurchaseOrderController extends Controller
                 $po = PurchaseOrder::find($id);
                 $po->supplier_id = $request->supplier;
                 $po->updated_by = $userId;
-                $po->date = date('Y-m-d H:i:s', strtotime($request->order_date));
+                $po->date = now();
                 $po->save();
 
                 $poItems = [];
@@ -265,7 +252,6 @@ class PurchaseOrderController extends Controller
                         'category_id' => $request->category[$key] ?? '',
                         'product_id' => $product,
                         'price' => floatval($request->price[$key]) ?? 0,
-                        'expense' => floatval($request->expense[$key]) ?? 0,
                         'qty' => intval($request->quantity[$key]) ?? 0,
                         'amount' => floatval($request->amount[$key]) ?? 0,
                         'remarks' => $request->remarks[$key] ?? '',
@@ -287,11 +273,11 @@ class PurchaseOrderController extends Controller
                 Stock::insert($poItemForStock);
 
                 DB::commit();
-                return redirect()->route('purchase-orders.index')->with('success', 'Purchase order updated successfully.');
+                return redirect()->route('purchase-orders.index')->with('success', 'stock updated to storage successfully.');
 
             } else {
                 DB::rollBack();
-                return redirect()->back()->with('error', 'Select at least a product to update purchase order.');
+                return redirect()->back()->with('error', 'Select at least a product to update stock in storage.');
             }
 
         } catch (\Exception $e) {
@@ -304,7 +290,7 @@ class PurchaseOrderController extends Controller
 
     public function show(Request $request, $id)
     {
-        $moduleName = 'Purchase Order';
+        $moduleName = 'Storage';
         $suppliers = User::whereHas('role', function ($builder) {
             $builder->where('roles.id', 4);
         })->select('users.id as id', 'users.name as name')->pluck('name', 'id')->toArray();
@@ -327,7 +313,7 @@ class PurchaseOrderController extends Controller
             Stock::where('type', '0')->where('form', '1')->where('form_record_id', $poId)->delete();
 
             DB::commit();
-            return response()->json(['success' => 'Purchase order deleted successfully.', 'status' => 200]);
+            return response()->json(['success' => 'Stock from storage deleted successfully.', 'status' => 200]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);

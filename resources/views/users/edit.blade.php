@@ -1,5 +1,17 @@
 @extends('layouts.master')
 
+@section('css')
+<link rel="stylesheet" href="{{ asset('assets/css/intel.css') }}">
+<style>
+    .iti__selected-flag {
+        height: 32px!important;
+    }
+    .iti--show-flags {
+        width: 100%!important;
+    }
+</style>
+@endsection
+
 @section('breadcumb')
 <li class="f-14 f-400 c-7b">
     /
@@ -14,7 +26,7 @@
     <div class="cards">
         <div class="cardsBody pb-0">
             <div class="row">
-                <div class="col-md-4 col-sm-6">
+                <div class="col-md-3 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Name: <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" class="form-control" placeholder="Enter name">
@@ -24,7 +36,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 col-sm-6">
+                <div class="col-md-3 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Email: <span class="text-danger">*</span></label>
                         <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" class="form-control" placeholder="Enter email">
@@ -34,7 +46,19 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 col-sm-6">
+                <div class="col-md-3 col-sm-6">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Phone Number: </label>
+                        <input type="text" name="phone" id="phone" value="{{ old('phone', $user->phone) }}" class="form-control" >
+                        <input type="hidden" name="country_dial_code" id="country_dial_code" value="{{ old('country_dial_code', $user->country_dial_code) }}">
+                        <input type="hidden" name="country_iso_code" id="country_iso_code" value="{{ old('country_iso_code', $user->country_iso_code) }}">
+                        @if ($errors->has('phone'))
+                            <span class="text-danger d-block">{{ $errors->first('phone') }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-md-3 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Roles: <span class="text-danger">*</span></label>
                         <select name="role" id="role" class="select2 select2-hidden-accessible" data-placeholder="--- Select Role ---">
@@ -55,7 +79,11 @@
                 <div class="col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Password: </label>
-                        <input type="password" name="password" id="password" value="{{ old('password') }}" class="form-control" placeholder="Create password">
+                        <div class="input-group">
+                            <input type="password" name="password" id="password" value="{{ old('password') }}" class="form-control" placeholder="Create password">
+                            <button class="btn btn-outline-primary show-hide d-flex align-items-center justify-content-center text-black border-gray h-34 bg-transparent shadow-none hover-bg-gray" type="button" data-fieldid="password" title="See Password"><i class="fa fa-eye"></i></button>
+                            <button class="btn btn-outline-primary d-flex align-items-center justify-content-center text-black border-gray h-34 bg-transparent shadow-none hover-bg-gray" type="button" title="Generate Random" id="generate"><i class="fa fa-random"></i></button>
+                        </div>
                         @if ($errors->has('password'))
                             <span class="text-danger d-block">{{ $errors->first('password') }}</span>
                         @endif
@@ -65,14 +93,17 @@
                 <div class="col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Confirm Password: </label>
-                        <input type="password" name="confirm_password" id="confirm-password" value="{{ old('confirm_password') }}" class="form-control" placeholder="Confirm new password">
+                        <div class="input-group">
+                            <input type="password" name="confirm_password" id="confirm-password" value="{{ old('confirm_password') }}" class="form-control" placeholder="Confirm new password">
+                            <button class="btn btn-outline-primary show-hide  d-flex align-items-center justify-content-center text-black border-gray h-34 bg-transparent shadow-none hover-bg-gray" type="button" data-fieldid="confirm-password" title="See Password"><i class="fa fa-eye"></i></button>
+                        </div>
                         @if ($errors->has('confirm_password'))
                             <span class="text-danger d-block">{{ $errors->first('confirm_password') }}</span>
                         @endif
                     </div>
                 </div>
 
-                <div class="col-md-3 col-sm-6">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Country: <span class="text-danger">*</span></label>
                         <select name="country" id="country" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Country ---">
@@ -91,39 +122,17 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 col-sm-6">
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">State: <span class="text-danger">*</span></label>
-                        <select name="state" id="state" class="select2 select2-hidden-accessible" data-placeholder="--- Select a State ---">
-                            @forelse($states as $sid => $sname)
-                                <option value="{{ $sid }}" @if($sid == $user->state_id) selected @endif > {{ $sname }} </option>
-                            @empty
-                                <option value=""> --- No State Found --- </option>
-                            @endforelse
-                        </select>
-                        @if ($errors->has('state'))
-                            <span class="text-danger d-block">{{ $errors->first('state') }}</span>
-                        @endif
-                    </div>
-                </div>
-
-                <div class="col-md-3 col-sm-6">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">City: <span class="text-danger">*</span></label>
-                        <select name="city" id="city" class="select2 select2-hidden-accessible" data-placeholder="--- Select a City ---">
-                            @forelse($cities as $ctid => $ctname)
-                                <option value="{{ $ctid }}" @if($ctid == $user->city_id) selected @endif > {{ $ctname }} </option>
-                            @empty
-                                <option value=""> --- No City Found --- </option>
-                            @endforelse
-                        </select>
+                        <input type="text" class="form-control" name="city" id="city" placeholder="Enter city" value="{{ $user->city_id }}">
                         @if ($errors->has('city'))
                             <span class="text-danger d-block">{{ $errors->first('city') }}</span>
                         @endif
                     </div>
                 </div>
 
-                <div class="col-md-3 col-sm-6">
+                <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code: <span class="text-danger">*</span></label>
                         <input type="text" name="postal_code" id="postal_code" value="{{ old('postal_code', $user->postal_code) }}" class="form-control" placeholder="Enter postal code">
@@ -135,7 +144,7 @@
 
                 <div class="col-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Address Line 1: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Address Line: <span class="text-danger">*</span></label>
                         <textarea name="address_line_1" id="address_line_1" class="form-control">{{ old('address_line_1', $user->address_line_1) }}</textarea>
                         @if ($errors->has('address_line_1'))
                             <span class="text-danger d-block">{{ $errors->first('address_line_1') }}</span>
@@ -143,16 +152,34 @@
                     </div>
                 </div>
 
-                <div class="col-12">
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Address Line 2: <span class="text-danger">*</span></label>
-                        <textarea name="address_line_2" id="address_line_2" class="form-control">{{ old('address_line_2', $user->address_line_2) }}</textarea>
-                        @if ($errors->has('address_line_2'))
-                            <span class="text-danger d-block">{{ $errors->first('address_line_2') }}</span>
-                        @endif
-                    </div>
-                </div>
+            </div>
+        </div>
 
+        <div class="cardsBody py-0">
+            <label class="c-gr f-500 f-16 w-100 mb-2">Permissions</label>
+            <div class="form-group">
+                <div class="row">
+                    @foreach($permission as $key => $value)
+                        <div class="col-xl-3 col-lg-4 col-md-6 mb-3 permission-listing">
+                            <div class="PlBox">
+                                @foreach($value as $k => $v)
+                                    @if($loop->first)
+                                    <li class="list-group-item inline bg-transparent border-0 p-0 mb-2">
+                                        <label class="c-gr w-100 mb-2 f-14">
+                                            <input type="checkbox" class="form-check-input selectDeselect">
+                                            <span class="c-primary f-700">{{ $v->model }}</span>
+                                        </label>
+                                    </li>
+                                    @endif
+                                    <li class="form-check">
+                                        <input type="checkbox" class="form-check-input permission" name="permission[]" id="{{ $v->id }}" value="{{ $v->id }}" aria-label="..." @if(in_array($v->id,$userPermissions)) checked @endif>
+                                        <label for="{{ $v->id }}" class="form-check-label mb-0 f-14 f-500 aside-input-checbox">{{ $v->name }}</label>
+                                    </li>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
             </div>
         </div>
 
@@ -160,89 +187,66 @@
             <a href="{{ route('users.index') }}">
                 <button type="button" class="btn-default f-500 f-14">Cancel</button>
             </a>
-            <button type="submit" class="btn-primary f-500 f-14">Save</button>
+            <button type="submit" class="btn-primary f-500 f-14">Save Changes</button>
         </div>
     </div>
 </form>
 @endsection
 
 @section('script')
+<script src="{{ asset('assets/js/intel.min.js') }}"></script>
 <script>
 $(document).ready(function(){
 
-   
+    const input = document.querySelector('#phone');
+    const errorMap = ["Phone number is invalid.", "Invalid country code", "Too short", "Too long"];
 
-    $('#country').on('change', function (event) {
-        let country = event.target.value;
+    const iti = window.intlTelInput(input, {
+        initialCountry: "{{ $user->country_iso_code ?? 'gb' }}",
+        preferredCountries: ['gb', 'pk'],
+        utilsScript: "{{ asset('assets/js/intel2.js') }}"
+    });
 
-        if (country !== '') {
-            $.ajax({
-                url: "{{ route('getStates') }}",
-                type: 'POST',
-                data: {
-                    id: country
-                },
-                beforeSend: function () {
-                    $('body').find('.LoaderSec').removeClass('d-none');                    
-                },
-                success: function (response) {
-                    if (response.status) {
-                        $('#state').empty().append(response.states);
-                        $("#state").select2({
-                            width: '100%',
-                            allowClear: true,
-                            placeholder: "--- Select a State ---"
-                        });
+    $.validator.addMethod('inttel', function (value, element) {
+            if (value.trim() == '' || iti.isValidNumber()) {
+                return true;
+            }
+        return false;
+    }, function (result, element) {
+            return errorMap[iti.getValidationError()] || errorMap[0];
+    });
 
-                        $('#city').empty();
-                        $("#city").select2({
-                            width: '100%',
-                            allowClear: true,
-                            placeholder: "--- Select a City ---"
-                        });
-                    }
-                },
-                complete: function () {
-                    $('body').find('.LoaderSec').addClass('d-none');
-                }
-            });
+    input.addEventListener('keyup', () => {
+        if (iti.isValidNumber()) {
+            $('#country_dial_code').val(iti.s.dialCode);
+            $('#country_iso_code').val(iti.j);
         }
     });
 
-    $('#state').on('change', function (event) {
-        let state = event.target.value;
-        
-        if (state !== '') {
-            $.ajax({
-                url: "{{ route('getCities') }}",
-                type: 'POST',
-                data: {
-                    id: state
-                },
-                beforeSend: function () {
-                    $('body').find('.LoaderSec').removeClass('d-none');                    
-                },
-                success: function (response) {
-                    if (response.status) {
-                        $('#city').empty().append(response.cities);
-                        $("#city").select2({
-                            width: '100%',
-                            allowClear: true,
-                            placeholder: "--- Select a City ---"
-                        });
-                    }
-                },
-                complete: function () {
-                    $('body').find('.LoaderSec').addClass('d-none');
-                }
-            });
+    $('body').on('click','.selectDeselect',function(e){
+        var selectVal = $(this).prop('checked');
+
+        if (selectVal) {
+            $(this).closest('.permission-listing').find('.permission').prop('checked', true);
+        } else {
+            $(this).closest('.permission-listing').find('.permission').prop('checked', false);
         }
+    });   
+
+    $('.permission-listing').each(function () {
+        var permissionCheckboxes = $(this).find('.permission');
+        var selectDeselect = $(this).find('.selectDeselect');
+
+        selectDeselect.prop('checked', permissionCheckboxes.length === permissionCheckboxes.filter(':checked').length);
     });
 
     $('#addUser').validate({
         rules : {
             'name' : {
                 required: true
+            },
+            'phone': {
+                inttel: true
             },
             'email' : {
                 required: true,
@@ -272,13 +276,7 @@ $(document).ready(function(){
             'address_line_1' : {
                 required: true
             },
-            'address_line_2' : {
-                required: true
-            },
             'country' : {
-                required: true
-            },
-            'state' : {
                 required: true
             },
             'city' : {
@@ -292,6 +290,9 @@ $(document).ready(function(){
         messages : {
             'name' : {
                 required: 'Name is required.'
+            },
+            'phone': {
+                inttel: 'Phone number is invalid.'
             },
             'email' : {
                 required: 'Email is required.',
@@ -311,14 +312,8 @@ $(document).ready(function(){
             'address_line_1' : {
                 required: 'Address Line 1 is required.'
             },
-            'address_line_2' : {
-                required: 'Address Line 2 is required.'
-            },
             'country' : {
                 required: 'Select a Country.'
-            },
-            'state' : {
-                required: 'Select a State.'
             },
             'city' : {
                 required: 'Select a City.'
@@ -329,7 +324,36 @@ $(document).ready(function(){
             }
         },
         errorPlacement: function(error, element) {
-            error.appendTo(element.parent("div"));
+            if ($(element).hasClass('pswd')) {
+                error.insertAfter(element.parent("div"));
+            } else {
+                error.appendTo(element.parent("div"));
+            }
+        }
+    });
+
+    $('#generate').on('click', function (event) {
+        var length = 16,
+        charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$^&*(){}[]+-~`",
+        password = "";
+        for (var i = 0, n = charset.length; i < length; ++i) {
+            password += charset.charAt(Math.floor(Math.random() * n));
+        }
+
+        $('#password').val(password);
+        $('#confirm-password').val(password);
+    });
+
+    $('.show-hide').on('click', function (event) {
+        let input = $(this).data('fieldid');
+        input = $(`#${input}`);
+
+        if (input.attr('type') == 'password') {
+            input.attr('type', 'text');
+            $(this).html("<i class='fa fa-eye-slash'></i>");
+        } else {
+            input.attr('type', 'password');
+            $(this).html("<i class='fa fa-eye'></i>");
         }
     });
 

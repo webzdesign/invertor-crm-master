@@ -35,7 +35,7 @@
                             </svg>
                             Email
                         </label>
-                        <input id="email" type="email" class="form-control f-400 f-14 text-dark @error('email') is-invalid @enderror" placeholder="Enter Email" name="email" value="{{ old('email') }}"  autocomplete="phone" autofocus>
+                        <input id="email" type="email" class="form-control f-400 f-14 text-dark @error('email') is-invalid @enderror" placeholder="Enter Email" name="email" value="{{ old('email') }}"  autocomplete="email" autofocus>
                         <span class="text-danger f-400 f-14">
                             @error('email')
                                 {{ $message }}

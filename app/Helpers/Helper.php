@@ -7,6 +7,7 @@ use App\Models\PurchaseOrder;
 use Illuminate\Http\Request;
 use App\Models\SalesOrder;
 use App\Models\Setting;
+use App\Models\Country;
 use App\Models\State;
 use App\Models\City;
 
@@ -108,5 +109,9 @@ class Helper {
         $orderNo = "SO{$prefix}{$orderNo}";
 
         return $orderNo;
+    }
+
+    public static function getCountriesOrderBy() {
+        return Country::active()->select('id', 'name')->orderByRaw("CASE  WHEN name = 'United Kingdom' THEN 0 WHEN name = 'Pakistan' THEN 1 ELSE 2 END")->pluck('name', 'id')->toArray();
     }
 }

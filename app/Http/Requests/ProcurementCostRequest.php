@@ -21,18 +21,31 @@ class ProcurementCostRequest extends FormRequest
      */
     public function rules(): array
     {
+        $rid = $this->role;
+
         if (request()->method() == 'PUT') {
             $id = decrypt($this->id);
+
             return  [
-                'product' => "required|unique:procurement_costs,product_id,{$id}",
+                'product' => ['required', function ($name, $pid, $fail) use ($id, $rid) {
+                    if (\App\Models\ProcurementCost::where('id', '!=', $id)->where('product_id', $pid)->where('role_id', $rid)->exists()) {
+                        $fail("Cost for this product is already added.");
+                    }
+                }],
                 "category" => "required",
+                "role" => "required",
                 "base_price" => "required|numeric|min:0"
                     
                 ];
         } else {
             return [
-                'product' => "required|unique:procurement_costs,product_id",
+                'product' => ['required', function ($name, $pid, $fail) use ($rid) {
+                    if (\App\Models\ProcurementCost::where('product_id', $pid)->where('role_id', $rid)->exists()) {
+                        $fail("Cost for this product is already added.");
+                    }
+                }],
                 "category" => "required",
+                "role" => "required",
                 "base_price" => "required|numeric|min:0"
             ];
         }
@@ -44,6 +57,7 @@ class ProcurementCostRequest extends FormRequest
             'product.required' => 'Select a product.', 
             'product.unique' => 'Cost for this product is already added.',
             "category.required" => "Select a category.",
+            "role.required" => "Select a role.",
             "base_price.required" => "Enter base price.",
             "base_price.numeric" => "Enter valid format.",
             "base_price.min" => "Base price can't be less than 0.",

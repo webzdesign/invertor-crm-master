@@ -25,15 +25,14 @@ class ProductRequest extends FormRequest
 
         if (request()->method() == 'PUT') {
             $id = decrypt($this->id);
-            $array['unique_number'] = "required|unique:products,unique_number,{$id}";
+            $array['unique_number'] = "nullable|unique:products,unique_number,{$id}";
         } else {
-            $array['unique_number'] = "required|unique:products,unique_number";
+            $array['unique_number'] = "nullable|unique:products,unique_number";
         }
 
             $array['category'] = 'required';
             $array['name'] = 'required';
             $array['pprice'] = 'required|numeric';
-            $array['sprice'] = 'required|numeric';
 
             return $array;
     }
@@ -46,9 +45,7 @@ class ProductRequest extends FormRequest
             'category.required' => 'Select a category.',
             'name.required' => 'Product name is required.',
             'pprice.required' => 'Purchase price is required.',
-            'pprice.numeric' => 'Enter valid price format.',
-            'sprice.required' => 'Sales price is required',
-            'sprice.numeric' => 'Enter valid price format.',
+            'pprice.numeric' => 'Enter valid price format.'
         ];
     }
 }

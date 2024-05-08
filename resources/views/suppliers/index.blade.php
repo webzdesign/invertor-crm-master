@@ -3,8 +3,8 @@
 @section('create_button')
 <div class="d-flex align-items-center justify-content-between filterPanelbtn my-2">
     <h2 class="f-24 f-700 c-36 mb-0">Manage {{ $moduleName }}</h2>
-    @permission("products.create")
-    <a href="{{ route('products.create') }}" class="btn-primary f-500 f-14">
+    @permission("suppliers.create")
+    <a href="{{ route('suppliers.create') }}" class="btn-primary f-500 f-14">
         <svg class="me-1" width="16" height="16" viewBox="0 0 16 16" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
             <path d="M8.00008 13.3332V7.99984M8.00008 7.99984V2.6665M8.00008 7.99984H13.3334M8.00008 7.99984H2.66675" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
             <defs>
@@ -14,7 +14,7 @@
                 </linearGradient>
             </defs>
         </svg>
-        Add Product
+        Add Supplier
     </a>
     @endpermission
 </div>
@@ -24,22 +24,7 @@
 {{ Config::set('app.module', $moduleName) }}
 <div class="cards">
     <div class="row m-0 filterColumn">
-        <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
-            <div class="form-group mb-0 mb-10-500">
-                <label class="c-gr f-500 f-14 w-100 mb-1">Select Category</label>
-                <select name="filterCategory" id="filterCategory" class="select2 select2-hidden-accessible" data-placeholder="--- Select Category ---">
-                    @forelse($categories as $category)
-                    @if($loop->first)
-                    <option value="" selected> --- Select Category --- </option>
-                    @endif
-                    <option value="{{ $category->id }}">{{ $category->name }}</option>
-                    @empty
-                    <option value="" selected> --- No Category Available --- </option>
-                    @endforelse
-                </select>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
+        <div class="col-xl-2 col-sm-4 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Status</label>
                 <select name="filterStatus" id="filterStatus" class="select2 select2-hidden-accessible" data-placeholder="--- Select Status ---">
@@ -61,10 +46,8 @@
         <thead>
             <tr>
                 <th>Sr No.</th>
-                <th>Product Number</th>
-                <th>Product Name</th>
-                <th>Category</th>
-                <th>Purchase Price</th>
+                <th>Name</th>
+                <th>Email</th>
                 <th>Status</th>
                 <th>Added By</th>
                 <th>Updated By</th>
@@ -82,6 +65,7 @@
 
 <script>
     $(document).ready(function() {
+
         var ServerDataTable = $('.datatable-users').DataTable({
             language: {
                 search: "_INPUT_",
@@ -93,13 +77,10 @@
             oLanguage: {sProcessing: "<div id='dataTableLoader'></div>"},
             "dom": "<'filterHeader d-block-500 cardsHeader'l<'#filterInput'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
             ajax: {
-                "url": "{{ route('products.index') }}",
+                "url": "{{ route('suppliers.index') }}",
                 "dataType": "json",
                 "type": "POST",
                 "data" : {
-                    filterCategory:function() {
-                        return $("#filterCategory").val();
-                    },
                     filterStatus:function() {
                         return $("#filterStatus").val();
                     },
@@ -111,18 +92,10 @@
                     searchable: false,
                 },
                 {
-                    data: 'unique_number',
-                },
-                {
                     data: 'name',
                 },
                 {
-                    data: 'category',
-                    orderable: false,
-                    searchable: false,
-                },
-                {
-                    data: 'purchase_price',
+                    data: 'email',
                 },
                 {
                     data: 'status',
@@ -156,11 +129,10 @@
         });
 
         /* filter Datatable */
-        $('body').on('change', '#filterCategory, #filterStatus', function(e){
-            var filterCategory = $('body').find('#filterCategory').val();
+        $('body').on('change', '#filterStatus', function(e){
             var filterStatus = $('body').find('#filterStatus').val();
             
-            if (filterCategory != '' || filterStatus != '') {
+            if (filterStatus != '') {
                 $('body').find('.clearData').show();
             } else {
                 $('body').find('.clearData').hide();
@@ -170,7 +142,6 @@
         });
 
         $('body').on('click', '.clearData', function(e){
-            $('body').find('#filterCategory').val('').trigger('change');
             $('body').find('#filterStatus').val('').trigger('change');
             ServerDataTable.ajax.reload();
         });

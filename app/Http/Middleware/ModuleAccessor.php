@@ -11,25 +11,35 @@ class ModuleAccessor
 {
     public function handle(Request $request, Closure $next, $module): Response
     {
-        if ($request->user()->roles->where('id', 1)->count()) {
-            return $next($request);
-        } else {
-
-            $hasPermission = User::join('user_roles', 'users.id', '=', 'user_roles.user_id')
-            ->join('roles', 'user_roles.role_id', '=', 'roles.id')
-            ->join('permission_role', 'roles.id', '=', 'permission_role.role_id')
-            ->join('permissions', 'permission_role.permission_id', '=', 'permissions.id')
-            ->where('users.id', auth()->user()->id)
-            ->where('permissions.slug', $module)
-            ->where('users.status', '1')
-            ->where('roles.status', '1')
-            ->exists();
-
-            if ($hasPermission) {
+        if (auth()->check()) {
+            if ($request->user()->roles->where('id', 1)->count()) {
                 return $next($request);
             } else {
-                abort(403);
+    
+                $roleHasPermission = User::join('user_roles', 'users.id', '=', 'user_roles.user_id')
+                ->join('roles', 'user_roles.role_id', '=', 'roles.id')
+                ->join('permission_role', 'roles.id', '=', 'permission_role.role_id')
+                ->join('permissions', 'permission_role.permission_id', '=', 'permissions.id')
+                ->where('users.id', auth()->user()->id)
+                ->where('permissions.slug', $module)
+                ->where('users.status', '1')
+                ->where('roles.status', '1')
+                ->exists();
+    
+                $userHasPermission = User::join('user_permissions', 'users.id', '=', 'user_permissions.user_id')
+                ->join('permissions', 'user_permissions.permission_id', '=', 'permissions.id')
+                ->where('users.id', auth()->user()->id)
+                ->where('permissions.slug', $module)
+                ->exists();
+    
+                if ($roleHasPermission or $userHasPermission) {
+                    return $next($request);
+                } else {
+                    abort(403);
+                }
             }
+        } else {
+            abort(403);
         }
     }
 }

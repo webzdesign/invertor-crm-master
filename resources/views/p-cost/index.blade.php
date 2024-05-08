@@ -24,7 +24,7 @@
 {{ Config::set('app.module', $moduleName) }}
 <div class="cards">
     <div class="row m-0 filterColumn">
-        <div class="col-xl-3 col-sm-3 position-relative">
+        <div class="col-xl-2 col-sm-2 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Status</label>
                 <select name="filterStatus" id="filterStatus" class="select2 select2-hidden-accessible" data-placeholder="--- Select Status ---">
@@ -35,18 +35,44 @@
             </div>
         </div>
 
-        <div class="col-xl-3 col-sm-3 position-relative">
+        <div class="col-xl-2 col-sm-2 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Category</label>
                 <select name="filterCategory" id="filterCategory" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Category ---">
-                    <option value="" selected> --- Select Category --- </option>
+                    <option value="" selected> --- Select a Category --- </option>
                     @forelse($categories as $id => $name)
                         @if($loop->first)
-                        <option value="" selected> --- Select Category --- </option>
+                        <option value="" selected> --- Select a Category --- </option>
                         @endif
                         <option value="{{ $id }}"> {{ $name }} </option>
                     @empty
                         <option value="" selected> --- No Category Found </option>
+                    @endforelse
+                </select>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-sm-2 position-relative">
+            <div class="form-group mb-0 mb-10-500">
+                <label class="c-gr f-500 f-14 w-100 mb-1">Select Product</label>
+                <select name="filterProduct" id="filterProduct" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Product ---">
+                    <option value="" selected> --- Select a Product --- </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="col-xl-2 col-sm-2 position-relative">
+            <div class="form-group mb-0 mb-10-500">
+                <label class="c-gr f-500 f-14 w-100 mb-1">Select Role</label>
+                <select name="filterRole" id="filterRole" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Role ---">
+                    <option value="" selected> --- Select a Role --- </option>
+                    @forelse($roles as $id => $name)
+                        @if($loop->first)
+                        <option value="" selected> --- Select a Role --- </option>
+                        @endif
+                        <option value="{{ $id }}"> {{ $name }} </option>
+                    @empty
+                        <option value="" selected> --- No Role Found </option>
                     @endforelse
                 </select>
             </div>
@@ -99,11 +125,17 @@
                 "dataType": "json",
                 "type": "POST",
                 "data" : {
+                    filterProduct:function() {
+                        return $("#filterProduct").val();
+                    },
                     filterStatus:function() {
                         return $("#filterStatus").val();
                     },
                     filterCategory:function() {
                         return $("#filterCategory").val();
+                    },
+                    filterRole:function() {
+                        return $("#filterRole").val();
                     }
                 }
             },
@@ -141,6 +173,37 @@
             ],
         });
 
+        $(document).on('change', '#filterCategory', function (event) {
+        let thisId = $(this).val();
+
+            if (thisId !== '') {
+                $.ajax({
+                    url: "{{ route('get-products-on-category') }}",
+                    type: 'POST',
+                    data: {
+                        id: thisId
+                    },
+                    success: function (response) {
+                        if (response !== '') {
+                            $(`#filterProduct`).empty().append(response);
+                            $(`#filterProduct`).select2({
+                                width: '100%',
+                                allowClear: true,
+                                placeholder: "Select a Product"
+                            });
+                        }
+                    },
+                });
+            } else {
+                $(`#filterProduct`).empty().append(`<option value="" selected> Select a Product </option>`);
+                $(`#filterProduct`).select2({
+                    width: '100%',
+                    allowClear: true,
+                    placeholder: "Select a Product"
+                });
+            }
+        })
+
         $('#filterInput').html($('#searchPannel').html());
         $('#filterInput > input').keyup(function() {
             ServerDataTable.search($(this).val()).draw();
@@ -152,11 +215,13 @@
         });
 
         /* filter Datatable */
-        $('body').on('change', '#filterStatus, #filterCategory', function(e){
+        $('body').on('change', '#filterStatus, #filterCategory, #filterRole, #filterProduct', function(e){
             var filterStatus = $('body').find('#filterStatus').val();
             var filterCategory = $('body').find('#filterCategory').val();
+            var filterRole = $('body').find('#filterRole').val();
+            var filterProduct = $('body').find('#filterProduct').val();
             
-            if (filterStatus != '' || filterCategory != '') {
+            if (filterStatus != '' || filterCategory != '' || filterRole != '' || filterProduct != '') {
                 $('body').find('.clearData').show();
             } else {
                 $('body').find('.clearData').hide();
@@ -168,6 +233,8 @@
         $('body').on('click', '.clearData', function(e){
             $('body').find('#filterStatus').val('').trigger('change');
             $('body').find('#filterCategory').val('').trigger('change');
+            $('body').find('#filterRole').val('').trigger('change');
+            $('body').find('#filterProduct').val('').trigger('change');
             ServerDataTable.ajax.reload();
         });
     });

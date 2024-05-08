@@ -15,8 +15,26 @@
         <div class="cardsBody pb-0">
             <div class="row">
 
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Role: <span class="text-danger">*</span></label>
+                        <select name="role" id="role" class="select2 select2-hidden-accessible role" style="width:100%" data-placeholder="Select a Role">
+                            @forelse($roles as $rid => $rname)
+                            @if($loop->first)
+                            <option value="" selected> --- Select a Role --- </option>
+                            @endif
+                            <option value="{{ $rid }}">{{ $rname }}</option>
+                            @empty
+                            <option value="" selected> --- No Role Available --- </option>
+                            @endforelse
+                        </select>
+                        @if ($errors->has('role'))
+                            <span class="text-danger d-block">{{ $errors->first('role') }}</span>
+                        @endif
+                    </div>
+                </div>
 
-                <div class="col-md-4 col-sm-6">
+                <div class="col-md-6 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Category: <span class="text-danger">*</span></label>
                         <select name="category" id="category" class="select2 select2-hidden-accessible category" style="width:100%" data-placeholder="Select a Category">
@@ -35,7 +53,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 col-sm-6">
+                <div class="col-md-6 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Product: <span class="text-danger">*</span></label>
                         <select name="product" id="product" class="select2 select2-hidden-accessible product" style="width:100%" data-placeholder="Select a Product">
@@ -47,7 +65,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 col-sm-6">
+                <div class="col-md-6 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Base Price: <span class="text-danger">*</span></label>
                         <input type="text" name="base_price" id="base_price" value="{{ old('base_price') }}" class="form-control" placeholder="Enter Base Price">
@@ -118,6 +136,9 @@ $(document).ready(function(){
                 number: true,
                 min: 0
             },
+            role: {
+                required: true,
+            },
             category: {
                 required: true,
             },
@@ -131,6 +152,9 @@ $(document).ready(function(){
                         product_id: function() {
                             return $("#product").val();
                         },
+                        role_id: function() {
+                            return $('#role').val();
+                        }
                     }
                 },
             }
@@ -140,6 +164,9 @@ $(document).ready(function(){
                 required: "Enter base price.",
                 number: "Enter valid format.",
                 min: "Base price can\'t be less than 0."
+            },
+            role: {
+                required: "Select a role.",
             },
             category: {
                 required: "Select a category.",

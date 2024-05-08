@@ -30,9 +30,7 @@
 
                     <div class="col-sm-6 col-md-4">
                         <div class="form-group">
-                            <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number:
-                                
-                            </label>
+                            <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number</label>
 
                             <input class="form-control" id="order_number" placeholder="" type="text" value="{{ $po->order_no }}" readonly style="background:#efefef">
                         </div>
@@ -40,9 +38,7 @@
 
                     <div class="col-sm-6 col-md-4">
                         <div class="form-group">
-                            <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Date:
-                                
-                            </label>
+                            <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Date</label>
                             <input type="text" readonly name="order_date" placeholder="Order Date" id="order_date" value="{{ date('d-m-Y', strtotime($po->date)) }}" class="form-control datepicker" style="background:#efefef">
 
                         </div>
@@ -51,9 +47,7 @@
                     <div class="col-sm-6 col-md-4">
                         <!-- Datasource -->
                         <div class="form-group">
-                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Supplier:
-                                
-                            </label>
+                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Supplier</label>
                             <input type="text" readonly class="form-control" value="{{ $po->supplier->name }}">
                             </select>
                         </div>
@@ -75,19 +69,17 @@
                                         <thead>
                                             <tr>
 
-                                                <th style="">Category  </th>
+                                                <th >Category  </th>
 
-                                                <th style="">Product  </th>
+                                                <th >Product  </th>
 
-                                                <th style="">Quantity  </th>
+                                                <th >Quantity  </th>
 
-                                                <th style="">Price  </th>
+                                                <th >Price  </th>
 
-                                                <th style="">Expense  </th>
+                                                <th >Amount </th>
 
-                                                <th style="">Amount </th>
-
-                                                <th style="">Remarks </th>
+                                                <th >Remarks </th>
                                             </tr>
                                         </thead>
 
@@ -109,35 +101,28 @@
                                                 </td>
 
 
-                                                <td style="">
+                                                <td >
                                                     <div style="min-width: 200px;">
                                                         <input type="number" readonly value="{{ $item->qty }}" id="quantity-{{ $key }}" class="form-control m-quantity" style="background:#efefef">
                                                     </div>
                                                 </td>
 
 
-                                                <td style="">
+                                                <td >
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" readonly value="{{ $item->price }}" id="price-{{ $key }}" pattern="^\d*(\.\d{0,2})?$" class="form-control m-price" style="background:#efefef">
+                                                        <input type="number" readonly value="{{ $item->price }}" id="price-{{ $key }}" class="form-control m-price" style="background:#efefef">
                                                     </div>
                                                 </td>
 
 
-                                                <td style="">
-                                                    <div style="min-width: 200px;">
-                                                        <input type="number" readonly data-indexid="{{ $key }}" value="{{ $item->expense }}" id="expense-{{ $key }}" pattern="^\d*(\.\d{0,2})?$" class="form-control m-expense" style="background:#efefef">
-                                                    </div>
-                                                </td>
-
-
-                                                <td style="">
+                                                <td >
                                                     <div style="min-width: 200px;">
                                                         <input type="number" readonly value="{{ $item->amount }}" id="amount-{{ $key }}"  class="form-control m-amount" style="background:#efefef" readonly>
                                                     </div>
                                                 </td>
 
 
-                                                <td style="">
+                                                <td >
                                                     <div style="min-width: 200px;">
                                                         <input type="text" readonly value="{{ $item->remarks }}" id="remarks-{{ $key }}" class="form-control m-remarks" style="background:#efefef">
                                                     </div>
@@ -146,7 +131,7 @@
                                             </tr>
                                             @empty
                                            <tr>
-                                            <td colspan="7">
+                                            <td colspan="6">
                                                 <h4>This purchase order has no products.</h4>
                                             </td>
                                            </tr>
@@ -163,17 +148,12 @@
                                                 </td>
                                                 <td>
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" class="form-control mt-price" style="background:#efefef" value="{{ $items->sum('price') }}" readonly>
+                                                        <input type="number" class="form-control mt-price" style="background:#efefef" value="{{ ($items->sum('price')) }}" readonly>
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" class="form-control mt-expense" style="background:#efefef" value="{{ $items->sum('expense') }}" readonly>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div style="min-width: 200px;">
-                                                        <input type="number" class="form-control mt-amount" style="background:#efefef" value="{{ $items->sum('amount') }}" readonly>
+                                                        <input type="number" class="form-control mt-amount" style="background:#efefef" value="{{ ($items->sum('amount')) }}" readonly>
                                                     </div>
                                                 </td>
                                                 <td></td>

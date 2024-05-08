@@ -16,7 +16,7 @@
         <div class="cardsBody pb-0">
             <div class="row">
 
-                <div class="col-md-4 col-sm-4">
+                <div class="col-md-6 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Category: <span class="text-danger">*</span></label>
                         <select name="category" id="category" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Category ---">
@@ -35,17 +35,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 col-sm-4">
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Product Number: <span class="text-danger">*</span></label>
-                        <input type="text" name="unique_number" id="unique_number" value="{{ old('unique_number') }}" class="form-control" placeholder="Enter product number">
-                        @if ($errors->has('unique_number'))
-                            <span class="text-danger d-block">{{ $errors->first('unique_number') }}</span>
-                        @endif
-                    </div>
-                </div>
-
-                <div class="col-md-4 col-sm-4">
+                <div class="col-md-6 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Product Name: <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" value="{{ old('name') }}" class="form-control" placeholder="Enter product name">
@@ -57,20 +47,20 @@
 
                 <div class="col-md-6 col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Purchase Price: <span class="text-danger">*</span></label>
-                        <input type="text" name="pprice" id="pprice" value="{{ old('pprice') }}" class="form-control" placeholder="Enter product purchase price">
-                        @if ($errors->has('pprice'))
-                            <span class="text-danger d-block">{{ $errors->first('pprice') }}</span>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Product Number: </label>
+                        <input type="text" name="unique_number" id="unique_number" value="{{ old('unique_number') }}" class="form-control" placeholder="Enter product number">
+                        @if ($errors->has('unique_number'))
+                            <span class="text-danger d-block">{{ $errors->first('unique_number') }}</span>
                         @endif
                     </div>
                 </div>
 
                 <div class="col-md-6 col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Sales Price: <span class="text-danger">*</span></label>
-                        <input type="text" name="sprice" id="sprice" value="{{ old('sprice') }}" class="form-control" placeholder="Enter product sales price">
-                        @if ($errors->has('sprice'))
-                            <span class="text-danger d-block">{{ $errors->first('sprice') }}</span>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Purchase Price: <span class="text-danger">*</span></label>
+                        <input type="text" name="pprice" id="pprice" value="{{ old('pprice') }}" class="form-control" placeholder="Enter product purchase price">
+                        @if ($errors->has('pprice'))
+                            <span class="text-danger d-block">{{ $errors->first('pprice') }}</span>
                         @endif
                     </div>
                 </div>
@@ -93,7 +83,7 @@
 $(document).ready(function(){
 
     $.validator.addMethod("noSpace", function(value, element) { 
-        return value.indexOf(" ") < 0 && value != ""; 
+        return value.indexOf(" ") < 0; 
     }, "Space are not allowed");
 
     $("#addProduct").validate({
@@ -105,7 +95,6 @@ $(document).ready(function(){
                 required: true,                
             },
             unique_number: {
-                required: true,
                 noSpace: true,
                 remote: {
                     url: "{{ url('checkProduct') }}",
@@ -122,11 +111,6 @@ $(document).ready(function(){
                 required: true,
                 number: true,
                 min: 0
-            },
-            sprice: {
-                required: true,
-                number: true,
-                min: 0
             }
         },
         messages: {
@@ -137,16 +121,10 @@ $(document).ready(function(){
                 required: "Product name is required."
             },
             unique_number: {
-                required: "Product number is required.",
                 remote: "This product number is already exists.",
             },
             pprice: {
                 required: "Purchase price is required.",
-                number: "Enter valid price format.",
-                min: "Price can not be in negative amount."
-            },
-            sprice: {
-                required: "Sales price is required.",
                 number: "Enter valid price format.",
                 min: "Price can not be in negative amount."
             }

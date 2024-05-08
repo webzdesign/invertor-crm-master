@@ -8,14 +8,11 @@
 @endsection
 
 @section('css')
+<link rel="stylesheet" href="{{ asset('assets/css/intel.css') }}">
 <style>
     .customLayout th {
         white-space: nowrap;
         font-size: 13px;
-    }
-
-    .srNumberClass {
-        font-size: 10px !important;
     }
 </style>
 @endsection
@@ -49,7 +46,7 @@
                     </div>
                 </div>
 
-                <div class="col-sm-12 col-md-2">
+                <div class="col-sm-12 col-md-4">
                     <div class="form-group">
                         <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Name: </label>
                         <input type="text" class="form-control" id="customer-name" readonly value="{{ $so->customer_name }}">
@@ -58,62 +55,38 @@
 
                 <div class="col-sm-12 col-md-2">
                     <div class="form-group">
-                        <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Phone Number:</label>
+                        <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Phone Number</label>
                         <input type="text" class="form-control" id="customer-phone" value="{{ $so->customer_phone }}" readonly style="background: #efefef;">
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-3">
+                    <div class="form-group">
+                        <label for="customer-fb" class="c-gr f-500 f-16 w-100 mb-2">Customer Facebook URL </label>
+                        <input type="url" class="form-control" id="customer-fb" value="{{ $so->customer_facebook }}" readonly style="background: #efefef;">
                     </div>
                 </div>
 
                 <div class="col-sm-12 col-md-2">
                     <div class="form-group">
-                        <label for="customer-fb" class="c-gr f-500 f-16 w-100 mb-2">Customer Facebook URL: </label>
-                        <input type="url" class="form-control" id="customer-fb" value="{{ $so->customer_facebook }}" readonly style="background: #efefef;">
-                    </div>
-                </div>
-
-                <div class="col-md-3 col-sm-12">
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Country:</label>
-                        <input type="text" class="form-control" value="{{ $so->country->name }}" readonly>
-                    </div>
-                </div>
-
-                <div class="col-md-3 col-sm-12">
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">State: </label>
-                        <input type="text" class="form-control" value="{{ $so->state->name }}" readonly>
-                    </div>
-                </div>
-
-                <div class="col-md-3 col-sm-12">
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">City: </label>
-                        <input type="text" class="form-control" value="{{ $so->city->name }}" readonly>
-                    </div>
-                </div>
-
-                <div class="col-md-3 col-sm-12">
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code: </label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code </label>
                         <input type="text" id="postal_code" value="{{ $so->customer_postal_code }}" class="form-control" readonly style="background: #efefef;">
                     </div>
                 </div>
 
-                <div class="col-12">
+                <div class="col-sm-12 col-md-2">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Address Line 1:</label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Status </label>
+                        <input type="text" value="{{ $so->ostatus->name ?? '' }}" class="form-control" readonly style="background: #efefef;">
+                    </div>
+                </div>
+
+                <div class="col-md-5 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Address Line </label>
                         <textarea id="address_line_1" class="form-control" style="height: 60px;background:#efefef;" readonly>{{ $so->customer_address_line_1 }}</textarea>
                     </div>
                 </div>
-
-                <div class="col-12">
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Address Line 2:</label>
-                        <textarea id="address_line_2" class="form-control" style="height: 60px;background:#efefef;" readonly>{{ $so->customer_address_line_2 }}</textarea>
-                    </div>
-                </div>
-
-
-
 
                 <div>
                     <div class="col-md-12">
@@ -238,4 +211,37 @@
             </a>
         </div>
     </div>
+@endsection
+
+@section('script')
+<script src="{{ asset('assets/js/intel.min.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+
+            const input = document.querySelector('#customer-phone');
+            const errorMap = ["Phone number is invalid.", "Invalid country code", "Too short", "Too long"];
+
+            const iti = window.intlTelInput(input, {
+                initialCountry: "{{ $so->country_iso_code ?? 'gb' }}",
+                preferredCountries: ['gb', 'pk'],
+                utilsScript: "{{ asset('assets/js/intel2.js') }}"
+            });
+
+            $.validator.addMethod('inttel', function (value, element) {
+                    if (value.trim() == '' || iti.isValidNumber()) {
+                        return true;
+                    }
+                return false;
+            }, function (result, element) {
+                    return errorMap[iti.getValidationError()] || errorMap[0];
+            });
+
+            input.addEventListener('keyup', () => {
+                if (iti.isValidNumber()) {
+                    $('#country_dial_code').val(iti.s.dialCode);
+                    $('#country_iso_code').val(iti.j);
+                }
+            });
+        });
+    </script>
 @endsection

@@ -61,6 +61,7 @@
 @section('script')
 <script>
     $(document).ready(function() {
+
         var ServerDataTable = $('.datatable-roles').DataTable({
             language: {
                 search: "_INPUT_",
@@ -109,6 +110,9 @@
                     searchable: false,
                 }
             ],
+            drawCallback: function () {
+                $('[data-toggle="tooltip"]').tooltip();
+            }
         });
 
         $('#filterInput').html($('#searchPannel').html());
@@ -132,6 +136,13 @@
             $('body').find('#filterStatus').val('').trigger('change');
             ServerDataTable.ajax.reload();
         });
+        
+        $(document).on('click', '.copy-register-link', function (event) {
+            navigator.clipboard.writeText($(this).val());
+
+            $(this).attr('title', 'Copied');
+            $(this).attr('data-bs-original-title', 'Copied');
+        })
 
     });
 </script>

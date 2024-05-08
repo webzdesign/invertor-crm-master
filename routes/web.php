@@ -4,6 +4,7 @@ use App\Http\Controllers\ProcurementCostController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
@@ -20,6 +21,8 @@ Route::get('/', function () {
 Route::get('/register', function () {
     return redirect("/login");
 });
+
+Route::match(['GET', 'POST'], 'register/{role}/{user?}', [UserController::class, 'register']);
 
 Route::group(["middleware" => "auth"], function () {
     Route::group(["middleware" => "StatusChecker"], function () {
@@ -109,6 +112,17 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('sales-orders/{id}/delete', [SalesOrderController::class, 'destroy'])->name('sales-orders.delete')->middleware('ModuleAccessor:sales-orders.delete');
         Route::post('get-products-on-category-so', [SalesOrderController::class, 'productsOnCategory'])->name('get-products-on-category-so');
         /** Sales Order **/
+
+        /** Suppliers **/
+        Route::match(['GET', 'POST'], 'suppliers', [SupplierController::class, 'index'])->name('suppliers.index')->middleware('ModuleAccessor:suppliers.view');
+        Route::get('suppliers/create', [SupplierController::class, 'create'])->name('suppliers.create')->middleware('ModuleAccessor:suppliers.create');
+        Route::get('suppliers/{id}/view', [SupplierController::class, 'show'])->name('suppliers.view')->middleware('ModuleAccessor:suppliers.view');
+        Route::get('suppliers/{id}/edit', [SupplierController::class, 'edit'])->name('suppliers.edit')->middleware('ModuleAccessor:suppliers.edit');
+        Route::post('suppliers/store', [SupplierController::class, 'store'])->name('suppliers.store');
+        Route::put('suppliers/{id}/update', [SupplierController::class, 'update'])->name('suppliers.update');
+        Route::get('suppliers/{id}/delete', [SupplierController::class, 'destroy'])->name('suppliers.delete')->middleware('ModuleAccessor:suppliers.delete');
+        Route::get('suppliers/{id}/status', [SupplierController::class, 'status'])->name('suppliers.activeinactive')->middleware('ModuleAccessor:suppliers.activeinactive');
+        /** Suppliers **/
 
         /** Common **/
         Route::post('getStates', [Helper::class, 'getStates'])->name('getStates');

@@ -81,8 +81,7 @@
 
 <script>
     $(document).ready(function() {
-        var userCreateModal = $("#userCreateModal");
-        var userUpdateModal = $('#userUpdateModal');
+
         var ServerDataTable = $('.datatable-users').DataTable({
             language: {
                 search: "_INPUT_",

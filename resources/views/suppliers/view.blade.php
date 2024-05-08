@@ -47,20 +47,6 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 col-sm-6">
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Role </label>
-                        <input type="text" class="form-control" readonly value="{{ implode(', ', $user->roles->pluck('name')->toArray() ?? []) ?? '' }}" >
-                    </div>
-                </div>
-
-                <div class="col-md-4 col-sm-6">
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Country </label>
-                        <input type="text" class="form-control" readonly value="{{ $user->country->name ?? '' }}">
-                    </div>
-                </div>
-
                 <div class="col-md-4 col-sm-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">City </label>
@@ -75,45 +61,11 @@
                     </div>
                 </div>
 
-                <div class="col-12">
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Address Line </label>
-                        <textarea readonly id="address_line_1" class="form-control">{{ old('address_line_1', $user->address_line_1) }}</textarea>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="cardsBody py-0">
-            <label class="c-gr f-500 f-16 w-100 mb-2">Permissions</label>
-            <div class="form-group">
-                <div class="row">
-                    @foreach($permission as $key => $value)
-                        <div class="col-xl-3 col-lg-4 col-md-6 mb-3 permission-listing">
-                            <div class="PlBox">
-                                @foreach($value as $k => $v)
-                                    @if($loop->first)
-                                    <li class="list-group-item inline bg-transparent border-0 p-0 mb-2">
-                                        <label class="c-gr w-100 mb-2 f-14">
-                                            <span class="c-primary f-700">{{ $v->model }}</span>
-                                        </label>
-                                    </li>
-                                    @endif
-                                    <li class="form-check">
-                                        <input type="checkbox" class="form-check-input permission" name="permission[]" id="{{ $v->id }}" value="{{ $v->id }}" aria-label="..." @if(in_array($v->id,$userPermissions)) checked @endif disabled>
-                                        <label for="{{ $v->id }}" class="form-check-label mb-0 f-14 f-500 aside-input-checbox">{{ $v->name }}</label>
-                                    </li>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
             </div>
         </div>
 
         <div class="cardsFooter d-flex justify-content-center">
-            <a href="{{ route('users.index') }}">
+            <a href="{{ route('suppliers.index') }}">
                 <button type="button" class="btn-default f-500 f-14">Cancel</button>
             </a>
         </div>

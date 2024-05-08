@@ -6,8 +6,8 @@ use App\Http\Requests\ProcurementCostRequest;
 use App\Models\ProcurementCost;
 use Illuminate\Http\Request;
 use App\Models\Category;
-use App\Models\Product;
 use App\Helpers\Helper;
+use App\Models\Role;
 
 class ProcurementCostController extends Controller
 {
@@ -17,8 +17,9 @@ class ProcurementCostController extends Controller
         if (!$request->ajax()) {
             $moduleName = $this->moduleName;    
             $categories = Category::select('id', 'name')->pluck('name', 'id')->toArray();
+            $roles = Role::select('id', 'name')->pluck('name', 'id')->toArray();
 
-            return view('p-cost.index', compact('moduleName', 'categories'));
+            return view('p-cost.index', compact('moduleName', 'categories', 'roles'));
         }
         
         $costs = ProcurementCost::query();
@@ -38,6 +39,12 @@ class ProcurementCostController extends Controller
         if (isset($request->filterCategory)) {
             if ($request->filterCategory != '') {
                 $costs->where('category_id', $request->filterCategory);
+            }
+        }
+
+        if (isset($request->filterRole)) {
+            if ($request->filterRole != '') {
+                $costs->where('role_id', $request->filterRole);
             }
         }
 
@@ -104,7 +111,7 @@ class ProcurementCostController extends Controller
 
     public function check(Request $request)
     {
-        $cost = ProcurementCost::where('product_id', Helper::slug(trim($request->product_id)));
+        $cost = ProcurementCost::where('product_id', trim($request->product_id))->where('role_id', trim($request->role_id));
 
         if ($request->has('id') && !empty(trim($request->id))) {
             $cost = $cost->where('id', '!=', decrypt($request->id));
@@ -116,9 +123,10 @@ class ProcurementCostController extends Controller
     public function create()
     {
         $categories = Category::select('id', 'name')->pluck('name', 'id')->toArray();
+        $roles = Role::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $moduleName = 'Procurement Cost';
         
-        return view('p-cost.create', compact('moduleName', 'categories'));
+        return view('p-cost.create', compact('moduleName', 'categories', 'roles'));
     }
 
     public function store(ProcurementCostRequest $request)
@@ -126,6 +134,7 @@ class ProcurementCostController extends Controller
         $user = new ProcurementCost();
         $user->product_id = $request->product;
         $user->category_id = $request->category;
+        $user->role_id = $request->role;
         $user->base_price = $request->base_price;
         $user->added_by = auth()->user()->id;
         $user->save();
@@ -137,9 +146,10 @@ class ProcurementCostController extends Controller
     {
         $cost = ProcurementCost::find(decrypt($id));
         $categories = Category::select('id', 'name')->pluck('name', 'id')->toArray();
+        $roles = Role::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $moduleName = 'Procurement Cost';
         
-        return view('p-cost.edit', compact('moduleName', 'categories', 'cost', 'id'));
+        return view('p-cost.edit', compact('moduleName', 'categories', 'cost', 'id', 'roles'));
     }
 
     public function update(ProcurementCostRequest $request, $id)
@@ -147,6 +157,7 @@ class ProcurementCostController extends Controller
         $user = ProcurementCost::find(decrypt($id));
         $user->product_id = $request->product;
         $user->category_id = $request->category;
+        $user->role_id = $request->role;
         $user->base_price = $request->base_price;
         $user->updated_by = auth()->user()->id;
         $user->save();

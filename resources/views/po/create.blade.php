@@ -29,30 +29,14 @@
 
                 <div class="row">
 
-                    <div class="col-sm-6 col-md-4" style="">
+                    <div class="col-sm-6 col-md-6">
                         <div class="form-group">
                             <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number:</label>
-
-                            <input class="form-control" id="order_number" placeholder="" type="text" value="{{ $orderNo }}" readonly style="background:#efefef">
+                            <input class="form-control" id="order_number" type="text" value="{{ $orderNo }}" readonly style="background:#efefef">
                         </div>
                     </div>
 
-                    <div class="col-sm-6 col-md-4" style="">
-                        <div class="form-group">
-                            <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Date:
-                                <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" readonly name="order_date" placeholder="Order Date" id="order_date" 
-                                class="form-control datepicker"
-                                style="background:#ffffff">
-                                @if ($errors->has('order_date'))
-                                    <span class="text-danger d-block">{{ $errors->first('order_date') }}</span>
-                                @endif
-                        </div>
-                    </div>
-
-                    <div class="col-sm-6 col-md-4" style="">
-                        <!-- Datasource -->
+                    <div class="col-sm-6 col-md-6">
                         <div class="form-group">
                             <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Supplier:
                                 <span class="text-danger">*</span>
@@ -89,19 +73,17 @@
                                         <thead>
                                             <tr>
 
-                                                <th style="">Category <span class="text-danger">*</span> </th>
+                                                <th >Category <span class="text-danger">*</span> </th>
 
-                                                <th style="">Product <span class="text-danger">*</span> </th>
+                                                <th >Product <span class="text-danger">*</span> </th>
 
-                                                <th style="">Quantity <span class="text-danger">*</span> </th>
+                                                <th >Quantity <span class="text-danger">*</span> </th>
 
-                                                <th style="">Price <span class="text-danger">*</span> </th>
+                                                <th >Price <span class="text-danger">*</span> </th>
 
-                                                <th style="">Expense <span class="text-danger">*</span> </th>
+                                                <th >Amount </th>
 
-                                                <th style="">Amount </th>
-
-                                                <th style="">Remarks </th>
+                                                <th >Remarks </th>
 
                                                 <th class="">Actions</th>
                                             </tr>
@@ -136,41 +118,34 @@
                                                 </td>
 
 
-                                                <td style="">
+                                                <td>
                                                     <div style="min-width: 200px;">
                                                         <input type="number" data-indexid="0" name="quantity[0]" id="quantity-0" class="form-control m-quantity" style="background:#ffffff">
                                                     </div>
                                                 </td>
 
 
-                                                <td style="">
+                                                <td>
                                                     <div style="min-width: 200px;">
                                                         <input type="number" data-indexid="0" name="price[0]" id="price-0" class="form-control m-price" style="background:#ffffff">
                                                     </div>
                                                 </td>
 
 
-                                                <td style="">
-                                                    <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="0" name="expense[0]" id="expense-0" class="form-control m-expense" style="background:#ffffff">
-                                                    </div>
-                                                </td>
-
-
-                                                <td style="">
+                                                <td>
                                                     <div style="min-width: 200px;">
                                                         <input type="number" data-indexid="0" name="amount[0]" id="amount-0"  class="form-control m-amount" style="background:#efefef" readonly>
                                                     </div>
                                                 </td>
 
 
-                                                <td style="">
+                                                <td>
                                                     <div style="min-width: 200px;">
                                                         <input type="text" data-indexid="0" tabindex="0" maxlength="255" name="remarks[0]" id="remarks-0" class="form-control m-remarks" style="background:#ffffff">
                                                     </div>
                                                 </td>
 
-                                                <td style="width:100px;" class="">
+                                                <td style="width:100px;">
                                                     <div style="min-width: 100px;">
                                                         <button type="button" class="btn btn-primary btn-sm addNewRow">+</button>
                                                         <button type="button" class="btn btn-danger btn-sm removeRow" tabindex="-1">-</button>
@@ -190,11 +165,6 @@
                                                 <td>
                                                     <div style="min-width: 200px;">
                                                         <input type="number" class="form-control mt-price" style="background:#efefef" value="0" readonly>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div style="min-width: 200px;">
-                                                        <input type="number" class="form-control mt-expense" style="background:#efefef" value="0" readonly>
                                                     </div>
                                                 </td>
                                                 <td>
@@ -281,7 +251,6 @@
 
                 cloned.find('.m-quantity').attr('id', `quantity-${lastElementIndex}`).attr('data-indexid', lastElementIndex).attr('name', `quantity[${lastElementIndex}]`).val(null);
                 cloned.find('.m-price').attr('id', `price-${lastElementIndex}`).attr('data-indexid', lastElementIndex).attr('name', `price[${lastElementIndex}]`).val(null);
-                cloned.find('.m-expense').attr('id', `expense-${lastElementIndex}`).attr('data-indexid', lastElementIndex).attr('name', `expense[${lastElementIndex}]`).val(null);
                 cloned.find('.m-amount').attr('id', `amount-${lastElementIndex}`).attr('data-indexid', lastElementIndex).attr('name', `amount[${lastElementIndex}]`).val(null);
                 cloned.find('.m-remarks').attr('id', `remarks-${lastElementIndex}`).attr('data-indexid', lastElementIndex).attr('name', `remarks[${lastElementIndex}]`).val(null);
 
@@ -324,17 +293,6 @@
                     }
                 }); 
 
-                cloned.find('.m-expense').rules('add', {
-                    required: true,
-                    number: true,
-                    min: 0,
-                    messages: {
-                        required: "Enter expense.",
-                        number: "Enter valid format.",
-                        min: "Expense can\'t be less than 0.",
-                    }
-                }); 
-
             });
 
 
@@ -342,12 +300,17 @@
                 if ($('.upsertable tr').length > 1) {
                     $(this).closest("tr").remove();                    
                 }
+
+                let iid = $(this).parent().parent().prev().find('.m-remarks').data('indexid');
+
+                if (typeof iid !== 'undefined' && iid !== '' && iid !== null) {
+                    calculateAmount(iid);
+                }
             });
 
             let calculateAmount = (indexId = 0) => {
                 let quantity = $(`#quantity-${indexId}`).val();
                 let price = $(`#price-${indexId}`).val();
-                let expense = $(`#expense-${indexId}`).val();
 
                 if (isNaN(quantity) || quantity == '') {
                     quantity = 0;
@@ -357,24 +320,18 @@
                     price = 0;
                 }
 
-                if (isNaN(expense) || expense == '') {
-                    expense = 0;
-                }
-
-                let total = (parseFloat(price) * parseInt(quantity)) + parseFloat(expense);
+                let total = (parseFloat(price) * parseInt(quantity));
 
                 $(`#amount-${indexId}`).val(total.toFixed(2));
 
                 /** Final Total for Each Row **/
                 let mtQuantity = 0;
                 let mtPrice = 0;
-                let mtExpense = 0;
                 let mtAmount = 0;
 
                 $('.upsertable > tr').each(function (index, element) {
                     let tempQuantity = $(this).find('.m-quantity').val();
                     let tempPrice = $(this).find('.m-price').val();
-                    let tempExpense = $(this).find('.m-expense').val();
                     let tempAmount = $(this).find('.m-amount').val();
 
                     if (isNaN(tempQuantity) || tempQuantity == '') {
@@ -385,23 +342,17 @@
                         tempPrice = 0;
                     }
 
-                    if (isNaN(tempExpense) || tempExpense == '') {
-                        tempExpense = 0;
-                    }
-
                     if (isNaN(tempAmount) || tempAmount == '') {
                         tempAmount = 0;
                     }
 
                     mtQuantity += parseInt(tempQuantity);
                     mtPrice += parseFloat(tempPrice);
-                    mtExpense += parseFloat(tempExpense);
                     mtAmount += parseFloat(tempAmount);
                 });
 
                 $('.mt-quantity').val(mtQuantity);
                 $('.mt-price').val(mtPrice.toFixed(2));
-                $('.mt-expense').val(mtExpense.toFixed(2));
                 $('.mt-amount').val(mtAmount.toFixed(2));
 
                 /** Final Total for Each Row **/
@@ -442,11 +393,7 @@
                         allowClear: true,
                         placeholder: "Select a Product"
                     });
-                    $(`#quantity-${indexId}`).val(null);
                     $(`#price-${indexId}`).val(null);
-                    $(`#expense-${indexId}`).val(null);
-                    $(`#amount-${indexId}`).val(null);
-                    $(`#remarks-${indexId}`).val(null);
                     calculateAmount(indexId);
                 }
             })
@@ -459,11 +406,7 @@
                     $(`#price-${indexId}`).val($(this).find(':selected').data('price'));
                     calculateAmount(indexId);
                 } else {
-                    $(`#quantity-${indexId}`).val(null);
                     $(`#price-${indexId}`).val(null);
-                    $(`#expense-${indexId}`).val(null);
-                    $(`#amount-${indexId}`).val(null);
-                    $(`#remarks-${indexId}`).val(null);
                     calculateAmount(indexId);
                 }
 
@@ -478,24 +421,12 @@
                 });
             });
 
-            $(document).on('change', '.m-quantity, .m-price, .m-expense', function (event) {
+            $(document).on('change', '.m-quantity, .m-price', function (event) {
                 calculateAmount($(this).data('indexid'));
-            });
-
-
-
-            $('#order_date').datepicker({
-                format: 'dd-mm-yyyy',
-                autoclose: true,
-                todayHighlight: true,
-                orientation: "bottom"
             });
 
             $("#addPo").validate({
                 rules: {
-                    order_date: {
-                        required: true
-                    },
                     supplier: {
                         required: true
                     },
@@ -514,17 +445,9 @@
                         required: true,
                         number: true,
                         min: 0,
-                    },
-                    'expense[0]': {
-                        required: true,
-                        number: true,
-                        min: 0,
-                    },
+                    }
                 },
                 messages: {
-                    order_date: {
-                        required: "Select order date."
-                    },
                     supplier: {
                         required: "Select a supplier."
                     },
@@ -543,12 +466,7 @@
                         required: "Enter price.",
                         number: "Enter valid format.",
                         min: "Price can\'t be less than 0.",
-                    },
-                    'expense[0]': {
-                        required: "Enter expense.",
-                        number: "Enter valid format.",
-                        min: "Expense can\'t be less than 0.",
-                    },
+                    }
                 },
                 errorPlacement: function(error, element) {
                     error.appendTo(element.parent("div"));

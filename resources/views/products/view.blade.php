@@ -45,44 +45,54 @@
     <div class="cardsBody pb-0">
         <div class="row">
 
-            <div class="col-md-4 col-sm-4">
+            <div class="col-md-6 col-sm-6">
                 <div class="form-group">
-                    <label class="c-gr f-500 f-16 w-100 mb-2">Category: </label>
+                    <label class="c-gr f-500 f-16 w-100 mb-2">Category </label>
                     <input type="text" id="category" value="{{ $product->category->name ?? '' }}" class="form-control" readonly>
                 </div>
             </div>
 
-            <div class="col-md-4 col-sm-4">
+            <div class="col-md-6 col-sm-6">
                 <div class="form-group">
-                    <label class="c-gr f-500 f-16 w-100 mb-2">Product Number: </label>
-                    <input type="text" id="unique_number" value="{{ $product->unique_number }}" class="form-control" readonly>
-                </div>
-            </div>
-
-            <div class="col-md-4 col-sm-4">
-                <div class="form-group">
-                    <label class="c-gr f-500 f-16 w-100 mb-2">Product Name: </label>
+                    <label class="c-gr f-500 f-16 w-100 mb-2">Product Name </label>
                     <input type="text" id="name" value="{{ $product->name }}" class="form-control" readonly>
                 </div>
             </div>
 
             <div class="col-md-6 col-sm-6">
                 <div class="form-group">
-                    <label class="c-gr f-500 f-16 w-100 mb-2">Purchase Price: </label>
-                    <input type="text" id="pprice" value="{{ $product->purchase_price }}" class="form-control" readonly>
+                    <label class="c-gr f-500 f-16 w-100 mb-2">Product Number </label>
+                    <input type="text" id="unique_number" value="{{ $product->unique_number }}" class="form-control" readonly>
                 </div>
             </div>
 
             <div class="col-md-6 col-sm-6">
                 <div class="form-group">
-                    <label class="c-gr f-500 f-16 w-100 mb-2">Sales Price: </label>
-                    <input type="text" id="sprice" value="{{ $product->sales_price }}" class="form-control" readonly>
+                    <label class="c-gr f-500 f-16 w-100 mb-2">Purchase Price </label>
+                    <input type="text" id="pprice" value="{{ $product->purchase_price }}" class="form-control" readonly>
                 </div>
             </div>
 
         </div>
     </div>
     
+    <div class="cardsBody pb-0">
+        <div class="row">
+        @forelse($product->images as $key => $image)
+        @if($loop->first) <label class="c-gr f-500 f-16 w-100 mb-2"> Images </label> @endif
+        <div class="col-md-2">
+            <a href="{{ $image->image }}" target="_blank">
+                <img src="{{ $image->image }}" class="w-100 shadow-1-strong rounded" style="object-fit:cover;height:100px;width:100%;margin:5px 0px;border:1px solid black;">
+            </a>
+        </div>
+        @empty
+            <center>
+                <p><strong>No images uploaded for this product yet.</strong></p>
+            </center>
+        @endforelse
+        </div>
+    </div>
+
     <div class="cardsFooter d-flex justify-content-center">
         <a href="{{ route('products.index') }}">
             <button type="button" class="btn-default f-500 f-14">Cancel</button>

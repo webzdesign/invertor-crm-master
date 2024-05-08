@@ -17,4 +17,14 @@ class Permission extends Model
         'added_by',
         'updated_by'
     ];
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class);
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class);
+    }
 }

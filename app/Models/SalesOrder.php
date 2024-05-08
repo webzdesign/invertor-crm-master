@@ -34,18 +34,8 @@ class SalesOrder extends Model
         return $this->items()->sum('amount') ?? 0;
     }
 
-    public function country()
+    public function ostatus()
     {
-        return $this->belongsTo(Country::class, 'customer_country');
-    }
-
-    public function state()
-    {
-        return $this->belongsTo(State::class, 'customer_state');
-    }
-
-    public function city()
-    {
-        return $this->belongsTo(City::class, 'customer_city');
+        return $this->belongsTo(Country::class, 'status');
     }
 }

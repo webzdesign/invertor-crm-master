@@ -37,10 +37,10 @@ class PermissionSeeder extends Seeder
             ['name' => 'Delete Products', 'slug' => 'products.delete', 'model' => 'Product', 'description' => 'Can delete Products', 'added_by' => 1],
             ['name' => 'Active/Inactive Products', 'slug' => 'products.activeinactive', 'model' => 'Product', 'description' => 'Can Activate or deactivate Products', 'added_by' => 1],
 
-            ['name' => 'Add Purchase Orders', 'slug' => 'purchase-orders.create', 'model' => 'PurchaseOrder', 'description' => 'Can add Purchase Orders', 'added_by' => 1],
-            ['name' => 'Edit Purchase Orders', 'slug' => 'purchase-orders.edit', 'model' => 'PurchaseOrder', 'description' => 'Can edit Purchase Orders', 'added_by' => 1],
-            ['name' => 'View Purchase Orders', 'slug' => 'purchase-orders.view', 'model' => 'PurchaseOrder', 'description' => 'Can view Purchase Orders', 'added_by' => 1],
-            ['name' => 'Delete Purchase Orders', 'slug' => 'purchase-orders.delete', 'model' => 'PurchaseOrder', 'description' => 'Can delete Purchase Orders', 'added_by' => 1],
+            ['name' => 'Add Storage', 'slug' => 'purchase-orders.create', 'model' => 'PurchaseOrder', 'description' => 'Can add Storage', 'added_by' => 1],
+            ['name' => 'Edit Storage', 'slug' => 'purchase-orders.edit', 'model' => 'PurchaseOrder', 'description' => 'Can edit Storage', 'added_by' => 1],
+            ['name' => 'View Storage', 'slug' => 'purchase-orders.view', 'model' => 'PurchaseOrder', 'description' => 'Can view Storage', 'added_by' => 1],
+            ['name' => 'Delete Storage', 'slug' => 'purchase-orders.delete', 'model' => 'PurchaseOrder', 'description' => 'Can delete Storage', 'added_by' => 1],
 
             ['name' => 'Add Procurement Cost', 'slug' => 'procurement-cost.create', 'model' => 'ProcurementCost', 'description' => 'Can add Procurement Cost', 'added_by' => 1],
             ['name' => 'Edit Procurement Cost', 'slug' => 'procurement-cost.edit', 'model' => 'ProcurementCost', 'description' => 'Can edit Procurement Cost', 'added_by' => 1],
@@ -52,6 +52,13 @@ class PermissionSeeder extends Seeder
             ['name' => 'Edit Sales Orders', 'slug' => 'sales-orders.edit', 'model' => 'SalesOrder', 'description' => 'Can edit Sales Orders', 'added_by' => 1],
             ['name' => 'View Sales Orders', 'slug' => 'sales-orders.view', 'model' => 'SalesOrder', 'description' => 'Can view Sales Orders', 'added_by' => 1],
             ['name' => 'Delete Sales Orders', 'slug' => 'sales-orders.delete', 'model' => 'SalesOrder', 'description' => 'Can delete Sales Orders', 'added_by' => 1],
+
+            ['name' => 'Add Supplier', 'slug' => 'suppliers.create', 'model' => 'Supplier', 'description' => 'Can add Supplier', 'added_by' => 1],
+            ['name' => 'Edit Supplier', 'slug' => 'suppliers.edit', 'model' => 'Supplier', 'description' => 'Can Edit Supplier', 'added_by' => 1],
+            ['name' => 'View Supplier', 'slug' => 'suppliers.view', 'model' => 'Supplier', 'description' => 'Can view Supplier', 'added_by' => 1],
+            ['name' => 'Delete Supplier', 'slug' => 'suppliers.delete', 'model' => 'Supplier', 'description' => 'Can delete Supplier', 'added_by' => 1],
+            ['name' => 'Active/Inactive Supplier', 'slug' => 'suppliers.activeinactive', 'model' => 'Supplier', 'description' => 'Can Activate or deactivate Supplier', 'added_by' => 1],
+
         ];
 
         foreach ($permissions as $permission) {

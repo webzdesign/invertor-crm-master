@@ -2,18 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\{SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, Category};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
-use App\Models\SalesOrder;
-use App\Models\SalesOrderItem;
-use App\Models\Product;
-use App\Models\Country;
-use App\Models\Category;
-use App\Models\Stock;
-use App\Models\State;
-use App\Models\City;
-use App\Models\User;
 
 class SalesOrderController extends Controller
 {
@@ -28,6 +20,15 @@ class SalesOrderController extends Controller
         }
 
         $po = SalesOrder::with(['items', 'addedby', 'updatedby']);
+        $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
+
+        if (!in_array(1, $thisUserRoles)) {
+            if (in_array(2, $thisUserRoles)) { //seller orders
+                $thisUserRoles = $thisUserRoles->where('added_by', auth()->user()->id);
+            } else {
+                $thisUserRoles = $thisUserRoles->where('id', '0');
+            }
+        }
 
         if ($request->has('filterStatus') && !empty(trim($request->filterStatus))) {
             $po = $po->where('supplier_id', $request->filterStatus);
@@ -102,42 +103,34 @@ class SalesOrderController extends Controller
     {
         $moduleName = 'Sales Order';
 
-        $countries = Country::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
+        $statuses = SalesOrderStatus::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $orderNo = Helper::generateSalesOrderNumber();
 
-        return view('so.create', compact('moduleName', 'categories', 'orderNo', 'countries'));
+        return view('so.create', compact('moduleName', 'categories', 'orderNo', 'statuses'));
     }
 
     public function store(Request $request)
     {
         $this->validate($request, [
-            'order_date' => 'required',
             'order_del_date' => 'required',
             'customername' => 'required',
             'customerphone' => 'required',
-            'country' => 'required',
-            'state' => 'required',
-            'city' => 'required',
+            'status' => 'required',
             'postal_code' => 'required',
             'address_line_1' => 'required',
-            'address_line_2' => 'required',
             'category.*' => 'required',
             'product.*' => 'required',
             'quantity.*' => 'required|numeric|min:1',
             'price.*' => 'required|numeric|min:0',
             'expense.*' => 'required|numeric|min:0'
         ], [
-            'order_date.required' => 'Select order date.',
             'order_del_date.required' => 'Select order felivery date .',
             'customername.required' => 'Enter customer name.',
             'customerphone.required' => 'Enter customer phone number.',
-            'country.required' => 'Select a country.',
-            'state.required' => 'Select a state.',
-            'city.required' => 'Select a city.',
+            'status.required' => 'Select a status.',
             'postal_code.required' => 'Enter a postal code.',
             'address_line_1.required' => 'Enter address line 1.',
-            'address_line_2.required' => 'Enter address line 2.',
             'category.*' => 'Select a category.',
             'product.*' => 'Select a product.',
             'quantity.*.required' => 'Enter quantity.',
@@ -153,7 +146,6 @@ class SalesOrderController extends Controller
 
         $orderNo = Helper::generateSalesOrderNumber();
         $userId = auth()->user()->id;
-        $stockNullErrors = [];
 
         DB::beginTransaction();
 
@@ -163,17 +155,16 @@ class SalesOrderController extends Controller
 
                 $so = new SalesOrder();
                 $so->order_no = $orderNo;
-                $so->date = date('Y-m-d H:i:s', strtotime($request->order_date));
+                $so->date = now();
                 $so->delivery_date = date('Y-m-d H:i:s', strtotime($request->order_del_date));
                 $so->customer_name = $request->customername;
                 $so->customer_address_line_1 = $request->address_line_1;
-                $so->customer_address_line_2 = $request->address_line_2;
-                $so->customer_country = $request->country;
-                $so->customer_state = $request->state;
-                $so->customer_city = $request->city;
-                $so->customer_phone = $request->customerphone;
+                $so->customer_phone = preg_replace('/[^0-9]/', '', $request->customerphone);
+                $so->country_dial_code = $request->country_dial_code;
+                $so->country_iso_code = $request->country_iso_code;
                 $so->customer_postal_code = $request->postal_code;
                 $so->customer_facebook = $request->customerfb;
+                $so->status = $request->status;
                 $so->added_by = $userId;
                 $so->save();
 
@@ -184,47 +175,27 @@ class SalesOrderController extends Controller
                 foreach ($request->product as $key => $product) {
 
                     $qty = intval($request->quantity[$key]) ?? 0;
-                    $inStock = Stock::where('type', '0')->where('form', '1')->where('product_id', $product);
 
-                    if ($inStock->exists()) {
-                        $dispatched = Stock::where('type', '1')->where('form', '2')->where('product_id', $product)->sum('qty');
-                        $available = $inStock->sum('qty') - $dispatched;
+                    $soItems[] = [
+                        'so_id' => $soId,
+                        'category_id' => $request->category[$key] ?? '',
+                        'product_id' => $product,
+                        'price' => floatval($request->price[$key]) ?? 0,
+                        'qty' => $qty,
+                        'amount' => floatval($request->amount[$key]) ?? 0,
+                        'remarks' => $request->remarks[$key] ?? '',
+                        'added_by' => $userId,
+                    ];
 
-                        if ($qty > $available) {
-                            $qty = $available;
-                        }
-                    }
-
-                    if ($qty > 0) {
-                        $soItems[] = [
-                            'so_id' => $soId,
-                            'category_id' => $request->category[$key] ?? '',
-                            'product_id' => $product,
-                            'price' => floatval($request->price[$key]) ?? 0,
-                            'qty' => $qty,
-                            'amount' => floatval($request->amount[$key]) ?? 0,
-                            'remarks' => $request->remarks[$key] ?? '',
-                            'added_by' => $userId,
-                        ];
-    
-                        $soItemForStock[] = [
-                            'product_id' => $product,
-                            'type' => 1,
-                            'date' => now(),
-                            'qty' => $qty,
-                            'added_by' => $userId,
-                            'form' => 2,
-                            'form_record_id' => $soId
-                        ];
-                    } else {
-                        $pName = Product::where('id', $product)->select('name')->first()->name ?? '';
-                        $stockNullErrors[] = "{$pName} has no stock available in inventory.";
-                    }
-                }
-
-                if (count($stockNullErrors) > 0) {
-                    DB::rollBack();
-                    return redirect()->back()->with('error', implode(' <br/> ', $stockNullErrors));
+                    $soItemForStock[] = [
+                        'product_id' => $product,
+                        'type' => 1,
+                        'date' => now(),
+                        'qty' => $qty,
+                        'added_by' => $userId,
+                        'form' => 2,
+                        'form_record_id' => $soId
+                    ];
                 }
 
                 SalesOrderItem::insert($soItems);
@@ -250,42 +221,32 @@ class SalesOrderController extends Controller
         $moduleName = 'Sales Order';
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $so = SalesOrder::find(decrypt($id));
-        $countries = Country::active()->select('id', 'name')->pluck('name', 'id')->toArray();
-        $states = State::active()->where('country_id', $so->customer_country)->select('id', 'name')->pluck('name', 'id')->toArray();
-        $cities = City::active()->where('state_id', $so->customer_state)->select('id', 'name')->pluck('name', 'id')->toArray();
+        $statuses = SalesOrderStatus::active()->select('id', 'name')->pluck('name', 'id')->toArray();
 
-        return view('so.edit', compact('moduleName', 'countries', 'categories', 'id', 'so', 'states', 'cities'));
+        return view('so.edit', compact('moduleName', 'categories', 'id', 'so', 'statuses'));
     }
     
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'order_date' => 'required',
             'order_del_date' => 'required',
             'customername' => 'required',
             'customerphone' => 'required',
-            'country' => 'required',
-            'state' => 'required',
-            'city' => 'required',
+            'status' => 'required',
             'postal_code' => 'required',
             'address_line_1' => 'required',
-            'address_line_2' => 'required',
             'category.*' => 'required',
             'product.*' => 'required',
             'quantity.*' => 'required|numeric|min:1',
             'price.*' => 'required|numeric|min:0',
             'expense.*' => 'required|numeric|min:0'
         ], [
-            'order_date.required' => 'Select order date.',
             'order_del_date.required' => 'Select order felivery date .',
             'customername.required' => 'Enter customer name.',
             'customerphone.required' => 'Enter customer phone number.',
-            'country.required' => 'Select a country.',
-            'state.required' => 'Select a state.',
-            'city.required' => 'Select a city.',
+            'status.required' => 'Select a status.',
             'postal_code.required' => 'Enter a postal code.',
             'address_line_1.required' => 'Enter address line 1.',
-            'address_line_2.required' => 'Enter address line 2.',
             'category.*' => 'Select a category.',
             'product.*' => 'Select a product.',
             'quantity.*.required' => 'Enter quantity.',
@@ -301,7 +262,6 @@ class SalesOrderController extends Controller
 
         $userId = auth()->user()->id;
         $id = decrypt($id);
-        $stockNullErrors = [];
 
         DB::beginTransaction();
 
@@ -310,17 +270,16 @@ class SalesOrderController extends Controller
             if (is_array($request->product) && count($request->product) > 0) {
 
                 $so = SalesOrder::find($id);
-                $so->date = date('Y-m-d H:i:s', strtotime($request->order_date));
+                $so->date = now();
                 $so->delivery_date = date('Y-m-d H:i:s', strtotime($request->order_del_date));
                 $so->customer_name = $request->customername;
                 $so->customer_address_line_1 = $request->address_line_1;
-                $so->customer_address_line_2 = $request->address_line_2;
-                $so->customer_country = $request->country;
-                $so->customer_state = $request->state;
-                $so->customer_city = $request->city;
-                $so->customer_phone = $request->customerphone;
+                $so->customer_phone = preg_replace('/[^0-9]/', '', $request->customerphone);
+                $so->country_dial_code = $request->country_dial_code;
+                $so->country_iso_code = $request->country_iso_code;
                 $so->customer_postal_code = $request->postal_code;
                 $so->customer_facebook = $request->customerfb;
+                $so->status = $request->status;
                 $so->updated_by = $userId;
                 $so->save();
 
@@ -333,47 +292,27 @@ class SalesOrderController extends Controller
                 foreach ($request->product as $key => $product) {
 
                     $qty = intval($request->quantity[$key]) ?? 0;
-                    $inStock = Stock::where('type', '0')->where('form', '1')->where('product_id', $product);
 
-                    if ($inStock->exists()) {
-                        $dispatched = Stock::where('type', '1')->where('form', '2')->where('product_id', $product)->sum('qty');
-                        $available = $inStock->sum('qty') - $dispatched;
+                    $soItems[] = [
+                        'so_id' => $id,
+                        'category_id' => $request->category[$key] ?? '',
+                        'product_id' => $product,
+                        'price' => floatval($request->price[$key]) ?? 0,
+                        'qty' => $qty,
+                        'amount' => floatval($request->amount[$key]) ?? 0,
+                        'remarks' => $request->remarks[$key] ?? '',
+                        'added_by' => $userId,
+                    ];
 
-                        if ($qty > $available) {
-                            $qty = $available;
-                        }
-                    }
-
-                    if ($qty > 0) {
-                        $soItems[] = [
-                            'so_id' => $id,
-                            'category_id' => $request->category[$key] ?? '',
-                            'product_id' => $product,
-                            'price' => floatval($request->price[$key]) ?? 0,
-                            'qty' => $qty,
-                            'amount' => floatval($request->amount[$key]) ?? 0,
-                            'remarks' => $request->remarks[$key] ?? '',
-                            'added_by' => $userId,
-                        ];
-    
-                        $soItemForStock[] = [
-                            'product_id' => $product,
-                            'type' => 1,
-                            'date' => now(),
-                            'qty' => $qty,
-                            'added_by' => $userId,
-                            'form' => 2,
-                            'form_record_id' => $id
-                        ];
-                    } else {
-                        $pName = Product::where('id', $product)->select('name')->first()->name ?? '';
-                        $stockNullErrors[] = "{$pName} has no stock available in inventory.";
-                    }
-                }
-
-                if (count($stockNullErrors) > 0) {
-                    DB::rollBack();
-                    return redirect()->back()->with('error', implode(' <br/> ', $stockNullErrors));
+                    $soItemForStock[] = [
+                        'product_id' => $product,
+                        'type' => 1,
+                        'date' => now(),
+                        'qty' => $qty,
+                        'added_by' => $userId,
+                        'form' => 2,
+                        'form_record_id' => $id
+                    ];
                 }
 
                 SalesOrderItem::insert($soItems);

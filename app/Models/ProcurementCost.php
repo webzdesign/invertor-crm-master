@@ -33,4 +33,9 @@ class ProcurementCost extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
 }
