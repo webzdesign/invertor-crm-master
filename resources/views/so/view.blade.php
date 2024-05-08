@@ -160,7 +160,7 @@
 
                                             <td >
                                                 <div style="min-width: 200px;">
-                                                    <input type="number" class="form-control" style="background:#efefef;" value="{{ $item->remarks }}" readonly>
+                                                    <input type="text" class="form-control" style="background:#efefef;" value="{{ $item->remarks }}" readonly>
                                                 </div>
                                             </td>
 
