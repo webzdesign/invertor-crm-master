@@ -35,7 +35,6 @@ return new class extends Migration
 
         Schema::table('procurement_costs', function (Blueprint $table) {
             $table->unsignedBigInteger('role_id');
-            $table->foreign('role_id')->references('id')->on('roles');
         });
     }
 
