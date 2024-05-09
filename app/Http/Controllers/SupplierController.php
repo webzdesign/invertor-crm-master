@@ -6,6 +6,7 @@ use App\Http\Requests\SupplierRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use App\Helpers\Helper;
 use App\Models\User;
 
@@ -113,7 +114,7 @@ class SupplierController extends Controller
             $user = new User();
             $user->name = $request->name;
             $user->email = $request->email;
-            $user->password = Hash::make($request->password);
+            $user->password = Hash::make(Str::random(8));
             $user->phone = preg_replace('/[^0-9]/', '', $request->phone);
             $user->country_dial_code = $request->country_dial_code;
             $user->country_iso_code = $request->country_iso_code;

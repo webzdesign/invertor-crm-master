@@ -26,6 +26,22 @@
 
         <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
             <div class="form-group mb-0 mb-10-500">
+                <label class="c-gr f-500 f-14 w-100 mb-1">Select Seller</label>
+                <select name="filterSeller" id="filterSeller" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Seller ---">
+                    @forelse($sellers as $sid => $sname)
+                    @if($loop->first)
+                    <option value="" selected> --- Select a Seller --- </option>
+                    @endif
+                    <option value="{{ $sid }}">{{ $sname }}</option>
+                    @empty
+                    <option value="" selected> --- No Seller Available --- </option>
+                    @endforelse
+                </select>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
+            <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">From Date</label>
                 <input readonly type="text" id="filterFrom" name="filterFrom"
                      class="form-control"
@@ -107,8 +123,8 @@
                 "dataType": "json",
                 "type": "POST",
                 "data" : {
-                    filterStatus:function() {
-                        return $("#filterStatus").val();
+                    filterSeller:function() {
+                        return $("#filterSeller").val();
                     },
                     filterFrom: function () {
                         return $('#filterFrom').val();
@@ -149,9 +165,12 @@
         });
 
         /* filter Datatable */
-        $('body').on('change', '#filterFrom, #filterTo', function(e){
-            var filterStatus = $(this).val();
-            if (filterStatus != '') {
+        $('body').on('change', '#filterSeller, #filterFrom, #filterTo', function(e){
+            var filterSeller = $(this).val();
+            var filterFrom = $(this).val();
+            var filterTo = $(this).val();
+
+            if (filterSeller != '' || filterFrom != '' || filterTo != '') {
                 $('body').find('.clearData').show();
             } else {
                 $('body').find('.clearData').hide();
@@ -162,6 +181,7 @@
         $('body').on('click', '.clearData', function(e){
             $('body').find('#filterFrom').val('').trigger('change');
             $('body').find('#filterTo').val('').trigger('change');
+            $('body').find('#filterSeller').val('').trigger('change');
             ServerDataTable.ajax.reload();
         });
 

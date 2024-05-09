@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, Category};
+use App\Models\{SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, Category, User};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
@@ -15,8 +15,9 @@ class SalesOrderController extends Controller
     {
         if (!$request->ajax()) {
             $moduleName = $this->moduleName;
+            $sellers = User::whereHas('role', fn ($builder) => ($builder->where('roles.id', '2')))->select('name', 'id')->pluck('name', 'id')->toArray();
     
-            return view('so.index', compact('moduleName'));
+            return view('so.index', compact('moduleName', 'sellers'));
         }
 
         $po = SalesOrder::with(['items', 'addedby', 'updatedby']);
@@ -24,14 +25,14 @@ class SalesOrderController extends Controller
 
         if (!in_array(1, $thisUserRoles)) {
             if (in_array(2, $thisUserRoles)) { //seller orders
-                $po = $po->where('added_by', auth()->user()->id);
+                $po = $po->where('seller_id', auth()->user()->id);
             } else {
                 $po = $po->where('id', '0');
             }
         }
 
-        if ($request->has('filterStatus') && !empty(trim($request->filterStatus))) {
-            $po = $po->where('supplier_id', $request->filterStatus);
+        if ($request->has('filterSeller') && !empty(trim($request->filterSeller))) {
+            $po = $po->where('seller_id', $request->filterSeller);
         }
 
         if ($request->has('filterFrom') && !empty(trim($request->filterFrom))) {
@@ -163,6 +164,11 @@ class SalesOrderController extends Controller
                 $so->country_dial_code = $request->country_dial_code;
                 $so->country_iso_code = $request->country_iso_code;
                 $so->customer_postal_code = $request->postal_code;
+
+                if (in_array(2, auth()->user()->roles->pluck('id')->toArray())) {
+                    $so->seller_id = $userId;
+                }
+
                 $so->customer_facebook = $request->customerfb;
                 $so->status = $request->status;
                 $so->added_by = $userId;

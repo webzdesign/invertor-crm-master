@@ -54,7 +54,7 @@
             <div class="small-box" style="background:#15283c;">
                 <div class="inner">
                     @if(in_array(2, auth()->user()->roles->pluck('id')->toArray()))
-                        <h3 class="text-white"> {{ SO::where('added_by', auth()->user()->id)->count() }} </h3>
+                        <h3 class="text-white"> {{ SO::where('seller_id', auth()->user()->id)->count() }} </h3>
                     @elseif (in_array(1, auth()->user()->roles->pluck('id')->toArray()))
                         <h3 class="text-white"> {{ SO::count() }} </h3>
                     @else
