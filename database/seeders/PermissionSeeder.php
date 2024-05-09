@@ -59,6 +59,8 @@ class PermissionSeeder extends Seeder
             ['name' => 'Delete Supplier', 'slug' => 'suppliers.delete', 'model' => 'Supplier', 'description' => 'Can delete Supplier', 'added_by' => 1],
             ['name' => 'Active/Inactive Supplier', 'slug' => 'suppliers.activeinactive', 'model' => 'Supplier', 'description' => 'Can Activate or deactivate Supplier', 'added_by' => 1],
 
+            ['name' => 'Add Commission', 'slug' => 'commissions.create', 'model' => 'Commission', 'description' => 'Can add Commission', 'added_by' => 1]
+
         ];
 
         foreach ($permissions as $permission) {

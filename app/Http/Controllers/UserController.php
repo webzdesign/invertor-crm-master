@@ -289,79 +289,65 @@ class UserController extends Controller
         return response()->json($user->doesntExist());
     }
 
-    public function register(Request $request, $role, $id = 1) {
-        if (is_null($role) || empty(trim($role))) {
-            abort(404);
-        }
-
+    public function register(Request $request, $id = 1) {
         try {
-            $role = decrypt($role);
-
-            if ($id !== 1) {
-                $id = decrypt($id) ?? 1;
-            }
     
-            if (Role::find($role) !== null) {
-                if ($request->method() == 'GET') {
-    
-                    $url = url("register/{$role}/{$id}");
-                    $countries = Helper::getCountriesOrderBy();
-        
-                    return view('auth.register', compact('url', 'countries'));
-                } else if ($request->method() == 'POST') {
-        
-                    $this->validate($request, [
-                        'name' => 'required',
-                        'email' => "required|email|unique:users,email,NULL,id,deleted_at,NULL",
-                        'password' => 'required|min:8|max:16',
-                        'confirm_password' => 'same:password',
-                    ], [
-                        'name.required'                 => 'Name is required.',
-                        'email.required'                => 'Email is required.',
-                        'email.email'                   => 'Email format is invalid.',
-                        'email.unique'                  => 'This email is already exists.',
-                        'password.required'             => 'Create a Password.',
-                        'password.min'                  => 'Minimum length should be 8 characters.',
-                        'password.max'                  => 'Maximum length should be 16 characters.'
-                    ]);
-        
-                    if (Role::find($role) !== null) {
-                        $user = new User();
-                        $user->name = $request->name;
-                        $user->email = $request->email;
-                        $user->password = Hash::make($request->password);
-                        $user->country_id = $request->country;
-                        $user->postal_code = $request->postal_code;
-                        $user->added_by = $id;
-                        $user->save();
-            
-                        $user->roles()->attach($role);
+            if ($request->method() == 'GET') {
 
-                        if (auth()->check()) {
-                            auth()->logout();
-                        }
-        
-                        session()->flush();
-                        $authenticate = auth()->attempt(['email' => $request->email, 'password' => $request->password]);
-        
-                        if ($authenticate) {
-                            return redirect()->intended('dashboard');
-                        } else {
-                            return redirect()->route('login')->with('success', 'Registration was successful.');
-                        }
-        
-                    } else {
-                        return redirect()->back()->with('error', 'This link is not valid for registration anymore.');
-                    }        
-        
-                } else {
-                    return redirect()->route('login');
+                $url = url("register/{$id}");
+                $countries = Helper::getCountriesOrderBy();
+    
+                return view('auth.register', compact('url', 'countries'));
+            } else if ($request->method() == 'POST') {
+
+                if ($id != 1) {
+                    $id = decrypt($id) ?? 1;
                 }
+    
+                $this->validate($request, [
+                    'name' => 'required',
+                    'email' => "required|email|unique:users,email,NULL,id,deleted_at,NULL",
+                    'password' => 'required|min:8|max:16',
+                    'confirm_password' => 'same:password',
+                ], [
+                    'name.required'                 => 'Name is required.',
+                    'email.required'                => 'Email is required.',
+                    'email.email'                   => 'Email format is invalid.',
+                    'email.unique'                  => 'This email is already exists.',
+                    'password.required'             => 'Create a Password.',
+                    'password.min'                  => 'Minimum length should be 8 characters.',
+                    'password.max'                  => 'Maximum length should be 16 characters.'
+                ]);
+    
+                    $user = new User();
+                    $user->name = $request->name;
+                    $user->email = $request->email;
+                    $user->password = Hash::make($request->password);
+                    $user->country_id = $request->country;
+                    $user->postal_code = $request->postal_code;
+                    $user->added_by = $id;
+                    $user->save();
+        
+                    $user->roles()->attach([2]);
+
+                    if (auth()->check()) {
+                        auth()->logout();
+                    }
+    
+                    session()->flush();
+                    $authenticate = auth()->attempt(['email' => $request->email, 'password' => $request->password]);
+    
+                    if ($authenticate) {
+                        return redirect()->intended('dashboard');
+                    } else {
+                        return redirect()->route('login')->with('success', 'Registration was successful.');
+                    }
+    
             } else {
-                return redirect()->back()->with('error', 'This link is not valid for registration.');
+                return redirect()->route('login');
             }
         } catch(\Exception $e) {
-            Helper::logger($e->getMessage());
+            Helper::logger($e->getMessage() . ' ' . $e->getLine());
             $response = redirect()->route('login');
 
             if (!auth()->check()) {

@@ -51,10 +51,9 @@ class RoleController extends Controller
                 $action = "";
                 $action .= '<div class="whiteSpace">';
                 
-                // if (in_array(1, auth()->user()->roles->pluck('id')->toArray()) && in_array($variable->id, ['4'])) {
+                // if (in_array(1, auth()->user()->roles->pluck('id')->toArray()) && in_array($variable->id, ['2'])) {
                 //     $uid = encrypt(auth()->user()->id);
-                //     $rid = encrypt($variable->id);
-                //     $url = url("register/{$rid}/{$uid}");
+                //     $url = url("register/{$uid}");
                 //     $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn'><button data-toggle='tooltip' type='button' value='{$url}' title='Copy Signup Link' class='deleteBtn copy-register-link' > <i class='fa fa-copy text-white' aria-hidden='true'></i> </button></div></div>";
                 // }
                 if (auth()->user()->hasPermission("roles.edit")) {

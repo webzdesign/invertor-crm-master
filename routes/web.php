@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProcurementCostController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\SalesOrderController;
+use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\ProductController;
@@ -22,7 +23,7 @@ Route::get('/register', function () {
     return redirect("/login");
 });
 
-Route::match(['GET', 'POST'], 'register/{role}/{user?}', [UserController::class, 'register']);
+Route::match(['GET', 'POST'], 'register/{user?}', [UserController::class, 'register']);
 
 Route::group(["middleware" => "auth"], function () {
     Route::group(["middleware" => "StatusChecker"], function () {
@@ -123,6 +124,10 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('suppliers/{id}/delete', [SupplierController::class, 'destroy'])->name('suppliers.delete')->middleware('ModuleAccessor:suppliers.delete');
         Route::get('suppliers/{id}/status', [SupplierController::class, 'status'])->name('suppliers.activeinactive')->middleware('ModuleAccessor:suppliers.activeinactive');
         /** Suppliers **/
+
+        /** Commission **/
+        Route::match(['GET', 'POST'], 'commissions', [CommissionController::class, 'index'])->name('commissions.index')->middleware('ModuleAccessor:commissions.view');
+        /** Commission **/
 
         /** Common **/
         Route::post('getStates', [Helper::class, 'getStates'])->name('getStates');
