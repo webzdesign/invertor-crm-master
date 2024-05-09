@@ -24,9 +24,9 @@ class SalesOrderController extends Controller
 
         if (!in_array(1, $thisUserRoles)) {
             if (in_array(2, $thisUserRoles)) { //seller orders
-                $thisUserRoles = $thisUserRoles->where('added_by', auth()->user()->id);
+                $po = $po->where('added_by', auth()->user()->id);
             } else {
-                $thisUserRoles = $thisUserRoles->where('id', '0');
+                $po = $po->where('id', '0');
             }
         }
 
