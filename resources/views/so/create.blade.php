@@ -528,10 +528,7 @@
                     },
                     customerphone: {
                         inttel: true,
-                        required: true,
-                        number: true,
-                        minlength: 6,
-                        maxlength: 15
+                        required: true
                     },
                     customerfb: {
                         url: true

@@ -109,7 +109,7 @@
         </li>
         @endpermission
 
-        @permission('commissions.view')
+        @permission('commissions.create')
         <li>
             <a href="{{ route('commissions.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('commissions*') ? 'active' : '' }}">
                 <div class="icnBx d-flex align-items-center justify-content-center">

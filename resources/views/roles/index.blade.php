@@ -140,8 +140,8 @@
         $(document).on('click', '.copy-register-link', function (event) {
             navigator.clipboard.writeText($(this).val());
 
-            $(this).attr('title', 'Copied');
-            $(this).attr('data-bs-original-title', 'Copied');
+            $('.tooltip-inner').text('Copied');
+            $('.tooltip-inner').css('margin-left', '30px');
         })
 
     });

@@ -51,11 +51,12 @@ class RoleController extends Controller
                 $action = "";
                 $action .= '<div class="whiteSpace">';
                 
-                // if (in_array(1, auth()->user()->roles->pluck('id')->toArray()) && in_array($variable->id, ['2'])) {
-                //     $uid = encrypt(auth()->user()->id);
-                //     $url = url("register/{$uid}");
-                //     $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn'><button data-toggle='tooltip' type='button' value='{$url}' title='Copy Signup Link' class='deleteBtn copy-register-link' > <i class='fa fa-copy text-white' aria-hidden='true'></i> </button></div></div>";
-                // }
+                if (in_array(1, auth()->user()->roles->pluck('id')->toArray()) && $variable->id !== 1) {
+                    $rid = encrypt($variable->id);
+                    $uid = encrypt(auth()->user()->id);
+                    $url = url("register/{$rid}/{$uid}");
+                    $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn'><button data-toggle='tooltip' type='button' value='{$url}' title='Copy Signup Link' class='deleteBtn copy-register-link' > <i class='fa fa-copy text-white' aria-hidden='true'></i> </button></div></div>";
+                }
                 if (auth()->user()->hasPermission("roles.edit")) {
                     $url = route("roles.edit", encrypt($variable->id));
                     $action .= view('buttons.edit', compact('variable', 'url')); 

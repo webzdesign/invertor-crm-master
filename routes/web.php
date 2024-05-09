@@ -23,7 +23,8 @@ Route::get('/register', function () {
     return redirect("/login");
 });
 
-Route::match(['GET', 'POST'], 'register/{user?}', [UserController::class, 'register']);
+Route::match(['GET', 'POST'], 'register/{role}/{user?}', [UserController::class, 'register']);
+Route::post('checkUserEmail', [UserController::class, 'checkUserEmail']);
 
 Route::group(["middleware" => "auth"], function () {
     Route::group(["middleware" => "StatusChecker"], function () {
@@ -38,7 +39,6 @@ Route::group(["middleware" => "auth"], function () {
         Route::put('users/{id}/update', [UserController::class, 'update'])->name('users.update');
         Route::get('users/{id}/delete', [UserController::class, 'destroy'])->name('users.delete')->middleware('ModuleAccessor:users.delete');
         Route::get('users/{id}/status', [UserController::class, 'status'])->name('users.activeinactive')->middleware('ModuleAccessor:users.activeinactive');
-        Route::post('checkUserEmail', [UserController::class, 'checkUserEmail']);
         /** Users **/
 
         /** Roles **/
@@ -126,7 +126,7 @@ Route::group(["middleware" => "auth"], function () {
         /** Suppliers **/
 
         /** Commission **/
-        Route::match(['GET', 'POST'], 'commissions', [CommissionController::class, 'index'])->name('commissions.index')->middleware('ModuleAccessor:commissions.view');
+        Route::match(['GET', 'POST'], 'commissions', [CommissionController::class, 'index'])->name('commissions.index')->middleware('ModuleAccessor:commissions.create');
         /** Commission **/
 
         /** Common **/
