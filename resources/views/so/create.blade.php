@@ -549,9 +549,6 @@
                     address_line_1: {
                         required: true
                     },
-                    address_line_2: {
-                        required: true
-                    },
                     'category[0]': {
                         required: true
                     },
@@ -596,10 +593,7 @@
                         maxlength: 'Maximum 8 characters allowed for postal code.'
                     },
                     address_line_1: {
-                        required: "Enter address line 1."
-                    },
-                    address_line_2: {
-                        required: "Enter address line 2."
+                        required: "Address Line is required."
                     },
                     'category[0]': {
                         required: "Select a category."

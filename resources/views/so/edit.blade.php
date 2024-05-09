@@ -671,7 +671,7 @@
                         maxlength: 'Maximum 8 characters allowed for postal code.'
                     },
                     address_line_1: {
-                        required: "Enter address line 1."
+                        required: "Address Line is required."
                     },
                     @forelse ($so->items as $key => $val)
                     'category[{{ $key }}]': {

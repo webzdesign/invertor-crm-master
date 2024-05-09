@@ -51,12 +51,6 @@ class RoleController extends Controller
                 $action = "";
                 $action .= '<div class="whiteSpace">';
                 
-                if (in_array(1, auth()->user()->roles->pluck('id')->toArray()) && $variable->id !== 1) {
-                    $rid = encrypt($variable->id);
-                    $uid = encrypt(auth()->user()->id);
-                    $url = url("register/{$rid}/{$uid}");
-                    $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn'><button data-toggle='tooltip' type='button' value='{$url}' title='Copy Signup Link' class='deleteBtn copy-register-link' > <i class='fa fa-copy text-white' aria-hidden='true'></i> </button></div></div>";
-                }
                 if (auth()->user()->hasPermission("roles.edit")) {
                     $url = route("roles.edit", encrypt($variable->id));
                     $action .= view('buttons.edit', compact('variable', 'url')); 
@@ -72,6 +66,13 @@ class RoleController extends Controller
                 if (auth()->user()->hasPermission("roles.delete")) {
                     $url = route("roles.delete", encrypt($variable->id));
                     $action .= view('buttons.delete', compact('variable', 'url')); 
+                }
+
+                if (in_array(1, auth()->user()->roles->pluck('id')->toArray()) && $variable->id !== 1) {
+                    $rid = encrypt($variable->id);
+                    $uid = encrypt(auth()->user()->id);
+                    $url = url("register/{$rid}/{$uid}");
+                    $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn'><a data-toggle='tooltip' data-url='{$url}' title='Copy Signup Link' class='deleteBtn copy-register-link' > <i class='fa fa-copy text-white' aria-hidden='true'></i> </a></div></div>";
                 }
 
                 $action .= '</div>';

@@ -327,7 +327,7 @@
                         equalTo: 'Both password field must be matched.'
                     },
                     'address_line_1': {
-                        required: 'Address Line 1 is required.'
+                        required: 'Address Line is required.'
                     },
                     'country': {
                         required: 'Select a Country.'
