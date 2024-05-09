@@ -138,7 +138,7 @@ class UserController extends Controller
             $user->email = $request->email;
             $user->password = Hash::make($request->password);
             $user->address_line_1 = $request->address_line_1;
-            $user->phone = preg_replace('/[^0-9]/', '', $request->phone);
+            $user->phone = $request->phone;
             $user->country_dial_code = $request->country_dial_code;
             $user->country_iso_code = $request->country_iso_code;
             $user->country_id = $request->country;
@@ -195,7 +195,7 @@ class UserController extends Controller
             $user = User::find(decrypt($id));
             $user->name = $request->name;
             $user->email = $request->email;
-            $user->phone = preg_replace('/[^0-9]/', '', $request->phone);
+            $user->phone = $request->phone;
             $user->country_dial_code = $request->country_dial_code;
             $user->country_iso_code = $request->country_iso_code;
             $user->country_id = $request->country;
@@ -333,6 +333,9 @@ class UserController extends Controller
                             $user = new User();
                             $user->name = $request->name;
                             $user->email = $request->email;
+                            $user->phone = $request->phone;
+                            $user->country_dial_code = $request->country_dial_code;
+                            $user->country_iso_code = $request->country_iso_code;
                             $user->password = Hash::make($request->password);
                             $user->country_id = $request->country;
                             $user->city_id = $request->city;

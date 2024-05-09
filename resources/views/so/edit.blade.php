@@ -68,7 +68,7 @@
                             <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Phone Number :
                                 <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control" name="customerphone" id="customer-phone" placeholder="Enter customer phone number" value="{{ old('customerphone', $so->customer_phone) }}">
+                            <input type="text" class="form-control" name="customerphone" id="customer-phone" value="{{ old('customerphone', $so->customer_phone) }}">
                             <input type="hidden" name="country_dial_code" id="country_dial_code" value="{{ old('country_dial_code', $so->country_dial_code) }}">
                             <input type="hidden" name="country_iso_code" id="country_iso_code" value="{{ old('country_iso_code', $so->country_iso_code) }}">
                             @if ($errors->has('customerphone'))

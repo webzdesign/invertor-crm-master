@@ -115,7 +115,7 @@ class SupplierController extends Controller
             $user->name = $request->name;
             $user->email = $request->email;
             $user->password = Hash::make(Str::random(8));
-            $user->phone = preg_replace('/[^0-9]/', '', $request->phone);
+            $user->phone = $request->phone;
             $user->country_dial_code = $request->country_dial_code;
             $user->country_iso_code = $request->country_iso_code;
             $user->country_id = $request->country;
@@ -153,7 +153,7 @@ class SupplierController extends Controller
             $user = User::find(decrypt($id));
             $user->name = $request->name;
             $user->email = $request->email;
-            $user->phone = preg_replace('/[^0-9]/', '', $request->phone);
+            $user->phone = $request->phone;
             $user->country_dial_code = $request->country_dial_code;
             $user->country_iso_code = $request->country_iso_code;
             $user->country_id = $request->country;
@@ -172,7 +172,7 @@ class SupplierController extends Controller
 
     public function show($id)
     {
-        $moduleName = 'User';
+        $moduleName = 'Supplier';
         $user = User::where('id', decrypt($id))->first();
 
         return view('suppliers.view', compact('moduleName', 'user'));

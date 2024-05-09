@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('seller_id')->nullable();
             $table->unsignedBigInteger('added_by');
-            $table->tinyInteger('form')->comment('1 = Sales')->default(1);
+            $table->tinyInteger('form')->comment('1 = Sales Orders')->default(1);
             $table->integer('form_record_id');
             $table->integer('item_id')->nullable();
             $table->double('commission_amount')->default(0);
