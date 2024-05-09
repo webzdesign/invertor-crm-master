@@ -36,6 +36,6 @@ class SalesOrder extends Model
 
     public function ostatus()
     {
-        return $this->belongsTo(Country::class, 'status');
+        return $this->belongsTo(SalesOrderStatus::class, 'status');
     }
 }

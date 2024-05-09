@@ -28,7 +28,7 @@
                 <div class="row">
                     <div class="col-md-4 col-sm-12">
                         <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">Name: <span class="text-danger">*</span></label>
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Name : <span class="text-danger">*</span></label>
                             <input type="text" name="name" id="name" value="{{ old('name') }}"
                                 class="form-control" placeholder="Enter name">
                             @if ($errors->has('name'))
@@ -39,7 +39,7 @@
 
                     <div class="col-md-4 col-sm-12">
                         <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">Email: <span class="text-danger">*</span></label>
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Email : <span class="text-danger">*</span></label>
                             <input type="email" name="email" id="email" value="{{ old('email') }}"
                                 class="form-control" placeholder="Enter email">
                             @if ($errors->has('email'))
@@ -50,7 +50,7 @@
 
                     <div class="col-md-4 col-sm-12">
                         <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">Phone Number: </label>
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Phone Number : </label>
                             <input type="text" name="phone" id="phone" value="{{ old('phone') }}" class="form-control">
                             <input type="hidden" name="country_dial_code" id="country_dial_code">
                             <input type="hidden" name="country_iso_code" id="country_iso_code" value="{{ old('country_iso_code') }}">
@@ -62,7 +62,7 @@
 
                     <div class="col-md-6 col-sm-12">
                         <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">Country: <span class="text-danger">*</span></label>
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Country : <span class="text-danger">*</span></label>
                             <select name="country" id="country" class="select2 select2-hidden-accessible"
                                 data-placeholder="--- Select a Country ---">
                                 @forelse($countries as $cid => $cname)
@@ -82,7 +82,7 @@
 
                     <div class="col-md-6 col-sm-12">
                         <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code: <span
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code : <span
                                     class="text-danger">*</span></label>
                             <input type="text" name="postal_code" id="postal_code" value="{{ old('postal_code') }}"
                                 class="form-control" placeholder="Enter postal code">

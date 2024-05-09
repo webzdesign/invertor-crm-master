@@ -96,7 +96,7 @@
                                     @if($loop->first)
                                     <li class="list-group-item inline bg-transparent border-0 p-0 mb-2">
                                         <label class="c-gr w-100 mb-2 f-14">
-                                            <span class="c-primary f-700">{{ $v->model }}</span>
+                                            <span class="c-primary f-700">{{ Helper::spaceBeforeCap($v->model) }}</span>
                                         </label>
                                     </li>
                                     @endif

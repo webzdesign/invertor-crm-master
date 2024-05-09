@@ -31,7 +31,7 @@
 
                     <div class="col-sm-6 col-md-6">
                         <div class="form-group">
-                            <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number:</label>
+                            <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number :</label>
 
                             <input class="form-control" id="order_number" type="text" value="{{ $po->order_no }}" readonly style="background:#efefef">
                         </div>
@@ -39,7 +39,7 @@
 
                     <div class="col-sm-6 col-md-6">
                         <div class="form-group">
-                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Supplier:
+                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Supplier :
                                 <span class="text-danger">*</span>
                             </label>
                             <select name="supplier" id="supplier" class="select2-hidden-accessible select2" data-placeholder="--- Select a Supplier ---">

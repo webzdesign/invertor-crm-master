@@ -82,7 +82,7 @@
                             <div class="col-sm-6">
                                 <div class="form-group">
                                     <label class="f-500 f-12 mb-2 d-flex align-items-center text-white"> City </label>
-                                    <input id="city" type="text" class="form-control f-400 f-14 text-dark @error('city') is-invalid @enderror" placeholder="Enter city" name="city" >
+                                    <input id="city" type="text" class="form-control f-400 f-14 text-dark @error('city') is-invalid @enderror" placeholder="Enter city" name="city" value="{{ old('city') }}">
                                     <span class="text-danger f-400 f-14">
                                         @error('postal_code')
                                             {{ $message }}
@@ -93,7 +93,7 @@
                             <div class="col-sm-6">
                                 <div class="form-group">
                                     <label class="f-500 f-12 mb-2 d-flex align-items-center text-white"> Postal Code </label>
-                                    <input id="postal-code" type="text" class="form-control f-400 f-14 text-dark @error('postal_code') is-invalid @enderror" placeholder="Enter postal code" name="postal_code" >
+                                    <input id="postal-code" type="text" class="form-control f-400 f-14 text-dark @error('postal_code') is-invalid @enderror" placeholder="Enter postal code" value="{{ old('postal_code') }}" name="postal_code" >
                                     <span class="text-danger f-400 f-14">
                                         @error('postal_code')
                                             {{ $message }}

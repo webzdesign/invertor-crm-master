@@ -24,7 +24,7 @@
 {{ Config::set('app.module', $moduleName) }}
 <div class="cards">
     <div class="row m-0 filterColumn">
-        <div class="col-xl-2 col-sm-2 position-relative">
+        <div class="col-sm-3 col-md-3 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Status</label>
                 <select name="filterStatus" id="filterStatus" class="select2 select2-hidden-accessible" data-placeholder="--- Select Status ---">
@@ -35,7 +35,7 @@
             </div>
         </div>
 
-        <div class="col-xl-2 col-sm-2 position-relative">
+        <div class="col-sm-3 col-md-3 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Category</label>
                 <select name="filterCategory" id="filterCategory" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Category ---">
@@ -52,7 +52,7 @@
             </div>
         </div>
 
-        <div class="col-xl-2 col-sm-2 position-relative">
+        <div class="col-sm-3 col-md-3 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Product</label>
                 <select name="filterProduct" id="filterProduct" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Product ---">
@@ -61,7 +61,7 @@
             </div>
         </div>
 
-        <div class="col-xl-2 col-sm-2 position-relative">
+        <div class="col-sm-3 col-md-3 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Role</label>
                 <select name="filterRole" id="filterRole" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Role ---">

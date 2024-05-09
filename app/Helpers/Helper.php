@@ -94,6 +94,10 @@ class Helper {
         return $string;
     }
 
+    public static function spaceBeforeCap($string = '') {
+        return preg_replace('/(?<!\ )[A-Z]/', ' $0', $string);
+    }
+
     public static function generatePurchaseOrderNumber () {
         $orderNo = (PurchaseOrder::latest()->select('id')->first()->id ?? 0) + 1;
         $prefix = date('-Y-');

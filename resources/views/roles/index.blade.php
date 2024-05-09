@@ -100,9 +100,13 @@
                 },
                 {
                     data: 'addedby.name',
+                    orderable: false,
+                    searchable: false,
                 },
                 {
                     data: 'updatedby.name',
+                    orderable: false,
+                    searchable: false,
                 },
                 {
                     data: 'action',

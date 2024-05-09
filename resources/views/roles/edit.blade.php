@@ -19,7 +19,7 @@
             <div class="row">
                 <div class="col-xl-12 col-md-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Role Name: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Role Name : <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" class="form-control" placeholder="Enter role" value="{{ old('name', $role->name) }}">
                         @if ($errors->has('name'))
                             <span class="text-danger d-block">{{ $errors->first('name') }}</span>
@@ -28,14 +28,14 @@
                 </div>
                 <div class="col-xl-12 col-md-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Description</label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Description : </label>
                         <textarea name="description" id="description" class="form-control" placeholder="Enter role description">{{ old('description', $role->description) }}</textarea>
                     </div>
                 </div>
             </div>
         </div>
         <div class="cardsBody py-0">
-            <label class="c-gr f-500 f-16 w-100 mb-2">Permissions</label>
+            <label class="c-gr f-500 f-16 w-100 mb-2">Permissions : </label>
             <div class="row">
 
                     @foreach($permission as $key => $value)
@@ -47,7 +47,7 @@
                                         <li class="list-group-item inline bg-transparent border-0 p-0 mb-2">
                                             <label class="c-gr f-500 f-16 w-100 mb-2">
                                                 <input type="checkbox" class="form-check-input selectDeselect">
-                                                {{ $v->model }}
+                                                {{ Helper::spaceBeforeCap($v->model) }}
                                             </label>
                                         </li>
                                         @endif

@@ -31,63 +31,63 @@
 
             <div class="row">
 
-                <div class="col-sm-12 col-md-2">
+                <div class="col-sm-12 col-md-4">
                     <div class="form-group">
-                        <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number:</label>
+                        <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number</label>
                         <input class="form-control" id="order_number" placeholder="" type="text" value="{{ $so->order_no }}" readonly style="background:#efefef">
                     </div>
                 </div>
 
-                <div class="col-sm-12 col-md-2">
+                <div class="col-sm-12 col-md-4">
                     <div class="form-group">
-                        <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Date:</label>
+                        <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Date</label>
                         <input type="text" readonly placeholder="Order Date" id="order_date" class="form-control" value="{{ date('Y-m-d', strtotime($so->date)) }}" style="background:#efefef">
                     </div>
                 </div>
 
-                <div class="col-sm-12 col-md-2">
+                <div class="col-sm-12 col-md-4">
                     <div class="form-group">
-                        <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Delivery Date:</label>
+                        <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Delivery Date</label>
                         <input type="text" readonly id="order_del_date" value="{{ date('Y-m-d', strtotime($so->delivery_date)) }}" class="form-control" style="background:#efefef">
                     </div>
                 </div>
 
                 <div class="col-sm-12 col-md-4">
                     <div class="form-group">
-                        <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Name: </label>
-                        <input type="text" class="form-control" id="customer-name" readonly value="{{ $so->customer_name }}">
+                        <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Name </label>
+                        <input type="text" class="form-control" id="customer-name" readonly value="{{ $so->customer_name }}" style="background:#efefef">
                     </div>
                 </div>
 
-                <div class="col-sm-12 col-md-2">
+                <div class="col-sm-12 col-md-4">
                     <div class="form-group">
                         <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Phone Number</label>
                         <input type="text" class="form-control" id="customer-phone" value="{{ $so->customer_phone }}" readonly style="background: #efefef;">
                     </div>
                 </div>
 
-                <div class="col-sm-12 col-md-3">
+                <div class="col-sm-12 col-md-4">
                     <div class="form-group">
                         <label for="customer-fb" class="c-gr f-500 f-16 w-100 mb-2">Customer Facebook URL </label>
                         <input type="url" class="form-control" id="customer-fb" value="{{ $so->customer_facebook }}" readonly style="background: #efefef;">
                     </div>
                 </div>
 
-                <div class="col-sm-12 col-md-2">
+                <div class="col-sm-12 col-md-4">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code </label>
                         <input type="text" id="postal_code" value="{{ $so->customer_postal_code }}" class="form-control" readonly style="background: #efefef;">
                     </div>
                 </div>
 
-                <div class="col-sm-12 col-md-2">
+                <div class="col-sm-12 col-md-4">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Status </label>
                         <input type="text" value="{{ $so->ostatus->name ?? '' }}" class="form-control" readonly style="background: #efefef;">
                     </div>
                 </div>
 
-                <div class="col-md-5 col-sm-12">
+                <div class="col-sm-12 col-md-4">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Address Line </label>
                         <textarea id="address_line_1" class="form-control" style="height: 60px;background:#efefef;" readonly>{{ $so->customer_address_line_1 }}</textarea>
@@ -132,14 +132,14 @@
 
                                             <td>
                                                 <div style="min-width: 200px;width: 100%" class="removable-category">
-                                                    <input type="text" readonly class="form-control" value="{{ $item->category->status == 1 ? $item->category->name : '' }}">
+                                                    <input type="text" readonly class="form-control" value="{{ $item->category->status == 1 ? $item->category->name : '' }}" style="background:#efefef">
                                                 </div>
                                             </td>
 
 
                                             <td>
                                                 <div style="min-width: 200px;width: 100%" class="removable-product">
-                                                    <input type="text" readonly class="form-control" value="{{ $item->category->status == 1 ? $item->product->name : '' }}">
+                                                    <input type="text" readonly class="form-control" value="{{ $item->category->status == 1 ? $item->product->name : '' }}" style="background:#efefef">
                                                 </div>
                                             </td>
 

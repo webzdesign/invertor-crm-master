@@ -28,7 +28,7 @@
             <div class="row">
                 <div class="col-md-3 col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Name: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Name : <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" class="form-control" placeholder="Enter name">
                         @if ($errors->has('name'))
                             <span class="text-danger d-block">{{ $errors->first('name') }}</span>
@@ -38,7 +38,7 @@
 
                 <div class="col-md-3 col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Email: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Email : <span class="text-danger">*</span></label>
                         <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" class="form-control" placeholder="Enter email">
                         @if ($errors->has('email'))
                             <span class="text-danger d-block">{{ $errors->first('email') }}</span>
@@ -48,7 +48,7 @@
 
                 <div class="col-md-3 col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Phone Number: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Phone Number : <span class="text-danger">*</span></label>
                         <input type="text" name="phone" id="phone" value="{{ old('phone', $user->phone) }}" class="form-control" >
                         <input type="hidden" name="country_dial_code" id="country_dial_code" value="{{ old('country_dial_code', $user->country_dial_code) }}">
                         <input type="hidden" name="country_iso_code" id="country_iso_code" value="{{ old('country_iso_code', $user->country_iso_code) }}">
@@ -60,7 +60,7 @@
 
                 <div class="col-md-3 col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Roles: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Roles : <span class="text-danger">*</span></label>
                         <select name="role" id="role" class="select2 select2-hidden-accessible" data-placeholder="--- Select Role ---">
                             @forelse($roles as $key => $role)
                                 @if($loop->first)
@@ -78,7 +78,7 @@
 
                 <div class="col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Password: </label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Password : </label>
                         <div class="input-group">
                             <input type="password" name="password" id="password" value="{{ old('password') }}" class="form-control" placeholder="Create password">
                             <button class="btn btn-outline-primary show-hide d-flex align-items-center justify-content-center text-black border-gray h-34 bg-transparent shadow-none hover-bg-gray" type="button" data-fieldid="password" title="See Password"><i class="fa fa-eye"></i></button>
@@ -92,7 +92,7 @@
 
                 <div class="col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Confirm Password: </label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Confirm Password : </label>
                         <div class="input-group">
                             <input type="password" name="confirm_password" id="confirm-password" value="{{ old('confirm_password') }}" class="form-control" placeholder="Confirm new password">
                             <button class="btn btn-outline-primary show-hide  d-flex align-items-center justify-content-center text-black border-gray h-34 bg-transparent shadow-none hover-bg-gray" type="button" data-fieldid="confirm-password" title="See Password"><i class="fa fa-eye"></i></button>
@@ -105,7 +105,7 @@
 
                 <div class="col-md-4 col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Country: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Country : <span class="text-danger">*</span></label>
                         <select name="country" id="country" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Country ---">
                             @forelse($countries as $cid => $cname)
                                 @if($loop->first)
@@ -124,7 +124,7 @@
 
                 <div class="col-md-4 col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">City: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">City : <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="city" id="city" placeholder="Enter city" value="{{ $user->city_id }}">
                         @if ($errors->has('city'))
                             <span class="text-danger d-block">{{ $errors->first('city') }}</span>
@@ -134,7 +134,7 @@
 
                 <div class="col-md-4 col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code : <span class="text-danger">*</span></label>
                         <input type="text" name="postal_code" id="postal_code" value="{{ old('postal_code', $user->postal_code) }}" class="form-control" placeholder="Enter postal code">
                         @if ($errors->has('postal_code'))
                             <span class="text-danger d-block">{{ $errors->first('postal_code') }}</span>
@@ -144,7 +144,7 @@
 
                 <div class="col-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Address Line: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Address Line : <span class="text-danger">*</span></label>
                         <textarea name="address_line_1" id="address_line_1" class="form-control">{{ old('address_line_1', $user->address_line_1) }}</textarea>
                         @if ($errors->has('address_line_1'))
                             <span class="text-danger d-block">{{ $errors->first('address_line_1') }}</span>
@@ -156,7 +156,7 @@
         </div>
 
         <div class="cardsBody py-0">
-            <label class="c-gr f-500 f-16 w-100 mb-2">Permissions</label>
+            <label class="c-gr f-500 f-16 w-100 mb-2">Permissions : </label>
             <div class="form-group">
                 <div class="row">
                     @foreach($permission as $key => $value)
@@ -167,7 +167,7 @@
                                     <li class="list-group-item inline bg-transparent border-0 p-0 mb-2">
                                         <label class="c-gr w-100 mb-2 f-14">
                                             <input type="checkbox" class="form-check-input selectDeselect">
-                                            <span class="c-primary f-700">{{ $v->model }}</span>
+                                            <span class="c-primary f-700">{{ Helper::spaceBeforeCap($v->model) }}</span>
                                         </label>
                                     </li>
                                     @endif

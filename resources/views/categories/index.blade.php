@@ -1,7 +1,7 @@
 @extends('layouts.master')
 
 @section('create_button')
-<div class="d-flex align-items-center justify-content-between filterPanelbtn my-2">
+<div class="d-flex align-items-center justify-content-between filterPanelbtn my-2 flex-wrap">
     <h2 class="f-24 f-700 c-36 mb-0">Manage {{ $moduleName }}</h2>
     @permission("categories.create")
     <a href="{{ route('categories.create') }}" class="btn-primary f-500 f-14">

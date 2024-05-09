@@ -16,7 +16,7 @@
             <div class="row">
                 <div class="col-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Name: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Name : <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" value="{{ old('name') }}" class="form-control" placeholder="Enter name">
                         @if ($errors->has('name'))
                             <span class="text-danger d-block">{{ $errors->first('name') }}</span>

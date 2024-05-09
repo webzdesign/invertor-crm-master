@@ -16,7 +16,7 @@
             <div class="row">
                 <div class="col-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Role Name: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Role Name : <span class="text-danger">*</span> </label>
                         <input type="text" name="name" id="name" value="{{ old('name') }}" class="form-control" placeholder="Enter role name">
                         @if ($errors->has('name'))
                             <span class="text-danger d-block">{{ $errors->first('name') }}</span>
@@ -26,14 +26,14 @@
 
                 <div class="col-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Description</label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Description : </label>
                         <textarea name="description" id="description" class="form-control" placeholder="Enter role description">{{ old('description') }}</textarea>
                     </div>
                 </div>
             </div>
         </div>
         <div class="cardsBody py-0">
-            <label class="c-gr f-500 f-16 w-100 mb-2">Permissions</label>
+            <label class="c-gr f-500 f-16 w-100 mb-2">Permissions : </label>
             <div class="form-group">
                 <div class="row">
 
@@ -46,7 +46,7 @@
                                     <li class="list-group-item inline bg-transparent border-0 p-0 mb-2">
                                         <label class="c-gr w-100 mb-2 f-14">
                                             <input type="checkbox" class="form-check-input selectDeselect">
-                                            <span class="c-primary f-700">{{ $v->model }}</span>
+                                            <span class="c-primary f-700">{{ Helper::spaceBeforeCap($v->model) }}</span>
                                         </label>
                                     </li>
                                     @endif

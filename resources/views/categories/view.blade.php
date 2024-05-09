@@ -15,7 +15,7 @@
             <div class="row">
                 <div class="col-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Name: </label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Name : </label>
                         <input type="text" id="name" value="{{ $category->name }}" class="form-control" readonly>
                     </div>
                 </div>

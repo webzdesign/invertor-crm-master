@@ -18,7 +18,7 @@
 
                 <div class="col-md-6 col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Category: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Category : <span class="text-danger">*</span></label>
                         <select name="category" id="category" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Category ---">
                             @forelse($categories as $cid => $cname)
                                 @if($loop->first)
@@ -37,7 +37,7 @@
 
                 <div class="col-md-6 col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Product Name: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Product Name : <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" value="{{ old('name', $product->name) }}" class="form-control" placeholder="Enter product name">
                         @if ($errors->has('name'))
                             <span class="text-danger d-block">{{ $errors->first('name') }}</span>
@@ -47,7 +47,7 @@
 
                 <div class="col-md-6 col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Product Number: </label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Product Number : </label>
                         <input type="text" name="unique_number" id="unique_number" value="{{ old('unique_number', $product->unique_number) }}" class="form-control" placeholder="Enter product number">
                         @if ($errors->has('unique_number'))
                             <span class="text-danger d-block">{{ $errors->first('unique_number') }}</span>
@@ -57,7 +57,7 @@
 
                 <div class="col-md-6 col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Purchase Price: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Purchase Price : <span class="text-danger">*</span></label>
                         <input type="text" name="pprice" id="pprice" value="{{ old('pprice', $product->purchase_price) }}" class="form-control" placeholder="Enter product purchase price">
                         @if ($errors->has('pprice'))
                             <span class="text-danger d-block">{{ $errors->first('pprice') }}</span>

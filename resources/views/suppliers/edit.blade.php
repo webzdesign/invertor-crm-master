@@ -28,7 +28,7 @@
             <div class="row">
                 <div class="col-md-4 col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Name: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Name : <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" class="form-control" placeholder="Enter name">
                         @if ($errors->has('name'))
                             <span class="text-danger d-block">{{ $errors->first('name') }}</span>
@@ -38,7 +38,7 @@
 
                 <div class="col-md-4 col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Email: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Email : <span class="text-danger">*</span></label>
                         <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" class="form-control" placeholder="Enter email">
                         @if ($errors->has('email'))
                             <span class="text-danger d-block">{{ $errors->first('email') }}</span>
@@ -48,7 +48,7 @@
 
                 <div class="col-md-4 col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Phone Number: </label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Phone Number : </label>
                         <input type="text" name="phone" id="phone" value="{{ old('phone', $user->phone) }}" class="form-control" >
                         <input type="hidden" name="country_dial_code" id="country_dial_code" value="{{ old('country_dial_code', $user->country_dial_code) }}">
                         <input type="hidden" name="country_iso_code" id="country_iso_code" value="{{ old('country_iso_code', $user->country_iso_code) }}">
@@ -60,7 +60,7 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Country: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Country : <span class="text-danger">*</span></label>
                         <select name="country" id="country" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Country ---">
                             @forelse($countries as $cid => $cname)
                                 @if($loop->first)
@@ -79,7 +79,7 @@
 
                 <div class="col-md-6 col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code: <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code : <span class="text-danger">*</span></label>
                         <input type="text" name="postal_code" id="postal_code" value="{{ old('postal_code', $user->postal_code) }}" class="form-control" placeholder="Enter postal code">
                         @if ($errors->has('postal_code'))
                             <span class="text-danger d-block">{{ $errors->first('postal_code') }}</span>

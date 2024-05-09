@@ -32,14 +32,14 @@
 
                 <div class="row">
 
-                    <div class="col-md-2 col-sm-12">
+                    <div class="col-md-4 col-sm-12">
                         <div class="form-group">
                             <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number :</label>
                             <input class="form-control" id="order_number" type="text" value="{{ $orderNo }}" readonly style="background:#efefef">
                         </div>
                     </div>
 
-                    <div class="col-md-3 col-sm-12">
+                    <div class="col-md-4 col-sm-12">
                         <div class="form-group">
                             <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Name :
                                 <span class="text-danger">*</span>
@@ -51,9 +51,9 @@
                         </div>
                     </div>
 
-                    <div class="col-md-2 col-sm-12">
+                    <div class="col-md-4 col-sm-12">
                         <div class="form-group">
-                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Phone Number:
+                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Phone Number :
                                 <span class="text-danger">*</span>
                             </label>
                             <input type="text" class="form-control" name="customerphone" id="customer-phone" value="{{ old('customerphone') }}">
@@ -65,9 +65,9 @@
                         </div>
                     </div>
 
-                    <div class="col-md-3 col-sm-12">
+                    <div class="col-md-4 col-sm-12">
                         <div class="form-group">
-                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Facebook URL:
+                            <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Facebook URL :
                             </label>
                             <input type="url" class="form-control" name="customerfb" id="customer-fb" placeholder="Enter customer facebook url" value="{{ old('customerfb') }}">
                             @if ($errors->has('customerfb'))
@@ -76,9 +76,9 @@
                         </div>
                     </div>
 
-                    <div class="col-md-2 col-sm-12">
+                    <div class="col-md-4 col-sm-12">
                         <div class="form-group">
-                            <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Delivery Date:
+                            <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Delivery Date :
                                 <span class="text-danger">*</span>
                             </label>
                             <input type="text" readonly name="order_del_date" placeholder="Order Delivery Date" id="order_del_date" class="form-control datepicker" style="background:#ffffff" value="{{ old('order_del_date') }}">
@@ -88,9 +88,9 @@
                         </div>
                     </div>
 
-                    <div class="col-md-2 col-sm-12">
+                    <div class="col-md-4 col-sm-12">
                         <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code: <span class="text-danger">*</span></label>
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code : <span class="text-danger">*</span></label>
                             <input type="text" name="postal_code" id="postal_code" value="{{ old('postal_code') }}" class="form-control" placeholder="Enter postal code">
                             @if ($errors->has('postal_code'))
                                 <span class="text-danger d-block">{{ $errors->first('postal_code') }}</span>
@@ -98,9 +98,9 @@
                         </div>
                     </div>
 
-                    <div class="col-md-2 col-sm-12">
+                    <div class="col-md-4 col-sm-12">
                         <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">Status: <span class="text-danger">*</span></label>
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Status : <span class="text-danger">*</span></label>
                             <select name="status" id="status" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Status ---">
                                 @forelse($statuses as $sid => $sname)
                                     @if($loop->first)
