@@ -21,7 +21,6 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
 
-            $table->foreign('supplier_id')->references('id')->on('users');
             $table->foreign('added_by')->references('id')->on('users');
             $table->foreign('updated_by')->references('id')->on('users');
         });

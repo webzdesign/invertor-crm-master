@@ -183,6 +183,7 @@ class SupplierController extends Controller
 
         try {
             $user = User::find(decrypt($id));
+            $user->roles()->detach();
             $user->delete();
 
             DB::commit();
