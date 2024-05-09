@@ -14,6 +14,12 @@
         white-space: nowrap;
         font-size: 13px;
     }
+    .iti__selected-flag {
+        height: 32px!important;
+    }
+    .iti--show-flags {
+        width: 100%!important;
+    }
 </style>
 @endsection
 

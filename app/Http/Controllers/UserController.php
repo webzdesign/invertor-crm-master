@@ -313,14 +313,21 @@ class UserController extends Controller
                             'email' => "required|email|unique:users,email,NULL,id,deleted_at,NULL",
                             'password' => 'required|min:8|max:16',
                             'confirm_password' => 'same:password',
+                            'country' => 'required',
+                            'city' => 'required',
+                            'postal_code' => 'required|max:8'
                         ], [
-                            'name.required'                 => 'Name is required.',
-                            'email.required'                => 'Email is required.',
-                            'email.email'                   => 'Email format is invalid.',
-                            'email.unique'                  => 'This email is already exists.',
-                            'password.required'             => 'Create a Password.',
-                            'password.min'                  => 'Minimum length should be 8 characters.',
-                            'password.max'                  => 'Maximum length should be 16 characters.'
+                            'name.required'        => 'Name is required.',
+                            'email.required'       => 'Email is required.',
+                            'email.email'          => 'Email format is invalid.',
+                            'email.unique'         => 'This email is already exists.',
+                            'password.required'    => 'Create a Password.',
+                            'password.min'         => 'Minimum length should be 8 characters.',
+                            'password.max'         => 'Maximum length should be 16 characters.',
+                            'country.required'     => 'Select a country.',
+                            'city.required'        => 'Enter city.',
+                            'postal_code.required' => 'Enter postal code.',
+                            'postal_code.max'      => 'Maximum 8 characters allowed for postal code.'
                         ]);
             
                             $user = new User();
@@ -328,6 +335,7 @@ class UserController extends Controller
                             $user->email = $request->email;
                             $user->password = Hash::make($request->password);
                             $user->country_id = $request->country;
+                            $user->city_id = $request->city;
                             $user->postal_code = $request->postal_code;
                             $user->added_by = decrypt($uid);
                             $user->save();

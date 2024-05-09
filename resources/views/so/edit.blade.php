@@ -654,6 +654,9 @@
                     @endforelse
                 },
                 messages: {
+                    customerphone: {
+                        required: "Enter phone number."
+                    },
                     status: {
                         required: "Select a status.",
                     },

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, Category, User};
+use App\Models\{SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, Category, User, CommissionPrice, Setting, Wallet};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
@@ -145,8 +145,15 @@ class SalesOrderController extends Controller
             'expense.*.min' => 'Quantity can\'t be less than 0.'
         ]);
 
+        $commissionPrices = CommissionPrice::select('price')->pluck('price')->toArray();
+        $setting = Setting::first()->select('seller_commission', 'bonus')->first()->toArray();
+        $commissionPrices = collect($commissionPrices)->map(function ($p) {
+            return intval($p);
+        })->filter()->values()->toArray();
+
         $orderNo = Helper::generateSalesOrderNumber();
         $userId = auth()->user()->id;
+        $isSeller = null;
 
         DB::beginTransaction();
 
@@ -167,6 +174,7 @@ class SalesOrderController extends Controller
 
                 if (in_array(2, auth()->user()->roles->pluck('id')->toArray())) {
                     $so->seller_id = $userId;
+                    $isSeller = $userId;
                 }
 
                 $so->customer_facebook = $request->customerfb;
@@ -177,18 +185,21 @@ class SalesOrderController extends Controller
                 $soId = $so->id;
                 $soItems = [];
                 $soItemForStock = [];
+                $wallet = [];
 
                 foreach ($request->product as $key => $product) {
 
                     $qty = intval($request->quantity[$key]) ?? 0;
+                    $itemBaseAmt = floatval($request->price[$key]) ?? 0;
+                    $itemAmt = floatval($request->amount[$key]) ?? 0;
 
                     $soItems[] = [
                         'so_id' => $soId,
                         'category_id' => $request->category[$key] ?? '',
                         'product_id' => $product,
-                        'price' => floatval($request->price[$key]) ?? 0,
+                        'price' => $itemBaseAmt,
                         'qty' => $qty,
-                        'amount' => floatval($request->amount[$key]) ?? 0,
+                        'amount' => $itemAmt,
                         'remarks' => $request->remarks[$key] ?? '',
                         'added_by' => $userId,
                     ];
@@ -202,10 +213,24 @@ class SalesOrderController extends Controller
                         'form' => 2,
                         'form_record_id' => $soId
                     ];
+
+                    if (!empty($commissionPrices) && in_array(intval($itemBaseAmt), $commissionPrices)) {
+
+                        $wallet[] = [
+                            'seller_id' => $isSeller,
+                            'added_by' => $userId,
+                            'form' => 1,
+                            'form_record_id' => $soId,
+                            'item_id' => $product,
+                            'commission_amount' => $setting['seller_commission'] * $qty,
+                            'item_amount' => $itemBaseAmt
+                        ];
+                    }
                 }
 
                 SalesOrderItem::insert($soItems);
                 Stock::insert($soItemForStock);
+                Wallet::insert($wallet);
 
                 DB::commit();
                 return redirect()->route('sales-orders.index')->with('success', 'Sales order added successfully.');
@@ -266,8 +291,19 @@ class SalesOrderController extends Controller
             'expense.*.min' => 'Quantity can\'t be less than 0.'
         ]);
 
+        $commissionPrices = CommissionPrice::select('price')->pluck('price')->toArray();
+        $setting = Setting::first()->select('seller_commission', 'bonus')->first()->toArray();
+        $commissionPrices = collect($commissionPrices)->map(function ($p) {
+            return intval($p);
+        })->filter()->values()->toArray();
+
         $userId = auth()->user()->id;
         $id = decrypt($id);
+        $isSeller = null;
+
+        if (in_array(2, auth()->user()->roles->pluck('id')->toArray())) {
+            $isSeller = $userId;
+        }
 
         DB::beginTransaction();
 
@@ -291,21 +327,25 @@ class SalesOrderController extends Controller
 
                 $soItems = [];
                 $soItemForStock = [];
+                $wallet = [];
 
                 SalesOrderItem::where('so_id', $id)->delete();
                 Stock::where('type', '1')->where('form', '2')->where('form_record_id', $id)->delete();
+                Wallet::where('seller_id', $isSeller)->where('added_by', $userId)->where('form', 1)->where('form_record_id', $id)->delete();
 
                 foreach ($request->product as $key => $product) {
 
                     $qty = intval($request->quantity[$key]) ?? 0;
+                    $itemBaseAmt = floatval($request->price[$key]) ?? 0;
+                    $itemAmt = floatval($request->amount[$key]) ?? 0;
 
                     $soItems[] = [
                         'so_id' => $id,
                         'category_id' => $request->category[$key] ?? '',
                         'product_id' => $product,
-                        'price' => floatval($request->price[$key]) ?? 0,
+                        'price' => $itemBaseAmt,
                         'qty' => $qty,
-                        'amount' => floatval($request->amount[$key]) ?? 0,
+                        'amount' => $itemAmt,
                         'remarks' => $request->remarks[$key] ?? '',
                         'added_by' => $userId,
                     ];
@@ -319,10 +359,24 @@ class SalesOrderController extends Controller
                         'form' => 2,
                         'form_record_id' => $id
                     ];
+
+                    if (!empty($commissionPrices) && in_array(intval($itemBaseAmt), $commissionPrices)) {
+
+                        $wallet[] = [
+                            'seller_id' => $isSeller,
+                            'added_by' => $userId,
+                            'form' => 1,
+                            'form_record_id' => $id,
+                            'item_id' => $product,
+                            'commission_amount' => $setting['seller_commission'] * $qty,
+                            'item_amount' => $itemBaseAmt
+                        ];
+                    }
                 }
 
                 SalesOrderItem::insert($soItems);
                 Stock::insert($soItemForStock);
+                Wallet::insert($wallet);
 
                 DB::commit();
                 return redirect()->route('sales-orders.index')->with('success', 'Sales order updated successfully.');
@@ -358,6 +412,7 @@ class SalesOrderController extends Controller
             SalesOrder::where('id', $soId)->delete();
             SalesOrderItem::where('so_id', $soId)->delete();
             Stock::where('type', '1')->where('form', '2')->where('form_record_id', $soId)->delete();
+            Wallet::where('form', 1)->where('form_record_id', $soId)->delete();            
 
             DB::commit();
             return response()->json(['success' => 'Sales order deleted successfully.', 'status' => 200]);

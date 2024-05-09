@@ -418,7 +418,7 @@ button:disabled svg path {
 }
 .loginCard{
     flex: auto;
-    padding: 15px;
+    padding: 50px 15px 15px;
     /* background-color: #15283c; */
     /* background-image: url('../images/pattern_h.png'); */
 }
@@ -1181,9 +1181,9 @@ div.dataTables_wrapper div.dataTables_info {
   top: 5px !important;
 }
 
-.select2-container {
+/* .select2-container {
   width: 100% !important;
-}
+} */
 
 .pmModule .form-control {
   border-top: 0;

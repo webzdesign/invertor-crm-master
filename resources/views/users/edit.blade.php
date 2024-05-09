@@ -48,7 +48,7 @@
 
                 <div class="col-md-3 col-sm-6">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Phone Number: </label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Phone Number: <span class="text-danger">*</span></label>
                         <input type="text" name="phone" id="phone" value="{{ old('phone', $user->phone) }}" class="form-control" >
                         <input type="hidden" name="country_dial_code" id="country_dial_code" value="{{ old('country_dial_code', $user->country_dial_code) }}">
                         <input type="hidden" name="country_iso_code" id="country_iso_code" value="{{ old('country_iso_code', $user->country_iso_code) }}">
@@ -246,6 +246,7 @@ $(document).ready(function(){
                 required: true
             },
             'phone': {
+                required: true,
                 inttel: true
             },
             'email' : {
@@ -292,7 +293,7 @@ $(document).ready(function(){
                 required: 'Name is required.'
             },
             'phone': {
-                inttel: 'Phone number is invalid.'
+                required: 'Phone number is required.'
             },
             'email' : {
                 required: 'Email is required.',

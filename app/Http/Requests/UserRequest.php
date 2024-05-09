@@ -32,6 +32,7 @@ class UserRequest extends FormRequest
                 'confirm_password'      => 'same:password',
                 'country'               => "required",
                 'city'                  => "required",
+                'phone'                 => "required",
                 'address_line_1'        => "required",
                 'postal_code'           => "required"
             ];
@@ -44,6 +45,7 @@ class UserRequest extends FormRequest
                 'confirm_password'      => 'same:password',
                 'country'               => "required",
                 'city'                  => "required",
+                'phone'                 => "required",
                 'address_line_1'        => "required",
                 'postal_code'           => "required"
             ];
@@ -59,9 +61,10 @@ class UserRequest extends FormRequest
             'email.unique'                  => 'This email is already exists.',
             'role.required'                 => 'Select a role.',
             'password.required'             => 'Create a Password.',
+            'phone.required'                => 'Phone number is required.',
             'password.min'                  => 'Minimum length should be 8 characters.',
             'password.max'                  => 'Maximum length should be 16 characters.',
-            'confirm_password.same'     => 'Both password field must be matched.',
+            'confirm_password.same'         => 'Both password field must be matched.',
             'address_line_1.required'       => 'Address Line 1 is required.',
             'country.required'              => 'Select a Country.',
             'city.required'                 => 'Select a City.',
