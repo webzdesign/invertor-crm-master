@@ -307,7 +307,7 @@ class UserController extends Controller
                 try {
                     $role = decrypt($role);
 
-                    if (Role::find($role) !== null) {
+                    if (Role::find($role) !== null && $role != 1) {
                         $this->validate($request, [
                             'name' => 'required',
                             'email' => "required|email|unique:users,email,NULL,id,deleted_at,NULL",

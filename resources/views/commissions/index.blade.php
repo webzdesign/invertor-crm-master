@@ -138,6 +138,17 @@
             }
         });
 
+        $.validator.addMethod('uniqueChecker', function (value, element) {
+            let bool = true;
+            $('.price').not(element).each(function (index, el) {
+                if (value == $(el).val()) {
+                    bool = false;
+                }
+            });
+            
+            return bool;
+        }, 'Same price can\'t be added.');
+
         $('#commission').validate({
             rules: {
                 bonus : {
@@ -155,12 +166,14 @@
                         required: true,
                         number: true,
                         min: 1,
+                        uniqueChecker: true
                     },  
                 @empty
                     "price[0]" : {
                         required: true,
                         min: 1,
                         number: true,
+                        uniqueChecker: true
                     },                      
                 @endforelse
             },

@@ -70,7 +70,7 @@
 <script src="{{ asset('assets/js/jqueryAdditional.js') }}"></script>
 <script src="{{ asset('assets/js/three.r134.min.js') }}"></script>
 <script src="{{ asset('assets/js/vanta.net.min.js') }}"></script>
-
+<script src="{{ asset('assets/js/sweetalert.js') }}"></script>
 <script>
 
 VANTA.NET({
@@ -83,6 +83,16 @@ VANTA.NET({
   scale: 1.00,
   scaleMobile: 1.00
 })
+
+var hasSessionError = "{{session()->has('error') ? true : false}}";
+
+function fireErrMessage(message) {
+    Swal.fire('Error', message, 'error');
+}
+
+if (hasSessionError) {
+    fireErrMessage("{{ session('error') }}");
+}
 
     $(document).ready(function(){
 
