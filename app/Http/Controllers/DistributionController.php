@@ -1,0 +1,375 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Support\Facades\DB;
+use App\Models\DistributionItem;
+use App\Models\Distribution;
+use Illuminate\Http\Request;
+use App\Helpers\Helper;
+use App\Models\Product;
+use App\Models\Stock;
+use App\Models\User;
+
+class DistributionController extends Controller
+{
+    protected $moduleName = 'Distribution';
+    protected static $types = [1 => 'Storage to Driver'];
+    // protected static $types = [1 => 'Storage to Driver', 2 => 'Driver to Driver', 3 => 'Driver to Storage'];
+
+    public function index(Request $request) {
+        if (!$request->ajax()) {
+
+            $moduleName = $this->moduleName;
+            $types = self::$types;
+            $drivers = User::whereHas('role', function ($builder) {
+                $builder->where('roles.id', 3);
+            })->select('name', 'id')->pluck('name', 'id')->toArray();
+    
+            return view('distribution.index', compact('moduleName', 'drivers', 'types'));
+        }
+
+        $distributionItems = DistributionItem::query();
+
+        if ($request->has('filterType') && !empty(trim($request->filterType))) {
+            $type = trim($request->filterType);
+            $distributionItems = $distributionItems->whereHas('dist', function ($builder) use ($type) {($builder->where('type', $type));});
+        }
+
+        if ($request->has('filterDriver') && !empty(trim($request->filterDriver))) {
+            $driver = trim($request->filterDriver);
+            $distributionItems = $distributionItems->where('from_driver', $driver)->orWhere('to_driver', $driver);
+        }
+
+        if ($request->has('filterFrom') && !empty(trim($request->filterFrom))) {
+            $distributionItems = $distributionItems->where('created_at', '>=', date('Y-m-d H:i:s', strtotime($request->filterFrom)));
+        }
+
+        if ($request->has('filterTo') && !empty(trim($request->filterTo))) {
+            $distributionItems = $distributionItems->where('created_at', '<=', date('Y-m-d H:i:s', strtotime($request->filterTo)));
+        }
+
+        if (isset($request->order[0]['column']) && $request->order[0]['column'] == 0) {
+            $distributionItems = $distributionItems->orderBy('id', 'desc');
+        }
+
+        return dataTables()
+                ->eloquent($distributionItems)
+                ->addColumn('type', function ($row) {
+                    if ($row?->dist?->type == '1') {
+                        return 'Storage to Driver';
+                    } else if ($row?->dist?->type == '2') {
+                        return 'Driver to Driver';
+                    } else if ($row?->dist?->type == '3') {
+                        return 'Driver to Storage';
+                    } else {
+                        return '-';
+                    }
+                })
+                ->addColumn('product', function ($row) {
+                    return $row->product->name ?? '-';
+                })
+                ->addColumn('action', function ($users) {
+
+                    $variable = $users;
+    
+                    $action = "";
+                    $action .= '<div class="whiteSpace">-';
+
+                    // if (auth()->user()->hasPermission("distribution.view")) {
+                    //     $url = route("sales-orders.view", encrypt($variable->id));
+                    //     $action .= view('buttons.view', compact('variable', 'url')); 
+                    // }
+                    // if (auth()->user()->hasPermission("distribution.delete")) {
+                    //     $url = route("sales-orders.delete", encrypt($variable->id));
+                    //     $action .= view('buttons.delete', compact('variable', 'url')); 
+                    // }
+
+                    $action .= '</div>';
+    
+                    return $action;
+
+                })
+                ->addIndexColumn()
+                ->rawColumns(['action'])
+                ->toJson();
+    }
+
+    public function create() {
+        $moduleName = 'Assign Stock';
+        $types = self::$types;
+
+        return view('distribution.create', compact('moduleName', 'types'));
+    }
+
+    public function getBlade(Request $request) {
+        $type = $request->type;
+
+        if (in_array($type, ['1', '2', '3'])) {
+
+            $drivers = User::whereHas('role', function ($builder) {
+                $builder->where('roles.id', 3);
+            })->selectRaw("concat(name, ' - (', email, ')') as name, id")->active();
+
+            if ($type == '1') {
+
+                $products = Stock::where('type', '0')->whereIn('form', ['1', '3'])->groupBy('product_id')->select('product_id')->pluck('product_id')->toArray();
+                $products = Product::whereIn('id', $products)->select('id', 'name')->pluck('name', 'id')->toArray();
+                $drivers = $drivers->pluck('name', 'id')->toArray();
+
+                return response()->json(['status' => true, 'html' => view('distribution.storage-to-driver', compact('products', 'drivers'))->render()]);
+
+            } else if ($type == '2') {
+                $drivers = $drivers->pluck('name', 'id')->toArray();
+                return response()->json(['status' => true, 'html' => view('distribution.driver-to-driver', compact('drivers'))->render()]);
+
+            } else if ($type == '3') {
+
+                $drivers = $drivers->pluck('name', 'id')->toArray();
+                return response()->json(['status' => true, 'html' => view('distribution.driver-to-storage', compact('drivers'))->render()]);
+
+            }
+
+            // ->pluck('name', 'id')->toArray()
+        }
+
+        return response()->json(['status' => false]);
+    }
+
+    public function getProducts(Request $request) {
+        $data = [];
+
+        if ($request->has('searchQuery') && !empty(trim($request->searchQuery)) && in_array($request->type, ['1', '2', '3'])) {
+            $searchQuery = $request->searchQuery;
+
+            if ($request->type == '1') {
+                $products = Stock::where('type', '0')->whereIn('form', ['1', '3'])->groupBy('product_id')->select('product_id')->pluck('product_id')->toArray();
+                $data = Product::whereIn('id', $products)->select('id', 'name')->where('name', 'LIKE', "%{$searchQuery}%")->pluck('name', 'id')->toArray();
+            } else if ($request->type == '2' && !empty(trim($request->driver))) {
+
+                $stockInItems = Stock::where('type', '0')
+                            ->where('driver_id', $request->driver)
+                            ->whereIn('form', ['1', '3'])
+                            ->groupBy('product_id')
+                            ->select('product_id')
+                            ->pluck('product_id')
+                            ->toArray();
+
+                $products = [];
+
+                foreach ($stockInItems as $item) {
+                    $inStock = Stock::where('type', '0')
+                    ->where('driver_id', $request->driver)
+                    ->whereIn('form', ['1', '3'])
+                    ->where('product_id', $item)
+                    ->select('qty')
+                    ->sum('qty');
+
+                    $outStock = Stock::where('type', '1')
+                    ->where('driver_id', $request->driver)
+                    ->whereIn('form', ['1', '3'])
+                    ->where('product_id', $item)
+                    ->select('qty')
+                    ->sum('qty');
+
+                    if ((intval($inStock) - intval($outStock)) > 0) {
+                        $products[] = $item;
+                    }
+
+                }
+
+                $data = Product::whereIn('id', $products)->select('id', 'name')->where('name', 'LIKE', "%{$searchQuery}%")->pluck('name', 'id')->toArray();
+            } else if ($request->type == '3' && !empty(trim($request->driver))) {
+                
+            }
+
+        }
+
+        return response()->json($data);
+    }
+
+    public function store(Request $request) {
+
+        DB::beginTransaction();
+
+        try {
+            $userId = auth()->user()->id;
+            $products = array_filter($request->product);
+            $quantities = array_filter($request->quantity);
+
+            if (!(count($products) > 0 && count($quantities) > 0)) {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Select product and enter quantity to assign stock');
+            }
+
+            if ($request->type == '1') {
+                $stockArrayIn = $stockArrayOut = $itemsArray = [];
+
+                $distrib = new Distribution;
+                $distrib->dis_id = Helper::generateDistributionNumber();
+                $distrib->type = 1;
+                $distrib->added_by = $userId;
+                $distrib->save();
+
+                foreach ($products as $key => $value) {
+                    $itemsArray[] = [
+                        'distribution_id' => $distrib->id,
+                        'product_id' => $value,
+                        'qty' => $quantities[$key] ?? 0,
+                        'to_driver' => $request->driver[$key] ?? null,
+                        'created_at' => now()
+                    ];
+
+                    // deduct from storage
+                    $stockArrayOut[] = [
+                        'product_id' => $value,
+                        'type' => 1,
+                        'date' => now(),
+                        'qty' => $quantities[$key] ?? 0,
+                        'added_by' => $userId,
+                        'form' => 3,
+                        'form_record_id' => $distrib->id,
+                        'created_at' => now()
+                    ];
+                    // deduct from storage
+
+                    // assign to driver
+                    $stockArrayIn[] = [
+                        'product_id' => $value,
+                        'driver_id' => $request->driver[$key] ?? null,
+                        'type' => 0,
+                        'date' => now(),
+                        'qty' => $quantities[$key] ?? 0,
+                        'added_by' => $userId,
+                        'form' => 3,
+                        'form_record_id' => $distrib->id,
+                        'created_at' => now()
+                    ];
+                    // assign to driver
+                }
+
+                DistributionItem::insert($itemsArray);
+                Stock::insert($stockArrayOut);
+                Stock::insert($stockArrayIn);
+                DB::commit();
+
+                return redirect()->route('distribution.index')->with('success', 'Stock assigned from storage to driver successfully.');
+            } else if ($request->type == '2') {
+                $stockArrayIn = $stockArrayOut = $itemsArray = [];
+
+                $distrib = new Distribution;
+                $distrib->dis_id = Helper::generateDistributionNumber();
+                $distrib->type = 2;
+                $distrib->added_by = $userId;
+                $distrib->save();
+
+                foreach ($products as $key => $value) {
+                    $itemsArray[] = [
+                        'distribution_id' => $distrib->id,
+                        'product_id' => $value,
+                        'qty' => $quantities[$key] ?? 0,
+                        'from_driver' => $request->from_driver[$key] ?? null,
+                        'to_driver' => $request->driver[$key] ?? null,
+                        'created_at' => now()
+                    ];
+
+                    // deduct from driver
+                    $stockArrayOut[] = [
+                        'product_id' => $value,
+                        'type' => $request->from_driver[$key] ?? null,
+                        'date' => now(),
+                        'qty' => $quantities[$key] ?? 0,
+                        'added_by' => $userId,
+                        'form' => 3,
+                        'form_record_id' => $distrib->id,
+                        'created_at' => now()
+                    ];
+                    // deduct from driver
+
+                    // assign to driver
+                    $stockArrayIn[] = [
+                        'product_id' => $value,
+                        'driver_id' => $request->driver[$key] ?? null,
+                        'type' => 0,
+                        'date' => now(),
+                        'qty' => $quantities[$key] ?? 0,
+                        'added_by' => $userId,
+                        'form' => 3,
+                        'form_record_id' => $distrib->id,
+                        'created_at' => now()
+                    ];
+                    // assign to driver
+                }
+
+                DistributionItem::insert($itemsArray);
+                Stock::insert($stockArrayOut);
+                Stock::insert($stockArrayIn);
+                DB::commit();
+
+                return redirect()->route('distribution.index')->with('success', 'Stock assigned from driver to driver successfully.');
+            } else if ($request->type == '3') {
+                $stockArrayIn = $stockArrayOut = $itemsArray = [];
+
+                $distrib = new Distribution;
+                $distrib->dis_id = Helper::generateDistributionNumber();
+                $distrib->type = 3;
+                $distrib->added_by = $userId;
+                $distrib->save();
+
+                foreach ($products as $key => $value) {
+                    $itemsArray[] = [
+                        'distribution_id' => $distrib->id,
+                        'product_id' => $value,
+                        'qty' => $quantities[$key] ?? 0,
+                        'from_driver' => $request->from_driver[$key] ?? null,
+                        'created_at' => now()
+                    ];
+
+                    // deduct from driver
+                    $stockArrayOut[] = [
+                        'product_id' => $value,
+                        'driver_id' => $request->driver[$key] ?? null,
+                        'type' => 1,
+                        'date' => now(),
+                        'qty' => $quantities[$key] ?? 0,
+                        'added_by' => $userId,
+                        'form' => 3,
+                        'form_record_id' => $distrib->id,
+                        'created_at' => now()
+                    ];
+                    // deduct from driver
+
+                    // assign to storage
+                    $stockArrayIn[] = [
+                        'product_id' => $value,
+                        'type' => 0,
+                        'date' => now(),
+                        'qty' => $quantities[$key] ?? 0,
+                        'added_by' => $userId,
+                        'form' => 3,
+                        'form_record_id' => $distrib->id,
+                        'created_at' => now()
+                    ];
+                    // assign to storage
+                }
+
+                DistributionItem::insert($itemsArray);
+                Stock::insert($stockArrayOut);
+                Stock::insert($stockArrayIn);
+                DB::commit();
+
+                return redirect()->route('distribution.index')->with('success', 'Stock assigned from driver to storage successfully.');
+            }
+
+            DB::rollBack();
+            return redirect()->back()->with('error', Helper::$errorMessage);
+
+        } catch (\Exception $e) {
+            Helper::logger($e->getMessage());
+            DB::rollBack();
+            return redirect()->back()->with('error', Helper::$errorMessage);
+        }
+
+    }
+    
+}

@@ -87,6 +87,17 @@
         </li>
         @endpermission
 
+        @permission('distribution.view')
+        <li>
+            <a href="{{ route('distribution.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('distribution*') ? 'active' : '' }}">
+                <div class="icnBx d-flex align-items-center justify-content-center">
+                    <i class="fa fa-industry text-white" aria-hidden="true"></i>
+                </div>
+                <span class="d-none-add">Distribution</span>
+            </a>
+        </li>
+        @endpermission
+
         @permission('procurement-cost.view')
         <li>
             <a href="{{ route('procurement-cost.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('procurement-cost*') ? 'active' : '' }}">
@@ -109,7 +120,7 @@
         </li>
         @endpermission
 
-        @permission('commissions.create')
+        {{-- @permission('commissions.create')
         <li>
             <a href="{{ route('commissions.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('commissions*') ? 'active' : '' }}">
                 <div class="icnBx d-flex align-items-center justify-content-center">
@@ -118,7 +129,7 @@
                 <span class="d-none-add">Commission</span>
             </a>
         </li>
-        @endpermission
+        @endpermission --}}
 
 
 

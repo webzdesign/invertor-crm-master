@@ -47,6 +47,9 @@ class ProductController extends Controller
                     return $category->updatedby->name;
                 }
             })
+            ->editColumn("purchase_price", function($product) {
+                return Helper::currencyFormatter($product->purchase_price);
+            })
             ->addColumn("category", function($product) {
                 return $product->category->name ?? '';
             })

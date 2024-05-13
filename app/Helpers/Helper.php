@@ -2,8 +2,11 @@
 
 namespace App\Helpers;
 
-use \Illuminate\Support\Facades\Log;
+
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Number;
 use App\Models\PurchaseOrder;
+use App\Models\Distribution;
 use Illuminate\Http\Request;
 use App\Models\SalesOrder;
 use App\Models\Setting;
@@ -99,7 +102,17 @@ class Helper {
     }
 
     public static function generatePurchaseOrderNumber () {
-        $orderNo = (PurchaseOrder::latest()->select('id')->first()->id ?? 0) + 1;
+        $orderNo = 0;
+
+        if (PurchaseOrder::latest()->first() === null) {
+            if (PurchaseOrder::withTrashed()->latest()->first() !== null) {
+                $orderNo = PurchaseOrder::withTrashed()->latest()->first()->id ?? 0;
+            }
+        } else {
+            $orderNo = PurchaseOrder::latest()->first()->id;   
+        }
+
+        $orderNo += 1;
         $prefix = date('-Y-');
         $orderNo = sprintf('%05d', $orderNo);
         $orderNo = "PO{$prefix}{$orderNo}";
@@ -108,10 +121,39 @@ class Helper {
     }
 
     public static function generateSalesOrderNumber () {
-        $orderNo = (SalesOrder::latest()->select('id')->first()->id ?? 0) + 1;
+        $orderNo = 0;
+
+        if (SalesOrder::latest()->first() === null) {
+            if (SalesOrder::withTrashed()->latest()->first() !== null) {
+                $orderNo = SalesOrder::withTrashed()->latest()->first()->id ?? 0;
+            }
+        } else {
+            $orderNo = SalesOrder::latest()->first()->id;
+        }
+
+        $orderNo += 1;
         $prefix = date('-Y-');
         $orderNo = sprintf('%05d', $orderNo);
         $orderNo = "SO{$prefix}{$orderNo}";
+
+        return $orderNo;
+    }
+
+    public static function generateDistributionNumber () {
+        $orderNo = 0;
+
+        if (Distribution::latest()->first() === null) {
+            if (Distribution::withTrashed()->latest()->first() !== null) {
+                $orderNo = Distribution::withTrashed()->latest()->first()->id ?? 0;
+            }
+        } else {
+            $orderNo = Distribution::latest()->first()->id;
+        }
+
+        $orderNo += 1;
+        $prefix = date('Ymdhis-');
+        $orderNo = sprintf('%05d', $orderNo);
+        $orderNo = "D{$prefix}{$orderNo}";
 
         return $orderNo;
     }
@@ -121,6 +163,14 @@ class Helper {
     }
 
     public static function getSellerCommission() {
-        return Wallet::where('seller_id', auth()->user()->id)->where('form', 1)->sum('commission_amount');
+        return self::currencyFormatter(Wallet::where('seller_id', auth()->user()->id)->where('form', 1)->sum('commission_amount'));
+    }
+
+    public static function currencyFormatter($amount, $showSign = false, $in = 'GBP') {
+        if ($showSign === false) {
+            return mb_substr(Number::currency($amount, 'GBP'), 1);
+        }
+
+        return Number::currency($amount, 'GBP');
     }
 }

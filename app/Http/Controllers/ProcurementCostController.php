@@ -70,7 +70,10 @@ class ProcurementCostController extends Controller
                 return $cost->product->name ?? '-';
             })
             ->editColumn('base_price', function ($cost) {
-                return number_format($cost->base_price, 2);
+                return Helper::currencyFormatter($cost->base_price);
+            })
+            ->editColumn('min_sales_price', function ($cost) {
+                return Helper::currencyFormatter($cost->min_sales_price);
             })
             ->addColumn('action', function ($users) {
                 $variable = $users;
@@ -136,6 +139,7 @@ class ProcurementCostController extends Controller
         $user->category_id = $request->category;
         $user->role_id = $request->role;
         $user->base_price = $request->base_price;
+        $user->min_sales_price = $request->min_sales_price;
         $user->added_by = auth()->user()->id;
         $user->save();
 
@@ -159,6 +163,7 @@ class ProcurementCostController extends Controller
         $user->category_id = $request->category;
         $user->role_id = $request->role;
         $user->base_price = $request->base_price;
+        $user->min_sales_price = $request->min_sales_price;
         $user->updated_by = auth()->user()->id;
         $user->save();
 

@@ -41,14 +41,14 @@
                 <div class="col-sm-12 col-md-4">
                     <div class="form-group">
                         <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Date</label>
-                        <input type="text" readonly placeholder="Order Date" id="order_date" class="form-control" value="{{ date('Y-m-d', strtotime($so->date)) }}" style="background:#efefef">
+                        <input type="text" readonly placeholder="Order Date" id="order_date" class="form-control" value="{{ date('d-m-Y', strtotime($so->date)) }}" style="background:#efefef">
                     </div>
                 </div>
 
                 <div class="col-sm-12 col-md-4">
                     <div class="form-group">
                         <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Delivery Date</label>
-                        <input type="text" readonly id="order_del_date" value="{{ date('Y-m-d', strtotime($so->delivery_date)) }}" class="form-control" style="background:#efefef">
+                        <input type="text" readonly id="order_del_date" value="{{ date('d-m-Y', strtotime($so->delivery_date)) }}" class="form-control" style="background:#efefef">
                     </div>
                 </div>
 
@@ -153,13 +153,13 @@
 
                                             <td >
                                                 <div style="min-width: 200px;">
-                                                    <input type="number" class="form-control" style="background:#efefef;" value="{{ $item->price }}" readonly>
+                                                    <input type="text" class="form-control" style="background:#efefef;" value="{{ Helper::currencyFormatter($item->price) }}" readonly>
                                                 </div>
                                             </td>
 
                                             <td >
                                                 <div style="min-width: 200px;">
-                                                    <input type="number" class="form-control" style="background:#efefef;" value="{{ $item->amount }}" readonly>
+                                                    <input type="text" class="form-control" style="background:#efefef;" value="{{ Helper::currencyFormatter($item->amount) }}" readonly>
                                                 </div>
                                             </td>
 
@@ -191,12 +191,12 @@
                                             </td>
                                             <td>
                                                 <div style="min-width: 200px;">
-                                                    <input type="number" class="form-control mt-price" style="background:#efefef" value="{{ $so->items->sum('price') }}" readonly>
+                                                    <input type="text" class="form-control mt-price" style="background:#efefef" value="{{ Helper::currencyFormatter($so->items->sum('price')) }}" readonly>
                                                 </div>
                                             </td>
                                             <td>
                                                 <div style="min-width: 200px;">
-                                                    <input type="number" class="form-control mt-amount" style="background:#efefef" value="{{ $so->items->sum('amount') }}" readonly>
+                                                    <input type="text" class="form-control mt-amount" style="background:#efefef" value="{{ Helper::currencyFormatter($so->items->sum('amount')) }}" readonly>
                                                 </div>
                                             </td>
                                             <td></td>

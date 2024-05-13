@@ -57,7 +57,7 @@ class PurchaseOrderController extends Controller
                 }
             })
             ->addColumn('total', function ($product) {
-                return number_format(round($product->total() ?? 0), 00);
+                return Helper::currencyFormatter($product->total());
             })
             ->addColumn('action', function ($users) {
 
@@ -82,6 +82,78 @@ class PurchaseOrderController extends Controller
                 return $action;
             })
             ->rawColumns(['action', 'addedby.name', 'updatedby.name'])
+            ->addIndexColumn()
+            ->make(true);
+    }
+
+    public function data(Request $request) {
+        $po = PurchaseOrderItem::with(['order', 'order.addedby', 'order.updatedby']);
+
+        if ($request->has('filterSupplier') && !empty(trim($request->filterSupplier))) {
+            $filterSupplier = trim($request->filterSupplier);
+            $po = $po->whereHas('order', function ($builder) use ($filterSupplier) {
+                $builder->where('supplier_id', $filterSupplier);
+            });
+        }
+
+        if ($request->has('filterFrom') && !empty(trim($request->filterFrom))) {
+            $po = $po->where('created_at', '>=', date('Y-m-d H:i:s', strtotime($request->filterFrom)));
+        }
+
+        if ($request->has('filterTo') && !empty(trim($request->filterTo))) {
+            $po = $po->where('created_at', '<=', date('Y-m-d H:i:s', strtotime($request->filterTo)));
+        }
+
+        if (isset($request->order[0]['column']) && $request->order[0]['column'] == 0) {
+            $po = $po->orderBy('id', 'desc');
+        }
+
+        return dataTables()->eloquent($po)
+            ->addColumn('addedby', function($row) {
+                return "<span data-mdb-toggle='tooltip' title='".date('d-m-Y h:i:s A', strtotime($row->order->created_at))."'>".($row->order->addedby->name ?? '-')."</span>";
+            })
+            ->addColumn('updatedby', function($row) {
+                if (($row->order->updatedby->name ?? '') != '-') {
+                    return "<span data-mdb-toggle='tooltip' title='".date('d-m-Y h:i:s A', strtotime($row->order->updated_at))."'>".($row->order->updatedby->name ?? '-')."</span>";
+                } else {
+                    return ($row->order->updatedby->name ?? '-');
+                }
+            })
+            ->addColumn('order_no', function ($row) {
+                return $row?->order?->order_no;
+            })
+            ->addColumn('supplier', function ($row) {
+                return $row?->order?->supplier?->name;
+            })
+            ->addColumn('product', function ($row) {
+                return $row?->product?->name;
+            })
+            ->addColumn('quantity', function ($row) {
+                return Helper::currencyFormatter($row->qty);
+            })
+            ->addColumn('action', function ($users) {
+
+                $variable = $users->order;
+
+                $action = "";
+                $action .= '<div class="whiteSpace">';
+                if (auth()->user()->hasPermission("purchase-orders.edit")) {
+                    $url = route("purchase-orders.edit", encrypt($variable->id));
+                    $action .= view('buttons.edit', compact('variable', 'url')); 
+                }
+                if (auth()->user()->hasPermission("purchase-orders.view")) {
+                    $url = route("purchase-orders.view", encrypt($variable->id));
+                    $action .= view('buttons.view', compact('variable', 'url')); 
+                }
+                if (auth()->user()->hasPermission("purchase-orders.delete")) {
+                    $url = route("purchase-orders.delete", encrypt($variable->id));
+                    $action .= view('buttons.delete', compact('variable', 'url')); 
+                }
+                $action .= '</div>';
+
+                return $action;
+            })
+            ->rawColumns(['action', 'addedby', 'updatedby'])
             ->addIndexColumn()
             ->make(true);
     }
@@ -160,6 +232,7 @@ class PurchaseOrderController extends Controller
                         'amount' => floatval($request->amount[$key]) ?? 0,
                         'remarks' => $request->remarks[$key] ?? '',
                         'added_by' => $userId,
+                        'created_at' => now()
                     ];
 
                     $poItemForStock[] = [
@@ -169,7 +242,8 @@ class PurchaseOrderController extends Controller
                         'qty' => intval($request->quantity[$key]) ?? 0,
                         'added_by' => $userId,
                         'form' => 1,
-                        'form_record_id' => $poId
+                        'form_record_id' => $poId,
+                        'created_at' => now()
                     ];
                 }
 
@@ -256,6 +330,7 @@ class PurchaseOrderController extends Controller
                         'amount' => floatval($request->amount[$key]) ?? 0,
                         'remarks' => $request->remarks[$key] ?? '',
                         'added_by' => $userId,
+                        'created_at' => now()
                     ];
 
                     $poItemForStock[] = [
@@ -265,7 +340,8 @@ class PurchaseOrderController extends Controller
                         'qty' => intval($request->quantity[$key]) ?? 0,
                         'added_by' => $userId,
                         'form' => 1,
-                        'form_record_id' => $id
+                        'form_record_id' => $id,
+                        'created_at' => now()
                     ];
                 }
 

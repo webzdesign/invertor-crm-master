@@ -106,7 +106,7 @@
                                     @if($loop->first)
                                     <option value="" selected> --- Select a Status --- </option>
                                     @endif
-                                    <option value="{{ $sid }}" > {{ $sname }} </option>
+                                    <option value="{{ $sid }}" @if($sid == '1') selected @endif> {{ $sname }} </option>
                                 @empty                                
                                     <option value=""> --- No Status Found --- </option>
                                 @endforelse

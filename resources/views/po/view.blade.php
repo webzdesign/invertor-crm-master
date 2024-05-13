@@ -110,14 +110,14 @@
 
                                                 <td >
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" readonly value="{{ $item->price }}" id="price-{{ $key }}" class="form-control m-price" style="background:#efefef">
+                                                        <input type="text" readonly value="{{ Helper::currencyFormatter($item->price) }}" id="price-{{ $key }}" class="form-control m-price" style="background:#efefef">
                                                     </div>
                                                 </td>
 
 
                                                 <td >
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" readonly value="{{ $item->amount }}" id="amount-{{ $key }}"  class="form-control m-amount" style="background:#efefef" readonly>
+                                                        <input type="text" readonly value="{{ Helper::currencyFormatter($item->amount) }}" id="amount-{{ $key }}"  class="form-control m-amount" style="background:#efefef" readonly>
                                                     </div>
                                                 </td>
 

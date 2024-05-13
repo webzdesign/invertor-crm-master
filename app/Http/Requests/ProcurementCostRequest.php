@@ -34,7 +34,8 @@ class ProcurementCostRequest extends FormRequest
                 }],
                 "category" => "required",
                 "role" => "required",
-                "base_price" => "required|numeric|min:0"
+                "base_price" => "required|numeric|min:0",
+                "min_sales_price" => "required|numeric|min:0"
                     
                 ];
         } else {
@@ -46,7 +47,8 @@ class ProcurementCostRequest extends FormRequest
                 }],
                 "category" => "required",
                 "role" => "required",
-                "base_price" => "required|numeric|min:0"
+                "base_price" => "required|numeric|min:0",
+                "min_sales_price" => "required|numeric|min:0"
             ];
         }
     }
@@ -58,9 +60,14 @@ class ProcurementCostRequest extends FormRequest
             'product.unique' => 'Cost for this product is already added.',
             "category.required" => "Select a category.",
             "role.required" => "Select a role.",
+
             "base_price.required" => "Enter base price.",
             "base_price.numeric" => "Enter valid format.",
             "base_price.min" => "Base price can't be less than 0.",
+
+            "min_sales_price.required" => "Enter minimum sales price.",
+            "min_sales_price.numeric" => "Enter valid format.",
+            "min_sales_price.min" => "Minimum sales price can't be less than 0.",
         ];
     }
 }

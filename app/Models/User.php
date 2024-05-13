@@ -128,4 +128,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(City::class);
     }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }
 }

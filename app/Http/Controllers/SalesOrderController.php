@@ -60,7 +60,7 @@ class SalesOrderController extends Controller
                 }
             })
             ->addColumn('total', function ($product) {
-                return number_format(round($product->total() ?? 0), 00);
+                return Helper::currencyFormatter($product->total());
             })
             ->addColumn('action', function ($users) {
 
@@ -199,17 +199,19 @@ class SalesOrderController extends Controller
                         'amount' => $itemAmt,
                         'remarks' => $request->remarks[$key] ?? '',
                         'added_by' => $userId,
+                        'created_at' => now()
                     ];
 
-                    $soItemForStock[] = [
-                        'product_id' => $product,
-                        'type' => 1,
-                        'date' => now(),
-                        'qty' => $qty,
-                        'added_by' => $userId,
-                        'form' => 2,
-                        'form_record_id' => $soId
-                    ];
+                    // $soItemForStock[] = [
+                    //     'product_id' => $product,
+                    //     'type' => 1,
+                    //     'date' => now(),
+                    //     'qty' => $qty,
+                    //     'added_by' => $userId,
+                    //     'form' => 2,
+                    //     'form_record_id' => $soId,
+                    //     'created_at' => now()
+                    // ];
 
                     if (!empty($commissionPrices) && in_array($itemBaseAmt, $commissionPrices)) {
 
@@ -222,7 +224,8 @@ class SalesOrderController extends Controller
                             'commission_amount' => $setting['seller_commission'] * $qty,
                             'item_amount' => $itemBaseAmt,
                             'commission_actual_amount' => $setting['seller_commission'],
-                            'item_qty' => $qty
+                            'item_qty' => $qty,
+                            'created_at' => now()
                         ];
 
                         $bonus[] = [
@@ -233,13 +236,14 @@ class SalesOrderController extends Controller
                             'bonus_amount' => $setting['bonus'] * $qty,
                             'item_amount' => $itemBaseAmt,
                             'bonus_actual_amount' => $setting['bonus'],
-                            'item_qty' => $qty
+                            'item_qty' => $qty,
+                            'created_at' => now()
                         ];
                     }
                 }
 
                 SalesOrderItem::insert($soItems);
-                Stock::insert($soItemForStock);
+                // Stock::insert($soItemForStock);
                 Wallet::insert($wallet);
                 Bonus::insert($bonus);
 
@@ -356,17 +360,19 @@ class SalesOrderController extends Controller
                         'amount' => $itemAmt,
                         'remarks' => $request->remarks[$key] ?? '',
                         'added_by' => $userId,
+                        'created_at' => now()
                     ];
 
-                    $soItemForStock[] = [
-                        'product_id' => $product,
-                        'type' => 1,
-                        'date' => now(),
-                        'qty' => $qty,
-                        'added_by' => $userId,
-                        'form' => 2,
-                        'form_record_id' => $id
-                    ];
+                    // $soItemForStock[] = [
+                    //     'product_id' => $product,
+                    //     'type' => 1,
+                    //     'date' => now(),
+                    //     'qty' => $qty,
+                    //     'added_by' => $userId,
+                    //     'form' => 2,
+                    //     'form_record_id' => $id,
+                    //     'created_at' => now()
+                    // ];
 
                     if (!empty($commissionPrices) && in_array($itemBaseAmt, $commissionPrices)) {
 
@@ -379,7 +385,8 @@ class SalesOrderController extends Controller
                             'commission_amount' => $setting['seller_commission'] * $qty,
                             'item_amount' => $itemBaseAmt,
                             'commission_actual_amount' => $setting['seller_commission'],
-                            'item_qty' => $qty
+                            'item_qty' => $qty,
+                            'created_at' => now()
                         ];
 
                         $bonus[] = [
@@ -390,13 +397,14 @@ class SalesOrderController extends Controller
                             'bonus_amount' => $setting['bonus'] * $qty,
                             'item_amount' => $itemBaseAmt,
                             'bonus_actual_amount' => $setting['bonus'],
-                            'item_qty' => $qty
+                            'item_qty' => $qty,
+                            'created_at' => now()
                         ];
                     }
                 }
 
                 SalesOrderItem::insert($soItems);
-                Stock::insert($soItemForStock);
+                // Stock::insert($soItemForStock);
                 Wallet::insert($wallet);
                 Bonus::insert($bonus);
 

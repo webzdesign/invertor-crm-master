@@ -69,7 +69,7 @@
             <div class="col-md-6 col-sm-6">
                 <div class="form-group">
                     <label class="c-gr f-500 f-16 w-100 mb-2">Purchase Price </label>
-                    <input type="text" id="pprice" value="{{ $product->purchase_price }}" class="form-control" readonly>
+                    <input type="text" id="pprice" value="{{ Helper::currencyFormatter($product->purchase_price) }}" class="form-control" readonly>
                 </div>
             </div>
 

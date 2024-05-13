@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProcurementCostController;
 use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\DistributionController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\CategoryController;
@@ -82,6 +83,7 @@ Route::group(["middleware" => "auth"], function () {
 
         /** Purchase Order **/
         Route::match(['GET', 'POST'], 'purchase-orders', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index')->middleware('ModuleAccessor:purchase-orders.view');
+        Route::post('purchase-orders-data', [PurchaseOrderController::class, 'data'])->name('purchase-orders.data')->middleware('ModuleAccessor:purchase-orders.view');
         Route::get('purchase-orders/create', [PurchaseOrderController::class, 'create'])->name('purchase-orders.create')->middleware('ModuleAccessor:purchase-orders.create');
         Route::post('purchase-orders/store', [PurchaseOrderController::class, 'store'])->name('purchase-orders.store');
         Route::get('purchase-orders/{id}/edit', [PurchaseOrderController::class, 'edit'])->name('purchase-orders.edit')->middleware('ModuleAccessor:purchase-orders.edit');
@@ -90,6 +92,16 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('purchase-orders/{id}/delete', [PurchaseOrderController::class, 'destroy'])->name('purchase-orders.delete')->middleware('ModuleAccessor:purchase-orders.delete');
         Route::post('get-products-on-category', [PurchaseOrderController::class, 'productsOnCategory'])->name('get-products-on-category');
         /** Purchase Order **/
+
+        /** Distribution System  **/
+        Route::match(['GET', 'POST'], 'distribution', [DistributionController::class, 'index'])->name('distribution.index')->middleware('ModuleAccessor:distribution.view');
+        Route::get('distribution/create', [DistributionController::class, 'create'])->name('distribution.create')->middleware('ModuleAccessor:distribution.create');
+        Route::post('distribution/store', [DistributionController::class, 'store'])->name('distribution.store');
+        Route::get('distribution/{id}/view', [DistributionController::class, 'show'])->name('distribution.view')->middleware('ModuleAccessor:distribution.view');
+        Route::get('distribution/{id}/delete', [DistributionController::class, 'destroy'])->name('distribution.delete')->middleware('ModuleAccessor:distribution.delete');
+        Route::post('get-blade-for-distribution', [DistributionController::class, 'getBlade'])->name('get-blade-for-distribution');
+        Route::post('getProducts', [DistributionController::class, 'getProducts'])->name('getProducts');
+        /** Distribution System **/
 
         /** Procurement Cost **/
         Route::match(['GET', 'POST'], 'procurement-cost', [ProcurementCostController::class, 'index'])->name('procurement-cost.index')->middleware('ModuleAccessor:procurement-cost.view');
@@ -126,7 +138,7 @@ Route::group(["middleware" => "auth"], function () {
         /** Suppliers **/
 
         /** Commission **/
-        Route::match(['GET', 'POST'], 'commissions', [CommissionController::class, 'index'])->name('commissions.index')->middleware('ModuleAccessor:commissions.create');
+        // Route::match(['GET', 'POST'], 'commissions', [CommissionController::class, 'index'])->name('commissions.index')->middleware('ModuleAccessor:commissions.create');
         /** Commission **/
 
         /** Common **/

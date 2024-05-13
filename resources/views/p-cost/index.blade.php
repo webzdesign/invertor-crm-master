@@ -92,6 +92,7 @@
                 <th>Sr No.</th>
                 <th>Product</th>
                 <th>Base Price</th>
+                <th>Min. Sales Price</th>
                 <th>Status</th>
                 <th>Added By</th>
                 <th>Updated By</th>
@@ -151,6 +152,9 @@
                 },
                 {
                     data: 'base_price',
+                },
+                {
+                    data: 'min_sales_price',
                 },
                 {
                     data: 'status',
