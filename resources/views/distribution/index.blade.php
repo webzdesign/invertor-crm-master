@@ -24,7 +24,7 @@
 <div class="cards">
     <div class="row m-0 filterColumn">
 
-        <div class="col-4 position-relative">
+        <div class="col-md-4 col-sm-12 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Type</label>
                 <select name="filterType" id="filterType" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Driver ---">
@@ -37,7 +37,7 @@
             </div>
         </div>
 
-        <div class="col-4 position-relative">
+        <div class="col-md-4 col-sm-12 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Driver</label>
                 <select name="filterDriver" id="filterDriver" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Driver ---">
@@ -50,7 +50,7 @@
             </div>
         </div>
 
-        <div class="col-4 position-relative">
+        <div class="col-md-4 col-sm-12 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">From Date</label>
                 <input readonly type="text" id="filterFrom" name="filterFrom"
@@ -59,7 +59,7 @@
             </div>
         </div>
 
-        <div class="col-4 position-relative">
+        <div class="col-md-4 col-sm-12 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">To Date</label>
                 <input readonly type="text" id="filterTo" name="filterTo"
@@ -68,7 +68,7 @@
             </div>
         </div>
 
-        <div class="col-4 position-relative">
+        <div class="col-md-4 col-sm-12 position-relative">
             <div class="form-group mb-0">
                 <label class="c-gr f-500 f-14 w-100 mb-1 d-none-500">&nbsp;</label>
                 <button class="btn-default f-500 f-14 clearData" style="display:none;"><i class="fa fa-remove" aria-hidden="true"></i> Clear filters</button>

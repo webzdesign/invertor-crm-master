@@ -37,10 +37,10 @@ class PermissionSeeder extends Seeder
             ['name' => 'Delete Products', 'slug' => 'products.delete', 'model' => 'Product', 'description' => 'Can delete Products', 'added_by' => 1],
             ['name' => 'Active/Inactive Products', 'slug' => 'products.activeinactive', 'model' => 'Product', 'description' => 'Can Activate or deactivate Products', 'added_by' => 1],
 
-            ['name' => 'Add Storage', 'slug' => 'purchase-orders.create', 'model' => 'PurchaseOrder', 'description' => 'Can add Storage', 'added_by' => 1],
-            ['name' => 'Edit Storage', 'slug' => 'purchase-orders.edit', 'model' => 'PurchaseOrder', 'description' => 'Can edit Storage', 'added_by' => 1],
-            ['name' => 'View Storage', 'slug' => 'purchase-orders.view', 'model' => 'PurchaseOrder', 'description' => 'Can view Storage', 'added_by' => 1],
-            ['name' => 'Delete Storage', 'slug' => 'purchase-orders.delete', 'model' => 'PurchaseOrder', 'description' => 'Can delete Storage', 'added_by' => 1],
+            ['name' => 'Add Storage', 'slug' => 'purchase-orders.create', 'model' => 'Storage', 'description' => 'Can add Storage', 'added_by' => 1],
+            ['name' => 'Edit Storage', 'slug' => 'purchase-orders.edit', 'model' => 'Storage', 'description' => 'Can edit Storage', 'added_by' => 1],
+            ['name' => 'View Storage', 'slug' => 'purchase-orders.view', 'model' => 'Storage', 'description' => 'Can view Storage', 'added_by' => 1],
+            ['name' => 'Delete Storage', 'slug' => 'purchase-orders.delete', 'model' => 'Storage', 'description' => 'Can delete Storage', 'added_by' => 1],
 
             ['name' => 'Add Procurement Cost', 'slug' => 'procurement-cost.create', 'model' => 'ProcurementCost', 'description' => 'Can add Procurement Cost', 'added_by' => 1],
             ['name' => 'Edit Procurement Cost', 'slug' => 'procurement-cost.edit', 'model' => 'ProcurementCost', 'description' => 'Can edit Procurement Cost', 'added_by' => 1],

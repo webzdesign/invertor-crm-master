@@ -98,26 +98,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-4 col-sm-12">
-                        <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">Status : <span class="text-danger">*</span></label>
-                            <select name="status" id="status" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Status ---">
-                                @forelse($statuses as $sid => $sname)
-                                    @if($loop->first)
-                                    <option value="" selected> --- Select a Status --- </option>
-                                    @endif
-                                    <option value="{{ $sid }}" @if($sid == $so->status) selected @endif > {{ $sname }} </option>
-                                @empty                                
-                                    <option value=""> --- No Status Found --- </option>
-                                @endforelse
-                            </select>
-                            @if ($errors->has('status'))
-                                <span class="text-danger d-block">{{ $errors->first('status') }}</span>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="col-md-8 col-sm-12">
+                    <div class="col-md-12 col-sm-12">
                         <div class="form-group">
                             <label class="c-gr f-500 f-16 w-100 mb-2">Address Line : <span class="text-danger">*</span></label>
                             <textarea name="address_line_1" id="address_line_1" class="form-control" style="height: 60px;">{{ old('address_line_1', $so->customer_address_line_1) }}</textarea>

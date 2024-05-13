@@ -118,7 +118,7 @@ class SalesOrderController extends Controller
             'order_del_date' => 'required',
             'customername' => 'required',
             'customerphone' => 'required',
-            'status' => 'required',
+            // 'status' => 'required',
             'postal_code' => 'required',
             'address_line_1' => 'required',
             'category.*' => 'required',
@@ -130,7 +130,7 @@ class SalesOrderController extends Controller
             'order_del_date.required' => 'Select order felivery date .',
             'customername.required' => 'Enter customer name.',
             'customerphone.required' => 'Enter customer phone number.',
-            'status.required' => 'Select a status.',
+            // 'status.required' => 'Select a status.',
             'postal_code.required' => 'Enter a postal code.',
             'address_line_1.required' => 'Enter address line 1.',
             'category.*' => 'Select a category.',
@@ -177,7 +177,7 @@ class SalesOrderController extends Controller
                 }
 
                 $so->customer_facebook = $request->customerfb;
-                $so->status = $request->status;
+                $so->status = 1;
                 $so->added_by = $userId;
                 $so->save();
 
@@ -278,7 +278,7 @@ class SalesOrderController extends Controller
             'order_del_date' => 'required',
             'customername' => 'required',
             'customerphone' => 'required',
-            'status' => 'required',
+            // 'status' => 'required',
             'postal_code' => 'required',
             'address_line_1' => 'required',
             'category.*' => 'required',
@@ -290,7 +290,7 @@ class SalesOrderController extends Controller
             'order_del_date.required' => 'Select order felivery date .',
             'customername.required' => 'Enter customer name.',
             'customerphone.required' => 'Enter customer phone number.',
-            'status.required' => 'Select a status.',
+            // 'status.required' => 'Select a status.',
             'postal_code.required' => 'Enter a postal code.',
             'address_line_1.required' => 'Enter address line 1.',
             'category.*' => 'Select a category.',
@@ -334,7 +334,6 @@ class SalesOrderController extends Controller
                 $so->country_iso_code = $request->country_iso_code;
                 $so->customer_postal_code = $request->postal_code;
                 $so->customer_facebook = $request->customerfb;
-                $so->status = $request->status;
                 $so->updated_by = $userId;
                 $so->save();
 

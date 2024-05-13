@@ -24,7 +24,26 @@
 
 <div class="importWrpr">
 
-    <div class="card mt-3">
+    <div class="cards mt-3">
+        <table class="datatables-po1 table datatableMain" style="width: 100%!important;">
+            <thead>
+                <tr>
+                    <th>Sr No.</th>
+                    {{-- <th>Order No.</th> --}}
+                    <th>Supplier</th>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    {{-- <th>Added By</th> --}}
+                    {{-- <th>Updated By</th> --}}
+                    {{-- <th>Action</th> --}}
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="cards mt-3">
         <div class="row m-0 filterColumn">
             <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
                 <div class="form-group mb-0 mb-10-500">
@@ -64,28 +83,7 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="cards mt-3">
-        <table class="datatables-po1 table datatableMain" style="width: 100%!important;">
-            <thead>
-                <tr>
-                    <th>Sr No.</th>
-                    <th>Order No.</th>
-                    <th>Supplier</th>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>Added By</th>
-                    <th>Updated By</th>
-                    {{-- <th>Action</th> --}}
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-    </div>
-    
-    <div class="cards mt-3">
         <table class="datatables-po table datatableMain" style="width: 100%!important;">
             <thead>
                 <tr>
@@ -200,15 +198,6 @@
                 "dataType": "json",
                 "type": "POST",
                 "data" : {
-                    filterSupplier:function() {
-                        return $("#filterSupplier").val();
-                    },
-                    filterFrom: function () {
-                        return $('#filterFrom').val();
-                    },
-                    filterTo: function () {
-                        return $('#filterTo').val();
-                    }
                 }
             },
             columns: [{
@@ -216,11 +205,11 @@
                     orderable: false,
                     searchable: false,
                 },
-                {
-                    data: 'order_no',
-                    orderable: false,
-                    searchable: false,
-                },
+                // {
+                //     data: 'order_no',
+                //     orderable: false,
+                //     searchable: false,
+                // },
                 {
                     data: 'supplier',
                 },
@@ -230,16 +219,16 @@
                 {
                     data: 'quantity',
                 },
-                {
-                    data: 'addedby',
-                    orderable: false,
-                    searchable: false,
-                },
-                {
-                    data: 'updatedby',
-                    orderable: false,
-                    searchable: false,
-                },
+                // {
+                //     data: 'addedby',
+                //     orderable: false,
+                //     searchable: false,
+                // },
+                // {
+                //     data: 'updatedby',
+                //     orderable: false,
+                //     searchable: false,
+                // },
                 // {
                 //     data: 'action',
                 //     orderable: false,
