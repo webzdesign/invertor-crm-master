@@ -63,7 +63,6 @@ class PermissionSeeder extends Seeder
 
             ['name' => 'Add Distribution', 'slug' => 'distribution.create', 'model' => 'Distribution', 'description' => 'Can add Distribution', 'added_by' => 1],
             ['name' => 'View Distribution', 'slug' => 'distribution.view', 'model' => 'Distribution', 'description' => 'Can view Distribution', 'added_by' => 1],
-            ['name' => 'Delete Distribution', 'slug' => 'distribution.delete', 'model' => 'Distribution', 'description' => 'Can delete Distribution', 'added_by' => 1],
         ];
 
         foreach ($permissions as $permission) {

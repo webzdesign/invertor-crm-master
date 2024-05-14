@@ -14,8 +14,7 @@ use App\Models\User;
 class DistributionController extends Controller
 {
     protected $moduleName = 'Distribution';
-    protected static $types = [1 => 'Storage to Driver'];
-    // protected static $types = [1 => 'Storage to Driver', 2 => 'Driver to Driver', 3 => 'Driver to Storage'];
+    protected static $types = [1 => 'Storage to Driver', 2 => 'Driver to Driver', 3 => 'Driver to Storage'];
 
     public function index(Request $request) {
         if (!$request->ajax()) {
@@ -29,61 +28,92 @@ class DistributionController extends Controller
             return view('distribution.index', compact('moduleName', 'drivers', 'types'));
         }
 
-        $distributionItems = DistributionItem::query();
+        $distribution = Distribution::query();
 
         if ($request->has('filterType') && !empty(trim($request->filterType))) {
-            $type = trim($request->filterType);
-            $distributionItems = $distributionItems->whereHas('dist', function ($builder) use ($type) {($builder->where('type', $type));});
+            $distribution = $distribution->where('type', trim($request->filterType));
         }
 
         if ($request->has('filterDriver') && !empty(trim($request->filterDriver))) {
             $driver = trim($request->filterDriver);
-            $distributionItems = $distributionItems->where('from_driver', $driver)->orWhere('to_driver', $driver);
+            $distribution = $distribution->whereHas('items', function ($builder) use ($driver) {
+                $builder->where('from_driver', $driver)->orWhere('to_driver', $driver);
+            });
         }
 
         if ($request->has('filterFrom') && !empty(trim($request->filterFrom))) {
-            $distributionItems = $distributionItems->where('created_at', '>=', date('Y-m-d H:i:s', strtotime($request->filterFrom)));
+            $distribution = $distribution->where('created_at', '>=', date('Y-m-d H:i:s', strtotime($request->filterFrom)));
         }
 
         if ($request->has('filterTo') && !empty(trim($request->filterTo))) {
-            $distributionItems = $distributionItems->where('created_at', '<=', date('Y-m-d H:i:s', strtotime($request->filterTo)));
+            $distribution = $distribution->where('created_at', '<=', date('Y-m-d H:i:s', strtotime($request->filterTo)));
         }
 
         if (isset($request->order[0]['column']) && $request->order[0]['column'] == 0) {
-            $distributionItems = $distributionItems->orderBy('id', 'desc');
+            $distribution = $distribution->orderBy('id', 'desc');
         }
 
         return dataTables()
-                ->eloquent($distributionItems)
+                ->eloquent($distribution)
                 ->addColumn('type', function ($row) {
-                    if ($row?->dist?->type == '1') {
+                    if ($row->type == '1') {
                         return 'Storage to Driver';
-                    } else if ($row?->dist?->type == '2') {
+                    } else if ($row->type == '2') {
                         return 'Driver to Driver';
-                    } else if ($row?->dist?->type == '3') {
+                    } else if ($row->type == '3') {
                         return 'Driver to Storage';
                     } else {
                         return '-';
                     }
                 })
                 ->addColumn('product', function ($row) {
-                    return $row->product->name ?? '-';
+                    $html = '<table class="table table-bordered">';
+
+                    if ($row->type == '1') {
+                        $html .= "<thead class='thead-light'> <tr> <td> Product </td> <td> To Driver </td> <td> Quantity </td> </tr>  </thead>";
+                        foreach ($row->items as $item) {
+                            $html .= "<tr>  
+                            <td> " . $item->product->name . " </td>
+                            <td> " . $item->todriver->name . " </td>
+                            <td> " . Helper::currencyFormatter($item->qty) . " </td>
+                             </tr>";
+                        }
+                    } else if ($row->type == '2') {
+                        $html .= "<thead> <tr> <td> From Driver </td> <td> Product </td> <td> To Driver </td> <td> Quantity </td> </tr>  </thead>";
+                        foreach ($row->items as $item) {
+                            $html .= "<tr>  
+                            <td> " . $item->fromdriver->name . " </td>
+                            <td> " . $item->product->name . " </td>
+                            <td> " . $item->todriver->name . " </td>
+                            <td> " . Helper::currencyFormatter($item->qty) . " </td>
+                             </tr>";
+                        }
+                    } else if ($row->type == '3') {
+                        $html .= "<thead> <tr> <td> From Driver </td> <td> Product </td> <td> Quantity </td> </tr>  </thead>";
+                        foreach ($row->items as $item) {
+                            $html .= "<tr>  
+                            <td> " . $item->fromdriver->name . " </td>
+                            <td> " . $item->product->name . " </td>
+                            <td> " . Helper::currencyFormatter($item->qty) . " </td>
+                             </tr>";
+                        }
+                    }
+
+                    $html .= '</table>'; 
+
+                    return $html;
                 })
                 ->addColumn('action', function ($users) {
 
                     $variable = $users;
-    
-                    $action = "";
-                    $action .= '<div class="whiteSpace">-';
 
-                    // if (auth()->user()->hasPermission("distribution.view")) {
-                    //     $url = route("sales-orders.view", encrypt($variable->id));
-                    //     $action .= view('buttons.view', compact('variable', 'url')); 
-                    // }
-                    // if (auth()->user()->hasPermission("distribution.delete")) {
-                    //     $url = route("sales-orders.delete", encrypt($variable->id));
-                    //     $action .= view('buttons.delete', compact('variable', 'url')); 
-                    // }
+                    $action = "";
+                    $action .= '<div class="whiteSpace">';
+
+                    if (auth()->user()->hasPermission("distribution.view")) {
+                        $url = route("distribution.view", encrypt($variable->id));
+                        $action .= view('buttons.view', compact('variable', 'url')); 
+                    }
 
                     $action .= '</div>';
     
@@ -91,15 +121,20 @@ class DistributionController extends Controller
 
                 })
                 ->addIndexColumn()
-                ->rawColumns(['action'])
+                ->rawColumns(['action', 'product'])
                 ->toJson();
     }
 
     public function create() {
+
+        $drivers = User::whereHas('role', function ($builder) {
+            $builder->where('roles.id', 3);
+        })->selectRaw("concat(name, ' - (', email, ')') as name, id")->active()->pluck('name', 'id')->toArray();
+
         $moduleName = 'Assign Stock';
         $types = self::$types;
 
-        return view('distribution.create', compact('moduleName', 'types'));
+        return view('distribution.create', compact('moduleName', 'types', 'drivers'));
     }
 
     public function getBlade(Request $request) {
@@ -147,13 +182,39 @@ class DistributionController extends Controller
                 $data = Product::whereIn('id', $products)->select('id', 'name')->where('name', 'LIKE', "%{$searchQuery}%")->pluck('name', 'id')->toArray();
             } else if ($request->type == '2' && !empty(trim($request->driver))) {
 
-                $stockInItems = Stock::where('type', '0')
-                            ->where('driver_id', $request->driver)
-                            ->whereIn('form', ['1', '3'])
-                            ->groupBy('product_id')
-                            ->select('product_id')
-                            ->pluck('product_id')
-                            ->toArray();
+                $stockInItems = DistributionItem::where('to_driver', $request->driver)
+                                ->select('product_id')
+                                ->groupBy('product_id')
+                                ->pluck('product_id')
+                                ->toArray();
+
+                $products = [];
+
+                foreach ($stockInItems as $item) {
+                    $inStock = DistributionItem::where('to_driver', $request->driver)
+                    ->where('product_id', $item)
+                    ->select('qty')
+                    ->sum('qty');
+
+                    $outStock = DistributionItem::where('from_driver', $request->driver)
+                    ->where('product_id', $item)
+                    ->select('qty')
+                    ->sum('qty');
+
+                    if ((intval($inStock) - intval($outStock)) > 0) {
+                        $products[] = $item;
+                    }
+
+                }
+
+                $data = Product::whereIn('id', $products)->select('id', 'name')->where('name', 'LIKE', "%{$searchQuery}%")->pluck('name', 'id')->toArray();
+            } else if ($request->type == '3' && !empty(trim($request->driver))) {
+                
+                $stockInItems = DistributionItem::where('to_driver', $request->driver)
+                ->select('product_id')
+                ->groupBy('product_id')
+                ->pluck('product_id')
+                ->toArray();
 
                 $products = [];
 
@@ -179,8 +240,6 @@ class DistributionController extends Controller
                 }
 
                 $data = Product::whereIn('id', $products)->select('id', 'name')->where('name', 'LIKE', "%{$searchQuery}%")->pluck('name', 'id')->toArray();
-            } else if ($request->type == '3' && !empty(trim($request->driver))) {
-                
             }
 
         }
@@ -189,6 +248,29 @@ class DistributionController extends Controller
     }
 
     public function store(Request $request) {
+
+        $validations = [
+            'type' => 'required',
+            'product.*' => 'required',
+            'quantity.*' => 'required|numeric|min:1',
+            'driver.*' => 'required'
+        ];
+
+        $messages = [
+            'type.required' => 'Select a Type.',
+            'quantity.*.required' => 'Enter quantity.',
+            'quantity.*.numeric' => 'Enter valid format.',
+            'quantity.*.min' => 'Quantity can\'t be less than 1.',
+            'product.*.numeric' => 'Select a product.',
+            'driver.*.required' => 'Select a driver.'
+        ];
+
+        if ($request->type == '2') {
+            $validations['from_driver.*'] = 'required';
+            $messages['from_driver.*.required'] = 'Select a driver.';
+        }
+        
+        $this->validate($request, $validations, $messages);
 
         DB::beginTransaction();
 
@@ -276,7 +358,8 @@ class DistributionController extends Controller
                     // deduct from driver
                     $stockArrayOut[] = [
                         'product_id' => $value,
-                        'type' => $request->from_driver[$key] ?? null,
+                        'driver_id' => $request->from_driver[$key] ?? null,
+                        'type' => 1,
                         'date' => now(),
                         'qty' => $quantities[$key] ?? 0,
                         'added_by' => $userId,
@@ -321,7 +404,7 @@ class DistributionController extends Controller
                         'distribution_id' => $distrib->id,
                         'product_id' => $value,
                         'qty' => $quantities[$key] ?? 0,
-                        'from_driver' => $request->from_driver[$key] ?? null,
+                        'from_driver' => $request->driver[$key] ?? null,
                         'created_at' => now()
                     ];
 
@@ -370,6 +453,16 @@ class DistributionController extends Controller
             return redirect()->back()->with('error', Helper::$errorMessage);
         }
 
+    }
+
+    public function show(Request $request, $id)
+    {
+        $moduleName = 'View Assigned Stock';
+
+        $d = Distribution::where('id', decrypt($id))->with('items')->first();
+        $types = self::$types;
+
+        return view('distribution.view', compact('moduleName', 'd', 'types'));
     }
     
 }

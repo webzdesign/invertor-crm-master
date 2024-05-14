@@ -20,4 +20,14 @@ class DistributionItem extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function fromdriver()
+    {
+        return $this->belongsTo(User::class, 'from_driver');
+    }
+
+    public function todriver()
+    {
+        return $this->belongsTo(User::class, 'to_driver');
+    }
 }

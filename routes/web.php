@@ -98,7 +98,6 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('distribution/create', [DistributionController::class, 'create'])->name('distribution.create')->middleware('ModuleAccessor:distribution.create');
         Route::post('distribution/store', [DistributionController::class, 'store'])->name('distribution.store');
         Route::get('distribution/{id}/view', [DistributionController::class, 'show'])->name('distribution.view')->middleware('ModuleAccessor:distribution.view');
-        Route::get('distribution/{id}/delete', [DistributionController::class, 'destroy'])->name('distribution.delete')->middleware('ModuleAccessor:distribution.delete');
         Route::post('get-blade-for-distribution', [DistributionController::class, 'getBlade'])->name('get-blade-for-distribution');
         Route::post('getProducts', [DistributionController::class, 'getProducts'])->name('getProducts');
         /** Distribution System **/

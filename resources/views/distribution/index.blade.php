@@ -80,8 +80,7 @@
             <tr>
                 <th>Sr No.</th>
                 <th>Type</th>
-                <th>Product</th>
-                <th>Quantity</th>
+                <th>Product Details</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -95,6 +94,8 @@
 <script>
     $(document).ready(function() {
 
+        $.fn.dataTable.ext.errMode = 'none';
+        
         $('#filterFrom').datepicker({
             format: 'dd-mm-yyyy',
             autoclose: true,
@@ -156,9 +157,6 @@
                 },
                 {
                     data: 'product',
-                },
-                {
-                    data: 'qty',
                 },
                 {
                     data: 'action',
