@@ -75,6 +75,9 @@ class ProcurementCostController extends Controller
             ->editColumn('min_sales_price', function ($cost) {
                 return Helper::currencyFormatter($cost->min_sales_price);
             })
+            ->editColumn('default_commission_price', function ($cost) {
+                return Helper::currencyFormatter($cost->default_commission_price);
+            })
             ->addColumn('action', function ($users) {
                 $variable = $users;
 
@@ -125,7 +128,7 @@ class ProcurementCostController extends Controller
 
     public function create()
     {
-        $categories = Category::select('id', 'name')->pluck('name', 'id')->toArray();
+        $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $roles = Role::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $moduleName = 'Procurement Cost';
         
@@ -140,6 +143,7 @@ class ProcurementCostController extends Controller
         $user->role_id = $request->role;
         $user->base_price = $request->base_price;
         $user->min_sales_price = $request->min_sales_price;
+        $user->default_commission_price = $request->default_commission_price;
         $user->added_by = auth()->user()->id;
         $user->save();
 
@@ -149,7 +153,7 @@ class ProcurementCostController extends Controller
     public function edit(Request $request, $id)
     {
         $cost = ProcurementCost::find(decrypt($id));
-        $categories = Category::select('id', 'name')->pluck('name', 'id')->toArray();
+        $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $roles = Role::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $moduleName = 'Procurement Cost';
         
@@ -164,6 +168,7 @@ class ProcurementCostController extends Controller
         $user->role_id = $request->role;
         $user->base_price = $request->base_price;
         $user->min_sales_price = $request->min_sales_price;
+        $user->default_commission_price = $request->default_commission_price;
         $user->updated_by = auth()->user()->id;
         $user->save();
 

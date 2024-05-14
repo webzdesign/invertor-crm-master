@@ -15,7 +15,7 @@
         <div class="cardsBody pb-0">
             <div class="row">
 
-                <div class="col-md-6 col-sm-12">
+                <div class="col-md-4 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Role : <span class="text-danger">*</span></label>
                         <select name="role" id="role" class="select2 select2-hidden-accessible role" style="width:100%" data-placeholder="Select a Role">
@@ -34,7 +34,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-6 col-sm-12">
+                <div class="col-md-4 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Category : <span class="text-danger">*</span></label>
                         <select name="category" id="category" class="select2 select2-hidden-accessible category" style="width:100%" data-placeholder="Select a Category">
@@ -92,6 +92,16 @@
                         <input type="text" name="min_sales_price" id="min_sales_price" value="{{ old('min_sales_price', $cost->min_sales_price) }}" class="form-control" placeholder="Enter Minimum Sales Price">
                         @if ($errors->has('min_sales_price'))
                             <span class="text-danger d-block">{{ $errors->first('min_sales_price') }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Default Commission Price : <span class="text-danger">*</span></label>
+                        <input type="text" name="default_commission_price" id="default_commission_price" value="{{ old('default_commission_price', $cost->default_commission_price) }}" class="form-control" placeholder="Enter Default Commission Price">
+                        @if ($errors->has('default_commission_price'))
+                            <span class="text-danger d-block">{{ $errors->first('default_commission_price') }}</span>
                         @endif
                     </div>
                 </div>
@@ -162,6 +172,11 @@ $(document).ready(function(){
                 number: true,
                 min: 0
             },
+            default_commission_price: {
+                required: true,
+                number: true,
+                min: 0
+            },
             role: {
                 required: true,
             },
@@ -199,6 +214,11 @@ $(document).ready(function(){
                 number: "Enter valid format.",
                 min: "Minimum sales price can\'t be less than 0."
             },
+            default_commission_price: {
+                required: "Enter default commission price.",
+                number: "Enter valid format.",
+                min: "Default commission price can\'t be less than 0."
+            },
             role: {
                 required: "Select a role.",
             },
@@ -207,7 +227,7 @@ $(document).ready(function(){
             },
             product: {
                 required: "Select a product.",
-                remote: "Cost for this product is already added.",
+                remote: "Cost for this product is already added with this role.",
             }
         },
         errorPlacement: function(error, element) {

@@ -15,14 +15,14 @@
             <div class="row">
 
 
-                <div class="col-md-6 col-sm-12">
+                <div class="col-md-4 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Role </label>
                         <input type="text" readonly class="form-control" value="{{ $cost->role->status == 1 ? $cost->role->name : '' }}">
                     </div>
                 </div>
 
-                <div class="col-md-6 col-sm-12">
+                <div class="col-md-4 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Category </label>
                         <input type="text" readonly class="form-control" value="{{ $cost->category->status == 1 ? $cost->category->name : '' }}">
@@ -47,6 +47,13 @@
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Minimum Sales Price </label>
                         <input type="text" readonly id="min_sales_price" value="{{ Helper::currencyFormatter($cost->min_sales_price) }}" class="form-control">
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Default Commission Price </label>
+                        <input type="text" readonly id="default_commission_price" value="{{ Helper::currencyFormatter($cost->default_commission_price) }}" class="form-control">
                     </div>
                 </div>
 

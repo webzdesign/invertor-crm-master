@@ -29,13 +29,14 @@ class ProcurementCostRequest extends FormRequest
             return  [
                 'product' => ['required', function ($name, $pid, $fail) use ($id, $rid) {
                     if (\App\Models\ProcurementCost::where('id', '!=', $id)->where('product_id', $pid)->where('role_id', $rid)->exists()) {
-                        $fail("Cost for this product is already added.");
+                        $fail("Cost for this product is already added with this role.");
                     }
                 }],
                 "category" => "required",
                 "role" => "required",
                 "base_price" => "required|numeric|min:0",
-                "min_sales_price" => "required|numeric|min:0"
+                "min_sales_price" => "required|numeric|min:0",
+                "default_commission_price" => "required|numeric|min:0"
                     
                 ];
         } else {
@@ -48,7 +49,8 @@ class ProcurementCostRequest extends FormRequest
                 "category" => "required",
                 "role" => "required",
                 "base_price" => "required|numeric|min:0",
-                "min_sales_price" => "required|numeric|min:0"
+                "min_sales_price" => "required|numeric|min:0",
+                "default_commission_price" => "required|numeric|min:0"
             ];
         }
     }
@@ -68,6 +70,10 @@ class ProcurementCostRequest extends FormRequest
             "min_sales_price.required" => "Enter minimum sales price.",
             "min_sales_price.numeric" => "Enter valid format.",
             "min_sales_price.min" => "Minimum sales price can't be less than 0.",
+
+            "default_commission_price.required" => "Enter default commission price.",
+            "default_commission_price.numeric" => "Enter valid format.",
+            "default_commission_price.min" => "Default commission price can't be less than 0."
         ];
     }
 }
