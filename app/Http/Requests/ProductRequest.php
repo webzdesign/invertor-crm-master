@@ -21,31 +21,17 @@ class ProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        $array = [];
-
-        if (request()->method() == 'PUT') {
-            $id = decrypt($this->id);
-            $array['unique_number'] = "nullable|unique:products,unique_number,{$id}";
-        } else {
-            $array['unique_number'] = "nullable|unique:products,unique_number";
-        }
-
-            $array['category'] = 'required';
-            $array['name'] = 'required';
-            $array['pprice'] = 'required|numeric';
-
-            return $array;
+        return [
+            'category' => 'required',
+            'name' => 'required'
+        ];
     }
 
     public function messages(): array
     {
         return [
-            'unique_number.required' => 'Product number is required.',
-            'unique_number.unique' => 'This product number is already exists.',
             'category.required' => 'Select a category.',
-            'name.required' => 'Product name is required.',
-            'pprice.required' => 'Purchase price is required.',
-            'pprice.numeric' => 'Enter valid price format.'
+            'name.required' => 'Product name is required.'
         ];
     }
 }

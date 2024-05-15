@@ -304,6 +304,34 @@
                     return errorMap[iti.getValidationError()] || errorMap[0];
             });
 
+            $.validator.addMethod('minSalesPrice', function (value, element) {
+                let bool = true;
+                let validatorThisIndex = $(element).data('indexid');
+                let validatorThisProduct = $(`#product-${validatorThisIndex}`);
+
+                if (validatorThisProduct.length > 0) {
+                    let minSP = $('option:selected', validatorThisProduct).attr('data-minsalesprice');
+                    if (exists(minSP)) {
+                        if (parseFloat(value) < parseFloat(minSP)) {
+                            return false;
+                        }
+                    }
+                }
+
+                return bool;
+            }, function (result, element) {
+
+                let validatorThisIndex = $(element).data('indexid');
+                let validatorThisProduct = $(`#product-${validatorThisIndex}`);
+                let minSP = $('option:selected', validatorThisProduct).attr('data-minsalesprice');
+
+                if (result) {
+                    return `Minimum sales price must be atleast ${minSP}.`;
+                }
+                
+                return "Select a product.";
+            });
+
             input.addEventListener('keyup', () => {
                 if (iti.isValidNumber()) {
                     $('#country_dial_code').val(iti.s.dialCode);
@@ -315,11 +343,9 @@
             var categoriesHtml = `<option value="" selected> --- Select a Category --- </option>`;
             let lastElementIndex = 0;
 
-            (function writeCategories() {
-                for (key in categories) {
-                    categoriesHtml += `<option value="${key}"> ${categories[key]} </option>`;
-                }
-            })();
+            for (key in categories) {
+                categoriesHtml += `<option value="${key}"> ${categories[key]} </option>`;
+            }
 
             $(document).on('click', '.addNewRow', function (event) {
                 cloned = $('.upsertable').find('tr').eq(0).clone();
@@ -374,6 +400,7 @@
                     required: true,
                     number: true,
                     min: 0,
+                    minSalesPrice: true,
                     messages: {
                         required: "Enter price.",
                         number: "Enter valid format.",
@@ -564,6 +591,7 @@
                         required: true,
                         number: true,
                         min: 0,
+                        minSalesPrice: true
                     }
                 },
                 messages: {

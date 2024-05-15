@@ -402,13 +402,7 @@
                 let indexId = $(this).data('indexid');
                 let thisId = $(this).val();
 
-                if (thisId !== '') {
-                    $(`#price-${indexId}`).val($(this).find(':selected').data('price'));
-                    calculateAmount(indexId);
-                } else {
-                    $(`#price-${indexId}`).val(null);
-                    calculateAmount(indexId);
-                }
+                calculateAmount(indexId);
 
                 let that = $(this);
 

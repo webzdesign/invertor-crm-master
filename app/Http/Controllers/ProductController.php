@@ -47,9 +47,6 @@ class ProductController extends Controller
                     return $category->updatedby->name;
                 }
             })
-            ->editColumn("purchase_price", function($product) {
-                return Helper::currencyFormatter($product->purchase_price);
-            })
             ->addColumn("category", function($product) {
                 return $product->category->name ?? '';
             })
@@ -148,18 +145,18 @@ class ProductController extends Controller
     public function create(Request $request) {
         $moduleName = 'Product';
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
+        $prodNo = Helper::generateProductNumber();
 
-        return view('products.create', compact('moduleName', 'categories'));
+        return view('products.create', compact('moduleName', 'categories', 'prodNo'));
     }
 
     public function store(ProductRequest $request)
     {
 
         $product = new Product();
-        $product->unique_number = $request->unique_number;
+        $product->unique_number = Helper::generateProductNumber();
         $product->name = $request->name;
         $product->category_id = $request->category;
-        $product->purchase_price = $request->pprice;
         $product->sales_price = $request->sprice;
         $product->added_by = auth()->user()->id;
         $product->save();
@@ -182,10 +179,8 @@ class ProductController extends Controller
     public function update(ProductRequest $request, $id)
     {
         $product = Product::find(decrypt($id));
-        $product->unique_number = $request->unique_number;
         $product->name = $request->name;
         $product->category_id = $request->category;
-        $product->purchase_price = $request->pprice;
         $product->sales_price = $request->sprice;
         $product->updated_by = auth()->user()->id;
         $product->save();

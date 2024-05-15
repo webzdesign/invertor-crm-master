@@ -53,6 +53,10 @@ class User extends Authenticatable
         return asset('assets/images/profile.png');
     }
 
+    public static function getUserRoles() {
+        return auth()->user()->roles->pluck('id')->toArray();        
+    }
+
     public function role()
     {
         return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id');

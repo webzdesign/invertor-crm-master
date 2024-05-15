@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock};
+use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock};
 use App\Models\{Category, User, CommissionPrice, Setting, Wallet, Bonus};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -95,7 +95,19 @@ class SalesOrderController extends Controller
         $products = Product::with(['stockin', 'stockout'])->active()->where('category_id', $request->id)->selectRaw("id, name, sales_price as price")->get();
 
         foreach ($products as $product) {
-            $html .= "<option value='{$product->id}' data-price='{$product->price}' data-availablestock='" . (($product->stockin->sum('qty') ?? 0) - ($product->stockout->sum('qty') ?? 0)) . "' > {$product->name} </option>";
+            $commissionPrice = ProcurementCost::select('base_price', 'default_commission_price', 'min_sales_price')->active()->whereIn('role_id', User::getUserRoles())->where('product_id', $product->id);
+            $pricesAttr = '';
+
+            if ($commissionPrice->exists()) {
+                $commissionPrice = $commissionPrice->first();
+
+                $pricesAttr .= ' data-baseprice="' . $commissionPrice->base_price . '" ';
+                $pricesAttr .= ' data-minsalesprice="' . $commissionPrice->min_sales_price . '" ';
+                $pricesAttr .= ' data-defcomprice="' . $commissionPrice->default_commission_price . '" ';
+            }
+
+
+            $html .= "<option value='{$product->id}' {$pricesAttr} data-price='{$product->price}' data-availablestock='" . (($product->stockin->sum('qty') ?? 0) - ($product->stockout->sum('qty') ?? 0)) . "' > {$product->name} </option>";
         }
 
         return response()->json($html);
@@ -146,10 +158,7 @@ class SalesOrderController extends Controller
             'expense.*.min' => 'Quantity can\'t be less than 0.'
         ]);
 
-        $commissionPrices = CommissionPrice::select('price')->pluck('price')->toArray();
-        $setting = Setting::first()->select('seller_commission', 'bonus')->first()->toArray();
-        $commissionPrices = collect($commissionPrices)->filter()->values()->toArray();
-
+        $salesPriceErrors = [];
         $orderNo = Helper::generateSalesOrderNumber();
         $userId = auth()->user()->id;
         $isSeller = null;
@@ -182,7 +191,7 @@ class SalesOrderController extends Controller
                 $so->save();
 
                 $soId = $so->id;
-                $soItems = $soItemForStock = $wallet = $bonus = [];
+                $soItems = $wallet = [];
 
                 foreach ($request->product as $key => $product) {
 
@@ -190,7 +199,7 @@ class SalesOrderController extends Controller
                     $itemBaseAmt = floatval($request->price[$key]) ?? 0;
                     $itemAmt = floatval($request->amount[$key]) ?? 0;
 
-                    $soItems[] = [
+                    $tempArr = [
                         'so_id' => $soId,
                         'category_id' => $request->category[$key] ?? '',
                         'product_id' => $product,
@@ -202,53 +211,64 @@ class SalesOrderController extends Controller
                         'created_at' => now()
                     ];
 
-                    // $soItemForStock[] = [
-                    //     'product_id' => $product,
-                    //     'type' => 1,
-                    //     'date' => now(),
-                    //     'qty' => $qty,
-                    //     'added_by' => $userId,
-                    //     'form' => 2,
-                    //     'form_record_id' => $soId,
-                    //     'created_at' => now()
-                    // ];
+                    $salesPriceSet = ProcurementCost::with('product')->active()->whereIn('role_id', User::getUserRoles())->where('product_id', $product);
 
-                    if (!empty($commissionPrices) && in_array($itemBaseAmt, $commissionPrices)) {
+                    if ($salesPriceSet->exists()) {
+                        $salesPriceSet = $salesPriceSet->first();
+                        if (floatval($itemBaseAmt) < $salesPriceSet->min_sales_price) {
+                            $salesPriceErrors[] = isset($salesPriceSet->product->name) ? "{$salesPriceSet->product->name} : Sales price must be atleast {$salesPriceSet->min_sales_price} and you gave {$itemBaseAmt}." : '';
+                        } else {
 
-                        $wallet[] = [
-                            'seller_id' => $isSeller,
-                            'added_by' => $userId,
-                            'form' => 1,
-                            'form_record_id' => $soId,
-                            'item_id' => $product,
-                            'commission_amount' => $setting['seller_commission'] * $qty,
-                            'item_amount' => $itemBaseAmt,
-                            'commission_actual_amount' => $setting['seller_commission'],
-                            'item_qty' => $qty,
-                            'created_at' => now()
-                        ];
+                            if ($itemBaseAmt > $salesPriceSet->base_price) {
+                                $comPrice = $itemBaseAmt - $salesPriceSet->base_price;
+                            } else {
+                                $comPrice = $salesPriceSet->default_commission_price;
+                            }
 
-                        $bonus[] = [
-                            'added_by' => $userId,
-                            'form' => 1,
-                            'form_record_id' => $soId,
-                            'item_id' => $product,
-                            'bonus_amount' => $setting['bonus'] * $qty,
-                            'item_amount' => $itemBaseAmt,
-                            'bonus_actual_amount' => $setting['bonus'],
-                            'item_qty' => $qty,
-                            'created_at' => now()
-                        ];
+                            $wallet[] = [
+                                'seller_id' => $isSeller,
+                                'added_by' => $userId,
+                                'form' => 1,
+                                'form_record_id' => $soId,
+                                'item_id' => $product,
+                                'commission_amount' => $comPrice * $qty,
+                                'item_amount' => $itemBaseAmt,
+                                'commission_actual_amount' => $comPrice,
+                                'item_qty' => $qty,
+                                'created_at' => now()
+                            ];
+                            
+                            $soItems[] = $tempArr;
+                        }
+                    } else {
+                        $soItems[] = $tempArr;
                     }
                 }
 
-                SalesOrderItem::insert($soItems);
-                // Stock::insert($soItemForStock);
-                Wallet::insert($wallet);
-                Bonus::insert($bonus);
+                if (count($soItems) > 0) {
+                    SalesOrderItem::insert($soItems);
 
-                DB::commit();
-                return redirect()->route('sales-orders.index')->with('success', 'Sales order added successfully.');
+                    if (count($wallet) > 0) {
+                        Wallet::insert($wallet);
+                    }
+
+                    DB::commit();
+
+                    if (count($salesPriceErrors) > 0) {
+                        return redirect()->route('sales-orders.edit', encrypt($soId))->with('error', implode(' <br/> ', $salesPriceErrors));
+                    }
+
+                    return redirect()->route('sales-orders.index')->with('success', "Sales order added successfully.");
+                } else {
+                    DB::rollBack();
+
+                    if (count($salesPriceErrors) > 0) {
+                        return redirect()->back()->with('error', implode(' <br/> ', $salesPriceErrors));
+                    }
+
+                    return redirect()->back()->with('error', Helper::$errorMessage);
+                }
+
             } else {
                 DB::rollBack();
                 return redirect()->back()->with('error', 'Select at least a product to add sales order.');
@@ -267,9 +287,24 @@ class SalesOrderController extends Controller
         $moduleName = 'Sales Order';
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $so = SalesOrder::find(decrypt($id));
-        $statuses = SalesOrderStatus::active()->select('id', 'name')->pluck('name', 'id')->toArray();
 
-        return view('so.edit', compact('moduleName', 'categories', 'id', 'so', 'statuses'));
+        $htmlAttributes = [];
+
+        foreach ($so->items as $item) {
+            $commissionPrice = ProcurementCost::select('base_price', 'default_commission_price', 'min_sales_price')->active()->whereIn('role_id', User::getUserRoles())->where('product_id', $item->product_id);
+
+            if ($commissionPrice->exists()) {
+                $commissionPrice = $commissionPrice->first();
+
+                $htmlAttributes[$item->product_id] = [
+                    'baseprice' => $commissionPrice->base_price,
+                    'minsalesprice' => $commissionPrice->min_sales_price,
+                    'defcomprice' => $commissionPrice->default_commission_price
+                ];
+            }
+        }
+
+        return view('so.edit', compact('moduleName', 'categories', 'id', 'so', 'htmlAttributes'));
     }
     
     public function update(Request $request, $id)
@@ -306,10 +341,7 @@ class SalesOrderController extends Controller
             'expense.*.min' => 'Quantity can\'t be less than 0.'
         ]);
 
-        $commissionPrices = CommissionPrice::select('price')->pluck('price')->toArray();
-        $setting = Setting::first()->select('seller_commission', 'bonus')->first()->toArray();
-        $commissionPrices = collect($commissionPrices)->filter()->values()->toArray();
-
+        $salesPriceErrors = [];
         $userId = auth()->user()->id;
         $id = decrypt($id);
         $isSeller = null;
@@ -337,12 +369,7 @@ class SalesOrderController extends Controller
                 $so->updated_by = $userId;
                 $so->save();
 
-                $soItems = $soItemForStock = $wallet = $bonus = [];
-
-                SalesOrderItem::where('so_id', $id)->delete();
-                Stock::where('type', '1')->where('form', '2')->where('form_record_id', $id)->delete();
-                Wallet::where('seller_id', $isSeller)->where('added_by', $userId)->where('form', 1)->where('form_record_id', $id)->delete();
-                Bonus::where('added_by', $userId)->where('form', 1)->where('form_record_id', $id)->delete();
+                $soItems = $wallet = [];
 
                 foreach ($request->product as $key => $product) {
 
@@ -350,7 +377,7 @@ class SalesOrderController extends Controller
                     $itemBaseAmt = floatval($request->price[$key]) ?? 0;
                     $itemAmt = floatval($request->amount[$key]) ?? 0;
 
-                    $soItems[] = [
+                    $tempArr = [
                         'so_id' => $id,
                         'category_id' => $request->category[$key] ?? '',
                         'product_id' => $product,
@@ -362,53 +389,69 @@ class SalesOrderController extends Controller
                         'created_at' => now()
                     ];
 
-                    // $soItemForStock[] = [
-                    //     'product_id' => $product,
-                    //     'type' => 1,
-                    //     'date' => now(),
-                    //     'qty' => $qty,
-                    //     'added_by' => $userId,
-                    //     'form' => 2,
-                    //     'form_record_id' => $id,
-                    //     'created_at' => now()
-                    // ];
+                    $salesPriceSet = ProcurementCost::with('product')->active()->whereIn('role_id', User::getUserRoles())->where('product_id', $product);
 
-                    if (!empty($commissionPrices) && in_array($itemBaseAmt, $commissionPrices)) {
+                    if ($salesPriceSet->exists()) {
+                        $salesPriceSet = $salesPriceSet->first();
+                        if (floatval($itemBaseAmt) < $salesPriceSet->min_sales_price) {
+                            $salesPriceErrors[] = isset($salesPriceSet->product->name) ? "{$salesPriceSet->product->name} : Sales price must be atleast {$salesPriceSet->min_sales_price} and you gave {$itemBaseAmt}." : '';
+                        } else {
 
-                        $wallet[] = [
-                            'seller_id' => $isSeller,
-                            'added_by' => $userId,
-                            'form' => 1,
-                            'form_record_id' => $id,
-                            'item_id' => $product,
-                            'commission_amount' => $setting['seller_commission'] * $qty,
-                            'item_amount' => $itemBaseAmt,
-                            'commission_actual_amount' => $setting['seller_commission'],
-                            'item_qty' => $qty,
-                            'created_at' => now()
-                        ];
+                            if ($itemBaseAmt > $salesPriceSet->base_price) {
+                                $comPrice = $itemBaseAmt - $salesPriceSet->base_price;
+                            } else {
+                                $comPrice = $salesPriceSet->default_commission_price;
+                            }
 
-                        $bonus[] = [
-                            'added_by' => $userId,
-                            'form' => 1,
-                            'form_record_id' => $id,
-                            'item_id' => $product,
-                            'bonus_amount' => $setting['bonus'] * $qty,
-                            'item_amount' => $itemBaseAmt,
-                            'bonus_actual_amount' => $setting['bonus'],
-                            'item_qty' => $qty,
-                            'created_at' => now()
-                        ];
+                            $wallet[] = [
+                                'seller_id' => $isSeller,
+                                'added_by' => $userId,
+                                'form' => 1,
+                                'form_record_id' => $id,
+                                'item_id' => $product,
+                                'commission_amount' => $comPrice * $qty,
+                                'item_amount' => $itemBaseAmt,
+                                'commission_actual_amount' => $comPrice,
+                                'item_qty' => $qty,
+                                'created_at' => now()
+                            ];
+
+                            $soItems[] = $tempArr;
+                        }
+
+                    } else {
+                        $soItems[] = $tempArr;
                     }
+
                 }
 
-                SalesOrderItem::insert($soItems);
-                // Stock::insert($soItemForStock);
-                Wallet::insert($wallet);
-                Bonus::insert($bonus);
+                if (count($soItems) > 0) {
 
-                DB::commit();
-                return redirect()->route('sales-orders.index')->with('success', 'Sales order updated successfully.');
+                    SalesOrderItem::where('so_id', $id)->delete();
+                    Wallet::where('form', 1)->where('form_record_id', $id)->delete();
+
+                    if (count($wallet) > 0) {
+                        Wallet::insert($wallet);
+                    }
+
+                    SalesOrderItem::insert($soItems);
+
+                    if (count($salesPriceErrors) > 0) {
+                        return redirect()->route('sales-orders.edit', encrypt($id))->with('error', implode(' <br/> ', $salesPriceErrors));
+                    }
+
+                    return redirect()->route('sales-orders.index')->with('success', 'Sales order updated successfully.');
+
+                } else {
+                    DB::rollBack();
+
+                    if (count($salesPriceErrors) > 0) {
+                        return redirect()->back()->with('error', implode(' <br/> ', $salesPriceErrors));
+                    }
+
+                    return redirect()->back()->with('error', Helper::$errorMessage);
+                }
+
             } else {
                 DB::rollBack();
                 return redirect()->back()->with('error', 'Select at least a product to add sales order.');

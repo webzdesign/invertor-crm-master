@@ -10,6 +10,7 @@ use App\Models\Distribution;
 use Illuminate\Http\Request;
 use App\Models\SalesOrder;
 use App\Models\Setting;
+use App\Models\Product;
 use App\Models\Country;
 use App\Models\Wallet;
 use App\Models\State;
@@ -137,6 +138,25 @@ class Helper {
         $orderNo = "SO{$prefix}{$orderNo}";
 
         return $orderNo;
+    }
+
+    public static function generateProductNumber () {
+        $proNo = 0;
+
+        if (Product::latest()->first() === null) {
+            if (Product::withTrashed()->latest()->first() !== null) {
+                $proNo = Product::withTrashed()->latest()->first()->id ?? 0;
+            }
+        } else {
+            $proNo = Product::latest()->first()->id;
+        }
+
+        $proNo += 1;
+        $prefix = date('-Y-');
+        $proNo = sprintf('%03d', $proNo);
+        $proNo = "{$proNo}";
+
+        return $proNo;
     }
 
     public static function generateDistributionNumber () {

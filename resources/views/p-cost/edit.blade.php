@@ -65,7 +65,7 @@
                                 }
                             @endphp
                             @forelse ($cats as $product)
-                            <option value="{{ $product->id }}" data-price="{{ $product->purchase_price }}"  @if($product->id == $cost->product_id) selected @endif > {{ $product->name }} </option>
+                            <option value="{{ $product->id }}" @if($product->id == $cost->product_id) selected @endif > {{ $product->name }} </option>
                             @empty
                             <option value="" data-price="0" selected> --- No Product Available --- </option>
                             @endforelse

@@ -172,7 +172,9 @@
                                                                 }
                                                             @endphp
                                                             @forelse ($cats as $product)
-                                                            <option value="{{ $product->id }}" data-price="{{ $product->purchase_price }}" data-availablestock="{{ $product->stockin->sum('qty') ?? 0 }}"  @if($product->id == $item->product_id) selected @endif > {{ $product->name }} </option>
+                                                            <option value="{{ $product->id }}" data-availablestock="{{ $product->stockin->sum('qty') ?? 0 }}" 
+                                                            @if(isset($htmlAttributes[$product->id])) data-baseprice="{{ $htmlAttributes[$product->id]['baseprice'] }}" data-minsalesprice="{{ $htmlAttributes[$product->id]['minsalesprice'] }}" data-defcomprice="{{ $htmlAttributes[$product->id]['defcomprice'] }}" @endif
+                                                            @if($product->id == $item->product_id) selected @endif > {{ $product->name }} </option>
                                                             @empty
                                                             <option value="" data-price="0" selected> --- No Product Available --- </option>
                                                             @endforelse
@@ -360,6 +362,34 @@
             }, function (result, element) {
                     return errorMap[iti.getValidationError()] || errorMap[0];
             });
+            
+            $.validator.addMethod('minSalesPrice', function (value, element) {
+                let bool = true;
+                let validatorThisIndex = $(element).data('indexid');
+                let validatorThisProduct = $(`#product-${validatorThisIndex}`);
+
+                if (validatorThisProduct.length > 0) {
+                    let minSP = $('option:selected', validatorThisProduct).attr('data-minsalesprice');
+                    if (exists(minSP)) {
+                        if (parseFloat(value) < parseFloat(minSP)) {
+                            return false;
+                        }
+                    }
+                }
+
+                return bool;
+            }, function (result, element) {
+
+                let validatorThisIndex = $(element).data('indexid');
+                let validatorThisProduct = $(`#product-${validatorThisIndex}`);
+                let minSP = $('option:selected', validatorThisProduct).attr('data-minsalesprice');
+
+                if (result) {
+                    return `Minimum sales price must be atleast ${minSP}.`;
+                }
+                
+                return "Select a product.";
+            });
 
             input.addEventListener('keyup', () => {
                 if (iti.isValidNumber()) {
@@ -372,11 +402,9 @@
             var categoriesHtml = `<option value="" selected> --- Select a Category --- </option>`;
             let lastElementIndex = {{ count($so->items) > 0 ? count($so->items) : 0 }};
 
-            (function writeCategories() {
-                for (key in categories) {
-                    categoriesHtml += `<option value="${key}"> ${categories[key]} </option>`;
-                }
-            })();
+            for (key in categories) {
+                categoriesHtml += `<option value="${key}"> ${categories[key]} </option>`;
+            }
 
             $(document).on('click', '.addNewRow', function (event) {
                 cloned = $('.upsertable').find('tr').eq(0).clone();
@@ -431,6 +459,7 @@
                     required: true,
                     number: true,
                     min: 0,
+                    minSalesPrice: true,
                     messages: {
                         required: "Enter price.",
                         number: "Enter valid format.",
@@ -614,6 +643,7 @@
                         required: true,
                         number: true,
                         min: 0,
+                        minSalesPrice: true
                     },
                     @empty
                     'category[0]': {
@@ -631,6 +661,7 @@
                         required: true,
                         number: true,
                         min: 0,
+                        minSalesPrice: true
                     }
                     @endforelse
                 },

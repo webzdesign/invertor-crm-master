@@ -122,9 +122,6 @@
                     searchable: false,
                 },
                 {
-                    data: 'purchase_price',
-                },
-                {
                     data: 'status',
                 },
                 {

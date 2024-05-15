@@ -45,31 +45,24 @@
     <div class="cardsBody pb-0">
         <div class="row">
 
-            <div class="col-md-6 col-sm-6">
-                <div class="form-group">
-                    <label class="c-gr f-500 f-16 w-100 mb-2">Category </label>
-                    <input type="text" id="category" value="{{ $product->category->name ?? '' }}" class="form-control" readonly>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-sm-6">
-                <div class="form-group">
-                    <label class="c-gr f-500 f-16 w-100 mb-2">Product Name </label>
-                    <input type="text" id="name" value="{{ $product->name }}" class="form-control" readonly>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-sm-6">
+            <div class="col-md-4 col-sm-12">
                 <div class="form-group">
                     <label class="c-gr f-500 f-16 w-100 mb-2">Product Number </label>
                     <input type="text" id="unique_number" value="{{ $product->unique_number }}" class="form-control" readonly>
                 </div>
             </div>
 
-            <div class="col-md-6 col-sm-6">
+            <div class="col-md-4 col-sm-12">
                 <div class="form-group">
-                    <label class="c-gr f-500 f-16 w-100 mb-2">Purchase Price </label>
-                    <input type="text" id="pprice" value="{{ Helper::currencyFormatter($product->purchase_price) }}" class="form-control" readonly>
+                    <label class="c-gr f-500 f-16 w-100 mb-2">Category </label>
+                    <input type="text" id="category" value="{{ $product->category->name ?? '' }}" class="form-control" readonly>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-sm-12">
+                <div class="form-group">
+                    <label class="c-gr f-500 f-16 w-100 mb-2">Product Name </label>
+                    <input type="text" id="name" value="{{ $product->name }}" class="form-control" readonly>
                 </div>
             </div>
 

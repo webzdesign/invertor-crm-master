@@ -121,9 +121,9 @@
                                                                 }
                                                             @endphp
                                                             @forelse ($cats as $product)
-                                                            <option value="{{ $product->id }}" data-price="{{ $product->purchase_price }}"  @if($product->id == $item->product_id) selected @endif > {{ $product->name }} </option>
+                                                            <option value="{{ $product->id }}" @if($product->id == $item->product_id) selected @endif > {{ $product->name }} </option>
                                                             @empty
-                                                            <option value="" data-price="0" selected> --- No Product Available --- </option>
+                                                            <option value="" selected> --- No Product Available --- </option>
                                                             @endforelse
                                                         </select>
                                                     </div>
@@ -468,13 +468,7 @@
                 let indexId = $(this).data('indexid');
                 let thisId = $(this).val();
 
-                if (thisId !== '') {
-                    $(`#price-${indexId}`).val($(this).find(':selected').data('price'));
-                    calculateAmount(indexId);
-                } else {
-                    $(`#price-${indexId}`).val(null);
-                    calculateAmount(indexId);
-                }
+                calculateAmount(indexId);
 
                 let that = $(this);
 
