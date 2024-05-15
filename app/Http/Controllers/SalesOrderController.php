@@ -436,6 +436,7 @@ class SalesOrderController extends Controller
 
                     SalesOrderItem::insert($soItems);
 
+                    DB::commit();
                     if (count($salesPriceErrors) > 0) {
                         return redirect()->route('sales-orders.edit', encrypt($id))->with('error', implode(' <br/> ', $salesPriceErrors));
                     }
