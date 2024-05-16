@@ -9,6 +9,10 @@ use App\Models\UserPermission;
 use App\Models\PermissionRole;
 use Illuminate\Http\Request;
 use App\Models\Permission;
+use App\Models\AddressLog;
+use App\Models\Setting;
+use App\Models\Deliver;
+use App\Models\Country;
 use App\Helpers\Helper;
 use App\Models\State;
 use App\Models\City;
@@ -150,12 +154,56 @@ class UserController extends Controller
             $user->roles()->attach($request->role);
             $user->userpermission()->attach($request->permission);
 
+            $errorWhileSavingLatLong = true;
+
+            if ($request->role == '3') {
+                $key = trim(Setting::first()?->geocode_key);
+
+                if (!empty($key)) {
+                    $address = trim("{$user->address_line_1} {$user->city_id} {$user->postal_code} {$user->country_id}");
+                    $address = str_replace(' ', '+', $address);
+                    $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
+                        
+                    $data = json_decode(file_get_contents($url), true);
+
+                    if ($data['status'] == "OK") {
+                        $lat = $data['results'][0]['geometry']['location']['lat'];
+                        $long = $data['results'][0]['geometry']['location']['lng'];
+    
+                        if (!empty($lat)) {
+                            $u = User::find($user->id);
+                            $u->lat = $lat;
+                            $u->long = $long;
+                            $u->save();
+    
+                            $errorWhileSavingLatLong = false;
+                        }
+
+                        AddressLog::create([
+                            'city' => $user->city_id,
+                            'country' => Country::where('id', $user->country_id)->first()->name ?? $user->country_id,
+                            'postal_code' => $user->postal_code,
+                            'address' => $user->address_line_1,
+                            'lat' => $lat,
+                            'long' => $long,
+                            'user_id' => $user->id,
+                            'added_by' => auth()->user()->id,
+                        ]);
+                    }
+                }
+            }
+
             DB::commit();
-            return redirect()->route('users.index')->with('success', 'User added successfully.');
+
+            if ($errorWhileSavingLatLong === false) {
+                return redirect()->route('users.index')->with('success', 'User added successfully.');
+            } else {
+                return redirect()->route('users.edit', encrypt($user->id))->with('warning', 'Please provide accurate address.');
+            }
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Helper::logger($e->getMessage(), 'critical');
+            Helper::logger("User Add: " . $e->getMessage() . " on Line no : " . $e->getLine());
             return redirect()->back()->with(['error' => Helper::$errorMessage]);
         }
     }
@@ -186,6 +234,26 @@ class UserController extends Controller
         return view('users.edit', compact('moduleName', 'user', 'roles', 'countries', 'states', 'cities', 'id', 'userPermissions', 'permission'));
     }
 
+    public static function addressChanged ($user, $country, $city, $postalcode, $address) {
+        if (trim($user->country_id) !== trim($country)) {
+           return true; 
+        }
+
+        if (trim($user->city_id) !== trim($city)) {
+            return true; 
+        }
+
+        if (trim($user->postal_code) !== trim($postalcode)) {
+            return true; 
+        }
+
+        if (trim($user->address_line_1) !== trim($address)) {
+            return true; 
+        }
+
+         return false;
+    }
+
     public function update(UserRequest $request, $id)
     {
         DB::beginTransaction();
@@ -193,26 +261,116 @@ class UserController extends Controller
         try {
 
             $user = User::find(decrypt($id));
-            $user->name = $request->name;
-            $user->email = $request->email;
-            $user->phone = $request->phone;
-            $user->country_dial_code = $request->country_dial_code;
-            $user->country_iso_code = $request->country_iso_code;
-            $user->country_id = $request->country;
-            $user->city_id = $request->city;
-            $user->address_line_1 = $request->address_line_1;
-            $user->postal_code = $request->postal_code;
-            $user->password =  !empty(trim($request->password)) ? Hash::make($request->password) : $user->password;
-            $user->updated_by = auth()->user()->id;
-            $user->save();
 
-            $user->roles()->sync($request->role);
-            $user->userpermission()->sync($request->permission);
+            if (in_array('3', $user->roles->pluck('id')->toArray()) && $request->role != '3') {
 
-            DB::commit();    
-            return redirect()->route('users.index')->with('success', 'User Updated successfully.');
+                if (Deliver::where('user_id', $user->id)->where('status', 1)->exists()) {
+                    DB::rollBack();
+                    return redirect()->route('users.edit', $id)->with('warning', 'Can\'t change role for this user at the moment.');
+                } else {
+
+                    $user->name = $request->name;
+                    $user->email = $request->email;
+                    $user->phone = $request->phone;
+                    $user->country_dial_code = $request->country_dial_code;
+                    $user->country_iso_code = $request->country_iso_code;
+                    $user->country_id = $request->country;
+                    $user->city_id = $request->city;
+                    $user->address_line_1 = $request->address_line_1;
+                    $user->postal_code = $request->postal_code;
+                    $user->password =  !empty(trim($request->password)) ? Hash::make($request->password) : $user->password;
+                    $user->updated_by = auth()->user()->id;
+                    $user->save();
+        
+                    $user->roles()->sync($request->role);
+                    $user->userpermission()->sync($request->permission);
+
+                    DB::commit();
+
+                    return redirect()->route('users.index')->with('success', 'User Updated successfully.');
+
+                }
+
+            } else {
+
+                $addressChanged = self::addressChanged($user, $request->country, $request->city, $request->postal_code, $request->address_line_1);
+                $errorWhileSavingLatLong = true;
+                $notDriver = false;
+
+                if (!in_array('3', $user->roles->pluck('id')->toArray()) && $request->role != '3') {
+                    $notDriver = true;
+                }
+
+                if ((!in_array('3', $user->roles->pluck('id')->toArray()) && $request->role == '3') || $request->role == '3' && $addressChanged) {
+                    $key = trim(Setting::first()?->geocode_key);
+    
+                    if (!empty($key)) {
+                        $address = trim("{$request->address_line_1} {$request->city} {$request->postal_code} {$request->country}");
+                        $address = str_replace(' ', '+', $address);
+                        $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
+                        
+                        $data = json_decode(file_get_contents($url), true);
+    
+                        if ($data['status'] == "OK") {
+                            $lat = $data['results'][0]['geometry']['location']['lat'];
+                            $long = $data['results'][0]['geometry']['location']['lng'];
+        
+                            if (!empty($lat)) {
+                                $u = User::find($user->id);
+                                $u->lat = $lat;
+                                $u->long = $long;
+                                $u->save();
+        
+                                $errorWhileSavingLatLong = false;
+                            }
+
+                            AddressLog::create([
+                                'city' => $user->city_id,
+                                'country' => Country::where('id', $user->country_id)->first()->name ?? $user->country_id,
+                                'postal_code' => $user->postal_code,
+                                'address' => $user->address_line_1,
+                                'lat' => $lat,
+                                'long' => $long,
+                                'user_id' => $user->id,
+                                'added_by' => auth()->user()->id,
+                            ]);
+                        }
+                    }
+                } else if ($request->role == '3' && $addressChanged === false) {
+                    $errorWhileSavingLatLong = false;
+                }
+
+                $user->name = $request->name;
+                $user->email = $request->email;
+                $user->phone = $request->phone;
+                $user->country_dial_code = $request->country_dial_code;
+                $user->country_iso_code = $request->country_iso_code;
+                $user->country_id = $request->country;
+                $user->city_id = $request->city;
+                $user->address_line_1 = $request->address_line_1;
+                $user->postal_code = $request->postal_code;
+                $user->password =  !empty(trim($request->password)) ? Hash::make($request->password) : $user->password;
+                $user->updated_by = auth()->user()->id;
+                $user->save();
+    
+                $user->roles()->sync($request->role);
+                $user->userpermission()->sync($request->permission);
+
+                DB::commit();
+
+                if ($errorWhileSavingLatLong === false) {
+                    return redirect()->route('users.index')->with('success', 'User Updated successfully.');
+                } else {
+                    if ($notDriver) {
+                        return redirect()->route('users.index')->with('success', 'User Updated successfully.');
+                    } else {
+                        return redirect()->route('users.edit', $id)->with('warning', 'Please provide accurate address.');
+                    }
+                }
+            }
             
         } catch (\Exception $e) {
+            Helper::logger("User Edit: " . $e->getMessage() . " on Line no : " . $e->getLine());
             DB::rollBack();
             return redirect()->back()->with(['error' => Helper::$errorMessage]);
         }

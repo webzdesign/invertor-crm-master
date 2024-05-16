@@ -122,6 +122,8 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('sales-orders/{id}/view', [SalesOrderController::class, 'show'])->name('sales-orders.view')->middleware('ModuleAccessor:sales-orders.view');
         Route::get('sales-orders/{id}/delete', [SalesOrderController::class, 'destroy'])->name('sales-orders.delete')->middleware('ModuleAccessor:sales-orders.delete');
         Route::post('get-products-on-category-so', [SalesOrderController::class, 'productsOnCategory'])->name('get-products-on-category-so');
+        Route::post('get-available-item', [SalesOrderController::class, 'getAvailableItem'])->name('get-available-item');
+        Route::post('save-so', [SalesOrderController::class, 'saveSo'])->name('save-so');
         /** Sales Order **/
 
         /** Suppliers **/

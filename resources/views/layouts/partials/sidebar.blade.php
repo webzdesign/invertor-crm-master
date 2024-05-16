@@ -120,18 +120,6 @@
         </li>
         @endpermission
 
-        {{-- @permission('commissions.create')
-        <li>
-            <a href="{{ route('commissions.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('commissions*') ? 'active' : '' }}">
-                <div class="icnBx d-flex align-items-center justify-content-center">
-                    <i class="fa fa-percent text-white" aria-hidden="true"></i>
-                </div>
-                <span class="d-none-add">Commission</span>
-            </a>
-        </li>
-        @endpermission --}}
-
-
 
 
 </ul>

@@ -12,12 +12,15 @@ class SettingSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\Setting::firstOrCreate([
+        \App\Models\Setting::firstOrCreate(
+        [
+            'id' => 1,
             'title' => 'E-Bike-CRM',
             'favicon' => null,
             'logo' => null,
             'bonus' => 3,
-            'seller_commission' => 5
+            'seller_commission' => 5,
+            'geocode_key' => 'AIzaSyA54jt-xQC6UuWa8f8rJcTYpn4qyJyJ6eA'
         ]);
     }
 }

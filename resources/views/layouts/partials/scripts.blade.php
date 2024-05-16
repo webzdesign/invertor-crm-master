@@ -29,6 +29,7 @@
 
     var hasSessionMessage = "{{session()->has('message') ? true : false}}";
     var hasSessionError = "{{session()->has('error') ? true : false}}";
+    var hasSessionWarning = "{{session()->has('warning') ? true : false}}";
     var hasSessionSuccess = "{{session()->has('success') ? true : false}}";
 
     $(document).ready(function() {
@@ -197,12 +198,20 @@
         Swal.fire('Error', message, 'error');
     }
 
+    function fireWarningMessage(message) {
+        Swal.fire('Warning', message, 'warning');
+    }
+
     if (hasSessionMessage) {
         fireSuccessMessage("{{ session('message') }}");
     }
 
     if (hasSessionError) {
         fireErrorMessage("{{ session('error') }}");
+    }
+
+    if (hasSessionWarning) {
+        fireWarningMessage("{{ session('warning') }}");
     }
 
     if (hasSessionSuccess) {

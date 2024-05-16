@@ -4,7 +4,7 @@ namespace App\Helpers;
 
 class Distance {
 
-    public static function distance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $unit = 'km', $earthRadius = 6371000)
+    public static function measure($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $unit = 'km', $earthRadius = 6371000)
     {
         $latFrom = deg2rad($latitudeFrom);
         $lonFrom = deg2rad($longitudeFrom);

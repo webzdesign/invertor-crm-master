@@ -178,7 +178,28 @@ class DistributionController extends Controller
             $searchQuery = $request->searchQuery;
 
             if ($request->type == '1') {
-                $products = Stock::where('type', '0')->whereIn('form', ['1', '3'])->groupBy('product_id')->select('product_id')->pluck('product_id')->toArray();
+                $stockInItems = Stock::where('type', '0')->groupBy('product_id')->select('product_id')->pluck('product_id')->toArray();
+
+                $products = [];
+
+                foreach ($stockInItems as $item) {
+                    $inStock = Stock::where('type', '0')
+                    ->where('product_id', $item)
+                    ->where('form', '1')
+                    ->select('qty')
+                    ->sum('qty');
+
+                    $outStock = Stock::where('type', '1')
+                    ->where('product_id', $item)
+                    ->whereIn('form', ['2', '3'])
+                    ->select('qty')
+                    ->sum('qty');
+
+                    if ((intval($inStock) - intval($outStock)) > 0) {
+                        $products[] = $item;
+                    }
+                }
+
                 $data = Product::whereIn('id', $products)->select('id', 'name')->where('name', 'LIKE', "%{$searchQuery}%")->pluck('name', 'id')->toArray();
             } else if ($request->type == '2' && !empty(trim($request->driver))) {
 

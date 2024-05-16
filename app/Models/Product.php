@@ -48,4 +48,16 @@ class Product extends Model
     {
         return $this->hasMany(Stock::class, 'product_id')->where('type', '1')->where('form', '2')->where('qty', '>', '0');
     }
+
+    public static function msp($id)
+    {
+        $q = \App\Models\ProcurementCost::select('min_sales_price')->whereIn('role_id', \App\Models\User::getUserRoles())
+        ->where('product_id', $id);
+
+        if ($q->exists()) {
+            return $q->first()->min_sales_price;
+        }
+
+        return null;
+    }
 }

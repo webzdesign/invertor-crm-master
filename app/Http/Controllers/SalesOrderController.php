@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock};
-use App\Models\{Category, User, CommissionPrice, Setting, Wallet, Bonus};
+use App\Models\{Category, User, Wallet, Bonus, DistributionItem, Setting, AddressLog, Deliver};
+use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use App\Helpers\Helper;
 
 class SalesOrderController extends Controller
 {
@@ -68,10 +68,10 @@ class SalesOrderController extends Controller
 
                 $action = "";
                 $action .= '<div class="whiteSpace">';
-                if (auth()->user()->hasPermission("sales-orders.edit")) {
-                    $url = route("sales-orders.edit", encrypt($variable->id));
-                    $action .= view('buttons.edit', compact('variable', 'url')); 
-                }
+                // if (auth()->user()->hasPermission("sales-orders.edit")) {
+                //     $url = route("sales-orders.edit", encrypt($variable->id));
+                //     $action .= view('buttons.edit', compact('variable', 'url')); 
+                // }
                 if (auth()->user()->hasPermission("sales-orders.view")) {
                     $url = route("sales-orders.view", encrypt($variable->id));
                     $action .= view('buttons.view', compact('variable', 'url')); 
@@ -121,28 +121,147 @@ class SalesOrderController extends Controller
         $statuses = SalesOrderStatus::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $orderNo = Helper::generateSalesOrderNumber();
 
-        return view('so.create', compact('moduleName', 'categories', 'orderNo', 'statuses'));
+        $items = [];
+        $products = Product::with(['stockin', 'stockout'])->active()->selectRaw("id, name, sales_price as price")->get();
+
+        foreach ($products as $product) {
+            $commissionPrice = ProcurementCost::select('base_price', 'default_commission_price', 'min_sales_price')->active()->whereIn('role_id', User::getUserRoles())->where('product_id', $product->id);
+
+            $temp = [
+                'id' => $product->id,
+                'name' => $product->name
+            ];
+
+            if ($commissionPrice->exists()) {
+                $commissionPrice = $commissionPrice->first();
+                $temp['price'] = $commissionPrice->min_sales_price;
+            }
+
+            $items[] = $temp;
+        }
+
+        return view('so.create-2', compact('moduleName', 'categories', 'orderNo', 'statuses', 'items'));
     }
 
-    public function store(Request $request)
-    {
+    public function getAvailableItem(Request $request) {
+        if ($request->has('product') && $request->has('price') && $request->has('postal_code')) {
+
+            $errorWhileSavingLatLong = true;
+            $latFrom = $longFrom = $toLat = $toLong = $range = '';
+
+            $users = User::whereHas('role', function ($builder) {
+                $builder->where('roles.id', 3);
+            })->whereNotNull('lat')->whereNotNull('long')
+            ->select('id', 'lat', 'long')->get()->toArray();
+
+            try {
+                
+                $key = trim(Setting::first()?->geocode_key);
+
+                $address = trim("{$request->address_line_1} {$request->postal_code}");
+                $address = str_replace(' ', '+', $address);
+                $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
+                
+                $data = json_decode(file_get_contents($url), true);
+
+                if ($data['status'] == "OK") {
+                    $lat = $data['results'][0]['geometry']['location']['lat'];
+                    $long = $data['results'][0]['geometry']['location']['lng'];
+
+                    if (!empty($lat)) {
+                        $latFrom = $lat;
+                        $longFrom = $long;
+
+                        $errorWhileSavingLatLong = false;
+                    }
+
+                    AddressLog::create([
+                        'postal_code' => $request->postal_code,
+                        'address' => $request->address_line_1,
+                        'lat' => $lat,
+                        'long' => $long,
+                        'added_by' => auth()->user()->id,
+                    ]);
+                }
+
+            } catch (\Exception $e) {
+                return response()->json(['status' => false, 'message' => 'Please provide accurate address.']);
+            }
+
+            $thisProduct = $request->product;
+
+            $users = collect($users)->map(function ($ele) use ($thisProduct) {
+                $inStock = DistributionItem::where('to_driver', $ele['id'])
+                ->where('product_id', $thisProduct)
+                ->select('qty')
+                ->sum('qty');
+
+                $outStock = DistributionItem::where('from_driver', $ele['id'])
+                ->where('product_id', $thisProduct)
+                ->select('qty')
+                ->sum('qty');         
+
+                if ((intval($inStock) - intval($outStock)) > 0) {
+                    return $ele;
+                }
+
+            })->filter()->values()->toArray();
+
+            if ($errorWhileSavingLatLong === false) {
+
+                if (!empty($latFrom) && !empty($longFrom)) {
+
+                    if (!empty($users)) {
+                        $getAllDriversDistance = [];
+
+                        foreach ($users as $row) {
+                            $getAllDriversDistance[$row['id']] = Distance::measure($latFrom, $longFrom, $row['lat'], $row['long']);
+                        }
+
+                        $getNearbyDriver = array_search(min($getAllDriversDistance), $getAllDriversDistance);
+                        $range = min($getAllDriversDistance);
+
+                        $category = Product::where('id', $request->product)->first()->category_id;
+                        $category = Category::where('id', $category)->first();
+                        $minSalesPrice = Product::msp($request->product);
+                        $product = Product::where('id', $request->product)->first();
+                        $orderNo = Helper::generateSalesOrderNumber();
+                        $driverDetail = User::findOrFail($getNearbyDriver);
+
+                        return response()->json(['status' => true , 'message' => 'Available', 'html' => view('so.single-product', compact('product', 'minSalesPrice', 'orderNo', 'category', 'longFrom', 'latFrom', 'driverDetail', 'range'))->render()]);
+
+                    } else {
+                        return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
+                    }
+
+                } else {
+                    return response()->json(['status' => false, 'message' => 'Please provide accurate address.']);
+                }
+
+            } else {
+                return response()->json(['status' => false, 'message' => 'Please provide accurate address.']);
+            }
+
+        }
+
+        return response()->json(['status' => false, 'message' => 'Select a product and enter price']);
+    }
+
+    public function saveSo(Request $request) {
         $this->validate($request, [
             'order_del_date' => 'required',
             'customername' => 'required',
             'customerphone' => 'required',
-            // 'status' => 'required',
             'postal_code' => 'required',
             'address_line_1' => 'required',
             'category.*' => 'required',
             'product.*' => 'required',
             'quantity.*' => 'required|numeric|min:1',
-            'price.*' => 'required|numeric|min:0',
-            'expense.*' => 'required|numeric|min:0'
+            'price.*' => 'required|numeric|min:0'
         ], [
-            'order_del_date.required' => 'Select order felivery date .',
+            'order_del_date.required' => 'Select order delivery date .',
             'customername.required' => 'Enter customer name.',
             'customerphone.required' => 'Enter customer phone number.',
-            // 'status.required' => 'Select a status.',
             'postal_code.required' => 'Enter a postal code.',
             'address_line_1.required' => 'Enter address line 1.',
             'category.*' => 'Select a category.',
@@ -152,10 +271,173 @@ class SalesOrderController extends Controller
             'quantity.*.min' => 'Quantity can\'t be less than 1.',
             'price.*.required' => 'Enter Price.',
             'price.*.numeric' => 'Enter valid format.',
-            'price.*.min' => 'Quantity can\'t be less than 0.',
-            'expense.*.required' => 'Enter expense.',
-            'expense.*.numeric' => 'Enter valid format.',
-            'expense.*.min' => 'Quantity can\'t be less than 0.'
+            'price.*.min' => 'Quantity can\'t be less than 0.'
+        ]);
+
+        $salesPriceErrors = [];
+        $orderNo = Helper::generateSalesOrderNumber();
+        $userId = auth()->user()->id;
+        $isSeller = null;
+
+        DB::beginTransaction();
+
+        try {
+
+            if (is_array($request->product) && count($request->product) > 0) {
+
+                $so = new SalesOrder();
+                $so->order_no = $orderNo;
+                $so->date = now();
+                $so->delivery_date = date('Y-m-d H:i:s', strtotime($request->order_del_date));
+                $so->customer_name = $request->customername;
+                $so->customer_address_line_1 = $request->address_line_1;
+                $so->customer_phone = $request->customerphone;
+                $so->country_dial_code = $request->country_dial_code;
+                $so->country_iso_code = $request->country_iso_code;
+                $so->customer_postal_code = $request->postal_code;
+                $so->lat = $request->lat;
+                $so->long = $request->long;
+
+                if (in_array(2, auth()->user()->roles->pluck('id')->toArray())) {
+                    $so->seller_id = $userId;
+                    $isSeller = $userId;
+                }
+
+                $so->customer_facebook = $request->customerfb;
+                $so->status = 1;
+                $so->added_by = $userId;
+                $so->save();
+
+                $soId = $so->id;
+                $soItems = $wallet = [];
+
+                foreach ($request->product as $key => $product) {
+
+                    $qty = intval($request->quantity[$key]) ?? 0;
+                    $itemBaseAmt = floatval($request->price[$key]) ?? 0;
+                    $itemAmt = floatval($request->amount[$key]) ?? 0;
+
+                    $tempArr = [
+                        'so_id' => $soId,
+                        'category_id' => $request->category[$key] ?? '',
+                        'product_id' => $product,
+                        'price' => $itemBaseAmt,
+                        'qty' => $qty,
+                        'amount' => $itemAmt,
+                        'remarks' => $request->remarks[$key] ?? '',
+                        'added_by' => $userId,
+                        'created_at' => now()
+                    ];
+
+                    $salesPriceSet = ProcurementCost::with('product')->active()->whereIn('role_id', User::getUserRoles())->where('product_id', $product);
+
+                    if ($salesPriceSet->exists()) {
+                        $salesPriceSet = $salesPriceSet->first();
+                        if (floatval($itemBaseAmt) < $salesPriceSet->min_sales_price) {
+                            $salesPriceErrors[] = isset($salesPriceSet->product->name) ? "{$salesPriceSet->product->name} : Sales price must be atleast {$salesPriceSet->min_sales_price} and you gave {$itemBaseAmt}." : '';
+                        } else {
+
+                            if ($itemBaseAmt > $salesPriceSet->base_price) {
+                                $comPrice = $itemBaseAmt - $salesPriceSet->base_price;
+                            } else {
+                                $comPrice = $salesPriceSet->default_commission_price;
+                            }
+
+                            $wallet[] = [
+                                'seller_id' => $isSeller,
+                                'added_by' => $userId,
+                                'form' => 1,
+                                'form_record_id' => $soId,
+                                'item_id' => $product,
+                                'commission_amount' => $comPrice * $qty,
+                                'item_amount' => $itemBaseAmt,
+                                'commission_actual_amount' => $comPrice,
+                                'item_qty' => $qty,
+                                'created_at' => now()
+                            ];
+                            
+                            $soItems[] = $tempArr;
+                        }
+                    } else {
+                        $soItems[] = $tempArr;
+                    }
+                }
+
+                if (count($soItems) > 0) {
+                    if (count($salesPriceErrors) > 0) {
+                        DB::rollBack();
+                        return redirect()->back()->with('error', implode(' <br/> ', $salesPriceErrors));
+                    } else {
+                        SalesOrderItem::insert($soItems);
+
+                        if (count($wallet) > 0) {
+                            Wallet::insert($wallet);
+                        }
+
+                        $getFirstItemId = SalesOrderItem::where('so_id', $soId)->first();
+
+                        Deliver::create([
+                            'user_id' => $request->driver_id,
+                            'soi_id' => $getFirstItemId->id ?? 0,
+                            'added_by' => auth()->user()->id,
+                            'driver_lat' => $request->driver_lat,
+                            'driver_long' => $request->driver_long,
+                            'delivery_location_lat' => $request->lat,
+                            'delivery_location_long' => $request->long,
+                            'range' => $request->range                            
+                        ]);
+
+                        DB::commit();
+                        return redirect()->route('sales-orders.index')->with('success', "Sales order added successfully.");
+                    }
+                } else {
+                    DB::rollBack();
+
+                    if (count($salesPriceErrors) > 0) {
+                        return redirect()->back()->with('error', implode(' <br/> ', $salesPriceErrors));
+                    }
+
+                    return redirect()->back()->with('error', Helper::$errorMessage);
+                }
+
+            } else {
+                DB::rollBack();
+                return redirect()->back()->with('error', 'Select at least a product to add sales order.');
+            }
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Helper::logger($e->getMessage(), 'error');
+            return redirect()->back()->with('error', Helper::$errorMessage);
+        }
+    }
+
+    public function store(Request $request)
+    {
+        $this->validate($request, [
+            'order_del_date' => 'required',
+            'customername' => 'required',
+            'customerphone' => 'required',
+            'postal_code' => 'required',
+            'address_line_1' => 'required',
+            'category.*' => 'required',
+            'product.*' => 'required',
+            'quantity.*' => 'required|numeric|min:1',
+            'price.*' => 'required|numeric|min:0'
+        ], [
+            'order_del_date.required' => 'Select order delivery date .',
+            'customername.required' => 'Enter customer name.',
+            'customerphone.required' => 'Enter customer phone number.',
+            'postal_code.required' => 'Enter a postal code.',
+            'address_line_1.required' => 'Enter address line 1.',
+            'category.*' => 'Select a category.',
+            'product.*' => 'Select a product.',
+            'quantity.*.required' => 'Enter quantity.',
+            'quantity.*.numeric' => 'Enter valid format.',
+            'quantity.*.min' => 'Quantity can\'t be less than 1.',
+            'price.*.required' => 'Enter Price.',
+            'price.*.numeric' => 'Enter valid format.',
+            'price.*.min' => 'Quantity can\'t be less than 0.'
         ]);
 
         $salesPriceErrors = [];
@@ -313,19 +595,16 @@ class SalesOrderController extends Controller
             'order_del_date' => 'required',
             'customername' => 'required',
             'customerphone' => 'required',
-            // 'status' => 'required',
             'postal_code' => 'required',
             'address_line_1' => 'required',
             'category.*' => 'required',
             'product.*' => 'required',
             'quantity.*' => 'required|numeric|min:1',
-            'price.*' => 'required|numeric|min:0',
-            'expense.*' => 'required|numeric|min:0'
+            'price.*' => 'required|numeric|min:0'
         ], [
-            'order_del_date.required' => 'Select order felivery date .',
+            'order_del_date.required' => 'Select order delivery date .',
             'customername.required' => 'Enter customer name.',
             'customerphone.required' => 'Enter customer phone number.',
-            // 'status.required' => 'Select a status.',
             'postal_code.required' => 'Enter a postal code.',
             'address_line_1.required' => 'Enter address line 1.',
             'category.*' => 'Select a category.',
@@ -335,10 +614,7 @@ class SalesOrderController extends Controller
             'quantity.*.min' => 'Quantity can\'t be less than 1.',
             'price.*.required' => 'Enter Price.',
             'price.*.numeric' => 'Enter valid format.',
-            'price.*.min' => 'Quantity can\'t be less than 0.',
-            'expense.*.required' => 'Enter expense.',
-            'expense.*.numeric' => 'Enter valid format.',
-            'expense.*.min' => 'Quantity can\'t be less than 0.'
+            'price.*.min' => 'Quantity can\'t be less than 0.'
         ]);
 
         $salesPriceErrors = [];
