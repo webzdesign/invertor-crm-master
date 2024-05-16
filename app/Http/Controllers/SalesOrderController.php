@@ -144,107 +144,102 @@ class SalesOrderController extends Controller
     }
 
     public function getAvailableItem(Request $request) {
-        if ($request->has('product') && $request->has('price') && $request->has('postal_code')) {
 
-            $errorWhileSavingLatLong = true;
-            $latFrom = $longFrom = $toLat = $toLong = $range = '';
+        $errorWhileSavingLatLong = true;
+        $latFrom = $longFrom = $toLat = $toLong = $range = '';
 
-            $users = User::whereHas('role', function ($builder) {
-                $builder->where('roles.id', 3);
-            })->whereNotNull('lat')->whereNotNull('long')
-            ->select('id', 'lat', 'long')->get()->toArray();
+        $users = User::whereHas('role', function ($builder) {
+            $builder->where('roles.id', 3);
+        })->whereNotNull('lat')->whereNotNull('long')
+        ->select('id', 'lat', 'long')->get()->toArray();
 
-            try {
-                
-                $key = trim(Setting::first()?->geocode_key);
+        try {
+            
+            $key = trim(Setting::first()?->geocode_key);
 
-                $address = trim("{$request->address_line_1} {$request->postal_code}");
-                $address = str_replace(' ', '+', $address);
-                $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
-                
-                $data = json_decode(file_get_contents($url), true);
+            $address = trim("{$request->address_line_1} {$request->postal_code}");
+            $address = str_replace(' ', '+', $address);
+            $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
+            
+            $data = json_decode(file_get_contents($url), true);
 
-                if ($data['status'] == "OK") {
-                    $lat = $data['results'][0]['geometry']['location']['lat'];
-                    $long = $data['results'][0]['geometry']['location']['lng'];
+            if ($data['status'] == "OK") {
+                $lat = $data['results'][0]['geometry']['location']['lat'];
+                $long = $data['results'][0]['geometry']['location']['lng'];
 
-                    if (!empty($lat)) {
-                        $latFrom = $lat;
-                        $longFrom = $long;
+                if (!empty($lat)) {
+                    $latFrom = $lat;
+                    $longFrom = $long;
 
-                        $errorWhileSavingLatLong = false;
-                    }
-
-                    AddressLog::create([
-                        'postal_code' => $request->postal_code,
-                        'address' => $request->address_line_1,
-                        'lat' => $lat,
-                        'long' => $long,
-                        'added_by' => auth()->user()->id,
-                    ]);
+                    $errorWhileSavingLatLong = false;
                 }
 
-            } catch (\Exception $e) {
-                return response()->json(['status' => false, 'message' => 'Please provide accurate address.']);
+                AddressLog::create([
+                    'postal_code' => $request->postal_code,
+                    'address' => $request->address_line_1,
+                    'lat' => $lat,
+                    'long' => $long,
+                    'added_by' => auth()->user()->id,
+                ]);
             }
 
-            $thisProduct = $request->product;
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'Please provide accurate address.']);
+        }
 
-            $users = collect($users)->map(function ($ele) use ($thisProduct) {
-                $inStock = DistributionItem::where('to_driver', $ele['id'])
-                ->where('product_id', $thisProduct)
-                ->select('qty')
-                ->sum('qty');
+        $thisProduct = $request->product;
 
-                $outStock = DistributionItem::where('from_driver', $ele['id'])
-                ->where('product_id', $thisProduct)
-                ->select('qty')
-                ->sum('qty');         
+        $users = collect($users)->map(function ($ele) use ($thisProduct) {
+            $inStock = DistributionItem::where('to_driver', $ele['id'])
+            ->where('product_id', $thisProduct)
+            ->select('qty')
+            ->sum('qty');
 
-                if ((intval($inStock) - intval($outStock)) > 0) {
-                    return $ele;
-                }
+            $outStock = DistributionItem::where('from_driver', $ele['id'])
+            ->where('product_id', $thisProduct)
+            ->select('qty')
+            ->sum('qty');         
 
-            })->filter()->values()->toArray();
+            if ((intval($inStock) - intval($outStock)) > 0) {
+                return $ele;
+            }
 
-            if ($errorWhileSavingLatLong === false) {
+        })->filter()->values()->toArray();
 
-                if (!empty($latFrom) && !empty($longFrom)) {
+        if ($errorWhileSavingLatLong === false) {
 
-                    if (!empty($users)) {
-                        $getAllDriversDistance = [];
+            if (!empty($latFrom) && !empty($longFrom)) {
 
-                        foreach ($users as $row) {
-                            $getAllDriversDistance[$row['id']] = Distance::measure($latFrom, $longFrom, $row['lat'], $row['long']);
-                        }
+                if (!empty($users)) {
+                    $getAllDriversDistance = [];
 
-                        $getNearbyDriver = array_search(min($getAllDriversDistance), $getAllDriversDistance);
-                        $range = min($getAllDriversDistance);
-
-                        $category = Product::where('id', $request->product)->first()->category_id;
-                        $category = Category::where('id', $category)->first();
-                        $minSalesPrice = Product::msp($request->product);
-                        $product = Product::where('id', $request->product)->first();
-                        $orderNo = Helper::generateSalesOrderNumber();
-                        $driverDetail = User::findOrFail($getNearbyDriver);
-
-                        return response()->json(['status' => true , 'message' => 'Available', 'html' => view('so.single-product', compact('product', 'minSalesPrice', 'orderNo', 'category', 'longFrom', 'latFrom', 'driverDetail', 'range'))->render()]);
-
-                    } else {
-                        return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
+                    foreach ($users as $row) {
+                        $getAllDriversDistance[$row['id']] = Distance::measure($latFrom, $longFrom, $row['lat'], $row['long']);
                     }
 
+                    $getNearbyDriver = array_search(min($getAllDriversDistance), $getAllDriversDistance);
+                    $range = min($getAllDriversDistance);
+
+                    $category = Product::where('id', $request->product)->first()->category_id;
+                    $category = Category::where('id', $category)->first();
+                    $minSalesPrice = Product::msp($request->product);
+                    $product = Product::where('id', $request->product)->first();
+                    $orderNo = Helper::generateSalesOrderNumber();
+                    $driverDetail = User::findOrFail($getNearbyDriver);
+
+                    return response()->json(['status' => true , 'message' => 'Available', 'html' => view('so.single-product', compact('product', 'minSalesPrice', 'orderNo', 'category', 'longFrom', 'latFrom', 'driverDetail', 'range'))->render()]);
+
                 } else {
-                    return response()->json(['status' => false, 'message' => 'Please provide accurate address.']);
+                    return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
                 }
 
             } else {
                 return response()->json(['status' => false, 'message' => 'Please provide accurate address.']);
             }
 
+        } else {
+            return response()->json(['status' => false, 'message' => 'Please provide accurate address.']);
         }
-
-        return response()->json(['status' => false, 'message' => 'Select a product and enter price']);
     }
 
     public function saveSo(Request $request) {

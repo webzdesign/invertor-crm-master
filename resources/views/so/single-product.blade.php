@@ -173,6 +173,9 @@
     </div>
 
     <div class="cardsFooter d-flex justify-content-center">
-        <button type="submit" class="btn-primary f-500 f-14">Save</button>
+        {{-- <button type="submit" class="btn-primary f-500 f-14">Save</button> --}}
+        <strong>
+            <p style="color:red;"> Order placement functionality is in development. </p>
+        </strong>
     </div>
 </div>

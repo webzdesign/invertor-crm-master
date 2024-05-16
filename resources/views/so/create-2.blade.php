@@ -92,8 +92,7 @@
         </div>
 
         <div class="cardsFooter d-flex justify-content-center">
-            <p> <strong> This module is in progress. </strong> </p>
-            {{-- <button type="submit" class="btn-primary f-500 f-14">Check</button> --}}
+            <button type="submit" class="btn-primary f-500 f-14">Check</button>
         </div>
         </form>
     </div>
@@ -332,7 +331,6 @@ $(document).ready(function(){
         },
         submitHandler: function(form, event) {
             event.preventDefault();
-            $('#so-container').empty();
 
             if (!this.beenSubmitted) {
                 $.ajax({
@@ -349,6 +347,7 @@ $(document).ready(function(){
                             form.submit();
                         } else {
                             Swal.fire('', response.message, 'error');
+                            $('#so-container').empty();
                         }
                     },
                     complete: function () {
