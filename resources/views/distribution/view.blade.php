@@ -90,7 +90,7 @@
                                                 <td class="block-b"></td>
                                                 <td class="block-d"> 
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" class="form-control mt-quantity" style="background:#efefef" value="{{ Helper::currencyFormatter($d->items->sum('qty')) }}" readonly>
+                                                        <input type="text" class="form-control mt-quantity" style="background:#efefef" value="{{ Helper::currencyFormatter($d->items->sum('qty')) }}" readonly>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -166,7 +166,7 @@
                                                 <td class="block-c"></td>
                                                 <td class="block-d"> 
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" class="form-control mt-quantity" style="background:#efefef" value="{{ Helper::currencyFormatter($d->items->sum('qty')) }}" readonly>
+                                                        <input type="text" class="form-control mt-quantity" style="background:#efefef" value="{{ Helper::currencyFormatter($d->items->sum('qty')) }}" readonly>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -232,7 +232,7 @@
                                                 <td class="block-b"></td>
                                                 <td class="block-c"> 
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" class="form-control mt-quantity" style="background:#efefef" value="{{ Helper::currencyFormatter($d->items->sum('qty')) }}" readonly>
+                                                        <input type="text" class="form-control mt-quantity" style="background:#efefef" value="{{ Helper::currencyFormatter($d->items->sum('qty')) }}" readonly>
                                                     </div>
                                                 </td>
                                             </tr>
