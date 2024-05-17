@@ -59,6 +59,9 @@ class ReportController extends Controller
         ->editColumn('product_id', function ($row) {
             return Helper::productName($row['product_id']);
         })
+        ->editColumn('qty', function ($row) {
+            return Helper::currencyFormatter($row['qty']);
+        })
         ->toJson();
     }
 }
