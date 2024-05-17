@@ -137,6 +137,10 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('suppliers/{id}/status', [SupplierController::class, 'status'])->name('suppliers.activeinactive')->middleware('ModuleAccessor:suppliers.activeinactive');
         /** Suppliers **/
 
+        /** Orders To Deliver (for driver) **/
+        Route::match(['GET', 'POST'], 'orders-to-deliver', [SalesOrderController::class, 'ordersToBeDeliverd'])->name('orders-to-deliver');
+        /** Orders To Deliver (for driver) **/
+
         /** Common **/
         Route::post('getStates', [Helper::class, 'getStates'])->name('getStates');
         Route::post('getCities', [Helper::class, 'getCities'])->name('getCities');

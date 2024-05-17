@@ -11,4 +11,8 @@ class Deliver extends Model
     use HasFactory, SoftDeletes;
 
     public $guarded = [];
+
+    public function item() {
+        return $this->belongsTo(SalesOrderItem::class, 'soi_id');
+    }
 }

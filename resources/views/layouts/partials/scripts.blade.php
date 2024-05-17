@@ -153,7 +153,7 @@
                             fireSuccessMessage(response.success);
                             $('.datatableMain').DataTable().ajax.reload();
                         } else {
-                            fireErrorMessage('Something went wrong.');
+                            fireErrorMessage(response.error);
                         }
                     }
                 });
@@ -182,7 +182,7 @@
                             fireSuccessMessage(response.success);
                             $('.datatableMain').DataTable().ajax.reload();
                         } else {
-                            fireErrorMessage('Something went wrong.');
+                            fireErrorMessage(response.error);
                         }
                     }
                 });

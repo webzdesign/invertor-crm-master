@@ -127,6 +127,7 @@ return [
         'Helper' => \App\Helpers\Helper::class,
         'Config' => Illuminate\Support\Facades\Config::class,
         'DataTables' => Yajra\DataTables\Facades\DataTables::class,
+        'User' => App\Models\User::class,
         'PO' => App\Models\PurchaseOrder::class,
         'SO' => App\Models\SalesOrder::class,
         'Product' => App\Models\Product::class,

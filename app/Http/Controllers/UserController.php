@@ -406,6 +406,12 @@ class UserController extends Controller
         try {
 
             $user = User::find(decrypt($id));
+
+            if (Deliver::where('user_id', $user->id)->where('status', '1')->exists()) {
+                DB::rollBack();
+                return response()->json(['error' => 'Can not delete this driver user.', 'status' => 500]);
+            }
+
             UserPermission::where('user_id', $user->id)->delete();
             $user->roles()->detach();
             $user->userpermission()->detach();
@@ -423,13 +429,18 @@ class UserController extends Controller
     {
         try {
             $user = User::find(decrypt($id));
+
+            if (Deliver::where('user_id', $user->id)->where('status', '1')->exists()) {
+                return response()->json(['error' => 'Can not deactivate this driver user.', 'status' => 500]);
+            }
+
             $user->status = $user->status == 1 ? 0 : 1;
             $user->save();
 
             if ($user->status == 1) {
-                return response()->json(['success' => $this->moduleName.' activated successfully.', 'status' => 200]);
+                return response()->json(['success' => 'User activated successfully.', 'status' => 200]);
             } else {
-                return response()->json(['success' => $this->moduleName.' deactivated successfully.', 'status' => 200]);
+                return response()->json(['success' => 'User deactivated successfully.', 'status' => 200]);
             }
         } catch (\Exception $e) {
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);

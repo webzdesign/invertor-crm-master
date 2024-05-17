@@ -36,19 +36,15 @@
                             <option value="" selected> --- No Product Available --- </option>
                             @endforelse
                         </select>
-                        @if ($errors->has('name'))
-                            <span class="text-danger d-block">{{ $errors->first('name') }}</span>
-                        @endif
+                        <span class="text-danger error-div d-block eproduct">{{ $errors->first('name') }}</span>
                     </div>
                 </div>
 
                 <div class="col-md-4 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Price : <span class="text-danger">*</span></label>
-                        <input type="text" name="price" id="price" value="{{ old('price') }}" class="form-control" placeholder="Enter price">
-                        @if ($errors->has('price'))
-                            <span class="text-danger d-block">{{ $errors->first('price') }}</span>
-                        @endif
+                        <input type="text" name="price" id="price" class="form-control" placeholder="Enter price">
+                        <span class="text-danger error-div d-block eprice">{{ $errors->first('price') }}</span>
                     </div>
                 </div>
 
@@ -56,9 +52,7 @@
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code : <span class="text-danger">*</span></label>
                         <input type="text" name="postal_code" id="postal_code" value="{{ old('postal_code') }}" class="form-control" placeholder="Enter postal code">
-                        @if ($errors->has('postal_code'))
-                            <span class="text-danger d-block">{{ $errors->first('postal_code') }}</span>
-                        @endif
+                        <span class="text-danger error-div d-block epostal_code">{{ $errors->first('postal_code') }}</span>
                     </div>
                 </div>
 
@@ -66,9 +60,7 @@
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Address Line : <span class="text-danger">*</span></label>
                         <textarea name="address_line_1" id="address_line_1" class="form-control" style="height: 60px;">{{ old('address_line_1') }}</textarea>
-                        @if ($errors->has('address_line_1'))
-                            <span class="text-danger d-block">{{ $errors->first('address_line_1') }}</span>
-                        @endif
+                        <span class="text-danger error-div d-block eaddress_line_1">{{ $errors->first('address_line_1') }}</span>
                     </div>
                 </div>
 
@@ -243,7 +235,14 @@ $(document).ready(function(){
                         if (response.status) {
                             $('#so-container').html(response.html);
                         } else {
-                            Swal.fire('', response.message, 'error');
+                            if ('messages' in response) {
+                                $('.eproduct').text(response.messages.product);
+                                $('.eprice').text(response.messages.price);
+                                $('.epostal_code').text(response.messages.postal_code);
+                                $('.eaddress_line_1').text(response.messages.address_line_1);
+                            } else {
+                                Swal.fire('', response.message, 'error');
+                            }
                         }
                     },
                     complete: function () {
@@ -379,12 +378,21 @@ $(document).ready(function(){
         $(`#mamount`).val(total.toFixed(2));
     }
 
-    $(document).on('change', '#mquantity', function () {
-        calculateAmount();        
+    $(document).on('change', '#mquantity, #mprice', function () {
+        calculateAmount();
     });
 
-    $(document).on('change', '#mprice', function () {
-        calculateAmount();        
+    $(document).on('change', '#product', function (event) {
+        $('.eproduct').text('');
+    });
+    $(document).on('change', '#price', function (event) {
+        $('.eprice').text('');
+    });
+    $(document).on('change', '#postal_code', function (event) {
+        $('.epostal_code').text('');
+    });
+    $(document).on('change', '#address_line_1', function (event) {
+        $('.eaddress_line_1').text('');
     });
 
 });

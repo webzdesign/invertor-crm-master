@@ -143,6 +143,9 @@
 
                                         <td>
                                             <div style="min-width: 200px;">
+                                                <input type="hidden" name="postal_code" value="{{ $postalcode }}">
+                                                <input type="hidden" name="address_line_1" value="{{ $addressline }}">
+
                                                 <input type="text" data-indexid="0" tabindex="0"
                                                     maxlength="255" name="remarks[]" id="mremarks"
                                                     class="form-control">
@@ -173,9 +176,6 @@
     </div>
 
     <div class="cardsFooter d-flex justify-content-center">
-        {{-- <button type="submit" class="btn-primary f-500 f-14">Save</button> --}}
-        <strong>
-            <p style="color:red;"> Order placement functionality is in development. </p>
-        </strong>
+        <button type="submit" class="btn-primary f-500 f-14">Save</button>
     </div>
 </div>

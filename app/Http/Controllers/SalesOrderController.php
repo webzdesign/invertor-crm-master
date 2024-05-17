@@ -144,6 +144,28 @@ class SalesOrderController extends Controller
     }
 
     public function getAvailableItem(Request $request) {
+        
+        $validated = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'product' => 'required',
+            'price' => 'required|numeric|min:0',
+            'postal_code' => 'required|max:8',
+            'address_line_1' => 'required'
+        ], [
+            'product.required' => 'Select a product.',
+            'price.required' => 'Enter price.',
+            'price.numeric' => 'Enter valid format.',
+            'price.min' => 'Price can\'t be less than 0.',
+            'postal_code.required' => 'Postal code is required.',
+            'postal_code.max' => 'Maximum 8 characters allowed for postal code.',
+            'address_line_1' => 'Address line is required.'
+        ]);
+
+        if($validated->fails()){
+            return response()->json([
+                "status" => false,
+                "messages" => $validated->messages()->toArray() ?? []
+            ]);
+        }
 
         $errorWhileSavingLatLong = true;
         $latFrom = $longFrom = $toLat = $toLong = $range = '';
@@ -188,8 +210,15 @@ class SalesOrderController extends Controller
         }
 
         $thisProduct = $request->product;
+        $neededStock = $request->stock;
 
-        $users = collect($users)->map(function ($ele) use ($thisProduct) {
+        if (is_numeric($neededStock) && (intval($neededStock) > 0)) {
+            $neededStock = intval($neededStock);
+        } else {
+            $neededStock = null;
+        }
+
+        $users = collect($users)->map(function ($ele) use ($thisProduct, $neededStock) {
             $inStock = DistributionItem::where('to_driver', $ele['id'])
             ->where('product_id', $thisProduct)
             ->select('qty')
@@ -200,8 +229,30 @@ class SalesOrderController extends Controller
             ->select('qty')
             ->sum('qty');         
 
-            if ((intval($inStock) - intval($outStock)) > 0) {
-                return $ele;
+            $availStock = intval($inStock) - intval($outStock);
+
+            if ($availStock > 0) {
+                $orderAssigned = Deliver::select('soi_id')->where('user_id', $ele['id'])->where('status', '1');
+                if ($orderAssigned->exists()) {
+                    $orderAssigned = $orderAssigned->pluck('soi_id')->toArray();
+
+                    $orderAssigned = SalesOrderItem::whereIn('id', $orderAssigned)->where('product_id', $thisProduct)->sum('qty');
+
+                    $availStock -= $orderAssigned;
+
+                    if ($availStock > 0) {
+                        if (!is_null($neededStock)) {
+                            if (($availStock - $neededStock) > 0) {
+                                return $ele;
+                            }
+                        } else {
+                            return $ele;
+                        }
+                    }
+                    
+                } else {
+                    return $ele;
+                }
             }
 
         })->filter()->values()->toArray();
@@ -226,8 +277,10 @@ class SalesOrderController extends Controller
                     $product = Product::where('id', $request->product)->first();
                     $orderNo = Helper::generateSalesOrderNumber();
                     $driverDetail = User::findOrFail($getNearbyDriver);
+                    $postalcode = $request->postal_code;
+                    $addressline = $request->address_line_1;
 
-                    return response()->json(['status' => true , 'message' => 'Available', 'html' => view('so.single-product', compact('product', 'minSalesPrice', 'orderNo', 'category', 'longFrom', 'latFrom', 'driverDetail', 'range'))->render()]);
+                    return response()->json(['status' => true , 'message' => 'Available', 'html' => view('so.single-product', compact('product', 'minSalesPrice', 'orderNo', 'category', 'longFrom', 'latFrom', 'driverDetail', 'range', 'postalcode', 'addressline'))->render()]);
 
                 } else {
                     return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
@@ -247,7 +300,7 @@ class SalesOrderController extends Controller
             'order_del_date' => 'required',
             'customername' => 'required',
             'customerphone' => 'required',
-            'postal_code' => 'required',
+            'postal_code' => 'required|max:8',
             'address_line_1' => 'required',
             'category.*' => 'required',
             'product.*' => 'required',
@@ -258,6 +311,7 @@ class SalesOrderController extends Controller
             'customername.required' => 'Enter customer name.',
             'customerphone.required' => 'Enter customer phone number.',
             'postal_code.required' => 'Enter a postal code.',
+            'postal_code.max' => 'Maximum 8 characters allowed for postal code.',
             'address_line_1.required' => 'Enter address line 1.',
             'category.*' => 'Select a category.',
             'product.*' => 'Select a product.',
@@ -266,7 +320,7 @@ class SalesOrderController extends Controller
             'quantity.*.min' => 'Quantity can\'t be less than 1.',
             'price.*.required' => 'Enter Price.',
             'price.*.numeric' => 'Enter valid format.',
-            'price.*.min' => 'Quantity can\'t be less than 0.'
+            'price.*.min' => 'Price can\'t be less than 0.'
         ]);
 
         $salesPriceErrors = [];
@@ -413,7 +467,7 @@ class SalesOrderController extends Controller
             'order_del_date' => 'required',
             'customername' => 'required',
             'customerphone' => 'required',
-            'postal_code' => 'required',
+            'postal_code' => 'required|max:8',
             'address_line_1' => 'required',
             'category.*' => 'required',
             'product.*' => 'required',
@@ -424,6 +478,7 @@ class SalesOrderController extends Controller
             'customername.required' => 'Enter customer name.',
             'customerphone.required' => 'Enter customer phone number.',
             'postal_code.required' => 'Enter a postal code.',
+            'postal_code.max' => 'Maximum 8 characters allowed for postal code.',
             'address_line_1.required' => 'Enter address line 1.',
             'category.*' => 'Select a category.',
             'product.*' => 'Select a product.',
@@ -432,7 +487,7 @@ class SalesOrderController extends Controller
             'quantity.*.min' => 'Quantity can\'t be less than 1.',
             'price.*.required' => 'Enter Price.',
             'price.*.numeric' => 'Enter valid format.',
-            'price.*.min' => 'Quantity can\'t be less than 0.'
+            'price.*.min' => 'Price can\'t be less than 0.'
         ]);
 
         $salesPriceErrors = [];
@@ -590,7 +645,7 @@ class SalesOrderController extends Controller
             'order_del_date' => 'required',
             'customername' => 'required',
             'customerphone' => 'required',
-            'postal_code' => 'required',
+            'postal_code' => 'required|max:8',
             'address_line_1' => 'required',
             'category.*' => 'required',
             'product.*' => 'required',
@@ -601,6 +656,7 @@ class SalesOrderController extends Controller
             'customername.required' => 'Enter customer name.',
             'customerphone.required' => 'Enter customer phone number.',
             'postal_code.required' => 'Enter a postal code.',
+            'postal_code.max' => 'Maximum 8 characters allowed for postal code.',
             'address_line_1.required' => 'Enter address line 1.',
             'category.*' => 'Select a category.',
             'product.*' => 'Select a product.',
@@ -765,5 +821,52 @@ class SalesOrderController extends Controller
             DB::rollBack();
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
         }
+    }
+
+    public function ordersToBeDeliverd(Request $request) {
+        if (!in_array('3', User::getUserRoles())) {
+            abort(403);
+        }
+
+        if (!$request->ajax()) {
+            $moduleName = 'Orders to Deliver';
+
+            return view('so.delivery-list', compact('moduleName'));
+        }
+
+        $d = Deliver::with('item.order');
+        $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
+
+        if (!in_array('1', $thisUserRoles)) {
+            if (in_array('3', $thisUserRoles)) {
+                $d = $d->where('user_id', auth()->user()->id);
+            } else {
+                $d = $d->where('id', '0');
+            }
+        }
+
+        return dataTables()->eloquent($d)
+            ->addColumn('quantity', function ($row) {
+                return $row?->item?->qty ?? '-';
+            })
+            ->addColumn('order_no', function ($row) {
+                return $row?->item?->order?->order_no ?? '-';
+            })
+            ->addColumn('item', function ($row) {
+                return $row?->item?->product?->name ?? '-';
+            })
+            ->addColumn('distance', function ($row) {
+                if ($row->range < 1) {
+                    return '<span title="' . number_format($row->range, 2) . ' meter">' . number_format($row->range, 2) . ' m </span>';
+                } else {
+                    return '<span title="' . number_format($row->range, 2) . ' kilometer">' . number_format($row->range, 2) . ' km </span>';
+                }
+            })
+            ->addColumn('location', function ($row) {
+                return ($row?->item?->order?->customer_address_line_1 ?? '-') . ' ' . ($row?->item?->order?->customer_postal_code ?? '');
+            })
+            ->rawColumns(['distance'])
+            ->addIndexColumn()
+            ->make(true);
     }
 }

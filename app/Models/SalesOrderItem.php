@@ -9,9 +9,6 @@ use Illuminate\Database\Eloquent\Model;
 class SalesOrderItem extends Model
 {
     use HasFactory, SoftDeletes;
-
-    use HasFactory, SoftDeletes;
-
     public $guarded = [];
 
     public function category()
@@ -22,5 +19,9 @@ class SalesOrderItem extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function order() {
+        return $this->belongsTo(SalesOrder::class, 'so_id');
     }
 }
