@@ -207,11 +207,11 @@
     }
 
     if (hasSessionError) {
-        fireErrorMessage("{{ session('error') }}");
+        fireErrorMessage("{!! session('error') !!}");
     }
 
     if (hasSessionWarning) {
-        fireWarningMessage("{{ session('warning') }}");
+        fireWarningMessage("{!! session('warning') !!}");
     }
 
     if (hasSessionSuccess) {

@@ -14,7 +14,9 @@ use App\Models\Product;
 use App\Models\Country;
 use App\Models\Wallet;
 use App\Models\State;
+use App\Models\Stock;
 use App\Models\City;
+use App\Models\User;
 
 class Helper {
 
@@ -192,5 +194,96 @@ class Helper {
         }
 
         return Number::currency($amount, 'GBP');
+    }
+
+    public static function getAvailableStockFromStorage() {
+        $prodArr = Product::select('id', 'name')->pluck('name', 'id')->toArray();
+
+        $stockInItems = Stock::where('type', '0')
+                                ->whereIn('form', ['1', '3'])
+                                ->whereNull('driver_id')
+                                ->groupBy('product_id')
+                                ->select('product_id')
+                                ->pluck('product_id')
+                                ->toArray();
+
+        $products = [];
+
+        foreach ($stockInItems as $item) {
+            $inStock = Stock::where('type', '0')
+            ->whereIn('form', ['1', '3'])
+            ->where('product_id', $item)
+            ->whereNull('driver_id')
+            ->select('qty')
+            ->sum('qty');
+
+            $outStock = Stock::where('type', '1')
+            ->where('product_id', $item)
+            ->whereIn('form', ['3'])
+            ->whereNull('driver_id')
+            ->select('qty')
+            ->sum('qty');
+
+            $availStock = intval($inStock) - intval($outStock);
+
+            if ($availStock > 0 && isset($prodArr[$item])) {
+                $products[$item] = $availStock;
+            }
+        }
+
+        return $products;
+    }
+
+    public static function getAvailableStockFromDriver($driver) {
+        $stockInItems = Stock::where('type', '0')
+                        ->where('driver_id', $driver)
+                        ->whereIn('form', ['1', '3'])
+                        ->groupBy('product_id')
+                        ->select('product_id')
+                        ->pluck('product_id')
+                        ->toArray();
+
+        $products = [];
+
+        foreach ($stockInItems as $item) {
+            $inStock = Stock::where('type', '0')
+            ->whereIn('form', ['1', '3'])
+            ->where('product_id', $item)
+            ->where('driver_id', $driver)
+            ->select('qty')
+            ->sum('qty');
+
+            $outStock = Stock::where('type', '1')
+            ->where('product_id', $item)
+            ->whereIn('form', ['3'])
+            ->where('driver_id', $driver)
+            ->select('qty')
+            ->sum('qty');
+
+            $availStock = intval($inStock) - intval($outStock);
+
+            if ($availStock > 0) {
+                $products[$item] = $availStock;
+            }
+
+        }
+
+        return $products;
+    }
+
+    public static function productName($id = null) {
+        if ($id == null) {
+            return Product::select('id', 'name')->pluck('name', 'id')->toArray();
+        } else {
+            return Product::select('id', 'name')->where('id', $id)->first()->name ?? '-';            
+        }
+    }
+
+    public static function userName($id = null, $default = '-') {
+        if ($id == null) {
+            return User::select('id', 'name')->pluck('name', 'id')->toArray();
+        } else {
+            return User::select('id', 'name')->where('id', $id)->first()->name ?? $default;
+        }
     }
 }

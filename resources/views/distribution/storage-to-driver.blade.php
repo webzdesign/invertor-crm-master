@@ -29,14 +29,7 @@
                         <td class="block-a">
                             <div style="min-width: 200px;width: 100%" class="removable-product">
                                 <select name="product[0]" data-indexid="0" id="product-0" class="product2 select2-hidden-accessible m-product" style="width:100%" data-placeholder="Select a Product">
-                                    @forelse($products as $did => $dname)
-                                        @if($loop->first)
-                                        <option value="" selected> --- Select a Product --- </option>
-                                        @endif
-                                        <option value="{{ $did }}">{{ $dname }}</option>
-                                        @empty
-                                        <option value="" selected> --- No Product Available --- </option>
-                                    @endforelse
+                                    <option value="" selected> --- Select a Product --- </option>
                                 </select>
                             </div>
                         </td>

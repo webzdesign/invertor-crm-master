@@ -120,6 +120,17 @@
         </li>
         @endpermission
 
+        @permission('stock-report.view')
+        <li>
+            <a href="{{ route('stock-report') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('stock-report*') ? 'active' : '' }}">
+                <div class="icnBx d-flex align-items-center justify-content-center">
+                    <i class="fa fa-tag text-white" aria-hidden="true"></i>
+                </div>
+                <span class="d-none-add">Stock Report</span>
+            </a>
+        </li>
+        @endpermission
+
 
         @if(in_array('3', User::getUserRoles()))
         <li>

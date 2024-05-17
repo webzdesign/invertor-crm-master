@@ -7,6 +7,7 @@ use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
@@ -140,6 +141,10 @@ Route::group(["middleware" => "auth"], function () {
         /** Orders To Deliver (for driver) **/
         Route::match(['GET', 'POST'], 'orders-to-deliver', [SalesOrderController::class, 'ordersToBeDeliverd'])->name('orders-to-deliver');
         /** Orders To Deliver (for driver) **/
+
+        /** Report **/
+        Route::match(['GET', 'POST'], 'stock-report', [ReportController::class, 'stockReport'])->name('stock-report')->middleware('ModuleAccessor:stock-report.view');
+        /** Report **/
 
         /** Common **/
         Route::post('getStates', [Helper::class, 'getStates'])->name('getStates');

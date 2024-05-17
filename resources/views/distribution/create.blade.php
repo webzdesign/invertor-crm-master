@@ -153,6 +153,37 @@ $(document).ready(function() {
         return bool;
     }, 'You can\'t assign stock to self(driver).');
 
+    $.validator.addMethod('maxStock', function (value, element) {
+        let bool = true;
+        let validatorThisIndex = $(element).data('indexid');
+        let validatableProduct = $(`#product-${validatorThisIndex}`);
+
+        if (validatableProduct.length > 0) {
+            let maxStock = $('option:selected', validatableProduct).attr('data-stock');
+            if (exists(maxStock)) {
+                if (parseFloat(value) > parseFloat(maxStock)) {
+                    return false;
+                }
+            }
+        }
+
+        return bool;
+    }, function (result, element) {
+        let validatorThisIndex = $(element).data('indexid');
+        let validatableProduct = $(`#product-${validatorThisIndex}`);
+        let maxStock = $('option:selected', validatableProduct).attr('data-stock');
+
+        if (result) {
+            if (thisDisType == 1) {
+                return `${maxStock} quantity of this product are available in storage`;
+            } else {
+                return `Driver has ${maxStock} quantity of this product are available`;
+            }
+        }
+
+        return "Select a product.";
+    });
+
     $('#assignStock').validate({
         rules: {
             'type': {
@@ -171,6 +202,7 @@ $(document).ready(function() {
                 required: true,
                 digits: true,
                 min: 1,
+                maxStock: true
             },
             'from_driver[0]' : {
                 required: true,
@@ -224,31 +256,33 @@ $(document).ready(function() {
                 },
                 processResults: function (data) {
                     return {
-                        results: $.map(data, function (item, id) {
+                        results: $.map(data, function (item) {
                             return {
-                                text: item,
-                                id: id
-                            }
+                                id: item.id,
+                                text: item.text,
+                                stock: item.stock
+                            };
                         })
                     };
                 },
                 cache: true
+            },
+            templateResult: function (data) {
+                if (data.loading) {
+                    return data.text;
+                }
+
+                var $result = $('<span></span>');
+                $result.text(data.text);
+                $result.attr('data-stock', data.stock);
+                return $result;
+            },
+            templateSelection: function (container) {
+                $(container.element).attr("data-stock", container.stock);
+                return container.text;
             }
         });
     }
-
-    $(document).on('change', '.m-from-driver', function (event) {
-        let indexId = $(this).data('indexid');
-        let thisDriver = $(this).val();
-
-        if (thisDriver !== '0' && thisDriver !== '' && thisDriver !== null) {
-            fromDriverId = thisDriver;
-        } else {
-            fromDriverId = null;
-        }
-
-        $(`#product-${indexId}`).val(null).trigger('change');
-    });
 
     $(document).on('click', '.addNewRow', function (event) {
 
@@ -301,6 +335,7 @@ $(document).ready(function() {
             required: true,
             digits: true,
             min: 1,
+            maxStock: true,
             messages: {
                 required: "Enter quantity.",
                 digits: "Enter valid format.",
@@ -355,17 +390,20 @@ $(document).ready(function() {
         if (thisDriverId !== '0' && thisDriverId !== '' && thisDriverId !== null) {
             fromDriverId = thisDriverId;
 
-            $('.m-driver').not(this).each(function (index, element) {
-                if ($(element).val() !== null && thisDriverId == $(element).val()) {
-                    indexIdForProduct = $(element).data('indexid');
+            if (thisDisType != 2) {
+                $('.m-driver').not(this).each(function (index, element) {
+                    if ($(element).val() !== null && thisDriverId == $(element).val()) {
+                        indexIdForProduct = $(element).data('indexid');
 
-                    if ($(`#product-${indexIdForProduct}`).val() !== null && thisProductId == $(`#product-${indexIdForProduct}`).val()) {
-                        $(that).val(null).trigger('change');
-                        Swal.fire('Warning', 'Driver is already selected with this product.', 'warning');
-                        return false;                    
+                        if ($(`#product-${indexIdForProduct}`).val() !== null && thisProductId == $(`#product-${indexIdForProduct}`).val()) {
+                            $(that).val(null).trigger('change');
+                            Swal.fire('Warning', 'Driver is already selected with this product.', 'warning');
+                            return false;                    
+                        }
                     }
-                }
-            });
+                });
+            }
+            
         } else {
             fromDriverId = null;
             $(`#product-${indexId}`).val(null).trigger('change');
@@ -374,6 +412,19 @@ $(document).ready(function() {
 
     $(document).on('change', '.m-quantity', function (event) {
         calculateAmount($(this).data('indexid'));
+    });
+
+    $(document).on('change', '.m-from-driver', function (event) {
+        let indexId = $(this).data('indexid');
+        let thisDriver = $(this).val();
+
+        if (thisDriver !== '0' && thisDriver !== '' && thisDriver !== null) {
+            fromDriverId = thisDriver;
+        } else {
+            fromDriverId = null;
+        }
+
+        $(`#product-${indexId}`).val(null).trigger('change');
     });
 
     var calculateAmount = (indexId = 0) => {

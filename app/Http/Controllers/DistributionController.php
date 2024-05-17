@@ -144,28 +144,19 @@ class DistributionController extends Controller
 
             $drivers = User::whereHas('role', function ($builder) {
                 $builder->where('roles.id', 3);
-            })->selectRaw("concat(name, ' - (', email, ')') as name, id")->active();
+            })->selectRaw("concat(name, ' - (', email, ')') as name, id")->active()
+            ->pluck('name', 'id')->toArray();
 
             if ($type == '1') {
-
-                $products = Stock::where('type', '0')->whereIn('form', ['1', '3'])->groupBy('product_id')->select('product_id')->pluck('product_id')->toArray();
-                $products = Product::whereIn('id', $products)->select('id', 'name')->pluck('name', 'id')->toArray();
-                $drivers = $drivers->pluck('name', 'id')->toArray();
-
-                return response()->json(['status' => true, 'html' => view('distribution.storage-to-driver', compact('products', 'drivers'))->render()]);
+                return response()->json(['status' => true, 'html' => view('distribution.storage-to-driver', compact('drivers'))->render()]);
 
             } else if ($type == '2') {
-                $drivers = $drivers->pluck('name', 'id')->toArray();
                 return response()->json(['status' => true, 'html' => view('distribution.driver-to-driver', compact('drivers'))->render()]);
 
             } else if ($type == '3') {
-
-                $drivers = $drivers->pluck('name', 'id')->toArray();
                 return response()->json(['status' => true, 'html' => view('distribution.driver-to-storage', compact('drivers'))->render()]);
 
             }
-
-            // ->pluck('name', 'id')->toArray()
         }
 
         return response()->json(['status' => false]);
@@ -175,92 +166,129 @@ class DistributionController extends Controller
         $data = [];
 
         if ($request->has('searchQuery') && !empty(trim($request->searchQuery)) && in_array($request->type, ['1', '2', '3'])) {
+
             $searchQuery = $request->searchQuery;
+            $prodArr = Product::select('id', 'name')->where('name', 'LIKE', "%{$searchQuery}%")->pluck('name', 'id')->toArray();
 
             if ($request->type == '1') {
-                $stockInItems = Stock::where('type', '0')->groupBy('product_id')->select('product_id')->pluck('product_id')->toArray();
 
-                $products = [];
-
-                foreach ($stockInItems as $item) {
-                    $inStock = Stock::where('type', '0')
-                    ->where('product_id', $item)
-                    ->where('form', '1')
-                    ->select('qty')
-                    ->sum('qty');
-
-                    $outStock = Stock::where('type', '1')
-                    ->where('product_id', $item)
-                    ->whereIn('form', ['2', '3'])
-                    ->select('qty')
-                    ->sum('qty');
-
-                    if ((intval($inStock) - intval($outStock)) > 0) {
-                        $products[] = $item;
-                    }
-                }
-
-                $data = Product::whereIn('id', $products)->select('id', 'name')->where('name', 'LIKE', "%{$searchQuery}%")->pluck('name', 'id')->toArray();
-            } else if ($request->type == '2' && !empty(trim($request->driver))) {
-
-                $stockInItems = DistributionItem::where('to_driver', $request->driver)
-                                ->select('product_id')
+                $stockInItems = Stock::where('type', '0')
+                                ->whereIn('form', ['1', '3'])
+                                ->whereNull('driver_id')
                                 ->groupBy('product_id')
+                                ->select('product_id')
                                 ->pluck('product_id')
                                 ->toArray();
 
                 $products = [];
 
                 foreach ($stockInItems as $item) {
-                    $inStock = DistributionItem::where('to_driver', $request->driver)
+                    $inStock = Stock::where('type', '0')
+                    ->whereIn('form', ['1', '3'])
                     ->where('product_id', $item)
+                    ->whereNull('driver_id')
                     ->select('qty')
                     ->sum('qty');
 
-                    $outStock = DistributionItem::where('from_driver', $request->driver)
+                    $outStock = Stock::where('type', '1')
                     ->where('product_id', $item)
+                    ->whereIn('form', ['3'])
+                    ->whereNull('driver_id')
                     ->select('qty')
                     ->sum('qty');
 
-                    if ((intval($inStock) - intval($outStock)) > 0) {
-                        $products[] = $item;
+                    $availStock = intval($inStock) - intval($outStock);
+
+                    if ($availStock > 0 && isset($prodArr[$item])) {
+                        $products[] = [
+                            'id' => $item,
+                            'text' => $prodArr[$item],
+                            'stock' => $availStock
+                        ];
                     }
-
                 }
 
-                $data = Product::whereIn('id', $products)->select('id', 'name')->where('name', 'LIKE', "%{$searchQuery}%")->pluck('name', 'id')->toArray();
-            } else if ($request->type == '3' && !empty(trim($request->driver))) {
-                
-                $stockInItems = DistributionItem::where('to_driver', $request->driver)
-                ->select('product_id')
-                ->groupBy('product_id')
-                ->pluck('product_id')
-                ->toArray();
+                $data = $products;
+            } else if ($request->type == '2' && !empty(trim($request->driver))) {
+
+                $stockInItems = Stock::where('type', '0')
+                                ->where('driver_id', $request->driver)
+                                ->whereIn('form', ['1', '3'])
+                                ->groupBy('product_id')
+                                ->select('product_id')
+                                ->pluck('product_id')
+                                ->toArray();
 
                 $products = [];
 
                 foreach ($stockInItems as $item) {
                     $inStock = Stock::where('type', '0')
-                    ->where('driver_id', $request->driver)
                     ->whereIn('form', ['1', '3'])
                     ->where('product_id', $item)
+                    ->where('driver_id', $request->driver)
                     ->select('qty')
                     ->sum('qty');
 
                     $outStock = Stock::where('type', '1')
-                    ->where('driver_id', $request->driver)
-                    ->whereIn('form', ['1', '3'])
                     ->where('product_id', $item)
+                    ->whereIn('form', ['3'])
+                    ->where('driver_id', $request->driver)
                     ->select('qty')
                     ->sum('qty');
 
-                    if ((intval($inStock) - intval($outStock)) > 0) {
-                        $products[] = $item;
+                    $availStock = intval($inStock) - intval($outStock);
+
+                    if ($availStock > 0 && isset($prodArr[$item])) {
+                        $products[] = [
+                            'id' => $item,
+                            'text' => $prodArr[$item],
+                            'stock' => $availStock
+                        ];
                     }
 
                 }
 
-                $data = Product::whereIn('id', $products)->select('id', 'name')->where('name', 'LIKE', "%{$searchQuery}%")->pluck('name', 'id')->toArray();
+                $data = $products;
+            } else if ($request->type == '3' && !empty(trim($request->driver))) {
+                
+                $stockInItems = Stock::where('type', '0')
+                                ->where('driver_id', $request->driver)
+                                ->whereIn('form', ['1', '3'])
+                                ->groupBy('product_id')
+                                ->select('product_id')
+                                ->pluck('product_id')
+                                ->toArray();
+
+                $products = [];
+
+                foreach ($stockInItems as $item) {
+                    $inStock = Stock::where('type', '0')
+                    ->whereIn('form', ['1', '3'])
+                    ->where('product_id', $item)
+                    ->where('driver_id', $request->driver)
+                    ->select('qty')
+                    ->sum('qty');
+
+                    $outStock = Stock::where('type', '1')
+                    ->where('product_id', $item)
+                    ->whereIn('form', ['3'])
+                    ->where('driver_id', $request->driver)
+                    ->select('qty')
+                    ->sum('qty');
+
+                    $availStock = intval($inStock) - intval($outStock);
+
+                    if ($availStock > 0 && isset($prodArr[$item])) {
+                        $products[] = [
+                            'id' => $item,
+                            'text' => $prodArr[$item],
+                            'stock' => $availStock
+                        ];
+                    }
+
+                }
+
+                $data = $products;
             }
 
         }
@@ -299,10 +327,52 @@ class DistributionController extends Controller
             $userId = auth()->user()->id;
             $products = array_filter($request->product);
             $quantities = array_filter($request->quantity);
+            $storageOutBoundErrors = [];
 
             if (!(count($products) > 0 && count($quantities) > 0)) {
                 DB::rollBack();
                 return redirect()->back()->with('error', 'Select product and enter quantity to assign stock');
+            }
+
+            if ($request->type == '1') {
+                $tempHelper = Helper::getAvailableStockFromStorage();
+                $addProdQty = [];
+                foreach ($products as $pk => $p) {
+                    $addProdQty[$p] = isset($addProdQty[$p]) ? ($addProdQty[$p] + $quantities[$pk]) : $quantities[$pk];
+                }
+                
+                foreach ($addProdQty as $pk => $qty) {
+                    if (isset($tempHelper[$pk]) && $tempHelper[$pk] < $qty) {
+                        $storageOutBoundErrors[] = '<strong>' . $tempHelper[$pk] . '</strong> quantity of <strong>' . Helper::productName()[$pk] . "</strong> are available in storage and you assigned <strong>{$qty}</strong>.";
+                    }
+                }
+            } else {
+                $addProdQty = [];
+                $frmDrvr = $request->driver;
+
+                if ($request->type == '2') {
+                    $frmDrvr = $request->from_driver;
+                }
+
+                foreach ($frmDrvr as $dk => $dr) {
+                    $tempHelper = Helper::getAvailableStockFromDriver($dr);
+                    $addProdQty[$dr][$products[$dk]] = isset($addProdQty[$dr][$products[$dk]]) ? ($addProdQty[$dr][$products[$dk]] + $quantities[$dk]) : $quantities[$dk];
+                }
+
+                foreach ($addProdQty as $prodIdArr) {
+                    foreach ($prodIdArr as $prodIdKey => $qty) {
+                        if (isset($tempHelper[$prodIdKey]) && $tempHelper[$prodIdKey] < $qty) {
+                            $storageOutBoundErrors[] = '<strong>' . Helper::userName($dk, 'Driver') . '</strong> has <strong>' . $tempHelper[$prodIdKey] . '</strong> quantity of <strong>' . Helper::productName()[$prodIdKey] . "</strong> are available and you assigned <strong>{$qty}</strong>.";
+                        }
+                    }
+                }
+            }
+
+            $storageOutBoundErrors = array_unique($storageOutBoundErrors);
+
+            if (count($storageOutBoundErrors) > 0) {
+                DB::rollBack();
+                return redirect()->back()->with('error', implode("<br/>", $storageOutBoundErrors));
             }
 
             if ($request->type == '1') {
@@ -469,7 +539,7 @@ class DistributionController extends Controller
             return redirect()->back()->with('error', Helper::$errorMessage);
 
         } catch (\Exception $e) {
-            Helper::logger($e->getMessage());
+            Helper::logger($e->getMessage() . ' Line No. :' . $e->getLine());
             DB::rollBack();
             return redirect()->back()->with('error', Helper::$errorMessage);
         }
