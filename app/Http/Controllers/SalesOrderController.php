@@ -798,8 +798,9 @@ class SalesOrderController extends Controller
         $moduleName = 'Sales Order';
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $so = SalesOrder::find(decrypt($id));
+        $driver = isset($so->items->first()->driver->user->name) ? ($so->items->first()->driver->user->name . ' - (' . $so->items->first()->driver->user->email . ')') : '-';
 
-        return view('so.view', compact('moduleName', 'categories', 'so'));
+        return view('so.view', compact('moduleName', 'categories', 'so', 'driver'));
     }
 
     public function destroy(Request $request, $id)

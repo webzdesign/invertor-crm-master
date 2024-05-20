@@ -15,4 +15,8 @@ class Deliver extends Model
     public function item() {
         return $this->belongsTo(SalesOrderItem::class, 'soi_id');
     }
+
+    public function user() {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

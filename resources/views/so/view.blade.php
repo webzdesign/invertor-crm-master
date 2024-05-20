@@ -192,7 +192,7 @@
                                                     <input type="text" class="form-control mt-amount" style="background:#efefef" value="{{ Helper::currencyFormatter($so->items->sum('amount')) }}" readonly>
                                                 </div>
                                             </td>
-                                            <td></td>
+                                            <td> <strong>Driver</strong> : {{ $driver }}</td> </td>
                                         </tr>
                                     </tfoot>
                                 </table>
