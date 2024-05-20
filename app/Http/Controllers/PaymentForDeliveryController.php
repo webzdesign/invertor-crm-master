@@ -76,7 +76,7 @@ class PaymentForDeliveryController extends Controller
                 } 
 
                 DB::commit();
-                return redirect()->back()->with('success', 'Commission updated successfully.');
+                return redirect()->back()->with('success', 'Payment for delivery records updated successfully.');
             } catch (\Exception $e) {
                 DB::rollBack();
                 Helper::logger($e->getMessage(), 'critical');
