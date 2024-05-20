@@ -120,11 +120,22 @@
         </li>
         @endpermission
 
+        @permission('payment-for-delivery.view')
+        <li>
+            <a href="{{ route('payment-for-delivery') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('payment-for-delivery*') ? 'active' : '' }}">
+                <div class="icnBx d-flex align-items-center justify-content-center">
+                    <i class="fa fa-euro text-white" aria-hidden="true"></i>
+                </div>
+                <span class="d-none-add">Payment for Delivery</span>
+            </a>
+        </li>
+        @endpermission
+
         @permission('stock-report.view')
         <li>
             <a href="{{ route('stock-report') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('stock-report*') ? 'active' : '' }}">
                 <div class="icnBx d-flex align-items-center justify-content-center">
-                    <i class="fa fa-tag text-white" aria-hidden="true"></i>
+                    <i class="fa fa-file text-white" aria-hidden="true"></i>
                 </div>
                 <span class="d-none-add">Stock Report</span>
             </a>

@@ -62,7 +62,9 @@ class PermissionSeeder extends Seeder
             ['name' => 'Add Distribution', 'slug' => 'distribution.create', 'model' => 'Distribution', 'description' => 'Can add Distribution', 'added_by' => 1],
             ['name' => 'View Distribution', 'slug' => 'distribution.view', 'model' => 'Distribution', 'description' => 'Can view Distribution', 'added_by' => 1],
 
-            ['name' => 'View Stock Report', 'slug' => 'stock-report.view', 'model' => 'Report', 'description' => 'Can view Stock Report', 'added_by' => 1],            
+            ['name' => 'View Stock Report', 'slug' => 'stock-report.view', 'model' => 'Report', 'description' => 'Can view Stock Report', 'added_by' => 1],
+
+            ['name' => 'View Payment for Delivery', 'slug' => 'payment-for-delivery.view', 'model' => 'PaymentForDelivery', 'description' => 'Can View Payment for Delivery', 'added_by' => 1],
         ];
 
         foreach ($permissions as $permission) {

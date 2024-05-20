@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PaymentForDeliveryController;
 use App\Http\Controllers\ProcurementCostController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\DistributionController;
@@ -145,6 +146,10 @@ Route::group(["middleware" => "auth"], function () {
         /** Report **/
         Route::match(['GET', 'POST'], 'stock-report', [ReportController::class, 'stockReport'])->name('stock-report')->middleware('ModuleAccessor:stock-report.view');
         /** Report **/
+
+        /** Payment for deliveyr **/
+        Route::match(['GET', 'POST'], 'payment-for-delivery', [PaymentForDeliveryController::class, 'index'])->name('payment-for-delivery')->middleware('ModuleAccessor:payment-for-delivery.view');        
+        /** Payment for deliveyr **/
 
         /** Common **/
         Route::post('getStates', [Helper::class, 'getStates'])->name('getStates');
