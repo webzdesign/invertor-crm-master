@@ -178,7 +178,7 @@
             var valueOfDuplicate = '';
 
             $(className).each(function() {
-                var value = $(this).val();
+                var value = $(this).val().toUpperCase();
                 if (valuesCount[value]) {
                     valuesCount[value]++;
                 } else {
