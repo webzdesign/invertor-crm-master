@@ -74,6 +74,11 @@
         border-radius: 10px;
         padding: 0;
     }
+
+    .card-options {
+        display: none;        
+    }
+
 </style>
 @endsection
 
@@ -97,7 +102,7 @@
     @forelse($statuses as $key => $status)
     <div class="card card-row card-secondary parent-card @if($status->id == '1') disable-sorting @endif ">
         @php $tempColor = !empty($status->color) ? $status->color : (isset($colours[$key]) ? $colours[$key] : (isset($colours[$iteration]) ? $colours[$iteration] : ($iteration = 0 and $colours[0] ? $colours[$iteration] : '#99ccff' )));  @endphp
-        <input type="hidden" name="sequence[]" value="{{ $status->id }}">
+        <input type="hidden" name="sequence[]" value="{{ $status->id }}" @if($status->id == '1') disabled @endif>
         <div class="card-header" style="border-bottom: 5px solid {{ $tempColor }};">
             @if(count($statuses) == 1 || !$loop->last)
             @permission("sales-order-status.create")
@@ -117,7 +122,7 @@
 
                 <input type="text" name="name[]" class="title-of-card" value="{{ $status->name }}" @if($status->id == '1') disabled @endif >
 
-                <span style="float: right;">
+                <span style="float: right;" class="card-options">
                     @if($status->id != '1')
                     @permission("sales-order-status.delete")
                     <i class="fa fa fa-trash"></i>
@@ -249,7 +254,7 @@
 
                         <input type="text" name="name[]" class="title-of-card" value="">
 
-                        <span style="float: right;">
+                        <span style="float: right;" class="card-options">
                             ${deletePermission}
                             <input type="color" name="color[]" class="color-picker" value="${thisColor}">
                         </span>
@@ -267,6 +272,22 @@
         $(document).on('change', '.color-picker', function () {
             $(this).parent().parent().parent().css('border-bottom', `5px solid ${$(this).val()}`);
             $(this).parent().parent().parent().find('.sticky-add-icon').attr('data-color', $(this).val());
+        });
+
+        $(document).on('focus', '.title-of-card', function () {
+            $(this).parent().find('.card-options').show();
+        });
+
+        $(document).on('blur', '.title-of-card', function () {
+            if ($(this).parent().find('.color-picker').hasClass('is-active')) {
+                $(this).parent().find('.card-options').hide();
+                $(this).parent().find('.color-picker').removeClass('is-active')
+            }
+        });
+
+        $(document).on('click', '.color-picker', function () {
+            $(this).addClass('is-active');
+            $(this).parent().parent().find('.title-of-card').focus();
         });
 
         $(document).on('click', '.fa-trash', function () {
