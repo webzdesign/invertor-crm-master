@@ -43,7 +43,7 @@ class SalesOrderStatusController extends Controller
                     SalesOrderStatus::create([
                         'name' => $value,
                         'slug' => Helper::slug($value),
-                        'color' => isset($request->color[$key + 1]) ? $request->color[$key + 1] : '#bfbfbf',
+                        'color' => isset($request->color[$key]) ? $request->color[$key] : '#bfbfbf',
                         'sequence' => $key + 1
                     ]);
                 }

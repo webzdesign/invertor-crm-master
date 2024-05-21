@@ -100,9 +100,11 @@
         <input type="hidden" name="sequence[]" value="{{ $status->id }}">
         <div class="card-header" style="border-bottom: 5px solid {{ $tempColor }};">
             @if(count($statuses) == 1 || !$loop->last)
+            @permission("sales-order-status.create")
             <span class="sticky-add-icon" data-color="{{ $tempColor }}">
                 <i class="fa fa-plus" style="color: #bfbfbf;"></i>
             </span>
+            @endpermission
             @endif
 
             <h3 class="card-title">
@@ -117,9 +119,11 @@
 
                 <span style="float: right;">
                     @if($status->id != '1')
+                    @permission("sales-order-status.delete")
                     <i class="fa fa fa-trash"></i>
+                    @endpermission
                     @endif
-                    <input type="color" name="color[]" class="color-picker" value="{{ $tempColor }}">
+                    <input type="color" name="color[]" class="color-picker" value="{{ $tempColor }}" @if($status->id == '1') disabled @endif>
                 </span>
 
             </h3>
@@ -154,6 +158,17 @@
 
 @section('script')
 <script>
+    let deletePermission = '';
+    let addPermission = false;
+
+    @if(auth()->user()->hasPermission('sales-order-status.delete'))
+    deletePermission = '<i class="fa fa fa-trash"></i>';
+    @endif
+
+    @if(auth()->user()->hasPermission('sales-order-status.create'))
+    addPermission = true;
+    @endif
+
     $(document).ready(function() {
         $('#sortable').sortable();
 
@@ -225,7 +240,7 @@
             <div class="card card-row card-secondary parent-card">
                 <input type="hidden" name="sequence[]" value="">
                 <div class="card-header" style="border-bottom: 5px solid ${thisColor};">
-                    ${totalCards - thisIndex !== 0 ? `<span class="sticky-add-icon" data-color="${thisColor}"><i class="fa fa-plus" style="color:#bfbfbf;"></i></span>` : ''}
+                    ${totalCards - thisIndex !== 0 && addPermission ? `<span class="sticky-add-icon" data-color="${thisColor}"><i class="fa fa-plus" style="color:#bfbfbf;"></i></span>` : ''}
                     <h3 class="card-title">
 
                         <span style="float: left;">
@@ -235,7 +250,7 @@
                         <input type="text" name="name[]" class="title-of-card" value="">
 
                         <span style="float: right;">
-                            <i class="fa fa fa-trash"></i>
+                            ${deletePermission}
                             <input type="color" name="color[]" class="color-picker" value="${thisColor}">
                         </span>
 
