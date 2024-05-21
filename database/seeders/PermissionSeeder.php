@@ -65,6 +65,11 @@ class PermissionSeeder extends Seeder
             ['name' => 'View Stock Report', 'slug' => 'stock-report.view', 'model' => 'Report', 'description' => 'Can view Stock Report', 'added_by' => 1],
 
             ['name' => 'View Payment for Delivery', 'slug' => 'payment-for-delivery.view', 'model' => 'PaymentForDelivery', 'description' => 'Can View Payment for Delivery', 'added_by' => 1],
+
+            ['name' => 'Add Sales Order Status', 'slug' => 'sales-order-status.create', 'model' => 'SalesOrderStatus', 'description' => 'Can add Sales Order Status', 'added_by' => 1],
+            ['name' => 'Edit Sales Order Status', 'slug' => 'sales-order-status.edit', 'model' => 'SalesOrderStatus', 'description' => 'Can edit Sales Order Status', 'added_by' => 1],
+            ['name' => 'View Sales Order Status', 'slug' => 'sales-order-status.view', 'model' => 'SalesOrderStatus', 'description' => 'Can view Sales Order Status', 'added_by' => 1],
+            ['name' => 'Delete Sales Order Status', 'slug' => 'sales-order-status.delete', 'model' => 'SalesOrderStatus', 'description' => 'Can delete Sales Order Status', 'added_by' => 1],
         ];
 
         foreach ($permissions as $permission) {

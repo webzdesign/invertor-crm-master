@@ -104,6 +104,7 @@
 
                     </ul>
                 </header>
+                @if(Helper::shouldHideBreadcumb())
                 <div class="breadcrumb pl284">
                     <div class="d-flex justify-content-between w-100">
                         <ul class="p-0 m-0 w-100">
@@ -125,6 +126,7 @@
                     </div>
                     <div class="devider"></div>
                 </div>
+                @endif
                 <div class="middleContent settingWrpr pl284">
                     @yield('create_button')
                     <div class="importWrpr">

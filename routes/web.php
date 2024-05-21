@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PaymentForDeliveryController;
+use App\Http\Controllers\SalesOrderStatusController;
 use App\Http\Controllers\ProcurementCostController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\DistributionController;
@@ -150,6 +151,15 @@ Route::group(["middleware" => "auth"], function () {
         /** Payment for deliveyr **/
         Route::match(['GET', 'POST'], 'payment-for-delivery', [PaymentForDeliveryController::class, 'index'])->name('payment-for-delivery')->middleware('ModuleAccessor:payment-for-delivery.view');        
         /** Payment for deliveyr **/
+
+        /** Sales Order Status **/
+        Route::get('sales-order-status', [SalesOrderStatusController::class, 'index'])->name('sales-order-status')->middleware('ModuleAccessor:sales-order-status.view');
+        Route::get('sales-order-status/sequence', [SalesOrderStatusController::class, 'sequence'])->name('sales-order-status-sequence')->middleware('ModuleAccessor:sales-order-status.edit');
+        Route::get('sales-order-status/delete', [SalesOrderStatusController::class, 'delete'])->name('sales-order-status-delete')->middleware('ModuleAccessor:sales-order-status.delete');
+        Route::get('sales-order-status/automate', [SalesOrderStatusController::class, 'edit'])->name('sales-order-status-edit')->middleware('ModuleAccessor:sales-order-status.edit');
+        Route::post('sales-order-status/update', [SalesOrderStatusController::class, 'update'])->name('sales-order-status-update')->middleware('ModuleAccessor:sales-order-status.edit');
+        Route::post('sales-order-status/create', [SalesOrderStatusController::class, 'create'])->name('sales-order-status-store')->middleware('ModuleAccessor:sales-order-status.create');
+        /** Sales Order Status **/
 
         /** Common **/
         Route::post('getStates', [Helper::class, 'getStates'])->name('getStates');

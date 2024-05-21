@@ -286,4 +286,13 @@ class Helper {
             return User::select('id', 'name')->where('id', $id)->first()->name ?? $default;
         }
     }
+
+    public static function shouldHideBreadcumb() {
+        $route = request()->route()->getName() ?? '';
+
+        return !in_array($route, [
+            'sales-order-status',
+            'sales-order-status-edit'
+        ]);
+    }
 }

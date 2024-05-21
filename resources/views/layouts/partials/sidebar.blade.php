@@ -131,6 +131,17 @@
         </li>
         @endpermission
 
+        @permission('sales-order-status.view')
+        <li>
+            <a href="{{ route('sales-order-status') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('sales-order-status*') ? 'active' : '' }}">
+                <div class="icnBx d-flex align-items-center justify-content-center">
+                    <i class="fa fa-plus-square text-white" aria-hidden="true"></i>
+                </div>
+                <span class="d-none-add"> Sales Order Status </span>
+            </a>
+        </li>
+        @endpermission
+
         @permission('stock-report.view')
         <li>
             <a href="{{ route('stock-report') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('stock-report*') ? 'active' : '' }}">
