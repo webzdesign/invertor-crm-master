@@ -154,9 +154,11 @@ class UserController extends Controller
             $user->roles()->attach($request->role);
             $user->userpermission()->attach($request->permission);
 
-            $errorWhileSavingLatLong = true;
+            $errorWhileSavingLatLong = false;
 
             if ($request->role == '3') {
+                $errorWhileSavingLatLong = true;
+
                 $key = trim(Setting::first()?->geocode_key);
 
                 if (!empty($key)) {
