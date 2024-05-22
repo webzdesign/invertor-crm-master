@@ -250,4 +250,8 @@
         $(`${element}`).closest('.dataTables_scrollBody').css('height', `${heightY}px`);
     }
 
+    function x(...args) {
+        console.log(...args);
+    }
+
 </script>

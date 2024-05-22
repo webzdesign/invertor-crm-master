@@ -8,6 +8,7 @@
         padding: 6px 15px;
         text-align: center;
         display: grid;
+        height: 40px;
     }
 
     .card-title {
@@ -19,9 +20,20 @@
     }
     .card.card-row {
         width: 300px;
-        margin: 0.1rem;
+        margin: 0 !important;
         min-width: 270px;
         height: calc(100vh - 180px);
+        border-radius: 0;
+        border-right: 0;
+    }
+    .card.card-row:last-child{
+        border-right: 1px solid rgba(0,0,0,.125);
+    }
+    .ui-sortable-helper{
+        border: none;
+    }
+    .ui-sortable-helper .sticky-add-icon{
+        display: none;
     }
     .fa-arrows {
         cursor: move;
@@ -42,8 +54,8 @@
         border: 1px solid grey;
         border-radius: 50%;
         position: absolute;
-        right: -18px;
-        top: 18px;
+        right: -12px;
+        top: 25px;
         cursor: pointer;
         z-index: 1;
         background: white;
@@ -58,11 +70,10 @@
         padding: 0;
         border: none;
         border-radius: 10px;
-        width: 13px;
-        height: 13px;
+        width: 14px;
+        min-width: 14px;
+        height: 14px;
         position: relative;
-        left: 5px;
-        top: 1px;
     }
     input[type="color"]::-webkit-color-swatch {
         border: none;
@@ -76,7 +87,7 @@
     }
 
     .card-options {
-        display: none;        
+        display: none!important;
     }
 
 </style>
@@ -103,7 +114,7 @@
     <div class="card card-row card-secondary parent-card @if($status->id == '1') disable-sorting @endif ">
         @php $tempColor = !empty($status->color) ? $status->color : (isset($colours[$key]) ? $colours[$key] : (isset($colours[$iteration]) ? $colours[$iteration] : ($iteration = 0 and $colours[0] ? $colours[$iteration] : '#99ccff' )));  @endphp
         <input type="hidden" name="sequence[]" value="{{ $status->id }}" @if($status->id == '1') disabled @endif>
-        <div class="card-header" style="border-bottom: 5px solid {{ $tempColor }};">
+        <div class="card-header px-2" style="border-bottom: 4px solid {{ $tempColor }};">
             @if(count($statuses) == 1 || !$loop->last)
             @permission("sales-order-status.create")
             <span class="sticky-add-icon" data-color="{{ $tempColor }}">
@@ -112,45 +123,36 @@
             @endpermission
             @endif
 
-            <h3 class="card-title">
+            <div class="card-title d-flex align-items-center justify-content-between">
 
                 @if($status->id != '1')
-                <span style="float: left;">
-                    <i class="fa fa fa-arrows" style="color: #bfbfbf;"></i>
-                </span>
+                <div style="line-height: 0;cursor: move">
+                    <svg fill="#656565" width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" data-name="Layer 1"><path d="M8.5,10a2,2,0,1,0,2,2A2,2,0,0,0,8.5,10Zm0,7a2,2,0,1,0,2,2A2,2,0,0,0,8.5,17Zm7-10a2,2,0,1,0-2-2A2,2,0,0,0,15.5,7Zm-7-4a2,2,0,1,0,2,2A2,2,0,0,0,8.5,3Zm7,14a2,2,0,1,0,2,2A2,2,0,0,0,15.5,17Zm0-7a2,2,0,1,0,2,2A2,2,0,0,0,15.5,10Z"/></svg>
+                </div>
                 @endif
 
-                <input type="text" name="name[]" class="title-of-card" value="{{ $status->name }}" @if($status->id == '1') disabled @endif >
+                <input type="text" name="name[]" class="title-of-card f-14 m-auto" value="{{ $status->name }}" @if($status->id == '1') disabled @endif >
 
-                <span style="float: right;" class="card-options">
+                <div class="d-flex align-items-center card-options">
+                    <span class="me-2">
+                        @if($status->id != '1')
+                        @permission("sales-order-status.delete")
+                        <i class="fa fa fa-trash"></i>
+                        @endpermission
+                        @endif
+                    </span>
+
                     @if($status->id != '1')
-                    @permission("sales-order-status.delete")
-                    <i class="fa fa fa-trash"></i>
-                    @endpermission
+                        <input type="color" name="color[]" class="color-picker" value="{{ $tempColor }}" />
                     @endif
-                    <input type="color" name="color[]" class="color-picker" value="{{ $tempColor }}" @if($status->id == '1') disabled @endif>
-                </span>
+                </div>
 
-            </h3>
+            </div>
         </div>
         <div class="card-body">
         </div>
     </div>
     @empty
-    <div class="card card-row card-secondary parent-card">
-        <input type="hidden" name="sequence[]" value="1">
-        <div class="card-header" style="border-bottom: 3px solid #c1c1c1;">
-            <h3 class="card-title">
-                <span style="float: left;">
-                    <i class="fa fa fa-arrows" style="color: #bfbfbf;"></i>
-                </span>
-
-                <input type="text" name="name[]" class="title-of-card" value="TO DO">
-            </h3>
-        </div>
-        <div class="card-body">
-        </div>
-    </div>
     @endforelse
     
 </div>
@@ -167,7 +169,7 @@
     let addPermission = false;
 
     @if(auth()->user()->hasPermission('sales-order-status.delete'))
-    deletePermission = '<i class="fa fa fa-trash"></i>';
+    deletePermission = '<span class="me-2"> <i class="fa fa fa-trash"></i></span>';
     @endif
 
     @if(auth()->user()->hasPermission('sales-order-status.create'))
@@ -244,22 +246,22 @@
             toBeAppened = `
             <div class="card card-row card-secondary parent-card">
                 <input type="hidden" name="sequence[]" value="">
-                <div class="card-header" style="border-bottom: 5px solid ${thisColor};">
+                <div class="card-header px-2" style="border-bottom: 4px solid ${thisColor};">
                     ${totalCards - thisIndex !== 0 && addPermission ? `<span class="sticky-add-icon" data-color="${thisColor}"><i class="fa fa-plus" style="color:#bfbfbf;"></i></span>` : ''}
-                    <h3 class="card-title">
+                    <div class="card-title  d-flex align-items-center justify-content-between">
 
-                        <span style="float: left;">
-                            <i class="fa fa fa-arrows" style="color: #bfbfbf;"></i>
-                        </span>
+                        <div style="line-height: 0;cursor: move">
+                            <svg fill="#656565" width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" data-name="Layer 1"><path d="M8.5,10a2,2,0,1,0,2,2A2,2,0,0,0,8.5,10Zm0,7a2,2,0,1,0,2,2A2,2,0,0,0,8.5,17Zm7-10a2,2,0,1,0-2-2A2,2,0,0,0,15.5,7Zm-7-4a2,2,0,1,0,2,2A2,2,0,0,0,8.5,3Zm7,14a2,2,0,1,0,2,2A2,2,0,0,0,15.5,17Zm0-7a2,2,0,1,0,2,2A2,2,0,0,0,15.5,10Z"/></svg>
+                        </div>
 
-                        <input type="text" name="name[]" class="title-of-card" value="">
+                        <input type="text" name="name[]" class="title-of-card f-14 m-auto" value="">
 
-                        <span style="float: right;" class="card-options">
+                        <div class="d-flex align-items-center card-options">
                             ${deletePermission}
                             <input type="color" name="color[]" class="color-picker" value="${thisColor}">
-                        </span>
+                        </div>
 
-                    </h3>
+                    </div>
                 </div>
                 <div class="card-body">
                 </div>
@@ -275,22 +277,27 @@
         });
 
         $(document).on('focus', '.title-of-card', function () {
-            $(this).parent().find('.card-options').show();
+            $(this).next().attr('style', 'display:block!important;');
         });
 
         $(document).on('blur', '.title-of-card', function () {
-            if ($(this).parent().find('.color-picker').hasClass('is-active')) {
-                $(this).parent().find('.card-options').hide();
-                $(this).parent().find('.color-picker').removeClass('is-active')
+            if ($(this).next().find('.color-picker').hasClass('is-active')) {
+                $(this).next().find('.color-picker').removeClass('is-active')
+                $(this).next().attr('style', 'display:none!important;');
             }
+            
         });
 
         $(document).on('click', '.color-picker', function () {
-            $(this).addClass('is-active');
-            $(this).parent().parent().find('.title-of-card').focus();
+            if (!$(this).hasClass('is-active')) {
+                $(this).addClass('is-active');
+            }
+
+            $(this).parent().prev().focus();
         });
 
         $(document).on('click', '.fa-trash', function () {
+            $(this).parent().parent().attr('style', 'display:none!important;');
             Swal.fire('', 'This functionality is in development.', 'info');            
         })
 

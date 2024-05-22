@@ -16,7 +16,7 @@ class SalesOrderStatusController extends Controller
         $orders = [];
 
         foreach ($statuses as $status) {
-            $tempOrder = SalesOrder::join('sales_order_items', 'sales_order_items.so_id', '=', 'sales_orders.id')->selectRaw("sales_orders.id, sales_orders.order_no, sales_orders.delivery_date, SUM(sales_order_items.amount) as amount")->where('sales_orders.status', $status->id)->groupBy('sales_order_items.so_id');
+            $tempOrder = SalesOrder::join('sales_order_items', 'sales_order_items.so_id', '=', 'sales_orders.id')->selectRaw("sales_orders.id, sales_orders.order_no, sales_orders.date, SUM(sales_order_items.amount) as amount")->where('sales_orders.status', $status->id)->groupBy('sales_order_items.so_id');
 
             if ($tempOrder->exists()) {
                 $orders[$status->id] = $tempOrder->get()->toArray();
@@ -66,8 +66,8 @@ class SalesOrderStatusController extends Controller
                         ]);
                     } else {
                         SalesOrderStatus::create([
-                            'name' => $value,
-                            'slug' => Helper::slug($value),
+                            'name' => $names[$key],
+                            'slug' => Helper::slug($names[$key]),
                             'color' => isset($colors[$key]) ? $colors[$key] : '#bfbfbf',
                             'sequence' => $key + 1
                         ]);
