@@ -97,14 +97,14 @@
 
     @if(in_array(1, auth()->user()->roles->pluck('id')->toArray()))
     <div>
-        <a href="{{ route('sales-order-status-list') }}" class="btn-default f-500 f-14 d-inline-block"> 
+        <a href="{{ route('sales-order-status') }}" class="btn-default f-500 f-14 d-inline-block"> 
             <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
                 <rect x="4" y="2" width="2" height="16" fill="black" />
                 <rect x="9" y="2" width="2" height="12" fill="black" />
                 <rect x="14" y="2" width="2" height="6" fill="black" />
             </svg>
            </a>
-        <a href="{{ route('sales-order-status') }}" class="btn-primary f-500 f-14 d-inline-block">  
+        <a href="{{ route('sales-order-status-list') }}" class="btn-primary f-500 f-14 d-inline-block">  
             <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
                 <rect x="2" y="4" width="16" height="2" fill="white" />
                 <rect x="2" y="9" width="16" height="2" fill="white" />

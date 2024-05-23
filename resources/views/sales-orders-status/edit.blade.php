@@ -101,10 +101,8 @@
 <form action="{{ route('sales-order-status-update') }}" method="POST" id="cardForm" > @csrf
 
     <div class="d-flex align-items-center justify-content-between filterPanelbtn my-2 flex-wrap" style="display: flex!important;justify-content: flex-end!important;">
-        @permission("sales-order-status.edit")
         <button type="submit" class="btn-primary f-500 f-14" style="margin-right:10px;"> SAVE </button>
         <a href="{{ route('sales-order-status') }}" class="btn-default f-500 f-14"> BACK </a>
-        @endpermission
     </div>
 
 <div class="d-flex overflow-auto pb-3" id="sortable">
