@@ -44,6 +44,18 @@
     .status-main:hover .status-opener{
         visibility: visible;
     }
+    .overflowTable .odd td:nth-child(3){
+        width: 260px;
+        min-width: 260px;
+    }
+    .overflowTable .odd td:nth-child(4){
+        width: 150px;
+        min-width: 150px;
+    }
+    .overflowTable .odd td:nth-child(2){
+        width: 150px;
+        min-width: 150px;
+    }
     .status-modal{
         position: absolute;
         top: 0;
@@ -73,14 +85,27 @@
         position: absolute;
         top: 0;
         z-index: 1;
+        max-height: 185px;
+        overflow: auto;
+    }
+    .status-dropdown-menu::-webkit-scrollbar-track{
+        background-color: #ffffff;
+    }
+
+    .status-dropdown-menu::-webkit-scrollbar{
+        width: 6px;
+        background-color: #ffffff;
+    }
+
+    .status-dropdown-menu::-webkit-scrollbar-thumb{
+        background-color: #c7c7c7;
     }
     .status-dropdown-menu li{
         padding: 3px 6px;
         cursor: pointer;
     }
     .dataTables_wrapper .col-sm-12{
-        overflow-x: auto;
-        overflow-y: inherit;
+        overflow: inherit;
     }
     .btn-primary:disabled:hover{
         background: #E9EAED !important;
@@ -267,7 +292,7 @@ var totalOrders = 0;
             processing: true,
             serverSide: true,
             oLanguage: {sProcessing: "<div id='dataTableLoader'></div>"},
-            "dom": "<'filterHeader d-block-500 cardsHeader'l<'#filterInput'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
+            "dom": "<'filterHeader d-block-500 cardsHeader'l<'#filterInput'>>" + "<'row m-0'<'col-sm-12 p-0 overflowTable'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
             language: {info: ""},
             ajax: {
                 "url": "{{ route('sales-order-status-list') }}",
