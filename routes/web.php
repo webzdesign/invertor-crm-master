@@ -153,12 +153,15 @@ Route::group(["middleware" => "auth"], function () {
         /** Payment for deliveyr **/
 
         /** Sales Order Status **/
+        Route::match(['GET', 'POST'], 'sales-order-status-list', [SalesOrderStatusController::class, 'list'])->name('sales-order-status-list');
         Route::get('sales-order-status', [SalesOrderStatusController::class, 'index'])->name('sales-order-status')->middleware('ModuleAccessor:sales-order-status.view');
         Route::post('sales-order-status/sequence', [SalesOrderStatusController::class, 'sequence'])->name('sales-order-status-sequence')->middleware('ModuleAccessor:sales-order-status.edit');
         Route::get('sales-order-status/delete', [SalesOrderStatusController::class, 'delete'])->name('sales-order-status-delete')->middleware('ModuleAccessor:sales-order-status.delete');
         Route::get('sales-order-status/automate', [SalesOrderStatusController::class, 'edit'])->name('sales-order-status-edit')->middleware('ModuleAccessor:sales-order-status.edit');
         Route::post('sales-order-status/update', [SalesOrderStatusController::class, 'update'])->name('sales-order-status-update')->middleware('ModuleAccessor:sales-order-status.edit');
         Route::post('sales-order-status/create', [SalesOrderStatusController::class, 'create'])->name('sales-order-status-store')->middleware('ModuleAccessor:sales-order-status.create');
+        Route::post('sales-order-status-update-status', [SalesOrderStatusController::class, 'status'])->name('sales-order-status-update-status')->middleware('ModuleAccessor:sales-order-status.edit');
+        Route::post('sales-order-status-update-status-bulk', [SalesOrderStatusController::class, 'statusBulkUpdate'])->name('sales-order-status-update-status-bulk')->middleware('ModuleAccessor:sales-order-status.edit');
         /** Sales Order Status **/
 
         /** Common **/

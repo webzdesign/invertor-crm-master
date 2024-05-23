@@ -292,6 +292,7 @@ class Helper {
 
         return !in_array($route, [
             'sales-order-status',
+            'sales-order-status-list',
             'sales-order-status-edit'
         ]);
     }

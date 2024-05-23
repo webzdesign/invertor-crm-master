@@ -3,8 +3,27 @@
 @section('content')
     {{ Config::set('app.module', $moduleName) }}
 @section('create_button')
-    <div class="d-flex align-items-center justify-content-between filterPanelbtn my-2 flex-wrap"
-        style="display: flex!important;justify-content: flex-end!important;">
+    <div class="d-flex align-items-center justify-content-between filterPanelbtn my-2 flex-wrap">
+
+        @if(in_array(1, auth()->user()->roles->pluck('id')->toArray()))
+        <div>
+            <a href="{{ route('sales-order-status-list') }}" class="btn-primary f-500 f-14 d-inline-block"> 
+                <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="4" y="2" width="2" height="16" fill="white" />
+                    <rect x="9" y="2" width="2" height="12" fill="white" />
+                    <rect x="14" y="2" width="2" height="6" fill="white" />
+                </svg>
+               </a>
+            <a href="{{ route('sales-order-status') }}" class="btn-default f-500 f-14 d-inline-block">  
+                <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="4" width="16" height="2" fill="black" />
+                    <rect x="2" y="9" width="16" height="2" fill="black" />
+                    <rect x="2" y="14" width="16" height="2" fill="black" />
+                </svg>                           
+            </a>
+        </div>
+        @endif
+
         @permission('sales-order-status.edit')
             <a href="{{ route('sales-order-status-edit') }}" class="btn-primary f-500 f-14">
                 <i class="fa fa-flash" style="color: #ffab00;"></i> &nbsp; AUTOMATE
