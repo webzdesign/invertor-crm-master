@@ -182,13 +182,26 @@
                 </div>
                 <div class="modal-body select2-putter">
 
-                    <input type="hidden" name="ids" id="set-id-os-1" value="all">
+                    <input type="hidden" name="status" id="set-id-o-1" />
+                    <input type="hidden" name="ids" id="set-id-os-1" value="all" />
 
-                    <select class='status-select1' name="status">
-                    @foreach ($statuses as $status)
-                        <option value="{{ $status['id'] }}" data-color="{{ $status['color'] }}"> {{ $status['name'] }} </option>
-                    @endforeach                    
-                    </select>
+                    <div class="status-dropdown">
+                        @foreach ($statuses as $status)
+                        @if($loop->first)
+                        <button type="button" style="background:{{ $status['color'] }};" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
+                            <span>{{ $status['name'] }}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
+                                <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
+                            </svg>
+                        </button>
+                        @endif
+                        @endforeach
+                        <div class="status-dropdown-menu">
+                            @foreach ($statuses as $status)
+                            <li data-sid="{{ $status['id'] }}" style="background: {{ $status['color'] }};"> {{ $status['name'] }} </li>
+                            @endforeach
+                        </div>
+                    </div>
 
                 </div>
                 <div class="modal-footer no-border">
@@ -210,26 +223,26 @@
                 </div>
                 <div class="modal-body select2-putter">
 
-                    <input type="hidden" name="ids" id="set-id-os-2">
+                    <input type="hidden" name="status" id="set-id-o-2" />
+                    <input type="hidden" name="ids" id="set-id-os-2" />
 
                     <div class="status-dropdown">
-                        <button type="button" style="background:pink;" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
-                            <span>Open</span>
+                        @foreach ($statuses as $status)
+                        @if($loop->first)
+                        <button type="button" style="background:{{ $status['color'] }};" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
+                            <span>{{ $status['name'] }}</span>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
                                 <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
                             </svg>
                         </button>
+                        @endif
+                        @endforeach
                         <div class="status-dropdown-menu">
-                            <li style="background: pink">1</li>
-                            <li style="background: antiquewhite">2</li>
-                            <li style="background: beige">3</li>
+                            @foreach ($statuses as $status)
+                            <li data-sid="{{ $status['id'] }}" style="background: {{ $status['color'] }};"> {{ $status['name'] }} </li>
+                            @endforeach
                         </div>
                     </div>
-                    <!-- <select class='status-select1' name="status">
-                    @foreach ($statuses as $status)
-                        <option value="{{ $status['id'] }}" data-color="{{ $status['color'] }}"> {{ $status['name'] }} </option>
-                    @endforeach                    
-                    </select> -->
 
                 </div>
                 <div class="modal-footer no-border">
@@ -327,6 +340,10 @@ var totalOrders = 0;
             }
         });
 
+        $(document).on('click', '.refresh-dt', function () {
+            ServerDataTable.ajax.reload();
+        })
+
         $('.status-select1').select2({
             dropdownParent: $('.s2-parent'),
             width: '100%',
@@ -386,30 +403,6 @@ var totalOrders = 0;
             showToolBox();
         });
 
-        $(document).on('change', '.status-select2', function () {
-            let thisStatus = $(this).val();
-            let thisOrder = $('option:selected', this).data('oid');
-
-            if (thisStatus !== '' && thisOrder !== '') {
-                $.ajax({
-                    url: "{{ route('sales-order-status-update-status') }}",
-                    type: "POST",
-                    data: {
-                        status : thisStatus,
-                        order : thisOrder
-                    },
-                    success: function (response) {
-                        if (response.status) {
-                            Swal.fire('', response.message, 'success');
-                        } else {
-                            Swal.fire('', response.message, 'error');
-                        }
-                    },
-                    
-                });                
-            }
-        })
-     
         $(document).on('click', '#status-change', function () {
             if ($('#main-checkbox').prop('checked')) {
                 $('#status-modal').modal('show');
@@ -456,62 +449,69 @@ var totalOrders = 0;
         }
 
         $('#os-1').validate({
-            rules: {
-                'status' : {
-                    required: true
-                }
-            },
-            messages: {
-                'status' : {
-                    required: "Select a status."
-                }
-            },
-            errorPlacement: function(error, element) {
-                error.appendTo(element.parent("div"));
-            },
             submitHandler:function(form) {
                 $('button[type="submit"]').attr('disabled', true);
-                if(!this.beenSubmitted) {
-                    this.beenSubmitted = true;
-                    form.submit();
+
+                let sid = $(form).find(':submit').attr('data-sid');
+                if (sid !== '' && !isNaN(sid)) {
+                    $('#set-id-o-1').val(sid);
+
+                    if(!this.beenSubmitted && $('#set-id-o-1').val() == sid) {
+                        this.beenSubmitted = true;
+                        form.submit();
+                    } else {
+                        Swal.fire('', 'Something went wrong please try again later.', 'error');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
+                        return false;                        
+                    }
+                } else {
+                    Swal.fire('', 'Something went wrong please try again later.', 'error');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                    return false;
                 }
             }
         });
 
         $('#os-2').validate({
-            rules: {
-                'status' : {
-                    required: true
-                }
-            },
-            messages: {
-                'status' : {
-                    required: "Select a status."
-                }
-            },
-            errorPlacement: function(error, element) {
-                error.appendTo(element.parent("div"));
-            },
             submitHandler:function(form) {
                 $('button[type="submit"]').attr('disabled', true);
                 if(!this.beenSubmitted) {
 
+                    let sid = $(form).find(':submit').attr('data-sid');
                     var ids = [];
 
-                    $('.single-checkbox').each(function (index, element) {
-                        if ($(element).prop('checked')) {
-                            ids.push($(element).val());
-                        }
-                    });
+                    if (sid !== '' && !isNaN(sid)) {
+                        $('#set-id-o-2').val(sid);
 
-                    if (ids.length > 0) {
-                        $('#set-id-os-2').val(ids.toString());
-                        this.beenSubmitted = true;
-                        form.submit();
+                        $('.single-checkbox').each(function (index, element) {
+                            if ($(element).prop('checked')) {
+                                ids.push($(element).val());
+                            }
+                        });
+
+                        if($('#set-id-o-2').val() == sid && ids.length > 0) {
+                            $('#set-id-os-2').val(ids.toString());
+                            this.beenSubmitted = true;
+                            form.submit();
+                        } else {
+                            Swal.fire('', 'Something went wrong please try again later.', 'error');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 500);
+                            return false;
+                        }
                     } else {
                         Swal.fire('', 'Something went wrong please try again later.', 'error');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
                         return false;
                     }
+
                 }
             }
         });
@@ -577,7 +577,9 @@ var totalOrders = 0;
         $(document).on('click', '.status-dropdown-menu li', function() {
             var bgColor = $(this).css("background-color");
             var text = $(this).text();
-            
+            var thisSid = $(this).data('sid');
+            var thisOid = $(this).data('oid');
+
             var dropdownToggle = $(this).closest(".status-dropdown").find(".status-dropdown-toggle");
             var dropdownToggleText = $(this).closest(".status-dropdown").find(".status-dropdown-toggle").find("span");
             dropdownToggleText.text(text);
@@ -589,12 +591,49 @@ var totalOrders = 0;
             dropdownToggle.removeClass("active");
             
             $(this).parent().parent().parent().find('.status-action-btn').find('.status-save-btn').removeAttr("disabled");
+
+            if ($(this).data('isajax') === undefined) {
+                $(this).parent().parent().parent().next().find('#save-status').attr('data-sid', thisSid)
+                $(this).parent().prev().attr('data-sid', thisSid);
+            } else if ($(this).data('isajax') == true) {
+                $(this).parent().prev().attr('data-sid', thisSid);
+                $(this).parent().prev().attr('data-oid', thisOid);
+            }
+
         });
 
         $(document).on('click', '.hide-dropdown', function() {
             $('.dropdown-menu').hide();
         });
         
+        $(document).on('click', '.status-save-btn', function () {
+            let el = $(this).parent().prev().find('.status-dropdown-toggle');
+            let thisSid = $(el).attr('data-sid');
+            let thisOrder = $(el).attr('data-oid');
+            let lbl = $(this).parent().parent().prev().prev();
+
+            if (thisSid !== '' && thisOrder !== '') {
+                $.ajax({
+                    url: "{{ route('sales-order-status-update-status') }}",
+                    type: "POST",
+                    data: {
+                        status : thisSid,
+                        order : thisOrder
+                    },
+                    success: function (response) {
+                        if (response.status) {
+                            Swal.fire('', response.message, 'success');
+                            $(lbl).css({'background-color' : response.color});
+                            $(lbl).text(response.text);
+                        } else {
+                            Swal.fire('', response.message, 'error');
+                        }
+                    },
+                    
+                });                
+            }
+        })
+
     });
 </script>
 @endsection

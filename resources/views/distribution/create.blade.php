@@ -248,6 +248,15 @@ $(document).ready(function() {
                 dataType: 'json',
                 delay: 250,
                 data: function (params) {
+                    // var selectedDriver = $(el).data('indexid');
+                    // var typ = 'driver';
+
+                    // if (thisDisType == 2) {
+                    //     typ = 'from-driver';
+                    // }
+
+                    // var selectedDriver = $(`#${typ}-${selectedDriver}`).val();
+                    
                     return {
                         searchQuery: params.term,
                         driver: fromDriverId,
