@@ -44,6 +44,50 @@
     .status-main:hover .status-opener{
         visibility: visible;
     }
+    .status-modal{
+        position: absolute;
+        top: 0;
+        left: 0;
+        box-shadow: 0 5px 10px 0 rgba(0,0,0, .1);
+        box-sizing: border-box;
+        padding: 12px;
+        border: 1px solid #e8eaeb;
+        width: 100%;
+        background: #fff;
+        z-index: 1;
+    }
+    .status-dropdown-toggle{
+        border: 1px solid rgba(146, 152, 155, 0.4);
+        width: 100%;
+        text-align: left;
+        border-radius: 3px;
+        padding: 4px 6px;
+        background: white;
+    }
+    .status-dropdown-menu{
+        border: 1px solid rgba(146, 152, 155, 0.4);
+        width: 100%;
+        text-align: left;
+        border-radius: 3px;
+        background: white;
+        position: absolute;
+        top: 0;
+        z-index: 1;
+    }
+    .status-dropdown-menu li{
+        padding: 3px 6px;
+        cursor: pointer;
+    }
+    .dataTables_wrapper .col-sm-12{
+        overflow-x: auto;
+        overflow-y: inherit;
+    }
+    .btn-primary:disabled:hover{
+        background: #E9EAED !important;
+    }
+    .-z-1{
+        z-index: -1;
+    }
 
 </style>
 @endsection
@@ -168,16 +212,29 @@
 
                     <input type="hidden" name="ids" id="set-id-os-2">
 
-                    <select class='status-select1' name="status">
+                    <div class="status-dropdown">
+                        <button type="button" style="background:pink;" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
+                            <span>Open</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
+                                <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
+                            </svg>
+                        </button>
+                        <div class="status-dropdown-menu">
+                            <li style="background: pink">1</li>
+                            <li style="background: antiquewhite">2</li>
+                            <li style="background: beige">3</li>
+                        </div>
+                    </div>
+                    <!-- <select class='status-select1' name="status">
                     @foreach ($statuses as $status)
                         <option value="{{ $status['id'] }}" data-color="{{ $status['color'] }}"> {{ $status['name'] }} </option>
                     @endforeach                    
-                    </select>
+                    </select> -->
 
                 </div>
                 <div class="modal-footer no-border">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-primary" id="save-status">Apply</button>
+                <button type="button" class="btn-default f-500 f-14" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn-primary f-500 f-14" id="save-status">Apply</button>
                 </div>
             </div>
         </form>
@@ -459,6 +516,85 @@ var totalOrders = 0;
             }
         });
 
+        function bindClickToHide(selector) {
+            $(selector).on("click", function (event) {
+                event.preventDefault();
+                $(this).parent().fadeOut();
+            });
+        }
+    
+        $(document).on('click', '.dropdown-toggle', function() {
+            var isHidden = $(this).parents(".button-dropdown").children(".dropdown-menu").is(":hidden");
+            $(".button-dropdown .dropdown-menu").hide();
+            $(".button-dropdown .dropdown-toggle").removeClass("active");
+            
+            if (isHidden) {
+                $(this).parents(".button-dropdown").children(".dropdown-menu").toggle()
+                    .parents(".button-dropdown")
+                    .children(".dropdown-toggle").addClass("active");
+            }
+        });
+    
+        $(document).on('click', function() {
+            var target = $(event.target);
+            
+            if (!target.parents().hasClass("button-dropdown")) {
+                $(".button-dropdown .dropdown-menu").hide();
+                $(".button-dropdown .dropdown-toggle").removeClass("active");
+            }
+        });
+
+        function bindClickToHideModal(selector) {
+            $(selector).on("click", function (event) {
+                event.preventDefault();
+                $(this).parent().fadeOut();
+            });
+        }
+    
+        $(document).on('click', '.status-dropdown-toggle', function() {
+            var isHidden = $(this).parents(".status-dropdown").children(".status-dropdown-menu").is(":hidden");
+            $(".status-dropdown .status-dropdown-menu").hide();
+            $(".status-dropdown .status-dropdown-toggle").removeClass("active");
+            
+            if (isHidden) {
+                $(this).parents(".status-dropdown").children(".status-dropdown-menu").toggle()
+                    .parents(".status-dropdown")
+                    .children(".status-dropdown-toggle").addClass("active");
+            }
+        });
+    
+        $(document).on('click', function() {
+            var target = $(event.target);
+            
+            if (!target.parents().hasClass("status-dropdown")) {
+                $(".status-dropdown .status-dropdown-menu").hide();
+                $(".status-dropdown .status-dropdown-toggle").removeClass("active");
+            }
+        });
+
+        
+
+        $(document).on('click', '.status-dropdown-menu li', function() {
+            var bgColor = $(this).css("background-color");
+            var text = $(this).text();
+            
+            var dropdownToggle = $(this).closest(".status-dropdown").find(".status-dropdown-toggle");
+            var dropdownToggleText = $(this).closest(".status-dropdown").find(".status-dropdown-toggle").find("span");
+            dropdownToggleText.text(text);
+            
+            dropdownToggle.css("background-color", bgColor);
+            
+            // Hide the dropdown menu and remove the active class
+            $(this).parent().hide();
+            dropdownToggle.removeClass("active");
+            
+            $(this).parent().parent().parent().find('.status-action-btn').find('.status-save-btn').removeAttr("disabled");
+        });
+
+        $(document).on('click', '.hide-dropdown', function() {
+            $('.dropdown-menu').hide();
+        });
+        
     });
 </script>
 @endsection
