@@ -471,6 +471,11 @@ class UserController extends Controller
 
                 $url = url("register/{$role}/{$uid}");
                 $countries = Helper::getCountriesOrderBy();
+
+                if (Role::where('id', decrypt($role))->active()->doesntExist()) {
+                    return redirect()->route('login')->with('error', 'This link is not valid for registration.');
+                }
+
     
                 return view('auth.register', compact('url', 'countries'));
             } else if ($request->method() == 'POST') {
@@ -478,7 +483,7 @@ class UserController extends Controller
                 try {
                     $role = decrypt($role);
 
-                    if (Role::find($role) !== null && $role != 1) {
+                    if (Role::find($role) !== null && $role != 1 && Role::where('id', $role)->active()->exists()) {
                         $this->validate($request, [
                             'name' => 'required',
                             'email' => "required|email|unique:users,email,NULL,id,deleted_at,NULL",
