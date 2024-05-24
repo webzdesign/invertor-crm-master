@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{SalesOrderStatus, SalesOrder, SalesOrderItem, Deliver, Role, ManageStatus};
+use App\Models\{SalesOrderStatus, SalesOrder, SalesOrderItem, Deliver, Role, ManageStatus, User};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
@@ -224,13 +224,45 @@ class SalesOrderStatusController extends Controller
             return redirect()->back()->with('error', Helper::$errorMessage);
         }
 
-        if ($request->ids == 'all') {
-            $resp = SalesOrder::query()->update(['status' => $request->status]);
-            return redirect()->back()->with($resp ? 'success' : 'error', ($resp ? 'Status updated for all orders successfully.' : Helper::$errorMessage));
+        if (in_array(1, User::getUserRoles())) { //admin
+            if ($request->ids == 'all') {
+                $resp = SalesOrder::query()->update(['status' => $request->status]);
+                return redirect()->back()->with($resp ? 'success' : 'error', ($resp ? 'Status updated for all orders successfully.' : Helper::$errorMessage));
+            } else {
+                $resp = SalesOrder::whereIn('id', explode(',', $request->ids))->update(['status' => $request->status]);
+                return redirect()->back()->with($resp ? 'success' : 'error', ($resp ? 'Status updated for orders successfully.' : Helper::$errorMessage));
+            }
+        } else if (in_array(2, User::getUserRoles())) { //seller
+            if ($request->ids == 'all') {
+                $resp = SalesOrder::where('seller_id', auth()->user()->id)->update(['status' => $request->status]);
+                return redirect()->back()->with($resp ? 'success' : 'error', ($resp ? 'Status updated for all orders successfully.' : Helper::$errorMessage));
+            } else {
+                $resp = SalesOrder::where('seller_id', auth()->user()->id)->whereIn('id', explode(',', $request->ids))->update(['status' => $request->status]);
+                return redirect()->back()->with($resp ? 'success' : 'error', ($resp ? 'Status updated for orders successfully.' : Helper::$errorMessage));
+            }
+        } else if (in_array(3, User::getUserRoles())) { //driver
+            $driver = Deliver::where('user_id', auth()->user()->id);
+
+            if ($driver->exists()) {
+
+                $driver = SalesOrderItem::whereIn('id', $driver->select('soi_id')->pluck('soi_id')->toArray())->select('so_id')->pluck('so_id')->toArray();
+
+                if ($request->ids == 'all') {
+                    $resp = SalesOrder::whereIn('id', $driver)->update(['status' => $request->status]);
+                    return redirect()->back()->with($resp ? 'success' : 'error', ($resp ? 'Status updated for all orders successfully.' : Helper::$errorMessage));
+                } else {
+                    $resp = SalesOrder::whereIn('id', $driver)->whereIn('id', explode(',', $request->ids))->update(['status' => $request->status]);
+                    return redirect()->back()->with($resp ? 'success' : 'error', ($resp ? 'Status updated for orders successfully.' : Helper::$errorMessage));
+                }
+
+            } else {
+                return redirect()->back()->with('success', 'Status updated for all orders successfully.');
+            }
+
         } else {
-            $resp = SalesOrder::whereIn('id', explode(',', $request->ids))->update(['status' => $request->status]);
-            return redirect()->back()->with($resp ? 'success' : 'error', ($resp ? 'Status updated for orders successfully.' : Helper::$errorMessage));
+            return redirect()->back()->with('success', 'Status updated for all orders successfully.');
         }
+
     }
 
     public function manageStatus(Request $request) {
@@ -284,10 +316,18 @@ class SalesOrderStatusController extends Controller
     }
 
     public function getManagedStatus(Request $request) {
-        if (ManageStatus::where('status_id', $request->id)->exists()) {
-            return response()->json(['exists' => true, 'data' => ManageStatus::where('status_id', $request->id)->first()->toArray()]);
+
+        if ($request->has('id') && !empty($request->id)) {
+            $updatedStatuses = SalesOrderStatus::select('id', 'sequence')->where('id', $request->id)->first()->sequence ?? 0;
+            $updatedStatuses = SalesOrderStatus::select('id', 'name')->where('sequence', '>', $updatedStatuses)->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
+        } else {
+            $updatedStatuses = SalesOrderStatus::select('id', 'name')->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
         }
 
-        return response()->json(['exists' => false]);
+        if (ManageStatus::where('status_id', $request->id)->exists()) {
+            return response()->json(['exists' => true, 'data' => ManageStatus::where('status_id', $request->id)->first()->toArray(), 'updatedStatuses' => $updatedStatuses]);
+        }
+
+        return response()->json(['exists' => false, 'updatedStatuses' => $updatedStatuses]);
     }
 }

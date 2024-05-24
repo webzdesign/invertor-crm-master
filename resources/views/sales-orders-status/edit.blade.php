@@ -329,6 +329,15 @@
                     $('#manager').find('#modal-title').text(Title.toUpperCase());
                     $('#manage-status-id').val(sId);
 
+                    if ('updatedStatuses' in response) {
+                        allStatuses = response.updatedStatuses;
+
+                        statusesHtml = `<option value="" selected> --- Select a Status --- </option>`;
+                        for (key in allStatuses) {
+                            statusesHtml += `<option value="${key}"> ${allStatuses[key]} </option>`;
+                        }
+                    }
+
                     if (response.exists) {
                         let data = response.data;
                         let pStatus = data.possible_status.split(',');
@@ -369,6 +378,7 @@
                         $('#manage-status-id').val(sId);
                         $('#role-for-status').val(data.role_id).trigger('change');
                         $('#responsible').val(data.responsible).trigger('change');
+                        toggleAddButton(0);
                     }
                 },
                 complete : function () {
