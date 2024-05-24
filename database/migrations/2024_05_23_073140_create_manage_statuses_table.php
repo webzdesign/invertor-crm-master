@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('manage_statuses', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('status_id');
-            $table->unsignedBigInteger('role_id');
+            $table->unsignedBigInteger('role_id')->nullable();
             $table->string('possible_status')->nullable();
             $table->boolean('task')->default(false)->comment('0 = No Task | 1 = Create Task');
             $table->boolean('for_admin')->default(false);

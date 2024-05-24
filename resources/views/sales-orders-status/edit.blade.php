@@ -186,36 +186,6 @@
             <div class="modal-body">
                 <input type="hidden" id="manage-status-id" name="id" />
                 <div class="row">
-                    
-                    <div class="col-12">
-                        <div class="form-group row">
-                            <label for="role-for-status" class="c-gr f-500 f-16 w-100 whiteSpace mt-2">Managed By : <span class="text-danger">*</span></label>
-                            <select name="role" id="role-for-status" class="select2-hidden-accessible" data-placeholder="--- Select Role ---">
-                                @forelse($roles as $id => $role)
-                                @if ($loop->first)
-                                    <option value="" selected> --- Select a Role --- </option>
-                                @endif
-                                    <option value="{{ $id }}"> {{ $role }} </option>
-                                @empty
-                                @endforelse
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="form-group row">
-                            <label class="c-gr f-500 f-16 w-100 whiteSpace">Change Responsible : <span class="text-danger">*</span></label>
-                            <select name="responsible" id="responsible" class="select2-hidden-accessible" data-placeholder="--- Select Responsible ---">
-                                @forelse($roles as $id => $role)
-                                @if ($loop->first)
-                                    <option value="" selected> --- Select Responsible Role --- </option>
-                                @endif
-                                    <option value="{{ $id }}"> {{ $role }} </option>
-                                @empty
-                                @endforelse
-                            </select>
-                        </div>
-                    </div>
 
                     <div class="col-12">
                         <div class="form-group">
@@ -227,20 +197,6 @@
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="form-group">
-                            <label for="cas" class="c-gr f-500 f-16">Create status for admin : </label>
-                            <input type="checkbox" class="form-check-input" name="create_admin_status" id="cas" value="1">
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="form-group">
-                            <label for="task" class="c-gr f-500 f-16">Create Task : </label>
-                            <input type="checkbox" class="form-check-input" name="task" id="task" value="1">
                         </div>
                     </div>
 
@@ -483,22 +439,6 @@
         });
 
         $('#manage-role-form').validate({
-            rules: {
-                role: {
-                    required: true
-                },
-                responsible: {
-                    required: true
-                }
-            },
-            messages: {
-                role: {
-                    required: "Select a role."
-                },
-                responsible: {
-                    required: "Select a responsible role."
-                }
-            },
             errorPlacement: function(error, element) {
                 error.appendTo(element.parent("div"));
             },
@@ -517,7 +457,8 @@
                             $('#manager').modal('hide');
                             resetModal();
                         } else if (response.status == false) {
-                            x(Object.values(response.messages).flat().toString())
+                            // Swal.fire('', Object.values(response.messages).flat().toString(), 'error');
+                            Swal.fire('', 'Something went wrong. Please try again.', 'error');                            
                         } else {
                             Swal.fire('', 'Something went wrong. Please try again.', 'error');
                         }
