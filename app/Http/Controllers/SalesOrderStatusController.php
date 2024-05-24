@@ -31,7 +31,7 @@ class SalesOrderStatusController extends Controller
         $statuses = SalesOrderStatus::orderBy('sequence', 'ASC')->get();
         $s = SalesOrderStatus::select('id', 'name')->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
         $colours = ['#99ccff', '#ffcccc', '#ffff99', '#c1c1c1', '#9bffe2', '#f7dd8b', '#c5ffd6'];
-        $roles = Role::active()->select('id', 'name')->pluck('name', 'id')->toArray();
+        $roles = Role::active()->select('id', 'name')->whereIn('id', [1, 2, 3])->pluck('name', 'id')->toArray();
 
         return view('sales-orders-status.edit', compact('moduleName', 'statuses', 'colours', 'roles', 's'));
     }
