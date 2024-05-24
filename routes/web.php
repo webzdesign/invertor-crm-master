@@ -162,6 +162,8 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('sales-order-status/create', [SalesOrderStatusController::class, 'create'])->name('sales-order-status-store')->middleware('ModuleAccessor:sales-order-status.create');
         Route::post('sales-order-status-update-status', [SalesOrderStatusController::class, 'status'])->name('sales-order-status-update-status')->middleware('ModuleAccessor:sales-order-status.edit');
         Route::post('sales-order-status-update-status-bulk', [SalesOrderStatusController::class, 'statusBulkUpdate'])->name('sales-order-status-update-status-bulk')->middleware('ModuleAccessor:sales-order-status.edit');
+        Route::post('sales-order-manage-role', [SalesOrderStatusController::class, 'manageStatus'])->name('sales-order-manage-role')->middleware('ModuleAccessor:sales-order-status.edit');
+        Route::post('sales-order-manage-role-get', [SalesOrderStatusController::class, 'getManagedStatus'])->name('sales-order-manage-role-get')->middleware('ModuleAccessor:sales-order-status.edit');
         /** Sales Order Status **/
 
         /** Common **/

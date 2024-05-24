@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('status_id');
             $table->unsignedBigInteger('role_id');
-            $table->unsignedBigInteger('possible_status');
+            $table->string('possible_status')->nullable();
             $table->boolean('task')->default(false)->comment('0 = No Task | 1 = Create Task');
             $table->boolean('for_admin')->default(false);
             $table->unsignedBigInteger('responsible')->nullable();
@@ -25,7 +25,6 @@ return new class extends Migration
             $table->foreign('responsible')->references('id')->on('roles');
             $table->foreign('role_id')->references('id')->on('roles');
             $table->foreign('status_id')->references('id')->on('sales_order_statuses');
-            $table->foreign('possible_status')->references('id')->on('sales_order_statuses');
         });
     }
 

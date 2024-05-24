@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{SalesOrderStatus, SalesOrder, SalesOrderItem, Deliver, User};
+use App\Models\{SalesOrderStatus, SalesOrder, SalesOrderItem, Deliver, Role, ManageStatus};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
@@ -29,9 +29,11 @@ class SalesOrderStatusController extends Controller
     public function edit() {
         $moduleName = 'Sales Order Status';
         $statuses = SalesOrderStatus::orderBy('sequence', 'ASC')->get();
+        $s = SalesOrderStatus::select('id', 'name')->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
         $colours = ['#99ccff', '#ffcccc', '#ffff99', '#c1c1c1', '#9bffe2', '#f7dd8b', '#c5ffd6'];
+        $roles = Role::active()->select('id', 'name')->pluck('name', 'id')->toArray();
 
-        return view('sales-orders-status.edit', compact('moduleName', 'statuses', 'colours'));        
+        return view('sales-orders-status.edit', compact('moduleName', 'statuses', 'colours', 'roles', 's'));
     }
 
     public function update(Request $request) {
@@ -172,7 +174,7 @@ class SalesOrderStatusController extends Controller
                                 $html .= '<div class="status-dropdown-menu">';
 
                                 foreach ($statuses as $status) {
-                                    $html .= '<li data-isajax="true" style="background: '. $status->color .'" data-sid="' . $status->id . '" data-oid="' . $row->id . '" > '. $status->name .' </li>';
+                                    $html .= '<li class="f-14" data-isajax="true" style="background: '. $status->color .'" data-sid="' . $status->id . '" data-oid="' . $row->id . '" > '. $status->name .' </li>';
                                 }
 
                                 $html .= '</div>
@@ -229,5 +231,63 @@ class SalesOrderStatusController extends Controller
             $resp = SalesOrder::whereIn('id', explode(',', $request->ids))->update(['status' => $request->status]);
             return redirect()->back()->with($resp ? 'success' : 'error', ($resp ? 'Status updated for orders successfully.' : Helper::$errorMessage));
         }
+    }
+
+    public function manageStatus(Request $request) {
+
+        $mstatuses = $request->mstatus;
+
+        $validated = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'id' => 'required',
+            'role' => 'required',
+            'responsible' => 'required',
+            'mstatus.*' => ['sometimes', function ($y, $x, $fail) use ($mstatuses) {
+                if (count(array_filter($mstatuses)) !== count(array_unique(array_filter($mstatuses)))) {
+                    $fail("Same status can't be selected more than once.");
+                }
+            }]
+        ], [
+            'id.required' => Helper::$errorMessage,
+            'role.required' => 'Select a role.',
+            'responsible.required' => 'Select a responsible role.'
+        ]);
+
+        if($validated->fails()){
+            return response()->json([
+                "status" => false,
+                "messages" => $validated->messages()->toArray() ?? []
+            ]);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            ManageStatus::where('status_id', $request->id)->delete();
+            ManageStatus::create([
+                'status_id' => $request->id,
+                'role_id' => $request->role,
+                'possible_status' => !is_null($request->mstatus) ? implode(',', array_filter($request->mstatus)) : '',
+                'task' => $request->task ? true : false,
+                'for_admin' => $request->create_admin_status ? true : false,
+                'responsible' => $request->responsible
+            ]);
+
+            DB::commit();
+            return response()->json(['status' => true, 'messages' => 'Status data saved successfully.']);
+
+        } catch (\Exception $e) {
+            Helper::logger($e->getMessage() . ' Line No: ', $e->getLine());
+            DB::rollBack();
+            return response()->json(['status' => false, 'messages' => [Helper::$errorMessage]]);
+        }
+
+    }
+
+    public function getManagedStatus(Request $request) {
+        if (ManageStatus::where('status_id', $request->id)->exists()) {
+            return response()->json(['exists' => true, 'data' => ManageStatus::where('status_id', $request->id)->first()->toArray()]);
+        }
+
+        return response()->json(['exists' => false]);
     }
 }

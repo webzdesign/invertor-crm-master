@@ -3,6 +3,8 @@
 {{ Config::set('app.module', $moduleName) }}
 
 @section('css')
+<link href="{{ asset('assets/css/dataTables.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ asset('assets/css/responsive.bootstrap5.css') }}" rel="stylesheet">
 <style>
     .color-blue {
         color: #0057a9;
@@ -27,7 +29,6 @@
         width: 20px;
         font-size: 13px;
         border-radius: 2px;
-        visibility: hidden;
     }
     .status-label{
         padding: 0 6px;
@@ -66,7 +67,7 @@
         border: 1px solid #e8eaeb;
         width: 100%;
         background: #fff;
-        z-index: 1;
+        z-index: 9;
     }
     .status-dropdown-toggle{
         border: 1px solid rgba(146, 152, 155, 0.4);
@@ -112,6 +113,21 @@
     }
     .-z-1{
         z-index: -1;
+    }
+
+    div.dt-processing > div:last-child{
+        display:none;
+    }
+    div.dt-processing {
+        margin-left: 0;
+        margin-top: 0;
+        border: 0;
+        background: transparent;
+    }
+    @media (min-width:992px) {
+        .status-opener {
+            visibility: hidden;
+        }
     }
 
 </style>
@@ -223,7 +239,7 @@
                         @endforeach
                         <div class="status-dropdown-menu">
                             @foreach ($statuses as $status)
-                            <li data-sid="{{ $status['id'] }}" style="background: {{ $status['color'] }};"> {{ $status['name'] }} </li>
+                            <li class="f-14" data-sid="{{ $status['id'] }}" style="background: {{ $status['color'] }};"> {{ $status['name'] }} </li>
                             @endforeach
                         </div>
                     </div>
@@ -264,7 +280,7 @@
                         @endforeach
                         <div class="status-dropdown-menu">
                             @foreach ($statuses as $status)
-                            <li data-sid="{{ $status['id'] }}" style="background: {{ $status['color'] }};"> {{ $status['name'] }} </li>
+                            <li class="f-14" data-sid="{{ $status['id'] }}" style="background: {{ $status['color'] }};"> {{ $status['name'] }} </li>
                             @endforeach
                         </div>
                     </div>
@@ -282,6 +298,10 @@
 @endsection
 
 @section('script')
+<script src="{{ asset('assets/js/dataTables.js') }}"></script>
+<script src="{{ asset('assets/js/dataTables.bootstrap5.js') }}"></script>
+<script src="{{ asset('assets/js/dataTables.responsive.js') }}"></script>
+<script src="{{ asset('assets/js/responsive.bootstrap5.js') }}"></script>
 <script>
 var totalOrders = 0;
 
@@ -305,34 +325,55 @@ var totalOrders = 0;
             processing: true,
             serverSide: true,
             oLanguage: {sProcessing: "<div id='dataTableLoader'></div>"},
-            "dom": "<'filterHeader d-block-500 cardsHeader'l<'#filterInput'>>" + "<'row m-0'<'col-sm-12 p-0 overflowTable'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
-            language: {info: ""},
+            "dom":"<'filterHeader d-block-500 cardsHeader'l>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'<'float-end' p>>",
             ajax: {
                 "url": "{{ route('sales-order-status-list') }}",
                 "dataType": "json",
                 "type": "POST"
             },
+            pagingType: "simple_numbers",
+            language: {
+                paginate: {
+                    previous: 'Previous',
+                    next:     'Next'
+                },
+                aria: {
+                    paginate: {
+                        previous: 'Previous',
+                        next:     'Next'
+                    }
+                }
+            },
+            responsive: true,
             columnDefs: [{ orderable: false, targets: 0 }],
             order: [[1, 'asc']],
             columns: [{
                     data: 'checkbox',
                     orderable: false,
                     searchable: false,
+                    width: '50px'
                 },
                 {
                     data: 'order_no',
+                    width: '200px'
                 },
                 {
                     data: 'status',
                     searchable: false,
+                    orderable: false,
+                    width: '260px'
                 },
                 {
                     data: 'date',
                     searchable: false,
+                    orderable: false,
+                    width: '260px'
                 },
                 {
                     data: 'amount',
                     searchable: false,
+                    orderable: false,
+                    width: '260px'
                 }
             ],
             drawCallback: function (data) {
@@ -566,6 +607,12 @@ var totalOrders = 0;
             if (!target.parents().hasClass("button-dropdown")) {
                 $(".button-dropdown .dropdown-menu").hide();
                 $(".button-dropdown .dropdown-toggle").removeClass("active");
+                //hide
+            }
+
+            if (!target.parents().hasClass("status-dropdown")) {
+                $(".status-dropdown .status-dropdown-menu").hide();
+                $(".status-dropdown .status-dropdown-toggle").removeClass("active");
             }
         });
 
@@ -588,17 +635,6 @@ var totalOrders = 0;
             }
         });
     
-        $(document).on('click', function() {
-            var target = $(event.target);
-            
-            if (!target.parents().hasClass("status-dropdown")) {
-                $(".status-dropdown .status-dropdown-menu").hide();
-                $(".status-dropdown .status-dropdown-toggle").removeClass("active");
-            }
-        });
-
-        
-
         $(document).on('click', '.status-dropdown-menu li', function() {
             var bgColor = $(this).css("background-color");
             var text = $(this).text();
