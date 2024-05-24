@@ -103,6 +103,160 @@
         height: 60px;
         box-shadow: inset 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
     }
+
+    .trigger-btn {
+        font-size: 12px;
+        width: fit-content;
+        height: fit-content;
+        padding: 0;
+        border: none;
+        background: transparent;
+        position: relative;
+        top: 5px;
+        right: 3px;        
+    }
+
+    .box {
+        padding: 12px 38px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border-radius: 10px;
+        cursor: pointer;
+        border: 2px solid #0a141e;
+    }
+
+    .box img{
+        height: 40px;
+        width: 40px;
+    }
+
+    .box div {
+        margin-top: 10px;
+    }
+    .color-blue {
+        color: #0057a9;
+        cursor: pointer;
+    }      
+    .select2-selection__clear {
+        display: none!important;
+    }  
+    .filterColumn, .select2-selection__arrow {
+        display: none;
+    }
+    .no-border {
+        border: none;
+    }
+    .modal-padding {
+        padding: 10px 14px;
+    }
+    .status-opener {
+        background: #fff;
+        border: 1px solid #ccc;
+        height: 20px;
+        width: 20px;
+        font-size: 13px;
+        border-radius: 2px;
+    }
+    .status-label{
+        padding: 0 6px;
+        border-radius: 4px;
+    }
+    .status-opener i{
+        position: relative;
+        top: 1px;
+        left: 1px;
+    }
+    .status-opener:hover{
+        background: #f0f0f0;
+    }
+    .status-main:hover .status-opener{
+        visibility: visible;
+    }
+    .overflowTable .odd td:nth-child(3){
+        width: 260px;
+        min-width: 260px;
+    }
+    .overflowTable .odd td:nth-child(4){
+        width: 150px;
+        min-width: 150px;
+    }
+    .overflowTable .odd td:nth-child(2){
+        width: 150px;
+        min-width: 150px;
+    }
+    .status-modal{
+        position: absolute;
+        top: 0;
+        left: 0;
+        box-shadow: 0 5px 10px 0 rgba(0,0,0, .1);
+        box-sizing: border-box;
+        padding: 12px;
+        border: 1px solid #e8eaeb;
+        width: 100%;
+        background: #fff;
+        z-index: 9;
+    }
+    .status-dropdown-toggle{
+        border: 1px solid rgba(146, 152, 155, 0.4);
+        width: 100%;
+        text-align: left;
+        border-radius: 3px;
+        padding: 4px 6px;
+        background: white;
+    }
+    .status-dropdown-menu{
+        border: 1px solid rgba(146, 152, 155, 0.4);
+        width: 100%;
+        text-align: left;
+        border-radius: 3px;
+        background: white;
+        position: absolute;
+        top: 0;
+        z-index: 1;
+        max-height: 185px;
+        overflow: auto;
+    }
+    .status-dropdown-menu::-webkit-scrollbar-track{
+        background-color: #ffffff;
+    }
+
+    .status-dropdown-menu::-webkit-scrollbar{
+        width: 6px;
+        background-color: #ffffff;
+    }
+
+    .status-dropdown-menu::-webkit-scrollbar-thumb{
+        background-color: #c7c7c7;
+    }
+    .status-dropdown-menu li{
+        padding: 3px 6px;
+        cursor: pointer;
+    }
+    .dataTables_wrapper .col-sm-12{
+        overflow: inherit;
+    }
+    .btn-primary:disabled:hover{
+        background: #E9EAED !important;
+    }
+    .-z-1{
+        z-index: -1;
+    }
+
+    div.dt-processing > div:last-child{
+        display:none;
+    }
+    div.dt-processing {
+        margin-left: 0;
+        margin-top: 0;
+        border: 0;
+        background: transparent;
+    }
+    @media (min-width:992px) {
+        .status-opener {
+            visibility: hidden;
+        }
+    }
 </style>
 
 <div class="content pb-3">
@@ -135,6 +289,10 @@
                                 <div class="card-date f-12 c-7b">
                                     {{ \Carbon\Carbon::parse($order['date'])->diffForHumans() }}
                                 </div>
+                                <button type="button" class="trigger-btn" data-oid="{{ $order['id'] }}" data-bs-toggle="modal"  data-bs-target="#trigger" data-title="{{ $order['order_no'] }}">
+                                    <i class="fa fa-plus"></i>
+                                    Add Trigger
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -150,11 +308,207 @@
     {{-- Board --}}
 
 </div>
+
+
+<div class="modal fade" id="trigger" tabindex="-1" aria-labelledby="exampleModalLabelA" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header no-border modal-padding">
+                <h1 class="modal-title fs-5"> Add Trigger for Order <span id="modal-title"></span> </h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="manage-order-id" name="id" />
+                <div class="row">
+
+                    <div class="col-4">
+                        <div class="form-group">
+                            <div class="box">
+                                <img src="{{ asset('assets/images/add.png') }}" alt="Add Task">
+                                <div> Add Task </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-4">
+                        <div class="form-group">
+                            <div class="box" id="lead-stage-btn" >
+                                <img src="{{ asset('assets/images/change.png') }}" alt="Change lead stage">
+                                <div> Change lead stage </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-4">
+                        <div class="form-group">
+                            <div class="box">
+                                <img src="{{ asset('assets/images/swap.png') }}" alt="Change lead's user">
+                                <div> Change lead's user </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer no-border">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="lead-stage" tabindex="-1" aria-labelledby="exampleModalLabelA" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header no-border modal-padding">
+                <h1 class="modal-title fs-5"> Lead state change for order <span id="modal-title-lead-stage"></span> </h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="manage-order-id-for-change-lead-stage" name="id" />
+                <div class="row">
+
+                    <div class="col-12">
+                        <div class="form-group">
+
+                            <label class="c-gr f-500 f-16 w-100 mb-2"> Stages : </label>
+                            <div class="status-dropdown">
+                                @foreach ($statuses as $status)
+                                @if($loop->first)
+                                <button type="button" style="background:{{ $status->color }};" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
+                                    <span>{{ $status['name'] }}</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
+                                        <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
+                                    </svg>
+                                </button>
+                                @endif
+                                @endforeach
+                                <div class="status-dropdown-menu">
+                                    @foreach ($statuses as $status)
+                                    <li class="f-14" data-sid="{{ $status->id }}" style="background: {{ $status->color }};"> {{ $status->name }} </li>
+                                    @endforeach
+                                </div>
+                            </div>
+
+
+                            <label class="w-100 mb-2 text-danger text-center"> This functionality is in development. </label>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer no-border">
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('script')
 <script>
     $(document).ready(function() {
+
+        //
+        $(document).on('click', '.trigger-btn', function () {
+            let oId = $(this).attr('data-oid');
+            let Title = $(this).attr('data-title');
+
+            $('#trigger').modal('show');
+            $('#trigger').find('#modal-title').text(Title);
+            $('#manage-order-id').val(oId);
+        });
+
+        $(document).on('click', '#lead-stage-btn', function () {
+            let oId = $('#manage-order-id').val();
+            let Title = $('#modal-title').text();
+
+            $('#trigger').modal('hide');
+            $('#lead-stage').modal('show');
+            $('#lead-stage').find('#modal-title-lead-stage').text(Title);
+            $('#manage-order-id-for-change-lead-stage').val(oId);
+        });
+
+        function bindClickToHide(selector) {
+            $(selector).on("click", function (event) {
+                event.preventDefault();
+                $(this).parent().fadeOut();
+            });
+        }
+    
+        $(document).on('click', '.dropdown-toggle', function() {
+            var isHidden = $(this).parents(".button-dropdown").children(".dropdown-menu").is(":hidden");
+            $(".button-dropdown .dropdown-menu").hide();
+            $(".button-dropdown .dropdown-toggle").removeClass("active");
+            
+            if (isHidden) {
+                $(this).parents(".button-dropdown").children(".dropdown-menu").toggle()
+                    .parents(".button-dropdown")
+                    .children(".dropdown-toggle").addClass("active");
+            }
+        });
+    
+        $(document).on('click', function() {
+            var target = $(event.target);
+            
+            if (!target.parents().hasClass("button-dropdown")) {
+                $(".button-dropdown .dropdown-menu").hide();
+                $(".button-dropdown .dropdown-toggle").removeClass("active");
+                //hide
+            }
+
+            if (!target.parents().hasClass("status-dropdown")) {
+                $(".status-dropdown .status-dropdown-menu").hide();
+                $(".status-dropdown .status-dropdown-toggle").removeClass("active");
+            }
+        });
+
+        function bindClickToHideModal(selector) {
+            $(selector).on("click", function (event) {
+                event.preventDefault();
+                $(this).parent().fadeOut();
+            });
+        }
+    
+        $(document).on('click', '.status-dropdown-toggle', function() {
+            var isHidden = $(this).parents(".status-dropdown").children(".status-dropdown-menu").is(":hidden");
+            $(".status-dropdown .status-dropdown-menu").hide();
+            $(".status-dropdown .status-dropdown-toggle").removeClass("active");
+            
+            if (isHidden) {
+                $(this).parents(".status-dropdown").children(".status-dropdown-menu").toggle()
+                    .parents(".status-dropdown")
+                    .children(".status-dropdown-toggle").addClass("active");
+            }
+        });
+    
+        $(document).on('click', '.status-dropdown-menu li', function() {
+            var bgColor = $(this).css("background-color");
+            var text = $(this).text();
+            var thisSid = $(this).data('sid');
+            var thisOid = $(this).data('oid');
+
+            var dropdownToggle = $(this).closest(".status-dropdown").find(".status-dropdown-toggle");
+            var dropdownToggleText = $(this).closest(".status-dropdown").find(".status-dropdown-toggle").find("span");
+            dropdownToggleText.text(text);
+            
+            dropdownToggle.css("background-color", bgColor);
+            
+            // Hide the dropdown menu and remove the active class
+            $(this).parent().hide();
+            dropdownToggle.removeClass("active");
+            
+            $(this).parent().parent().parent().find('.status-action-btn').find('.status-save-btn').removeAttr("disabled");
+
+        });
+
+        $(document).on('click', '.hide-dropdown', function() {
+            $('.dropdown-menu').hide();
+        });
+        //
+
+
+
 
         $( ".drag-area" ).sortable({
             connectWith: ".drag-area",
