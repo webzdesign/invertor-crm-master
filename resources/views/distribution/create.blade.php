@@ -248,18 +248,18 @@ $(document).ready(function() {
                 dataType: 'json',
                 delay: 250,
                 data: function (params) {
-                    // var selectedDriver = $(el).data('indexid');
-                    // var typ = 'driver';
+                     var selectedDriver = $(el).data('indexid');
+                     var typ = 'driver';
 
-                    // if (thisDisType == 2) {
-                    //     typ = 'from-driver';
-                    // }
+                     if (thisDisType == 2) {
+                         typ = 'from-driver';
+                     }
 
-                    // var selectedDriver = $(`#${typ}-${selectedDriver}`).val();
+                     var selectedDriver = $(`#${typ}-${selectedDriver}`).val();
                     
                     return {
                         searchQuery: params.term,
-                        driver: fromDriverId,
+                        driver: selectedDriver ? selectedDriver : fromDriverId,
                         type: thisDisType
                     };
                 },
@@ -389,12 +389,21 @@ $(document).ready(function() {
 
     });
 
+    $(document).on('select2:unselecting', '.m-product', function (e) {
+        $(this).empty();
+    });
+
     $(document).on('change', '.m-driver', function (event) {
         let that = $(this);
         let indexId = $(this).data('indexid');
         
         let thisDriverId = $(this).val();
         let thisProductId = $(`#product-${indexId}`).val();
+
+        if (thisDisType != 1) {
+            $(`#product-${indexId}`).val(null).trigger('change');
+            $(`#product-${indexId}`).empty();
+        }
 
         if (thisDriverId !== '0' && thisDriverId !== '' && thisDriverId !== null) {
             fromDriverId = thisDriverId;
@@ -412,10 +421,10 @@ $(document).ready(function() {
                     }
                 });
             }
+
             
         } else {
             fromDriverId = null;
-            $(`#product-${indexId}`).val(null).trigger('change');
         }
     });
 
@@ -434,6 +443,7 @@ $(document).ready(function() {
         }
 
         $(`#product-${indexId}`).val(null).trigger('change');
+        $(`#product-${indexId}`).empty();
     });
 
     var calculateAmount = (indexId = 0) => {

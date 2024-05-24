@@ -326,7 +326,7 @@
                 success : function (response) {
 
                     $('#manager').modal('show');
-                    $('#manager').find('#modal-title').text(Title);
+                    $('#manager').find('#modal-title').text(Title.toUpperCase());
                     $('#manage-status-id').val(sId);
 
                     if (response.exists) {
