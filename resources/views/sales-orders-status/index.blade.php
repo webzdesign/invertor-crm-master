@@ -112,7 +112,7 @@
         border: none;
         background: transparent;
         position: relative;
-        top: 5px;
+        top: 18px;
         right: 3px;        
     }
 
