@@ -38,4 +38,9 @@ class SalesOrder extends Model
     {
         return $this->belongsTo(SalesOrderStatus::class, 'status');
     }
+
+    public function tstatus()
+    {
+        return $this->hasMany(ChangeOrderStatusTrigger::class, 'order_id');
+    }
 }

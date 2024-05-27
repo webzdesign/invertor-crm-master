@@ -164,6 +164,9 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('sales-order-status-update-status-bulk', [SalesOrderStatusController::class, 'statusBulkUpdate'])->name('sales-order-status-update-status-bulk');
         Route::post('sales-order-manage-role', [SalesOrderStatusController::class, 'manageStatus'])->name('sales-order-manage-role')->middleware('ModuleAccessor:sales-order-status.edit');
         Route::post('sales-order-manage-role-get', [SalesOrderStatusController::class, 'getManagedStatus'])->name('sales-order-manage-role-get')->middleware('ModuleAccessor:sales-order-status.edit');
+        Route::post('sales-order-next-status', [SalesOrderStatusController::class, 'nextStatus'])->name('sales-order-next-status');
+        Route::post('put-order-on-cron', [SalesOrderStatusController::class, 'putOnCron'])->name('put-order-on-cron');
+        Route::post('order-detail-in-board', [SalesOrderStatusController::class, 'orderDetailInBoard'])->name('order-detail-in-board');
         /** Sales Order Status **/
 
         /** Common **/

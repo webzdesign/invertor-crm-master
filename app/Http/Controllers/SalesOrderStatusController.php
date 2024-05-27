@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{SalesOrderStatus, SalesOrder, SalesOrderItem, Deliver, Role, ManageStatus, User};
+use App\Models\{ChangeOrderStatusTrigger, CronHistory};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
@@ -290,7 +291,7 @@ class SalesOrderStatusController extends Controller
         DB::beginTransaction();
 
         try {
-            ManageStatus::where('status_id', $request->id)->delete();
+            ManageStatus::where('status_id', $request->id)->forceDelete();
             ManageStatus::create([
                 'status_id' => $request->id,
                 'possible_status' => !is_null($request->mstatus) ? implode(',', array_filter($request->mstatus)) : ''
@@ -321,5 +322,121 @@ class SalesOrderStatusController extends Controller
         }
 
         return response()->json(['exists' => false, 'updatedStatuses' => $updatedStatuses]);
+    }
+
+    public function nextStatus(Request $request) {
+        $order = SalesOrder::with('ostatus')->where('id', $request->id);
+        $addedData = $possibleStatuses = [];
+        $view = '-';
+        $addedAlready = false;
+
+        if ($order->exists()) {
+            $status = $order->first()->status;
+
+            $possibleStatuses = ManageStatus::where('status_id', $status)
+            ->where('possible_status', '!=', '')
+            ->first()->ps ?? [];
+
+            $statuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name', 'color')->get();
+            $possibleStatuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name')->pluck('name', 'id')->toArray();
+            $cs = $order->first()->ostatus->name ?? '';
+            
+            $view = view('sales-orders-status.status', compact('statuses', 'cs'))->render();
+
+            if (ChangeOrderStatusTrigger::where('order_id', $request->id)->where('executed', 0)->exists()) {
+                $addedAlready = true;
+                $temp = ChangeOrderStatusTrigger::with('mainstatus')->where('order_id', $request->id)->where('executed', 0)->first();
+
+                $addedData['type'] = $temp->type;
+                $addedData['status'] = $temp->status_id;
+                $addedData['status_color'] = $temp->mainstatus->color ?? '';
+                $addedData['status_text'] = $temp->mainstatus->name ?? '';
+
+                $addedData['hour'] = '';
+                $addedData['minute'] = '';
+
+                if ($addedData['type'] == '5') {
+
+                    if(preg_match('/\+(\d+)\s*hours\s*\+\s*(\d+)\s*minutes/', $temp->time, $matches)) {
+                        $addedData['hour'] = intval($matches[1]);
+                        $addedData['minute'] = intval($matches[2]);
+                    }
+                }
+            }
+        }
+
+        return response()->json(['data' => $possibleStatuses, 'view' => $view, 'added' => $addedAlready, 'addedData' => $addedData]);
+    }
+
+    public function putOnCron(Request $request) {
+        $orderId = $request->clid;
+        $time = $request->cltime;
+        $orderStatus = $request->clstatus;
+        $hour = $request->hour;
+        $minute = $request->minute;
+        $additionalTime = '+0 seconds';
+
+        if (!empty($orderId) && !empty($time) && !empty($orderStatus)) {
+                if ($time == '1') {
+                    $additionalTime = '+0 seconds';
+                } else if ($time == '2') {
+                    $additionalTime = '+5 minutes';
+                } else if ($time == '3') {
+                    $additionalTime = '+10 minutes';
+                } else if ($time == '4') {
+                    $additionalTime = '+24 hours';
+                } else if ($time == '5') {
+                    if (!is_numeric($request->hour)) {
+                        $hour = '1';
+                    }
+                    if (!is_numeric($request->minute)) {
+                        $minute = '0';
+                    }
+
+                    $additionalTime = "+{$hour} hours +{$minute} minutes";
+                } else {
+                    return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+                }
+
+                $currentStatusId = SalesOrder::where('id', $orderId)->first()->status ?? 0;
+
+                if (ChangeOrderStatusTrigger::where('order_id', $orderId)->where('executed', 0)->exists()) {
+                    ChangeOrderStatusTrigger::where('order_id', $orderId)
+                    ->where('executed', 0)->update([
+                        'updated_by' => auth()->user()->id,
+                        'time' => $additionalTime,
+                        'type' => $time,
+                        'executed_at' => date('Y-m-d H:i:s', strtotime($additionalTime)),
+                        'executed' => true
+                    ]);
+
+                }
+
+                ChangeOrderStatusTrigger::create([
+                    'order_id' => $orderId,
+                    'status_id' => $orderStatus,
+                    'added_by' => auth()->user()->id,
+                    'time' => $additionalTime,
+                    'type' => $time,
+                    'current_status_id' => $currentStatusId,
+                    'executed_at' => date('Y-m-d H:i:s', strtotime($additionalTime))
+                ]);
+
+                return response()->json(['status' => true, 'message' => 'Order trigger data saved successfully.']);
+
+        } else {
+            return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+        }
+    }
+
+    public function orderDetailInBoard(Request $request) {
+        $order = SalesOrder::with(['tstatus', 'ostatus'])->where('id', $request->id);
+
+        if ($order->exists()) {
+            $order = $order->first();
+            return response()->json(['status' => true, 'view' => view('sales-orders-status.order-details', compact('order'))->render()]);
+        }
+
+        return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
     }
 }
