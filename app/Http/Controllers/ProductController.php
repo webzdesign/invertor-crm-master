@@ -8,6 +8,10 @@ use App\Models\ProductImage;
 use App\Models\Category;
 use App\Helpers\Helper;
 use App\Models\ProcurementCost;
+use App\Models\DistributionItem;
+use App\Models\PurchaseOrderItem;
+use App\Models\SalesOrderItem;
+use App\Models\Stock;
 use App\Models\Product;
 
 class ProductController extends Controller
@@ -203,22 +207,32 @@ class ProductController extends Controller
     {
         $product = Product::where('id', decrypt($id));
 
+
         if ($product->exists()) {
+            $ProcurementCost = ProcurementCost::where('product_id',decrypt($id))->count();
+            $DistributionItem = DistributionItem::where('product_id',decrypt($id))->count();
+            $PurchaseOrderItem = PurchaseOrderItem::where('product_id',decrypt($id))->count();
+            $SalesOrderItem = SalesOrderItem::where('product_id',decrypt($id))->count();
+            $Stock = Stock::where('product_id',decrypt($id))->count();
 
-            $product->delete();
+            if($ProcurementCost > 0 || $DistributionItem > 0 || $PurchaseOrderItem > 0 || $SalesOrderItem > 0 || $Stock > 0) {
+                return response()->json(['error' => 'The product has been assigned to a different module, therefore it will not be removed.', 'status' => 500]);
+            } else {
+                $product->delete();
 
-            $images = ProductImage::where('product_id', decrypt($id))->select('name')->pluck('name')->toArray();
+                $images = ProductImage::where('product_id', decrypt($id))->select('name')->pluck('name')->toArray();
 
-            foreach ($images as $image) {
-                if (file_exists(storage_path("app/public/product-images/{$image}"))) {
-                    unlink(storage_path("app/public/product-images/{$image}"));
+                foreach ($images as $image) {
+                    if (file_exists(storage_path("app/public/product-images/{$image}"))) {
+                        unlink(storage_path("app/public/product-images/{$image}"));
+                    }
                 }
+
+                ProductImage::where('product_id', decrypt($id))->delete();
+                ProcurementCost::where('product_id', decrypt($id))->delete();
+
+                return response()->json(['success' => 'Product deleted successfully.', 'status' => 200]);
             }
-
-            ProductImage::where('product_id', decrypt($id))->delete();
-            ProcurementCost::where('product_id', decrypt($id))->delete();
-
-            return response()->json(['success' => 'Product deleted successfully.', 'status' => 200]);
         } else {
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
         }
