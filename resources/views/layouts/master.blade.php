@@ -79,7 +79,7 @@
                                             </h4>
                                         </a>
                                     </li>
-                                    
+
                                     <li class="m-0 w-100">
                                         <a href="{{ route('logout') }}"
                                             onclick="event.preventDefault();
@@ -119,7 +119,12 @@
                             <li class="f-14 f-400 c-7b">
                                 /
                             </li>
-                            <li class="f-14 f-400 c-36">{{ isset($moduleName) ? $moduleName : 'Module' }}</li>
+                            @if(isset($moduleLink) && $moduleLink !="")
+                                <li>{!! isset($moduleName) ? '<a href="'.$moduleLink.'" class="f-14 f-400 c-7b">'.$moduleName.'</a>' : 'Module' !!}</li>
+                            @else
+                                <li class="f-14 f-400 c-36">{{ isset($moduleName) ? $moduleName : 'Module' }}</li>
+                            @endif
+
                             @yield('breadcumb')
                         </ul>
                         <div>@yield('deletedRecBtn')</div>

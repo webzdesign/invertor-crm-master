@@ -29,7 +29,7 @@
                 <select name="filterStatus" id="filterStatus" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Status ---">
                     <option value="" selected> --- Select a Status --- </option>
                     <option value="1">Active</option>
-                    <option value="0">in-Active</option>
+                    <option value="0">Inactive</option>
                 </select>
             </div>
         </div>
@@ -140,7 +140,7 @@
             $('body').find('#filterStatus').val('').trigger('change');
             ServerDataTable.ajax.reload();
         });
-        
+
         $(document).on('click', '.copy-register-link', function (event) {
             event.preventDefault();
             navigator.clipboard.writeText($(this).data('url'));

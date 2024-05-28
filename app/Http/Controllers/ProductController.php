@@ -21,7 +21,7 @@ class ProductController extends Controller
 
             return view('products.index', compact('moduleName', 'categories'));
         }
-        
+
         $products = Product::query();
 
         if (isset($request->filterStatus)) {
@@ -60,24 +60,24 @@ class ProductController extends Controller
                 $action .= '<div class="whiteSpace">';
                 if (auth()->user()->hasPermission("products.edit")) {
                     $url = route("products.edit", encrypt($variable->id));
-                    $action .= view('buttons.edit', compact('variable', 'url')); 
+                    $action .= view('buttons.edit', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("products.edit")) {
                     $eId = encrypt($variable->id);
                     $url = route("products.image", $eId);
-                    $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn' ><a data-bs-toggle='tooltip' style='background:#ffc107 !important;' title='Alter Images' href='{$url}' class='editBtn'> <i class='fa fa-image text-dark' aria-hidden='true'></i> </a></div></div>"; 
+                    $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn' ><a data-bs-toggle='tooltip' style='background:#ffc107 !important;' title='Alter Images' href='{$url}' class='editBtn'> <i class='fa fa-image text-dark' aria-hidden='true'></i> </a></div></div>";
                 }
                 if (auth()->user()->hasPermission("products.view")) {
                     $url = route("products.view", encrypt($variable->id));
-                    $action .= view('buttons.view', compact('variable', 'url')); 
+                    $action .= view('buttons.view', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("products.activeinactive")) {
                     $url = route("products.activeinactive", encrypt($variable->id));
-                    $action .= view('buttons.status', compact('variable', 'url')); 
+                    $action .= view('buttons.status', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("products.delete")) {
                     $url = route("products.delete", encrypt($variable->id));
-                    $action .= view('buttons.delete', compact('variable', 'url')); 
+                    $action .= view('buttons.delete', compact('variable', 'url'));
                 }
                 $action .= '</div>';
 
@@ -144,10 +144,11 @@ class ProductController extends Controller
 
     public function create(Request $request) {
         $moduleName = 'Product';
+        $moduleLink = route('products.index');
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $prodNo = Helper::generateProductNumber();
 
-        return view('products.create', compact('moduleName', 'categories', 'prodNo'));
+        return view('products.create', compact('moduleName', 'categories', 'prodNo','moduleLink'));
     }
 
     public function store(ProductRequest $request)
@@ -167,13 +168,13 @@ class ProductController extends Controller
     public function edit($id)
     {
         $did = decrypt($id);
-
+        $moduleLink = route('products.index');
         $moduleName = 'Product';
         $product = Product::with(['images'])->where('id', $did)->first();
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $images = ProductImage::select('id', 'name')->where('product_id', $did)->get();
 
-        return view('products.edit', compact('moduleName', 'id', 'product', 'categories', 'images'));
+        return view('products.edit', compact('moduleName', 'id', 'product', 'categories', 'images','moduleLink'));
     }
 
     public function update(ProductRequest $request, $id)
@@ -185,17 +186,17 @@ class ProductController extends Controller
         $product->updated_by = auth()->user()->id;
         $product->save();
 
-        return redirect()->route('products.index')->with('success', 'Product Updated successfully.');
+        return redirect()->route('products.index')->with('success', 'Product updated successfully.');
     }
 
     public function show($id)
     {
         $did = decrypt($id);
-
+        $moduleLink = route('products.index');
         $moduleName = 'Product';
         $product = Product::with(['images'])->where('id', $did)->first();
 
-        return view('products.view', compact('moduleName', 'product'));
+        return view('products.view', compact('moduleName', 'product','moduleLink'));
     }
 
     public function destroy($id)
@@ -217,7 +218,7 @@ class ProductController extends Controller
             ProductImage::where('product_id', decrypt($id))->delete();
             ProcurementCost::where('product_id', decrypt($id))->delete();
 
-            return response()->json(['success' => 'Product deleted Successfully.', 'status' => 200]);            
+            return response()->json(['success' => 'Product deleted successfully.', 'status' => 200]);
         } else {
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
         }
@@ -233,19 +234,19 @@ class ProductController extends Controller
             if ($user->status == 1) {
                 return response()->json(['success' => 'Product activated successfully.', 'status' => 200]);
             } else {
-                return response()->json(['success' => 'Product deactivated successfully.', 'status' => 200]);
+                return response()->json(['success' => 'Product inactivated successfully.', 'status' => 200]);
             }
         } catch (\Exception $e) {
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
-        }        
+        }
     }
 
     public function images(Request $request, $id) {
 
         $images = ProductImage::select('id', 'name')->where('product_id', decrypt($id))->get();
-        $moduleName = 'Product Images';
-
-        return view('products.images', compact('images', 'moduleName', 'id'));
+        $moduleName = 'Product';
+        $moduleLink = route('products.index');
+        return view('products.images', compact('images', 'moduleName', 'id','moduleLink'));
     }
 }
 
