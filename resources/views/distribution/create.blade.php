@@ -400,7 +400,7 @@ $(document).ready(function() {
         let thisDriverId = $(this).val();
         let thisProductId = $(`#product-${indexId}`).val();
 
-        if (thisDisType != 1) {
+        if (thisDisType == 3) {
             $(`#product-${indexId}`).val(null).trigger('change');
             $(`#product-${indexId}`).empty();
         }
