@@ -159,43 +159,52 @@ class SalesOrderStatusController extends Controller
                 })
                 ->addColumn('status', function ($row) use ($statuses) {
                    
-                    $html = 
-                    '<div class="status-main button-dropdown position-relative">
-                        <label class="status-label" style="background:' . ($row->ostatus->color ?? '') . ';"> ' . ($row->ostatus->name ?? '') . ' </label>
-                        <button class="dropdown-toggle status-opener ms-2 d-inline-flex align-items-center justify-content-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 20 19" fill="none">
-                            <path d="M0.998047 14.613V18.456H4.84105L16.175 7.12403L12.332 3.28103L0.998047 14.613ZM19.147 4.15203C19.242 4.05721 19.3174 3.94458 19.3688 3.82061C19.4202 3.69664 19.4466 3.56374 19.4466 3.42953C19.4466 3.29533 19.4202 3.16243 19.3688 3.03846C19.3174 2.91449 19.242 2.80186 19.147 2.70703L16.747 0.307035C16.6522 0.212063 16.5396 0.136719 16.4156 0.0853128C16.2916 0.0339065 16.1588 0.00744629 16.0245 0.00744629C15.8903 0.00744629 15.7574 0.0339065 15.6335 0.0853128C15.5095 0.136719 15.3969 0.212063 15.302 0.307035L13.428 2.18403L17.271 6.02703L19.147 4.15203Z" fill="#3C3E42"/>
-                            </svg>
-                        </button>
-                        <div class="dropdown-menu status-modal">
-                            <div class="status-dropdown">';
+                    // $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
+                    // $statuses = SalesOrderStatus::active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
 
+                    if (count($statuses) > 0) {
 
-                            foreach ($statuses as $status) {
-                                if ($status->id == $row->status) {
-                                $html .= '<button type="button" data-sid="' . $status->id . '" data-oid="' . $row->id . '" style="background:' . $status->color . ';" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
-                                    <span>' . $status->name . '</span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
-                                        <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
-                                    </svg>
-                                </button>';
-                                }
-                            }
-
-                                $html .= '<div class="status-dropdown-menu">';
-
+                        $html = 
+                        '<div class="status-main button-dropdown position-relative">
+                            <label class="status-label" style="background:' . ($row->ostatus->color ?? '') . ';"> ' . ($row->ostatus->name ?? '') . ' </label>
+                            <button class="dropdown-toggle status-opener ms-2 d-inline-flex align-items-center justify-content-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 20 19" fill="none">
+                                <path d="M0.998047 14.613V18.456H4.84105L16.175 7.12403L12.332 3.28103L0.998047 14.613ZM19.147 4.15203C19.242 4.05721 19.3174 3.94458 19.3688 3.82061C19.4202 3.69664 19.4466 3.56374 19.4466 3.42953C19.4466 3.29533 19.4202 3.16243 19.3688 3.03846C19.3174 2.91449 19.242 2.80186 19.147 2.70703L16.747 0.307035C16.6522 0.212063 16.5396 0.136719 16.4156 0.0853128C16.2916 0.0339065 16.1588 0.00744629 16.0245 0.00744629C15.8903 0.00744629 15.7574 0.0339065 15.6335 0.0853128C15.5095 0.136719 15.3969 0.212063 15.302 0.307035L13.428 2.18403L17.271 6.02703L19.147 4.15203Z" fill="#3C3E42"/>
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu status-modal">
+                                <div class="status-dropdown">';
+    
                                 foreach ($statuses as $status) {
-                                    $html .= '<li class="f-14" data-isajax="true" style="background: '. $status->color .'" data-sid="' . $status->id . '" data-oid="' . $row->id . '" > '. $status->name .' </li>';
+                                    if ($status->id == $row->status) {
+                                    $html .= '<button type="button" data-sid="' . $status->id . '" data-oid="' . $row->id . '" style="background:' . $status->color . ';color:' . Helper::generateTextColor($status->color) . ';" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
+                                        <span>' . $status->name . '</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
+                                            <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
+                                        </svg>
+                                    </button>';
+                                    }
                                 }
+    
+                                    $html .= '<div class="status-dropdown-menu">';
+    
+                                    foreach ($statuses as $status) {
+                                        $html .= '<li class="f-14" data-isajax="true" style="background: '. $status->color .';color:' . Helper::generateTextColor($status->color) . ';" data-sid="' . $status->id . '" data-oid="' . $row->id . '" > '. $status->name .' </li>';
+                                    }
+    
+                                    $html .= '</div>
+                                </div>
+                                <div class="status-action-btn mt-2 position-relative -z-1">
+                                    <button class="status-save-btn btn-primary f-500 f-14 d-inline-block" disabled>Save</button>
+                                    <button class="refresh-dt hide-dropdown btn-default f-500 f-14 d-inline-block ms-1">Cancel</button>
+                                </div>
+                            </div>
+                        </div>';
+                    } else {
+                        $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
+                    }
 
-                                $html .= '</div>
-                            </div>
-                            <div class="status-action-btn mt-2 position-relative -z-1">
-                                <button class="status-save-btn btn-primary f-500 f-14 d-inline-block" disabled>Save</button>
-                                <button class="refresh-dt hide-dropdown btn-default f-500 f-14 d-inline-block ms-1">Cancel</button>
-                            </div>
-                        </div>
-                    </div>';
+
 
                     return $html;
                 })
@@ -440,7 +449,7 @@ class SalesOrderStatusController extends Controller
     }
 
     public function orderDetailInBoard(Request $request) {
-        $order = SalesOrder::with(['tstatus', 'ostatus'])->where('id', $request->id);
+        $order = SalesOrder::with(['tstatus', 'ostatus', 'items'])->where('id', $request->id);
 
         if ($order->exists()) {
             $order = $order->first();
