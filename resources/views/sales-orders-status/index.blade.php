@@ -511,6 +511,7 @@
 <script src="{{ asset('assets/js/pusher.min.js') }}"></script>
 <script>
     var selectedOpt = null;
+    var thisWindowId = uuid();
 
     // Pusher.logToConsole = true;
 
@@ -523,8 +524,8 @@
     channel.bind('order-status-change', function(data) {
         let shouldMove = false;
 
-        if ('user' in data) {
-            if (data.user !== {!! json_encode(auth()->user()->id) !!}) {
+        if ('windowId' in data) {
+            if (thisWindowId !== data.windowId) {
                 shouldMove = true;
             }
         } else {
@@ -832,7 +833,8 @@
                     type: 'POST',
                     data: {
                         'status': area,
-                        'order': box
+                        'order': box,
+                        'windowId': thisWindowId
                     },
                     complete: function (response) {
                         if ('responseJSON' in response && response.responseJSON) {

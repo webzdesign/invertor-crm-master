@@ -36,7 +36,8 @@ class StatusTrigger extends Command
                 event(new \App\Events\OrderStatusEvent('order-status-change', [
                     'orderId' => $thisOrder->order_id,
                     'orderStatus' => $thisOrder->status_id,
-                    'orderOldStatus' => $salesOrder->status
+                    'orderOldStatus' => $salesOrder->status,
+                    'windowId' => \Illuminate\Support\Str::random(30)
                 ]));
             }
 

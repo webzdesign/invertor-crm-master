@@ -107,7 +107,7 @@ class SalesOrderStatusController extends Controller
                 'orderId' => $request->order,
                 'orderStatus' => $request->status,
                 'orderOldStatus' => $oldStatus,
-                'user' => auth()->user()->id
+                'windowId' => $request->windowId
             ]));
 
             return response()->json(['status' => true]);
