@@ -217,7 +217,7 @@ class RoleController extends Controller
         $role->status = $role->status == 1 ? 0 : 1;
         $role->save();
 
-        return response()->json(['success' => $role->status == 1 ? 'Role activated successfully.' : 'Role deactivated successfully.','status' => 200]);
+        return response()->json(['success' => $role->status == 1 ? 'Role activated successfully.' : 'Role inactivated successfully.','status' => 200]);
     }
 
     public function checkRoleExist(Request $request)

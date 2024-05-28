@@ -445,7 +445,7 @@ class UserController extends Controller
             if ($user->status == 1) {
                 return response()->json(['success' => 'User activated successfully.', 'status' => 200]);
             } else {
-                return response()->json(['success' => 'User deactivated successfully.', 'status' => 200]);
+                return response()->json(['success' => 'User inactivated successfully.', 'status' => 200]);
             }
         } catch (\Exception $e) {
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);

@@ -15,10 +15,10 @@ class CategoryController extends Controller
 
     public function index(Request $request) {
         if (!$request->ajax()) {
-            $moduleName = $this->moduleName;    
+            $moduleName = $this->moduleName;
             return view('categories.index', compact('moduleName'));
         }
-        
+
         $categories = Category::query();
 
         if (isset($request->filterStatus)) {
@@ -45,19 +45,19 @@ class CategoryController extends Controller
                 $action .= '<div class="whiteSpace">';
                 if (auth()->user()->hasPermission("categories.edit")) {
                     $url = route("categories.edit", encrypt($variable->id));
-                    $action .= view('buttons.edit', compact('variable', 'url')); 
+                    $action .= view('buttons.edit', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("categories.view")) {
                     $url = route("categories.view", encrypt($variable->id));
-                    $action .= view('buttons.view', compact('variable', 'url')); 
+                    $action .= view('buttons.view', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("categories.activeinactive")) {
                     $url = route("categories.activeinactive", encrypt($variable->id));
-                    $action .= view('buttons.status', compact('variable', 'url')); 
+                    $action .= view('buttons.status', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("categories.delete")) {
                     $url = route("categories.delete", encrypt($variable->id));
-                    $action .= view('buttons.delete', compact('variable', 'url')); 
+                    $action .= view('buttons.delete', compact('variable', 'url'));
                 }
                 $action .= '</div>';
 
@@ -87,7 +87,8 @@ class CategoryController extends Controller
 
     public function create(Request $request) {
         $moduleName = 'Category';
-        return view('categories.create', compact('moduleName'));
+        $moduleLink = route('categories.index');
+        return view('categories.create', compact('moduleName','moduleLink'));
     }
 
     public function store(CategoryRequest $request)
@@ -104,9 +105,10 @@ class CategoryController extends Controller
     public function edit($id)
     {
         $moduleName = 'Category';
+        $moduleLink = route('categories.index');
         $category = Category::where('id', decrypt($id))->first();
 
-        return view('categories.edit', compact('moduleName', 'id', 'category'));
+        return view('categories.edit', compact('moduleName', 'id', 'category','moduleLink'));
     }
 
     public function update(CategoryRequest $request, $id)
@@ -117,15 +119,16 @@ class CategoryController extends Controller
         $user->updated_by = auth()->user()->id;
         $user->save();
 
-        return redirect()->route('categories.index')->with('success', 'Category Updated successfully.');
+        return redirect()->route('categories.index')->with('success', 'Category updated successfully.');
     }
 
     public function show($id)
     {
         $moduleName = 'Category';
+        $moduleLink = route('categories.index');
         $category = Category::where('id', decrypt($id))->first();
 
-        return view('categories.view', compact('moduleName', 'category'));
+        return view('categories.view', compact('moduleName', 'category','moduleLink'));
     }
 
     public function destroy($id)
@@ -138,7 +141,7 @@ class CategoryController extends Controller
 
         if ($category->delete()) {
             ProcurementCost::where('category_id', decrypt($id))->delete();
-            return response()->json(['success' => 'Category Deleted Successfully.', 'status' => 200]);            
+            return response()->json(['success' => 'Category deleted successfully.', 'status' => 200]);
         } else {
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
         }
@@ -154,10 +157,10 @@ class CategoryController extends Controller
             if ($user->status == 1) {
                 return response()->json(['success' => 'Category activated successfully.', 'status' => 200]);
             } else {
-                return response()->json(['success' => 'Category deactivated successfully.', 'status' => 200]);
+                return response()->json(['success' => 'Category inactivated successfully.', 'status' => 200]);
             }
         } catch (\Exception $e) {
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
-        }        
+        }
     }
 }
