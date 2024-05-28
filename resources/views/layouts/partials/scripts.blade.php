@@ -52,7 +52,7 @@
         $(this).select2({
             width: '100%',
             allowClear: true,
-        }).on("load", function(e) { 
+        }).on("load", function(e) {
             $(this).prop('tabindex',0);
         }).trigger('load');
         $(this).css('width', '100%');
@@ -70,7 +70,7 @@
                 templateSelection: formatText,
                 templateResult: formatText,
                 allowClear: true,
-            }).on("load", function(e) { 
+            }).on("load", function(e) {
                 $(this).prop('tabindex',0);
             }).trigger('load');
         } else {
@@ -78,7 +78,7 @@
                 dropdownParent: $(this).parent(),
                 width: '100%',
                 allowClear: true,
-            }).on("load", function(e) { 
+            }).on("load", function(e) {
                 $(this).prop('tabindex',0);
             }).trigger('load');
         }
@@ -99,7 +99,7 @@
         e.preventDefault();
         var linkURL = $(this).attr("href");
         Swal.fire({
-            title: 'Are you sure want to Delete?',
+            title: 'Are you sure want to delete?',
             text: "As that can't be undone by doing reverse.",
             icon: 'success',
             showCancelButton: true,
@@ -136,7 +136,7 @@
         e.preventDefault();
         var linkURL = $(this).attr("href");
         Swal.fire({
-            title: 'Are you sure want to Activate?',
+            title: 'Are you sure want to activate?',
             text: "As that can be undone by doing reverse.",
             icon: 'success',
             showCancelButton: true,
@@ -165,7 +165,7 @@
         e.preventDefault();
         var linkURL = $(this).attr("href");
         Swal.fire({
-            title: 'Are you sure want to De-Activate?',
+            title: 'Are you sure want to deactivate?',
             text: "As that can be undone by doing reverse.",
             icon: 'success',
             showCancelButton: true,
