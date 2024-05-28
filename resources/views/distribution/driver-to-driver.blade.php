@@ -14,7 +14,7 @@
                     <tr>
 
                         <th class="block-a"> From Driver <span class="text-danger">*</span> </th>
-                        
+
                         <th class="block-b">Product <span class="text-danger">*</span> </th>
 
                         <th class="block-c"> To Driver <span class="text-danger">*</span> </th>
@@ -44,7 +44,7 @@
                         </td>
 
                         <td class="block-b">
-                            <div style="min-width: 200px;width: 100%" class="removable-product">
+                            <div style="min-width: 200px;max-width:280px" class="removable-product">
                                 <select name="product[0]" data-indexid="0" id="product-0" class="product2 select2-hidden-accessible m-product" style="width:100%" data-placeholder="Select a Product">
                                     <option value="" selected> --- Select a Product --- </option>
                                 </select>
@@ -52,7 +52,7 @@
                         </td>
 
                         <td class="block-c">
-                            <div style="min-width: 200px;width: 100%" class="removable-driver">
+                            <div style="min-width: 200px;max-width:280px" class="removable-driver">
                                 <select name="driver[0]" data-indexid="0" id="driver-0" class="select2 select2-hidden-accessible m-driver" style="width:100%" data-placeholder="Select a Driver">
                                     @forelse($drivers as $did => $dname)
                                         @if($loop->first)
@@ -68,7 +68,7 @@
 
                         <td class="block-d">
                             <div style="min-width: 200px;">
-                                <input type="number" data-indexid="0" name="quantity[0]" id="quantity-0" class="form-control m-quantity" style="background:#ffffff">
+                                <input type="number" data-indexid="0" name="quantity[0]" id="quantity-0" class="form-control m-quantity" style="background:#ffffff" min='1'>
                             </div>
                         </td>
 
@@ -85,7 +85,7 @@
                         <td class="block-a"></td>
                         <td class="block-b"></td>
                         <td class="block-c"></td>
-                        <td class="block-d"> 
+                        <td class="block-d">
                             <div style="min-width: 200px;">
                                 <input type="number" class="form-control mt-quantity" style="background:#efefef" value="0" readonly>
                             </div>
