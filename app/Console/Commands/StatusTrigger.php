@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\ChangeOrderStatusTrigger;
 use Illuminate\Console\Command;
-use App\Models\CronHistory;
 use App\Models\SalesOrder;
 
 class StatusTrigger extends Command
@@ -31,12 +30,20 @@ class StatusTrigger extends Command
         foreach (ChangeOrderStatusTrigger::where('executed', false)->where('executed_at', '<=', date('Y-m-d H:i:s'))->get() as $order) {
 
             $thisOrder = ChangeOrderStatusTrigger::findOrFail($order->id);
-            SalesOrder::where('id', $thisOrder->order_id ?? null)->update([
-                'status' => $thisOrder->status_id
-            ]);
+            $salesOrder = SalesOrder::findOrFail($thisOrder->order_id ?? null);
+
+            if (isset($thisOrder->order_id)) {
+                event(new \App\Events\OrderStatusEvent('order-status-change', [
+                    'orderId' => $thisOrder->order_id,
+                    'orderStatus' => $thisOrder->status_id,
+                    'orderOldStatus' => $salesOrder->status
+                ]));
+            }
+
+            $salesOrder->status = $thisOrder->status_id;
+            $salesOrder->save();
             $thisOrder->executed = true;
             $thisOrder->save();
-            
         }
     }
 }
