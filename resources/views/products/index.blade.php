@@ -45,7 +45,7 @@
                 <select name="filterStatus" id="filterStatus" class="select2 select2-hidden-accessible" data-placeholder="--- Select Status ---">
                     <option value="" selected> --- Select Status --- </option>
                     <option value="1">Active</option>
-                    <option value="0">in-Active</option>
+                    <option value="0">Inactive</option>
                 </select>
             </div>
         </div>
@@ -62,9 +62,8 @@
             <tr>
                 <th>Sr No.</th>
                 <th>Product Number</th>
-                <th>Product Name</th>
+                <th width="25%">Product Name</th>
                 <th>Category</th>
-                <th>Purchase Price</th>
                 <th>Status</th>
                 <th>Added By</th>
                 <th>Updated By</th>
@@ -148,7 +147,7 @@
         });
 
         $('.datepicker').datetimepicker({
-            format: "DD/MM/YYYY", 
+            format: "DD/MM/YYYY",
             timeZone: ''
         });
 
@@ -156,7 +155,7 @@
         $('body').on('change', '#filterCategory, #filterStatus', function(e){
             var filterCategory = $('body').find('#filterCategory').val();
             var filterStatus = $('body').find('#filterStatus').val();
-            
+
             if (filterCategory != '' || filterStatus != '') {
                 $('body').find('.clearData').show();
             } else {
