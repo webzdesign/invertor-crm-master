@@ -15,13 +15,13 @@ class ProcurementCostController extends Controller
 
     public function index(Request $request) {
         if (!$request->ajax()) {
-            $moduleName = $this->moduleName;    
+            $moduleName = $this->moduleName;
             $categories = Category::select('id', 'name')->pluck('name', 'id')->toArray();
             $roles = Role::select('id', 'name')->pluck('name', 'id')->toArray();
 
             return view('p-cost.index', compact('moduleName', 'categories', 'roles'));
         }
-        
+
         $costs = ProcurementCost::query();
 
         if (isset($request->filterStatus)) {
@@ -69,6 +69,9 @@ class ProcurementCostController extends Controller
             ->editColumn('product_id', function ($cost) {
                 return $cost->product->name ?? '-';
             })
+            ->editColumn('role_id', function ($cost) {
+                return $cost->role->name ?? '-';
+            })
             ->editColumn('base_price', function ($cost) {
                 return Helper::currencyFormatter($cost->base_price);
             })
@@ -85,19 +88,19 @@ class ProcurementCostController extends Controller
                 $action .= '<div class="whiteSpace">';
                 if (auth()->user()->hasPermission("procurement-cost.edit")) {
                     $url = route("procurement-cost.edit", encrypt($variable->id));
-                    $action .= view('buttons.edit', compact('variable', 'url')); 
+                    $action .= view('buttons.edit', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("procurement-cost.view")) {
                     $url = route("procurement-cost.view", encrypt($variable->id));
-                    $action .= view('buttons.view', compact('variable', 'url')); 
+                    $action .= view('buttons.view', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("procurement-cost.activeinactive")) {
                     $url = route("procurement-cost.activeinactive", encrypt($variable->id));
-                    $action .= view('buttons.status', compact('variable', 'url')); 
+                    $action .= view('buttons.status', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("procurement-cost.delete")) {
                     $url = route("procurement-cost.delete", encrypt($variable->id));
-                    $action .= view('buttons.delete', compact('variable', 'url')); 
+                    $action .= view('buttons.delete', compact('variable', 'url'));
                 }
                 $action .= '</div>';
 
@@ -107,7 +110,7 @@ class ProcurementCostController extends Controller
                 if ($users->status == 1) {
                     return "<span class='badge bg-success'>Active</span>";
                 } else {
-                    return "<span class='badge bg-danger'>InActive</span>";
+                    return "<span class='badge bg-danger'>Inactive</span>";
                 }
             })
             ->rawColumns(['action', 'status', 'addedby.name', 'updatedby.name'])
@@ -131,8 +134,8 @@ class ProcurementCostController extends Controller
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $roles = Role::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $moduleName = 'Procurement Cost';
-        
-        return view('p-cost.create', compact('moduleName', 'categories', 'roles'));
+        $moduleLink = route('procurement-cost.index');
+        return view('p-cost.create', compact('moduleName', 'categories', 'roles','moduleLink'));
     }
 
     public function store(ProcurementCostRequest $request)
@@ -156,8 +159,8 @@ class ProcurementCostController extends Controller
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $roles = Role::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $moduleName = 'Procurement Cost';
-        
-        return view('p-cost.edit', compact('moduleName', 'categories', 'cost', 'id', 'roles'));
+        $moduleLink = route('procurement-cost.index');
+        return view('p-cost.edit', compact('moduleName', 'categories', 'cost', 'id', 'roles','moduleLink'));
     }
 
     public function update(ProcurementCostRequest $request, $id)
@@ -179,8 +182,8 @@ class ProcurementCostController extends Controller
     {
         $cost = ProcurementCost::find(decrypt($id));
         $moduleName = 'Procurement Cost';
-        
-        return view('p-cost.view', compact('moduleName', 'cost'));
+        $moduleLink = route('procurement-cost.index');
+        return view('p-cost.view', compact('moduleName', 'cost','moduleLink'));
     }
 
     public function destroy($id)
@@ -188,7 +191,7 @@ class ProcurementCostController extends Controller
         $cost = ProcurementCost::find(decrypt($id));
 
         if ($cost->delete()) {
-            return response()->json(['success' => 'Procurement cost deleted Successfully.', 'status' => 200]);            
+            return response()->json(['success' => 'Procurement cost deleted Successfully.', 'status' => 200]);
         } else {
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
         }
@@ -204,10 +207,10 @@ class ProcurementCostController extends Controller
             if ($cost->status == 1) {
                 return response()->json(['success' => 'Procurement cost activated successfully.', 'status' => 200]);
             } else {
-                return response()->json(['success' => 'Procurement cost deactivated successfully.', 'status' => 200]);
+                return response()->json(['success' => 'Procurement cost inactivated successfully.', 'status' => 200]);
             }
         } catch (\Exception $e) {
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
-        }        
+        }
     }
 }
