@@ -95,7 +95,7 @@
                                             <tr>
 
                                                 <td>
-                                                    <div style="min-width: 200px;width: 100%" class="removable-category">
+                                                    <div style="min-width: 200px;max-width: 280px;" class="removable-category">
                                                         <select name="category[{{ $key }}]" data-indexid="{{ $key }}" id="category-{{ $key }}" class="select2 select2-hidden-accessible m-category" style="width:100%" data-placeholder="Select a Category">
                                                             @forelse($categories as $cid => $category)
                                                             @if($loop->first)
@@ -111,7 +111,7 @@
 
 
                                                 <td>
-                                                    <div style="min-width: 200px;width: 100%" class="removable-product">
+                                                    <div style="min-width: 200px;max-width: 280px;" class="removable-product">
                                                         <select name="product[{{ $key }}]" data-indexid="{{ $key }}" id="product-{{ $key }}" class="select2 select2-hidden-accessible m-product" style="width:100%" data-placeholder="Select a Product">
                                                             <option value="" >Select Product </option>
                                                             @php
@@ -132,7 +132,7 @@
 
                                                 <td >
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="{{ $key }}" value="{{ $item->qty }}" name="quantity[{{ $key }}]" id="quantity-{{ $key }}" class="form-control m-quantity" style="background:#ffffff">
+                                                        <input type="number" data-indexid="{{ $key }}" value="{{ $item->qty }}" name="quantity[{{ $key }}]" id="quantity-{{ $key }}" class="form-control m-quantity" style="background:#ffffff" min='1'>
                                                     </div>
                                                 </td>
 
@@ -194,7 +194,7 @@
 
                                                 <td >
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="0" name="quantity[0]" id="quantity-0" class="form-control m-quantity" style="background:#ffffff">
+                                                        <input type="number" data-indexid="0" name="quantity[0]" id="quantity-0" class="form-control m-quantity" style="background:#ffffff" min='1'>
                                                     </div>
                                                 </td>
 
@@ -231,7 +231,7 @@
                                             <tr>
                                                 <td></td>
                                                 <td></td>
-                                                <td> 
+                                                <td>
                                                     <div style="min-width: 200px;">
                                                         <input type="number" class="form-control mt-quantity" style="background:#efefef" value="{{ $items->sum('qty') }}" readonly>
                                                     </div>
@@ -288,7 +288,7 @@
 @section('script')
     <script>
         $(document).ready(function() {
-            
+
             var categories = {!! json_encode($categories) !!};
             var categoriesHtml = `<option value="" selected> --- Select a Category --- </option>`;
             let lastElementIndex = {{ count($items) > 0 ? count($items) : 0 }};
@@ -328,14 +328,14 @@
                     messages: {
                         required: "Select a category."
                     }
-                }); 
+                });
 
                 cloned.find('.m-product').rules('add', {
                     required: true,
                     messages: {
                         required: "Select a product."
                     }
-                }); 
+                });
 
                 cloned.find('.m-quantity').rules('add', {
                     required: true,
@@ -346,7 +346,7 @@
                         digits: "Enter valid format.",
                         min: "Quantity can\'t be less than 1.",
                     }
-                }); 
+                });
 
                 cloned.find('.m-price').rules('add', {
                     required: true,
@@ -357,7 +357,7 @@
                         number: "Enter valid format.",
                         min: "Price can\'t be less than 0.",
                     }
-                }); 
+                });
 
             });
 

@@ -120,7 +120,7 @@
 
                                                 <td>
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="0" name="quantity[0]" id="quantity-0" class="form-control m-quantity" style="background:#ffffff">
+                                                        <input type="number" data-indexid="0" name="quantity[0]" id="quantity-0" class="form-control m-quantity" style="background:#ffffff" min='1'>
                                                     </div>
                                                 </td>
 
