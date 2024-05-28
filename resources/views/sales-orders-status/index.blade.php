@@ -75,10 +75,11 @@
     }
 
 
-    ::selection {
-        -webkit-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
+    hr {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        border: 0;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
     }
 
     .color-blue {
@@ -292,18 +293,14 @@
         color: black!important;
     }
 
-    .activity {
-        font-size: 15px;
-    }
 
-    .activity-date {
-        font-size: 12px;
-    }
 
     .status-lbl {
         padding: 4px;
-        border-radius: 15px;
+        border-radius: 4px;
         margin-right: 2px;
+        line-height: 1;
+        display: inline-block;
     }
 </style>
 
@@ -490,13 +487,13 @@
 
 {{-- Order details modal --}}
 <div class="modal fade" id="order-details" tabindex="-1" aria-labelledby="exampleModalLongTitle" aria-modal="true" role="dialog">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog">
       <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="exampleModalLongTitle"> <span id="modal-title-1"></span> </h1>
+        <div class="modal-header py-2">
+          <h6 class="modal-title" id="exampleModalLongTitle"> <span id="modal-title-1"></span> </h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body pb-3">
             <div id="orderDetails">
                 
             </div>
@@ -788,8 +785,14 @@
                 var thisSid = $(this).data('sid');
 
                 var dropdownToggle = $(this).closest(".status-dropdown").find(".status-dropdown-toggle");
-                var dropdownToggleText = $(this).closest(".status-dropdown").find(".status-dropdown-toggle").find("span");
-                dropdownToggleText.text(text);
+                var dropdownToggleText = $(this).closest(".status-dropdown").find(".status-dropdown-toggle");
+                
+                dropdownToggleText.html(`
+                <span> ${text} </span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
+                    <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
+                </svg>
+                `);
                 
                 dropdownToggle.css("background-color", bgColor);
                 dropdownToggle.css("color", generateTextColor(bgColor));

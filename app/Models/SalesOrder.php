@@ -41,6 +41,6 @@ class SalesOrder extends Model
 
     public function tstatus()
     {
-        return $this->hasMany(ChangeOrderStatusTrigger::class, 'order_id');
+        return $this->hasMany(ChangeOrderStatusTrigger::class, 'order_id')->orderBy('id', 'DESC');
     }
 }
