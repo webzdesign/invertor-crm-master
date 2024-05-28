@@ -99,7 +99,17 @@ class SalesOrderStatusController extends Controller
             return response()->json(['status' => false, 'card' => true]);
         }
 
-        if (SalesOrder::where('id', $request->order)->update(['status' => $request->status])) {
+        $oldStatus = SalesOrder::where('id', $request->order)->select('status')->first()->status;
+
+        if (SalesOrder::where('id', $request->order)->update(['status' => $request->status]) && isset($oldStatus)) {
+
+            event(new \App\Events\OrderStatusEvent('order-status-change', [
+                'orderId' => $request->order,
+                'orderStatus' => $request->status,
+                'orderOldStatus' => $oldStatus,
+                'windowId' => $request->windowId
+            ]));
+
             return response()->json(['status' => true]);
         }
 

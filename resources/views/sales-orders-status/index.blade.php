@@ -490,7 +490,7 @@
 
 {{-- Order details modal --}}
 <div class="modal fade" id="order-details" tabindex="-1" aria-labelledby="exampleModalLongTitle" aria-modal="true" role="dialog">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="exampleModalLongTitle"> <span id="modal-title-1"></span> </h1>
@@ -508,8 +508,38 @@
 @endsection
 
 @section('script')
+<script src="{{ asset('assets/js/pusher.min.js') }}"></script>
 <script>
-var selectedOpt = null;
+    var selectedOpt = null;
+    var thisWindowId = uuid();
+
+    // Pusher.logToConsole = true;
+
+    var pusher = new Pusher("{{ env('PUSHER_APP_KEY') }}", {
+        cluster: "{{ env('PUSHER_APP_CLUSTER') }}",
+        encrypted: true
+    });
+
+    var channel = pusher.subscribe('card-trigger');
+    channel.bind('order-status-change', function(data) {
+        let shouldMove = false;
+
+        if ('windowId' in data) {
+            if (thisWindowId !== data.windowId) {
+                shouldMove = true;
+            }
+        } else {
+            shouldMove = true;
+        }
+
+        if (shouldMove && $(`[data-cardchild="${data.orderId}"]`).length > 0 && $(`[data-cardparent="${data.orderStatus}"]`).length > 0) {
+            let toBeMoved = $(`[data-cardchild="${data.orderId}"]`).get(0);
+            let toBeMovedAt = $(`[data-cardparent="${data.orderStatus}"]`);
+
+            $(`[data-cardchild="${data.orderId}"]`).remove();
+            $(toBeMovedAt).append(toBeMoved)
+        }
+    });
 
     $(document).ready(function() {
 
@@ -591,28 +621,32 @@ var selectedOpt = null;
 
         });
 
-        // $(document).on('click', '.draggable-card', function () {
-        //     let thisOrderId = $(this).attr('data-cardchild');
-        //     let thisOrderTitle = $(this).attr('data-otitle');
-            
-        //     if (thisOrderId != '' && thisOrderId != null) {
-        //         $.ajax({
-        //             url: "{{ route('order-detail-in-board') }}",
-        //             type: "POST",
-        //             data: {
-        //                 id : thisOrderId
-        //             },
-        //             success: function (response) {
-        //                 if (response.status) {
-        //                     $('#modal-title-1').text(thisOrderTitle);
-        //                     $('#orderDetails').empty().html(response.view);
-        //                     $('#order-details').modal('show');
-        //                 }
-        //             }
+        $(document).on('click', '.draggable-card', function (event) {
 
-        //         });                
-        //     }
-        // });
+            let thisOrderId = $(this).attr('data-cardchild');
+            let thisOrderTitle = $(this).attr('data-otitle');
+
+            if (!$(event.target).hasClass('trigger-btn')) {
+                if (thisOrderId != '' && thisOrderId != null) {
+                    $.ajax({
+                        url: "{{ route('order-detail-in-board') }}",
+                        type: "POST",
+                        data: {
+                            id : thisOrderId
+                        },
+                        success: function (response) {
+                            if (response.status) {
+                                $('#modal-title-1').text(thisOrderTitle);
+                                $('#orderDetails').empty().html(response.view);
+                                $('#order-details').modal('show');
+                            }
+                        }
+
+                    });                
+                }
+            }
+        
+        });
 
         $('#putOnCron').validate({
             rules: {
@@ -799,7 +833,8 @@ var selectedOpt = null;
                     type: 'POST',
                     data: {
                         'status': area,
-                        'order': box
+                        'order': box,
+                        'windowId': thisWindowId
                     },
                     complete: function (response) {
                         if ('responseJSON' in response && response.responseJSON) {
