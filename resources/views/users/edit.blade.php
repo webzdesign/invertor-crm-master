@@ -80,7 +80,7 @@
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Password : </label>
                         <div class="input-group">
-                            <input type="password" name="password" id="password" value="{{ old('password') }}" class="form-control" placeholder="Create password">
+                            <input type="password" name="password" id="password" value="{{ old('password') }}" class="form-control pswd" placeholder="Create password">
                             <button class="btn btn-outline-primary show-hide d-flex align-items-center justify-content-center text-black border-gray h-34 bg-transparent shadow-none hover-bg-gray" type="button" data-fieldid="password" title="See Password"><i class="fa fa-eye"></i></button>
                             <button class="btn btn-outline-primary d-flex align-items-center justify-content-center text-black border-gray h-34 bg-transparent shadow-none hover-bg-gray" type="button" title="Generate Random" id="generate"><i class="fa fa-random"></i></button>
                         </div>
@@ -94,7 +94,7 @@
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Confirm Password : </label>
                         <div class="input-group">
-                            <input type="password" name="confirm_password" id="confirm-password" value="{{ old('confirm_password') }}" class="form-control" placeholder="Confirm new password">
+                            <input type="password" name="confirm_password" id="confirm-password" value="{{ old('confirm_password') }}" class="form-control pswd" placeholder="Confirm new password">
                             <button class="btn btn-outline-primary show-hide  d-flex align-items-center justify-content-center text-black border-gray h-34 bg-transparent shadow-none hover-bg-gray" type="button" data-fieldid="confirm-password" title="See Password"><i class="fa fa-eye"></i></button>
                         </div>
                         @if ($errors->has('confirm_password'))
@@ -112,7 +112,7 @@
                                 <option value="" selected> --- Select a Country --- </option>
                                 @endif
                                 <option value="{{ $cid }}" @if($cid == $user->country_id) selected @endif > {{ $cname }} </option>
-                            @empty                                
+                            @empty
                                 <option value=""> --- No Country Found --- </option>
                             @endforelse
                         </select>
@@ -231,7 +231,7 @@ $(document).ready(function(){
         } else {
             $(this).closest('.permission-listing').find('.permission').prop('checked', false);
         }
-    });   
+    });
 
     $('.permission-listing').each(function () {
         var permissionCheckboxes = $(this).find('.permission');

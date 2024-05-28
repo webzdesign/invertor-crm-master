@@ -85,7 +85,7 @@ class RoleController extends Controller
                 if ($users->status == 1) {
                     return "<span class='badge bg-success'>Active</span>";
                 } else {
-                    return "<span class='badge bg-danger'>Deactive</span>";
+                    return "<span class='badge bg-danger'>Inactive</span>";
                 }
             })
             ->rawColumns(['action', 'status', 'addedby.name', 'updatedby.name'])

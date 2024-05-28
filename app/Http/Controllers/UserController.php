@@ -28,7 +28,7 @@ class UserController extends Controller
         if (!$request->ajax()) {
             $moduleName = $this->moduleName;
             $roles = Role::where('id', '!=', '4')->get();
-    
+
             return view('users.index', compact('moduleName', 'roles'));
         }
 
@@ -80,22 +80,22 @@ class UserController extends Controller
                 $action .= '<div class="whiteSpace">';
                 if (auth()->user()->hasPermission("users.edit")) {
                     $url = route("users.edit", encrypt($variable->id));
-                    $action .= view('buttons.edit', compact('variable', 'url')); 
+                    $action .= view('buttons.edit', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("users.view")) {
                     $url = route("users.view", encrypt($variable->id));
-                    $action .= view('buttons.view', compact('variable', 'url')); 
+                    $action .= view('buttons.view', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("users.activeinactive")) {
                     if ($users->id !== auth()->user()->id) {
                         $url = route("users.activeinactive", encrypt($variable->id));
-                        $action .= view('buttons.status', compact('variable', 'url')); 
+                        $action .= view('buttons.status', compact('variable', 'url'));
                     }
                 }
                 if (auth()->user()->hasPermission("users.delete")) {
-                    if ($users->id !== auth()->user()->id) { 
+                    if ($users->id !== auth()->user()->id) {
                         $url = route("users.delete", encrypt($variable->id));
-                        $action .= view('buttons.delete', compact('variable', 'url')); 
+                        $action .= view('buttons.delete', compact('variable', 'url'));
                     }
                 }
                 $action .= '</div>';
@@ -106,7 +106,7 @@ class UserController extends Controller
                 if ($users->status == 1) {
                     return "<span class='badge bg-success'>Active</span>";
                 } else {
-                    return "<span class='badge bg-danger'>InActive</span>";
+                    return "<span class='badge bg-danger'>Inactive</span>";
                 }
             })
             ->rawColumns(['action', 'status', 'role.name', 'addedby.name', 'updatedby.name'])
@@ -117,6 +117,7 @@ class UserController extends Controller
     public function create()
     {
         $moduleName = 'User';
+        $moduleLink = route('users.index');
         $roles = Role::active()->where('id', '!=', '4')->get();
         $countries = Helper::getCountriesOrderBy();
 
@@ -128,7 +129,7 @@ class UserController extends Controller
 
         $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
-        return view('users.create', compact('moduleName', 'roles', 'countries', 'permission'));
+        return view('users.create', compact('moduleName', 'roles', 'countries', 'permission','moduleLink'));
     }
 
     public function store(UserRequest $request)
@@ -136,7 +137,7 @@ class UserController extends Controller
         DB::beginTransaction();
 
         try {
-            
+
             $user = new User();
             $user->name = $request->name;
             $user->email = $request->email;
@@ -165,19 +166,19 @@ class UserController extends Controller
                     $address = trim("{$user->address_line_1} {$user->city_id} {$user->postal_code} {$user->country_id}");
                     $address = str_replace(' ', '+', $address);
                     $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
-                        
+
                     $data = json_decode(file_get_contents($url), true);
 
                     if ($data['status'] == "OK") {
                         $lat = $data['results'][0]['geometry']['location']['lat'];
                         $long = $data['results'][0]['geometry']['location']['lng'];
-    
+
                         if (!empty($lat)) {
                             $u = User::find($user->id);
                             $u->lat = $lat;
                             $u->long = $long;
                             $u->save();
-    
+
                             $errorWhileSavingLatLong = false;
                         }
 
@@ -213,6 +214,7 @@ class UserController extends Controller
     public function edit($id)
     {
         $moduleName = 'User';
+        $moduleLink = route('users.index');
         $user = User::with('roles')->where('id', decrypt($id))->first();
         $roles = Role::active()->where('id', '!=', '4')->get();
         $countries = Helper::getCountriesOrderBy();
@@ -233,24 +235,24 @@ class UserController extends Controller
 
         $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
-        return view('users.edit', compact('moduleName', 'user', 'roles', 'countries', 'states', 'cities', 'id', 'userPermissions', 'permission'));
+        return view('users.edit', compact('moduleName', 'user', 'roles', 'countries', 'states', 'cities', 'id', 'userPermissions', 'permission','moduleLink'));
     }
 
     public static function addressChanged ($user, $country, $city, $postalcode, $address) {
         if (trim($user->country_id) !== trim($country)) {
-           return true; 
+           return true;
         }
 
         if (trim($user->city_id) !== trim($city)) {
-            return true; 
+            return true;
         }
 
         if (trim($user->postal_code) !== trim($postalcode)) {
-            return true; 
+            return true;
         }
 
         if (trim($user->address_line_1) !== trim($address)) {
-            return true; 
+            return true;
         }
 
          return false;
@@ -283,13 +285,13 @@ class UserController extends Controller
                     $user->password =  !empty(trim($request->password)) ? Hash::make($request->password) : $user->password;
                     $user->updated_by = auth()->user()->id;
                     $user->save();
-        
+
                     $user->roles()->sync($request->role);
                     $user->userpermission()->sync($request->permission);
 
                     DB::commit();
 
-                    return redirect()->route('users.index')->with('success', 'User Updated successfully.');
+                    return redirect()->route('users.index')->with('success', 'User updated successfully.');
 
                 }
 
@@ -305,24 +307,24 @@ class UserController extends Controller
 
                 if ((!in_array('3', $user->roles->pluck('id')->toArray()) && $request->role == '3') || $request->role == '3' && $addressChanged) {
                     $key = trim(Setting::first()?->geocode_key);
-    
+
                     if (!empty($key)) {
                         $address = trim("{$request->address_line_1} {$request->city} {$request->postal_code} {$request->country}");
                         $address = str_replace(' ', '+', $address);
                         $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
-                        
+
                         $data = json_decode(file_get_contents($url), true);
-    
+
                         if ($data['status'] == "OK") {
                             $lat = $data['results'][0]['geometry']['location']['lat'];
                             $long = $data['results'][0]['geometry']['location']['lng'];
-        
+
                             if (!empty($lat)) {
                                 $u = User::find($user->id);
                                 $u->lat = $lat;
                                 $u->long = $long;
                                 $u->save();
-        
+
                                 $errorWhileSavingLatLong = false;
                             }
 
@@ -354,23 +356,23 @@ class UserController extends Controller
                 $user->password =  !empty(trim($request->password)) ? Hash::make($request->password) : $user->password;
                 $user->updated_by = auth()->user()->id;
                 $user->save();
-    
+
                 $user->roles()->sync($request->role);
                 $user->userpermission()->sync($request->permission);
 
                 DB::commit();
 
                 if ($errorWhileSavingLatLong === false) {
-                    return redirect()->route('users.index')->with('success', 'User Updated successfully.');
+                    return redirect()->route('users.index')->with('success', 'User updated successfully.');
                 } else {
                     if ($notDriver) {
-                        return redirect()->route('users.index')->with('success', 'User Updated successfully.');
+                        return redirect()->route('users.index')->with('success', 'User updated successfully.');
                     } else {
                         return redirect()->route('users.edit', $id)->with('warning', 'Please provide accurate address.');
                     }
                 }
             }
-            
+
         } catch (\Exception $e) {
             Helper::logger("User Edit: " . $e->getMessage() . " on Line no : " . $e->getLine());
             DB::rollBack();
@@ -381,6 +383,7 @@ class UserController extends Controller
     public function show($id)
     {
         $moduleName = 'User';
+        $moduleLink = route('users.index');
         $user = User::with('roles')->where('id', decrypt($id))->first();
         $roles = Role::active()->get();
 
@@ -398,7 +401,7 @@ class UserController extends Controller
 
         $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
-        return view('users.view', compact('moduleName', 'user', 'roles', 'userPermissions', 'permission'));
+        return view('users.view', compact('moduleName', 'user', 'roles', 'userPermissions', 'permission','moduleLink'));
     }
 
     public function destroy($id)
@@ -446,7 +449,7 @@ class UserController extends Controller
             }
         } catch (\Exception $e) {
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
-        }        
+        }
     }
 
     public function checkUserEmail(Request $request)
@@ -462,7 +465,7 @@ class UserController extends Controller
 
     public function register(Request $request, $role, $uid = 1) {
         try {
-    
+
             if ($request->method() == 'GET') {
 
                 if ($uid == 1) {
@@ -476,10 +479,10 @@ class UserController extends Controller
                     return redirect()->route('login')->with('error', 'This link is not valid for registration.');
                 }
 
-    
+
                 return view('auth.register', compact('url', 'countries'));
             } else if ($request->method() == 'POST') {
-    
+
                 try {
                     $role = decrypt($role);
 
@@ -505,7 +508,7 @@ class UserController extends Controller
                             'postal_code.required' => 'Enter postal code.',
                             'postal_code.max'      => 'Maximum 8 characters allowed for postal code.'
                         ]);
-            
+
                             $user = new User();
                             $user->name = $request->name;
                             $user->email = $request->email;
@@ -518,28 +521,28 @@ class UserController extends Controller
                             $user->postal_code = $request->postal_code;
                             $user->added_by = decrypt($uid);
                             $user->save();
-                
+
                             $user->roles()->attach([$role]);
-        
+
                             if (auth()->check()) {
                                 auth()->logout();
                             }
-            
+
                             session()->flush();
                             $authenticate = auth()->attempt(['email' => $request->email, 'password' => $request->password]);
                     } else {
-                        return redirect()->route('login')->with('error', 'This link is not valid for registration.');    
+                        return redirect()->route('login')->with('error', 'This link is not valid for registration.');
                     }
                 } catch (\Exception $e) {
                     return redirect()->route('login')->with('error', 'This link is not valid for registration.');
                 }
-    
+
                     if ($authenticate) {
                         return redirect()->intended('dashboard');
                     } else {
                         return redirect()->route('login')->with('success', 'Registration was successful.');
                     }
-    
+
             } else {
                 return redirect()->route('login');
             }

@@ -165,7 +165,7 @@
         e.preventDefault();
         var linkURL = $(this).attr("href");
         Swal.fire({
-            title: 'Are you sure want to deactivate?',
+            title: 'Are you sure want to inactivate?',
             text: "As that can be undone by doing reverse.",
             icon: 'success',
             showCancelButton: true,
