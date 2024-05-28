@@ -65,7 +65,7 @@
                 </div>
                 @endif
 
-                
+
             </div>
 
             <div class="cardsFooter d-flex justify-content-center">
@@ -94,7 +94,7 @@ for (key in drivers) {
 }
 
 $(document).ready(function() {
-            
+
     $('#type').on('change', function () {
         let type = $(this).val();
 
@@ -127,7 +127,7 @@ $(document).ready(function() {
                             $(this).select2({
                                 width: '100%',
                                 allowClear: true,
-                            }).on("load", function(e) { 
+                            }).on("load", function(e) {
                                 $(this).prop('tabindex',0);
                             }).trigger('load');
                             $(this).css('width', '100%');
@@ -237,7 +237,7 @@ $(document).ready(function() {
     });
 
     var makeAjaxSelect2 = (el) => {
-        
+
         $(el).select2({
             width: '100%',
             minimumInputLength: 1,
@@ -256,7 +256,7 @@ $(document).ready(function() {
                      }
 
                      var selectedDriver = $(`#${typ}-${selectedDriver}`).val();
-                    
+
                     return {
                         searchQuery: params.term,
                         driver: selectedDriver ? selectedDriver : fromDriverId,
@@ -297,16 +297,16 @@ $(document).ready(function() {
 
         cloned = $('.upsertable').find('tr').eq(0).clone();
         lastElementIndex++;
-        
+
         cloned.find('.removable-from-driver').empty().append(`<select data-indexid="${lastElementIndex}" name="from_driver[${lastElementIndex}]" id="from-driver-${lastElementIndex}" class="select2 select2-hidden-accessible m-from-driver" style="width:100%" data-placeholder="Select a Driver"> ${driversHtml} </select> `);
         cloned.find('.m-from-driver').select2({
-            width: '100%',
+            // width: '100%',
             allowClear: true
         });
 
         cloned.find('.removable-driver').empty().append(`<select data-indexid="${lastElementIndex}" name="driver[${lastElementIndex}]" id="driver-${lastElementIndex}" class="select2 select2-hidden-accessible m-driver" style="width:100%" data-placeholder="Select a Driver"> ${driversHtml} </select> `);
         cloned.find('.m-driver').select2({
-            width: '100%',
+            // width: '100%',
             allowClear: true
         });
 
@@ -324,21 +324,21 @@ $(document).ready(function() {
             messages: {
                 required: "Select a driver."
             }
-        }); 
+        });
 
         cloned.find('.m-driver').rules('add', {
             required: true,
             messages: {
                 required: "Select a driver."
             }
-        }); 
+        });
 
         cloned.find('.m-product').rules('add', {
             required: true,
             messages: {
                 required: "Select a product."
             }
-        }); 
+        });
 
         cloned.find('.m-quantity').rules('add', {
             required: true,
@@ -350,13 +350,13 @@ $(document).ready(function() {
                 digits: "Enter valid format.",
                 min: "Quantity can\'t be less than 1.",
             }
-        }); 
+        });
 
     });
 
     $(document).on('click', '.removeRow', function(event) {
         if ($('.upsertable tr').length > 1) {
-            $(this).closest("tr").remove();                    
+            $(this).closest("tr").remove();
         }
 
         let iid = $(this).parent().parent().prev().find('.m-quantity').data('indexid');
@@ -369,7 +369,7 @@ $(document).ready(function() {
     $(document).on('change', '.m-product', function (event) {
         let that = $(this);
         let indexId = $(this).data('indexid');
-        
+
         let thisProductId = $(this).val();
         let thisDriverId = $(`#driver-${indexId}`).val();
 
@@ -381,7 +381,7 @@ $(document).ready(function() {
                     if ($(`#driver-${indexIdForDriver}`).val() !== '' && $(`#driver-${indexIdForDriver}`).val() !== null && thisDriverId == $(`#driver-${indexIdForDriver}`).val()) {
                         $(that).val(null).trigger('change');
                         Swal.fire('Warning', 'Product is already selected with this driver.', 'warning');
-                        return false;                    
+                        return false;
                     }
                 }
             });
@@ -396,7 +396,7 @@ $(document).ready(function() {
     $(document).on('change', '.m-driver', function (event) {
         let that = $(this);
         let indexId = $(this).data('indexid');
-        
+
         let thisDriverId = $(this).val();
         let thisProductId = $(`#product-${indexId}`).val();
 
@@ -416,13 +416,13 @@ $(document).ready(function() {
                         if ($(`#product-${indexIdForProduct}`).val() !== null && thisProductId == $(`#product-${indexIdForProduct}`).val()) {
                             $(that).val(null).trigger('change');
                             Swal.fire('Warning', 'Driver is already selected with this product.', 'warning');
-                            return false;                    
+                            return false;
                         }
                     }
                 });
             }
 
-            
+
         } else {
             fromDriverId = null;
         }

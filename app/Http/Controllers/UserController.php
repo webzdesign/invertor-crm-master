@@ -459,7 +459,7 @@ class UserController extends Controller
         if(isset($request->role_id) && $request->role_id !="") {
 
             $user->whereHas('role', function ($q)use($request) {
-                $q->where('role_id', $request->role_id);
+                $q->where('roles.id', $request->role_id);
             });
         }
         if ($request->has('id') && !empty(trim($request->id))) {

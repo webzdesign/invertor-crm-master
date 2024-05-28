@@ -27,8 +27,8 @@ class SupplierRequest extends FormRequest
             return [
                 'name'                  => 'required',
                 'email'                 => ['required', function ($name, $email, $fail) use ($id,$roleid) {
-                    if (\App\Models\User::where('id', '!=', $id)->where('email',$email)->whereHas('role', function ($q) use ($roleid){
-                        $q->where('role_id', $roleid);
+                    if (\App\Models\User::where('id', '!=', $id)->whereNull('deleted_at')->where('email',$email)->whereHas('role', function ($q) use ($roleid){
+                        $q->where('roles.id', $roleid);
                     })->exists()) {
                         $fail("Email is already added with this role.");
                     }
@@ -41,8 +41,8 @@ class SupplierRequest extends FormRequest
             return [
                 'name'                  => 'required',
                 'email'                 => ['required', function ($name, $email, $fail) use ($roleid) {
-                    if (\App\Models\User::where('email',$email)->whereHas('role', function ($q) use ($roleid){
-                        $q->where('role_id',$roleid);
+                    if (\App\Models\User::where('email',$email)->whereNull('deleted_at')->whereHas('role', function ($q) use ($roleid){
+                        $q->where('roles.id',$roleid);
                     })->exists()) {
                         $fail("Email is already added with this role.");
                     }

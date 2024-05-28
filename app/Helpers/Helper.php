@@ -107,12 +107,12 @@ class Helper {
     public static function generatePurchaseOrderNumber () {
         $orderNo = 0;
 
-        if (PurchaseOrder::latest()->first() === null) {
+        if (PurchaseOrder::withTrashed()->latest()->first() === null) {
             if (PurchaseOrder::withTrashed()->latest()->first() !== null) {
                 $orderNo = PurchaseOrder::withTrashed()->latest()->first()->id ?? 0;
             }
         } else {
-            $orderNo = PurchaseOrder::latest()->first()->id;   
+            $orderNo = PurchaseOrder::withTrashed()->latest()->first()->id;
         }
 
         $orderNo += 1;
@@ -145,12 +145,12 @@ class Helper {
     public static function generateProductNumber () {
         $proNo = 0;
 
-        if (Product::latest()->first() === null) {
+        if (Product::withTrashed()->latest()->first() === null) {
             if (Product::withTrashed()->latest()->first() !== null) {
                 $proNo = Product::withTrashed()->latest()->first()->id ?? 0;
             }
         } else {
-            $proNo = Product::latest()->first()->id;
+            $proNo = Product::withTrashed()->latest()->first()->id;
         }
 
         $proNo += 1;
@@ -275,7 +275,7 @@ class Helper {
         if ($id == null) {
             return Product::select('id', 'name')->pluck('name', 'id')->toArray();
         } else {
-            return Product::select('id', 'name')->where('id', $id)->first()->name ?? '-';            
+            return Product::select('id', 'name')->where('id', $id)->first()->name ?? '-';
         }
     }
 
@@ -299,13 +299,13 @@ class Helper {
 
     public static function generateTextColor(string $hexcolor) {
         $hexcolor = str_replace("#", "", $hexcolor);
-    
+
         $r = hexdec(substr($hexcolor, 0, 2));
         $g = hexdec(substr($hexcolor, 2, 2));
         $b = hexdec(substr($hexcolor, 4, 2));
 
         $yiq = (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
-    
+
         return ($yiq >= 128) ? '#000' : '#fff';
     }
 }
