@@ -28,10 +28,10 @@
         <table class="datatables-po1 table datatableMain" style="width: 100%!important;">
             <thead>
                 <tr>
-                    <th>Sr No.</th>
+                    <th width="5%">Sr No.</th>
                     {{-- <th>Order No.</th> --}}
                     <th>Supplier</th>
-                    <th>Product</th>
+                    <th width="50%">Product</th>
                     <th>Quantity</th>
                     {{-- <th>Added By</th> --}}
                     {{-- <th>Updated By</th> --}}
@@ -42,7 +42,7 @@
             </tbody>
         </table>
     </div>
-    
+
     <div class="cards mt-3">
         <div class="row m-0 filterColumn">
             <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
@@ -57,7 +57,7 @@
                     </select>
                 </div>
             </div>
-    
+
             <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
                 <div class="form-group mb-0 mb-10-500">
                     <label class="c-gr f-500 f-14 w-100 mb-1">From Date</label>
@@ -66,7 +66,7 @@
                         placeholder="From date">
                 </div>
             </div>
-    
+
             <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
                 <div class="form-group mb-0 mb-10-500">
                     <label class="c-gr f-500 f-14 w-100 mb-1">To Date</label>
@@ -75,7 +75,7 @@
                         placeholder="To date">
                 </div>
             </div>
-    
+
             <div class="col-xl-3 col-sm-4 position-relative">
                 <div class="form-group mb-0">
                     <label class="c-gr f-500 f-14 w-100 mb-1 d-none-500">&nbsp;</label>
@@ -87,7 +87,7 @@
         <table class="datatables-po table datatableMain" style="width: 100%!important;">
             <thead>
                 <tr>
-                    <th>Sr No.</th>
+                    <th width="5%">Sr No.</th>
                     <th>Order No.</th>
                     <th>Order Amount</th>
                     <th>Added By</th>

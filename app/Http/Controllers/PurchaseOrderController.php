@@ -23,7 +23,7 @@ class PurchaseOrderController extends Controller
             $suppliers = User::whereHas('role', function ($builder) {
                 $builder->where('roles.id', 4);
             })->select('users.id as id', 'users.name as name')->pluck('name', 'id')->toArray();
-    
+
             return view('po.index', compact('moduleName', 'suppliers'));
         }
 
@@ -67,15 +67,15 @@ class PurchaseOrderController extends Controller
                 $action .= '<div class="whiteSpace">';
                 if (auth()->user()->hasPermission("purchase-orders.edit")) {
                     $url = route("purchase-orders.edit", encrypt($variable->id));
-                    $action .= view('buttons.edit', compact('variable', 'url')); 
+                    $action .= view('buttons.edit', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("purchase-orders.view")) {
                     $url = route("purchase-orders.view", encrypt($variable->id));
-                    $action .= view('buttons.view', compact('variable', 'url')); 
+                    $action .= view('buttons.view', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("purchase-orders.delete")) {
                     $url = route("purchase-orders.delete", encrypt($variable->id));
-                    $action .= view('buttons.delete', compact('variable', 'url')); 
+                    $action .= view('buttons.delete', compact('variable', 'url'));
                 }
                 $action .= '</div>';
 
@@ -87,7 +87,9 @@ class PurchaseOrderController extends Controller
     }
 
     public function data(Request $request) {
-        $po = PurchaseOrderItem::with(['order', 'order.addedby', 'order.updatedby']);
+        $po = PurchaseOrderItem::with(['order', 'order.addedby', 'order.updatedby','product' => function ($query) {
+            $query->withTrashed();
+        }]);
 
         if ($request->has('filterSupplier') && !empty(trim($request->filterSupplier))) {
             $filterSupplier = trim($request->filterSupplier);
@@ -139,15 +141,15 @@ class PurchaseOrderController extends Controller
                 $action .= '<div class="whiteSpace">';
                 if (auth()->user()->hasPermission("purchase-orders.edit")) {
                     $url = route("purchase-orders.edit", encrypt($variable->id));
-                    $action .= view('buttons.edit', compact('variable', 'url')); 
+                    $action .= view('buttons.edit', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("purchase-orders.view")) {
                     $url = route("purchase-orders.view", encrypt($variable->id));
-                    $action .= view('buttons.view', compact('variable', 'url')); 
+                    $action .= view('buttons.view', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("purchase-orders.delete")) {
                     $url = route("purchase-orders.delete", encrypt($variable->id));
-                    $action .= view('buttons.delete', compact('variable', 'url')); 
+                    $action .= view('buttons.delete', compact('variable', 'url'));
                 }
                 $action .= '</div>';
 
@@ -161,13 +163,14 @@ class PurchaseOrderController extends Controller
     public function create()
     {
         $moduleName = 'Storage';
+        $moduleLink = route('purchase-orders.index');
         $suppliers = User::whereHas('role', function ($builder) {
             $builder->where('roles.id', 4);
         })->select('users.id as id', 'users.name as name')->pluck('name', 'id')->toArray();
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $orderNo = Helper::generatePurchaseOrderNumber();
 
-        return view('po.create', compact('moduleName', 'suppliers', 'categories', 'orderNo'));
+        return view('po.create', compact('moduleName', 'suppliers', 'categories', 'orderNo','moduleLink'));
     }
 
     public function productsOnCategory(Request $request)
@@ -268,6 +271,7 @@ class PurchaseOrderController extends Controller
     public function edit(Request $request, $id)
     {
         $moduleName = 'Storage';
+        $moduleLink = route('purchase-orders.index');
         $suppliers = User::whereHas('role', function ($builder) {
             $builder->where('roles.id', 4);
         })->select('users.id as id', 'users.name as name')->pluck('name', 'id')->toArray();
@@ -275,7 +279,7 @@ class PurchaseOrderController extends Controller
         $po = PurchaseOrder::find(decrypt($id));
         $items = PurchaseOrderItem::with('category')->where('po_id', decrypt($id))->get();
 
-        return view('po.edit', compact('moduleName', 'suppliers', 'categories', 'id', 'po', 'items'));
+        return view('po.edit', compact('moduleName', 'suppliers', 'categories', 'id', 'po', 'items','moduleLink'));
     }
 
     public function update(Request $request, $id)
@@ -349,7 +353,7 @@ class PurchaseOrderController extends Controller
                 Stock::insert($poItemForStock);
 
                 DB::commit();
-                return redirect()->route('purchase-orders.index')->with('success', 'stock updated to storage successfully.');
+                return redirect()->route('purchase-orders.index')->with('success', 'Stock updated to storage successfully.');
 
             } else {
                 DB::rollBack();
@@ -367,6 +371,7 @@ class PurchaseOrderController extends Controller
     public function show(Request $request, $id)
     {
         $moduleName = 'Storage';
+        $moduleLink = route('purchase-orders.index');
         $suppliers = User::whereHas('role', function ($builder) {
             $builder->where('roles.id', 4);
         })->select('users.id as id', 'users.name as name')->pluck('name', 'id')->toArray();
@@ -374,7 +379,7 @@ class PurchaseOrderController extends Controller
         $po = PurchaseOrder::find(decrypt($id));
         $items = PurchaseOrderItem::with('category')->where('po_id', decrypt($id))->get();
 
-        return view('po.view', compact('moduleName', 'suppliers', 'categories', 'po', 'items'));
+        return view('po.view', compact('moduleName', 'suppliers', 'categories', 'po', 'items','moduleLink'));
     }
 
     public function destroy(Request $request, $id)
