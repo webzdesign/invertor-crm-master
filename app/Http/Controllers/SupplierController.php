@@ -18,7 +18,7 @@ class SupplierController extends Controller
     {
         if (!$request->ajax()) {
             $moduleName = $this->moduleName;
-    
+
             return view('suppliers.index', compact('moduleName'));
         }
 
@@ -63,22 +63,22 @@ class SupplierController extends Controller
                 $action .= '<div class="whiteSpace">';
                 if (auth()->user()->hasPermission("suppliers.edit")) {
                     $url = route("suppliers.edit", encrypt($variable->id));
-                    $action .= view('buttons.edit', compact('variable', 'url')); 
+                    $action .= view('buttons.edit', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("suppliers.view")) {
                     $url = route("suppliers.view", encrypt($variable->id));
-                    $action .= view('buttons.view', compact('variable', 'url')); 
+                    $action .= view('buttons.view', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("suppliers.activeinactive")) {
                     if ($users->id !== auth()->user()->id) {
                         $url = route("suppliers.activeinactive", encrypt($variable->id));
-                        $action .= view('buttons.status', compact('variable', 'url')); 
+                        $action .= view('buttons.status', compact('variable', 'url'));
                     }
                 }
                 if (auth()->user()->hasPermission("suppliers.delete")) {
-                    if ($users->id !== auth()->user()->id) { 
+                    if ($users->id !== auth()->user()->id) {
                         $url = route("suppliers.delete", encrypt($variable->id));
-                        $action .= view('buttons.delete', compact('variable', 'url')); 
+                        $action .= view('buttons.delete', compact('variable', 'url'));
                     }
                 }
                 $action .= '</div>';
@@ -89,7 +89,7 @@ class SupplierController extends Controller
                 if ($users->status == 1) {
                     return "<span class='badge bg-success'>Active</span>";
                 } else {
-                    return "<span class='badge bg-danger'>InActive</span>";
+                    return "<span class='badge bg-danger'>Inactive</span>";
                 }
             })
             ->rawColumns(['action', 'status', 'role.name', 'addedby.name', 'updatedby.name'])
@@ -100,9 +100,10 @@ class SupplierController extends Controller
     public function create()
     {
         $moduleName = 'Supplier';
+        $moduleLink = route('suppliers.index');
         $countries = Helper::getCountriesOrderBy();
 
-        return view('suppliers.create', compact('moduleName', 'countries'));
+        return view('suppliers.create', compact('moduleName', 'countries','moduleLink'));
     }
 
     public function store(SupplierRequest $request)
@@ -110,7 +111,7 @@ class SupplierController extends Controller
         DB::beginTransaction();
 
         try {
-            
+
             $user = new User();
             $user->name = $request->name;
             $user->email = $request->email;
@@ -137,11 +138,12 @@ class SupplierController extends Controller
     public function edit($id)
     {
         $moduleName = 'Supplier';
+        $moduleLink = route('suppliers.index');
         $user = User::where('id', decrypt($id))->first();
 
         $countries = Helper::getCountriesOrderBy();
 
-        return view('suppliers.edit', compact('moduleName', 'user', 'countries', 'id'));
+        return view('suppliers.edit', compact('moduleName', 'user', 'countries', 'id','moduleLink'));
     }
 
     public function update(SupplierRequest $request, $id)
@@ -161,9 +163,9 @@ class SupplierController extends Controller
             $user->updated_by = auth()->user()->id;
             $user->save();
 
-            DB::commit();    
-            return redirect()->route('suppliers.index')->with('success', 'Supplier Updated successfully.');
-            
+            DB::commit();
+            return redirect()->route('suppliers.index')->with('success', 'Supplier updated successfully.');
+
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with(['error' => Helper::$errorMessage]);
@@ -173,9 +175,10 @@ class SupplierController extends Controller
     public function show($id)
     {
         $moduleName = 'Supplier';
+        $moduleLink = route('suppliers.index');
         $user = User::where('id', decrypt($id))->first();
 
-        return view('suppliers.view', compact('moduleName', 'user'));
+        return view('suppliers.view', compact('moduleName', 'user','moduleLink'));
     }
 
     public function destroy($id)
@@ -205,10 +208,10 @@ class SupplierController extends Controller
             if ($user->status == 1) {
                 return response()->json(['success' => 'Supplier activated successfully.', 'status' => 200]);
             } else {
-                return response()->json(['success' => 'Supplier deactivated successfully.', 'status' => 200]);
+                return response()->json(['success' => 'Supplier inactivated successfully.', 'status' => 200]);
             }
         } catch (\Exception $e) {
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
-        }        
+        }
     }
 }

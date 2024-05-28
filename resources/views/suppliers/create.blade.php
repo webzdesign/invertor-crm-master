@@ -99,6 +99,7 @@
                 <a href="{{ route('suppliers.index') }}">
                     <button type="button" class="btn-default f-500 f-14">Cancel</button>
                 </a>
+                <input type="hidden" name="role_id" id="role_id" value="4">
                 <button type="submit" class="btn-primary f-500 f-14">Save</button>
             </div>
         </div>
@@ -153,7 +154,10 @@
                             data: {
                                 email: function() {
                                     return $("#email").val();
-                                }
+                                },
+                                role_id: function() {
+                                    return $('#role_id').val();
+                                },
                             }
                         }
                     },

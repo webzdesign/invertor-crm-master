@@ -21,18 +21,32 @@ class SupplierRequest extends FormRequest
      */
     public function rules(): array
     {
+        $roleid = $this->role_id;
         if (request()->method() == 'PUT') {
             $id = decrypt($this->id);
             return [
                 'name'                  => 'required',
-                'email'                 => "required|email|unique:users,email,{$id},id,deleted_at,NULL",
+                'email'                 => ['required', function ($name, $email, $fail) use ($id,$roleid) {
+                    if (\App\Models\User::where('id', '!=', $id)->where('email',$email)->whereHas('role', function ($q) use ($roleid){
+                        $q->where('role_id', $roleid);
+                    })->exists()) {
+                        $fail("Email is already added with this role.");
+                    }
+                }],
                 'country'               => "required",
                 'postal_code'           => "required"
             ];
         } else {
+
             return [
                 'name'                  => 'required',
-                'email'                 => "required|email|unique:users,email,NULL,id,deleted_at,NULL",
+                'email'                 => ['required', function ($name, $email, $fail) use ($roleid) {
+                    if (\App\Models\User::where('email',$email)->whereHas('role', function ($q) use ($roleid){
+                        $q->where('role_id',$roleid);
+                    })->exists()) {
+                        $fail("Email is already added with this role.");
+                    }
+                }],
                 'country'               => "required",
                 'postal_code'           => "required"
             ];
