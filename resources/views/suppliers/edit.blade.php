@@ -67,7 +67,7 @@
                                 <option value="" selected> --- Select a Country --- </option>
                                 @endif
                                 <option value="{{ $cid }}" @if($cid == $user->country_id) selected @endif > {{ $cname }} </option>
-                            @empty                                
+                            @empty
                                 <option value=""> --- No Country Found --- </option>
                             @endforelse
                         </select>
@@ -94,6 +94,7 @@
             <a href="{{ route('suppliers.index') }}">
                 <button type="button" class="btn-default f-500 f-14">Cancel</button>
             </a>
+            <input type="hidden" name="role_id" id="role_id" value="4">
             <button type="submit" class="btn-primary f-500 f-14">Save Changes</button>
         </div>
     </div>
@@ -148,6 +149,9 @@ $(document).ready(function(){
                     data: {
                         email: function() {
                             return $("#email").val();
+                        },
+                        role_id: function() {
+                            return $('#role_id').val();
                         },
                         id : "{{ $id }}"
                     }

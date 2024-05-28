@@ -30,7 +30,7 @@
                 <select name="filterStatus" id="filterStatus" class="select2 select2-hidden-accessible" data-placeholder="--- Select Status ---">
                     <option value="" selected> --- Select Status --- </option>
                     <option value="1">Active</option>
-                    <option value="0">in-Active</option>
+                    <option value="0">Inactive</option>
                 </select>
             </div>
         </div>
@@ -124,14 +124,14 @@
         });
 
         $('.datepicker').datetimepicker({
-            format: "DD/MM/YYYY", 
+            format: "DD/MM/YYYY",
             timeZone: ''
         });
 
         /* filter Datatable */
         $('body').on('change', '#filterStatus', function(e){
             var filterStatus = $('body').find('#filterStatus').val();
-            
+
             if (filterStatus != '') {
                 $('body').find('.clearData').show();
             } else {

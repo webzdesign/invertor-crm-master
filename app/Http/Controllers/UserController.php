@@ -454,8 +454,14 @@ class UserController extends Controller
 
     public function checkUserEmail(Request $request)
     {
-        $user = User::where('email', trim($request->email));
 
+        $user = User::where('email', trim($request->email));
+        if(isset($request->role_id) && $request->role_id !="") {
+
+            $user->whereHas('role', function ($q)use($request) {
+                $q->where('role_id', $request->role_id);
+            });
+        }
         if ($request->has('id') && !empty(trim($request->id))) {
             $user = $user->where('id', '!=', decrypt($request->id));
         }
