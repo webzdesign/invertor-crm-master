@@ -1,5 +1,10 @@
 @extends('layouts.master')
-
+@section('breadcumb')
+    <li class="f-14 f-400 c-7b">
+        /
+    </li>
+    <li class="f-14 f-400 c-36">Add </li>
+@endsection
 @section('css')
 <link rel="stylesheet" href="{{ asset('assets/css/intel.css') }}">
 <style>
@@ -123,7 +128,7 @@ $(document).ready(function(){
         if (result) {
             return `Minimum sales price must be atleast ${minSP}.`;
         }
-        
+
         return "Select a product.";
     });
 
@@ -168,7 +173,7 @@ $(document).ready(function(){
             if (result) {
                 return `Minimum sales price must be atleast ${minSP}.`;
             }
-            
+
             return "Select a product.";
         });
     }
@@ -209,7 +214,7 @@ $(document).ready(function(){
                 maxlength: 'Maximum 8 characters allowed for postal code.'
             },
             price: {
-                required: "Enter quantity.",
+                required: "Enter price.",
                 digits: "Enter valid format.",
                 min: "Quantity can\'t be less than 1.",
             }
@@ -221,7 +226,7 @@ $(document).ready(function(){
             event.preventDefault();
 
             $('#so-container').empty();
-            
+
             if(!this.beenSubmitted) {
                 $.ajax({
                     url: "{{ route('get-available-item') }}",

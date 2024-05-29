@@ -17,7 +17,7 @@ class SalesOrderController extends Controller
         if (!$request->ajax()) {
             $moduleName = $this->moduleName;
             $sellers = User::whereHas('role', fn ($builder) => ($builder->where('roles.id', '2')))->select('name', 'id')->pluck('name', 'id')->toArray();
-    
+
             return view('so.index', compact('moduleName', 'sellers'));
         }
 
@@ -70,15 +70,15 @@ class SalesOrderController extends Controller
                 $action .= '<div class="whiteSpace">';
                 // if (auth()->user()->hasPermission("sales-orders.edit")) {
                 //     $url = route("sales-orders.edit", encrypt($variable->id));
-                //     $action .= view('buttons.edit', compact('variable', 'url')); 
+                //     $action .= view('buttons.edit', compact('variable', 'url'));
                 // }
                 if (auth()->user()->hasPermission("sales-orders.view")) {
                     $url = route("sales-orders.view", encrypt($variable->id));
-                    $action .= view('buttons.view', compact('variable', 'url')); 
+                    $action .= view('buttons.view', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("sales-orders.delete")) {
                     $url = route("sales-orders.delete", encrypt($variable->id));
-                    $action .= view('buttons.delete', compact('variable', 'url')); 
+                    $action .= view('buttons.delete', compact('variable', 'url'));
                 }
                 $action .= '</div>';
 
@@ -116,7 +116,7 @@ class SalesOrderController extends Controller
     public function create()
     {
         $moduleName = 'Sales Order';
-
+        $moduleLink = route('sales-orders.index');
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $statuses = SalesOrderStatus::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $orderNo = Helper::generateSalesOrderNumber();
@@ -140,11 +140,11 @@ class SalesOrderController extends Controller
             $items[] = $temp;
         }
 
-        return view('so.create-2', compact('moduleName', 'categories', 'orderNo', 'statuses', 'items'));
+        return view('so.create-2', compact('moduleName', 'categories', 'orderNo', 'statuses', 'items','moduleLink'));
     }
 
     public function getAvailableItem(Request $request) {
-        
+
         $validated = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'product' => 'required',
             'price' => 'required|numeric|min:0',
@@ -176,13 +176,13 @@ class SalesOrderController extends Controller
         ->select('id', 'lat', 'long')->get()->toArray();
 
         try {
-            
+
             $key = trim(Setting::first()?->geocode_key);
 
             $address = trim("{$request->address_line_1} {$request->postal_code}");
             $address = str_replace(' ', '+', $address);
             $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
-            
+
             $data = json_decode(file_get_contents($url), true);
 
             if ($data['status'] == "OK") {
@@ -227,7 +227,7 @@ class SalesOrderController extends Controller
             $outStock = DistributionItem::where('from_driver', $ele['id'])
             ->where('product_id', $thisProduct)
             ->select('qty')
-            ->sum('qty');         
+            ->sum('qty');
 
             $availStock = intval($inStock) - intval($outStock);
 
@@ -249,7 +249,7 @@ class SalesOrderController extends Controller
                             return $ele;
                         }
                     }
-                    
+
                 } else {
                     return $ele;
                 }
@@ -404,7 +404,7 @@ class SalesOrderController extends Controller
                                 'item_qty' => $qty,
                                 'created_at' => now()
                             ];
-                            
+
                             $soItems[] = $tempArr;
                         }
                     } else {
@@ -433,7 +433,7 @@ class SalesOrderController extends Controller
                             'driver_long' => $request->driver_long,
                             'delivery_location_lat' => $request->lat,
                             'delivery_location_long' => $request->long,
-                            'range' => $request->range                            
+                            'range' => $request->range
                         ]);
 
                         DB::commit();
@@ -569,7 +569,7 @@ class SalesOrderController extends Controller
                                 'item_qty' => $qty,
                                 'created_at' => now()
                             ];
-                            
+
                             $soItems[] = $tempArr;
                         }
                     } else {
@@ -638,7 +638,7 @@ class SalesOrderController extends Controller
 
         return view('so.edit', compact('moduleName', 'categories', 'id', 'so', 'htmlAttributes'));
     }
-    
+
     public function update(Request $request, $id)
     {
         $this->validate($request, [
