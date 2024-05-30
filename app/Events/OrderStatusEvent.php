@@ -27,7 +27,7 @@ class OrderStatusEvent implements ShouldBroadcastNow
 
     public function broadcastAs()
     {
-        return 'order-status-change';
+        return $this->event;
     }
 
     public function broadcastWith()

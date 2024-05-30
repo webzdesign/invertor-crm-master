@@ -166,7 +166,11 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('sales-order-manage-role-get', [SalesOrderStatusController::class, 'getManagedStatus'])->name('sales-order-manage-role-get')->middleware('ModuleAccessor:sales-order-status.edit');
         Route::post('sales-order-next-status', [SalesOrderStatusController::class, 'nextStatus'])->name('sales-order-next-status');
         Route::post('put-order-on-cron', [SalesOrderStatusController::class, 'putOnCron'])->name('put-order-on-cron');
+        Route::post('put-task-for-order', [SalesOrderStatusController::class, 'putTaskForOrder'])->name('put-task-for-order');
         Route::post('order-detail-in-board', [SalesOrderStatusController::class, 'orderDetailInBoard'])->name('order-detail-in-board');
+        Route::post('sales-order-next-status-for-add-task', [SalesOrderStatusController::class, 'nextStatusForTask'])->name('sales-order-next-status-for-add-task');
+        Route::post('remove-task', [SalesOrderStatusController::class, 'removeTask'])->name('remove-task');
+        Route::post('save-completion-description-for-task', [SalesOrderStatusController::class, 'saveDescription'])->name('save-completion-description-for-task');
         /** Sales Order Status **/
 
         /** Common **/

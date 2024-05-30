@@ -675,8 +675,7 @@ var totalOrders = 0;
                     success: function (response) {
                         if (response.status) {
                             Swal.fire('', response.message, 'success');
-                            $(lbl).css({'background-color' : response.color});
-                            $(lbl).text(response.text);
+                            ServerDataTable.ajax.reload();
                         } else {
                             Swal.fire('', response.message, 'error');
                         }

@@ -12,7 +12,7 @@
     @endforeach
     <div class="status-dropdown-menu">
         @foreach ($statuses as $status)
-        <li class="f-14 selectable" data-sid="{{ $status->id }}" style="background: {{ $status->color }};color: {{ Helper::generateTextColor($status->color) }};"> {{ $status->name }} </li>
+        <li class="f-14 selectable-2" data-sid="{{ $status->id }}" style="background: {{ $status->color }};color: {{ Helper::generateTextColor($status->color) }};"> {{ $status->name }} </li>
         @endforeach
     </div>
     @else

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{SalesOrderStatus, SalesOrder, SalesOrderItem, Deliver, Role, ManageStatus, User};
-use App\Models\{ChangeOrderStatusTrigger, CronHistory};
+use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
@@ -110,6 +110,18 @@ class SalesOrderStatusController extends Controller
                 'windowId' => $request->windowId
             ]));
 
+            $tmp = AddTaskToOrderTrigger::where('executed', 0)->where('order_id', $request->order)->where('current_status_id', $oldStatus)->where('status_id', $request->status);
+
+            if ($tmp->exists()) {
+                $tmp = $tmp->first()->time ?? '+0 seconds';
+
+                AddTaskToOrderTrigger::where('executed', 0)
+                ->where('order_id', $request->order)
+                ->where('current_status_id', $oldStatus)
+                ->where('status_id', $request->status)
+                ->update(['executed_at' => date('Y-m-d H:i:s', strtotime($tmp))]);
+            }
+
             return response()->json(['status' => true]);
         }
 
@@ -159,8 +171,8 @@ class SalesOrderStatusController extends Controller
                 })
                 ->addColumn('status', function ($row) use ($statuses) {
                    
-                    // $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
-                    // $statuses = SalesOrderStatus::active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
+                    $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
+                    $statuses = SalesOrderStatus::active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
 
                     if (count($statuses) > 0) {
 
@@ -174,9 +186,9 @@ class SalesOrderStatusController extends Controller
                             </button>
                             <div class="dropdown-menu status-modal">
                                 <div class="status-dropdown">';
-    
-                                foreach ($statuses as $status) {
-                                    if ($status->id == $row->status) {
+
+                                foreach ($statuses as $k => $status) {
+                                    if ($k == 0) {
                                     $html .= '<button type="button" data-sid="' . $status->id . '" data-oid="' . $row->id . '" style="background:' . $status->color . ';color:' . Helper::generateTextColor($status->color) . ';" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
                                         <span>' . $status->name . '</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
@@ -387,6 +399,29 @@ class SalesOrderStatusController extends Controller
         return response()->json(['data' => $possibleStatuses, 'view' => $view, 'added' => $addedAlready, 'addedData' => $addedData]);
     }
 
+    public function nextStatusForTask(Request $request) {
+        $order = SalesOrder::with('ostatus')->where('id', $request->id);
+        $addedData = $possibleStatuses = [];
+        $view = '-';
+        $addedAlready = false;
+
+        if ($order->exists()) {
+            $status = $order->first()->status;
+
+            $possibleStatuses = ManageStatus::where('status_id', $status)
+            ->where('possible_status', '!=', '')
+            ->first()->ps ?? [];
+
+            $statuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name', 'color')->get();
+            $possibleStatuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name')->pluck('name', 'id')->toArray();
+            $cs = $order->first()->ostatus->name ?? '';
+            
+            $view = view('sales-orders-status.status', compact('statuses', 'cs'))->render();
+        }
+
+        return response()->json(['data' => $possibleStatuses, 'view' => $view, 'added' => $addedAlready, 'addedData' => $addedData]);
+    }
+
     public function putOnCron(Request $request) {
         $orderId = $request->clid;
         $time = $request->cltime;
@@ -449,11 +484,86 @@ class SalesOrderStatusController extends Controller
     }
 
     public function orderDetailInBoard(Request $request) {
-        $order = SalesOrder::with(['tstatus', 'ostatus', 'items'])->where('id', $request->id);
+        $order = SalesOrder::with(['tstatus', 'ostatus', 'items', 'task'])->where('id', $request->id);
 
         if ($order->exists()) {
             $order = $order->first();
             return response()->json(['status' => true, 'view' => view('sales-orders-status.order-details', compact('order'))->render()]);
+        }
+
+        return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+    }
+
+    public function putTaskForOrder(Request $request) {
+        $orderId = $request->atid;
+        $time = $request->attime;
+        $type = $request->attype;
+        $orderStatus = $request->atstatus;
+        $hour = $request->add_task_hour;
+        $minute = $request->add_task_minute;
+        $desc = $request->task_desc;
+        $additionalTime = '+0 seconds';
+
+
+        if (!empty($orderId) && !empty($time) && !empty($type) && !empty($orderStatus)) {
+            if ($time == '1') {
+                $additionalTime = '+0 seconds';
+            } else if ($time == '2') {
+                $additionalTime = '+5 minutes';
+            } else if ($time == '3') {
+                $additionalTime = '+10 minutes';
+            } else if ($time == '4') {
+                $additionalTime = '+24 hours';
+            } else if ($time == '5') {
+                if (!is_numeric($request->add_task_hour)) {
+                    $hour = '1';
+                }
+                if (!is_numeric($request->add_task_minute)) {
+                    $minute = '0';
+                }
+
+                $additionalTime = "+{$hour} hours +{$minute} minutes";
+            } else {
+                return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+            }
+
+            $currentStatusId = SalesOrder::where('id', $orderId)->first()->status ?? 0;
+
+            AddTaskToOrderTrigger::create([
+                'order_id' => $orderId,
+                'status_id' => $orderStatus,
+                'added_by' => auth()->user()->id,
+                'time' => $additionalTime,
+                'type' => $time,
+                'main_type' => $type,
+                'description' => $desc,
+                'current_status_id' => $currentStatusId
+            ]);
+
+            return response()->json(['status' => true, 'message' => 'Order task data saved successfully.']);
+
+        } else {
+            return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+        }
+    }
+
+    public function removeTask(Request $request) {
+        $task = AddTaskToOrderTrigger::where('id', $request->id);
+
+        if ($task->exists()) {
+            return response()->json(['status' => /*$task->delete()*/ true, 'message' => 'Task deleted successfully.', 'count' => AddTaskToOrderTrigger::where('order_id', $request->order)->count()]);
+        }
+
+        return response()->json(['status' => false, 'message' => 'Task not found.']);
+    }
+
+    public function saveDescription(Request $request) {
+        if (AddTaskToOrderTrigger::where('id', $request->id)->exists()) {
+            AddTaskToOrderTrigger::where('id', $request->id)->update([
+                'completed_description' => $request->text,
+                'completed' => true
+            ]);
+            return response()->json(['status' => true, 'message' => 'Task completed successfully.']);
         }
 
         return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
