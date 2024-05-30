@@ -46,9 +46,9 @@
     <table class="datatables-po table datatableMain" style="width: 100%!important;">
         <thead>
             <tr>
-                <th>Type</th>
+                <th width="10%">Type</th>
                 <th>Product</th>
-                <th>Quantity</th>
+                <th width="10%">Quantity</th>
             </tr>
         </thead>
         <tbody>
@@ -62,7 +62,7 @@
     $(document).ready(function() {
 
         $.fn.dataTable.ext.errMode = 'none';
-    
+
         var ServerDataTable = $('.datatables-po').DataTable({
             language: {
                 search: "_INPUT_",

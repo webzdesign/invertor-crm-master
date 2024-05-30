@@ -150,7 +150,12 @@ $(document).ready(function(){
         }, function (result, element) {
                 return errorMap[iti.getValidationError()] || errorMap[0];
         });
-
+        input.addEventListener('keyup', () => {
+            if (iti.isValidNumber()) {
+                $('#country_dial_code').val(iti.s.dialCode);
+                $('#country_iso_code').val(iti.j);
+            }
+        });
         $.validator.addMethod('minSalesPriceM', function (value, element) {
             let bool = true;
             let validatorThisProduct = $(`#mproduct`);
@@ -216,7 +221,7 @@ $(document).ready(function(){
             price: {
                 required: "Enter price.",
                 digits: "Enter valid format.",
-                min: "Quantity can\'t be less than 1.",
+                min: "Price can\'t be less than 1.",
             }
         },
         errorPlacement: function(error, element) {
@@ -260,7 +265,8 @@ $(document).ready(function(){
                                 format: 'dd-mm-yyyy',
                                 autoclose: true,
                                 todayHighlight: true,
-                                orientation: "bottom"
+                                orientation: "bottom",
+                                startDate: '-0d'
                             });
 
                             initIntelValidation();

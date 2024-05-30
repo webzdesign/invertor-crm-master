@@ -617,6 +617,7 @@ class SalesOrderController extends Controller
     public function edit(Request $request, $id)
     {
         $moduleName = 'Sales Order';
+        $moduleLink = route('sales-orders.index');
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $so = SalesOrder::find(decrypt($id));
 
@@ -636,7 +637,7 @@ class SalesOrderController extends Controller
             }
         }
 
-        return view('so.edit', compact('moduleName', 'categories', 'id', 'so', 'htmlAttributes'));
+        return view('so.edit', compact('moduleName', 'categories', 'id', 'so', 'htmlAttributes','moduleLink'));
     }
 
     public function update(Request $request, $id)
@@ -665,7 +666,7 @@ class SalesOrderController extends Controller
             'quantity.*.min' => 'Quantity can\'t be less than 1.',
             'price.*.required' => 'Enter Price.',
             'price.*.numeric' => 'Enter valid format.',
-            'price.*.min' => 'Quantity can\'t be less than 0.'
+            'price.*.min' => 'Price can\'t be less than 0.'
         ]);
 
         $salesPriceErrors = [];
@@ -796,11 +797,12 @@ class SalesOrderController extends Controller
     public function show(Request $request, $id)
     {
         $moduleName = 'Sales Order';
+        $moduleLink = route('sales-orders.index');
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $so = SalesOrder::find(decrypt($id));
         $driver = isset($so->items->first()->driver->user->name) ? ($so->items->first()->driver->user->name . ' - (' . $so->items->first()->driver->user->email . ')') : '-';
 
-        return view('so.view', compact('moduleName', 'categories', 'so', 'driver'));
+        return view('so.view', compact('moduleName', 'categories', 'so', 'driver','moduleLink'));
     }
 
     public function destroy(Request $request, $id)

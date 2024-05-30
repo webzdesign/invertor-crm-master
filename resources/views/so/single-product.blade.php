@@ -122,14 +122,14 @@
                                         <td>
                                             <div style="min-width: 200px;">
                                                 <input type="number" data-indexid="0" name="quantity[]"
-                                                    id="mquantity" class="form-control">
+                                                    id="mquantity" class="form-control" min="1">
                                             </div>
                                         </td>
 
                                         <td>
                                             <div style="min-width: 200px;">
                                                 <input type="number" data-indexid="0" id="mprice" name="price[]" id="mprice"
-                                                    class="form-control">
+                                                    class="form-control" min="0">
                                             </div>
                                         </td>
 
