@@ -126,12 +126,12 @@ class Helper {
     public static function generateSalesOrderNumber () {
         $orderNo = 0;
 
-        if (SalesOrder::latest()->first() === null) {
+        if (SalesOrder::withTrashed()->latest()->first() === null) {
             if (SalesOrder::withTrashed()->latest()->first() !== null) {
                 $orderNo = SalesOrder::withTrashed()->latest()->first()->id ?? 0;
             }
         } else {
-            $orderNo = SalesOrder::latest()->first()->id;
+            $orderNo = SalesOrder::withTrashed()->latest()->first()->id;
         }
 
         $orderNo += 1;
@@ -164,12 +164,12 @@ class Helper {
     public static function generateDistributionNumber () {
         $orderNo = 0;
 
-        if (Distribution::latest()->first() === null) {
+        if (Distribution::withTrashed()->latest()->first() === null) {
             if (Distribution::withTrashed()->latest()->first() !== null) {
                 $orderNo = Distribution::withTrashed()->latest()->first()->id ?? 0;
             }
         } else {
-            $orderNo = Distribution::latest()->first()->id;
+            $orderNo = Distribution::withTrashed()->latest()->first()->id;
         }
 
         $orderNo += 1;

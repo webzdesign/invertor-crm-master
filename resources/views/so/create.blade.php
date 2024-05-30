@@ -107,7 +107,7 @@
                                     <option value="" selected> --- Select a Status --- </option>
                                     @endif
                                     <option value="{{ $sid }}" @if($sid == '1') selected @endif> {{ $sname }} </option>
-                                @empty                                
+                                @empty
                                     <option value=""> --- No Status Found --- </option>
                                 @endforelse
                             </select>
@@ -164,7 +164,7 @@
                                             <tr>
 
                                                 <td>
-                                                    <div style="min-width: 200px;width: 100%" class="removable-category">
+                                                    <div style="min-width: 200px;max-width:280px" class="removable-category">
                                                         <select name="category[0]" data-indexid="0" id="category-0" class="select2 select2-hidden-accessible m-category" style="width:100%" data-placeholder="Select a Category">
                                                             @forelse($categories as $cid => $category)
                                                             @if($loop->first)
@@ -179,7 +179,7 @@
                                                 </td>
 
                                                 <td>
-                                                    <div style="min-width: 200px;width: 100%" class="removable-product">
+                                                    <div style="min-width: 200px;max-width:280px" class="removable-product">
                                                         <select name="product[0]" data-indexid="0" id="product-0" class="select2 select2-hidden-accessible m-product" style="width:100%" data-placeholder="Select a Product">
                                                             <option value="">Select Product
                                                             </option>
@@ -189,14 +189,14 @@
 
                                                 <td >
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="0" name="quantity[0]" id="quantity-0" class="form-control m-quantity" style="background:#ffffff">
+                                                        <input type="number" data-indexid="0" name="quantity[0]" id="quantity-0" class="form-control m-quantity" style="background:#ffffff" min="1">
                                                     </div>
                                                 </td>
 
 
                                                 <td >
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" data-indexid="0" name="price[0]" id="price-0" class="form-control m-price" style="background:#ffffff">
+                                                        <input type="number" data-indexid="0" name="price[0]" id="price-0" class="form-control m-price" style="background:#ffffff" min="0">
                                                     </div>
                                                 </td>
 
@@ -225,7 +225,7 @@
                                             <tr>
                                                 <td></td>
                                                 <td></td>
-                                                <td> 
+                                                <td>
                                                     <div style="min-width: 200px;">
                                                         <input type="number" class="form-control mt-quantity" style="background:#efefef" value="0" readonly>
                                                     </div>
@@ -285,7 +285,7 @@
 <script src="{{ asset('assets/js/intel.min.js') }}"></script>
     <script>
         $(document).ready(function() {
-            
+
             const input = document.querySelector('#customer-phone');
             const errorMap = ["Phone number is invalid.", "Invalid country code", "Too short", "Too long"];
 
@@ -328,7 +328,7 @@
                 if (result) {
                     return `Minimum sales price must be atleast ${minSP}.`;
                 }
-                
+
                 return "Select a product.";
             });
 
@@ -376,14 +376,14 @@
                     messages: {
                         required: "Select a category."
                     }
-                }); 
+                });
 
                 cloned.find('.m-product').rules('add', {
                     required: true,
                     messages: {
                         required: "Select a product."
                     }
-                }); 
+                });
 
                 cloned.find('.m-quantity').rules('add', {
                     required: true,
@@ -394,7 +394,7 @@
                         digits: "Enter valid format.",
                         min: "Quantity can\'t be less than 1.",
                     }
-                }); 
+                });
 
                 cloned.find('.m-price').rules('add', {
                     required: true,
@@ -406,14 +406,14 @@
                         number: "Enter valid format.",
                         min: "Price can\'t be less than 0.",
                     }
-                }); 
+                });
 
             });
 
 
             $(document).on('click', '.removeRow', function(event) {
                 if ($('.upsertable tr').length > 1) {
-                    $(this).closest("tr").remove();                    
+                    $(this).closest("tr").remove();
                 }
 
                 let iid = $(this).parent().parent().prev().find('.m-remarks').data('indexid');
@@ -517,7 +517,7 @@
             $(document).on('change', '.m-product', function (event) {
                 let indexId = $(this).data('indexid');
                 let thisId = $(this).val();
-                
+
                 calculateAmount(indexId);
 
                 let that = $(this);

@@ -90,6 +90,7 @@
         <thead>
             <tr>
                 <th>Sr No.</th>
+                <th>Role</th>
                 <th>Product</th>
                 <th>Base Price</th>
                 <th>Minimum Sales Price</th>
@@ -145,6 +146,11 @@
                     data: 'DT_RowIndex',
                     orderable: false,
                     searchable: false,
+                },
+                {
+                    data: 'role_id',
+                    orderable: false,
+                    searchable: false
                 },
                 {
                     data: 'product_id',

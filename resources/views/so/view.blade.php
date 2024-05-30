@@ -63,6 +63,8 @@
                     <div class="form-group">
                         <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Phone Number</label>
                         <input type="text" class="form-control" id="customer-phone" value="{{ $so->customer_phone }}" readonly style="background: #efefef;">
+                        <input type="hidden" name="country_dial_code" id="country_dial_code" value="{{ old('country_dial_code', $so->country_dial_code) }}">
+                        <input type="hidden" name="country_iso_code" id="country_iso_code" value="{{ old('country_iso_code', $so->country_iso_code) }}">
                     </div>
                 </div>
 
@@ -177,7 +179,7 @@
                                         <tr>
                                             <td></td>
                                             <td></td>
-                                            <td> 
+                                            <td>
                                                 <div style="min-width: 200px;">
                                                     <input type="number" class="form-control mt-quantity" style="background:#efefef" value="{{ $so->items->sum('qty') }}" readonly>
                                                 </div>
