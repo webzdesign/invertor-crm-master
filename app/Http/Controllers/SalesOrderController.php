@@ -427,6 +427,7 @@ class SalesOrderController extends Controller
 
                         Deliver::create([
                             'user_id' => $request->driver_id,
+                            'so_id' => $soId,
                             'soi_id' => $getFirstItemId->id ?? 0,
                             'added_by' => auth()->user()->id,
                             'driver_lat' => $request->driver_lat,

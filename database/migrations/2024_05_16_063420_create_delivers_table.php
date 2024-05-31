@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('delivers', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->comment('Driver');
+            $table->unsignedBigInteger('so_id')->nullable();
             $table->unsignedBigInteger('soi_id');
             $table->unsignedBigInteger('added_by');
             $table->string('driver_lat');
@@ -25,6 +26,7 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
 
+            $table->foreign('so_id')->references('id')->on('sales_orders');
             $table->foreign('soi_id')->references('id')->on('sales_order_items');
             $table->foreign('added_by')->references('id')->on('users');
             $table->foreign('user_id')->references('id')->on('users');

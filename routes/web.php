@@ -171,6 +171,8 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('sales-order-next-status-for-add-task', [SalesOrderStatusController::class, 'nextStatusForTask'])->name('sales-order-next-status-for-add-task');
         Route::post('remove-task', [SalesOrderStatusController::class, 'removeTask'])->name('remove-task');
         Route::post('save-completion-description-for-task', [SalesOrderStatusController::class, 'saveDescription'])->name('save-completion-description-for-task');
+        Route::post('sales-order-responsible-user', [SalesOrderStatusController::class, 'salesOrderResponsibleUser'])->name('sales-order-responsible-user');
+        Route::post('sales-order-responsible-user-save', [SalesOrderStatusController::class, 'salesOrderResponsibleUserSave'])->name('sales-order-responsible-user-save');
         /** Sales Order Status **/
 
         /** Common **/

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{SalesOrderStatus, SalesOrder, SalesOrderItem, Deliver, Role, ManageStatus, User};
-use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger};
+use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
@@ -17,7 +17,7 @@ class SalesOrderStatusController extends Controller
         $orders = [];
 
         foreach ($statuses as $status) {
-            $tempOrder = SalesOrder::join('sales_order_items', 'sales_order_items.so_id', '=', 'sales_orders.id')->selectRaw("sales_orders.id, sales_orders.order_no, sales_orders.date, SUM(sales_order_items.amount) as amount")->where('sales_orders.status', $status->id)->groupBy('sales_order_items.so_id');
+            $tempOrder = SalesOrder::join('sales_order_items', 'sales_order_items.so_id', '=', 'sales_orders.id')->selectRaw("sales_orders.id, sales_orders.order_no, sales_orders.date, SUM(sales_order_items.amount) as amount, sales_orders.status as status")->where('sales_orders.status', $status->id)->groupBy('sales_order_items.so_id');
 
             if ($tempOrder->exists()) {
                 $orders[$status->id] = $tempOrder->get()->toArray();
@@ -501,7 +501,7 @@ class SalesOrderStatusController extends Controller
     }
 
     public function orderDetailInBoard(Request $request) {
-        $order = SalesOrder::with(['tstatus', 'ostatus', 'items', 'task'])->where('id', $request->id);
+        $order = SalesOrder::with(['tstatus', 'ostatus', 'items', 'task', 'userchanges'])->where('id', $request->id);
 
         if ($order->exists()) {
             $order = $order->first();
@@ -584,5 +584,53 @@ class SalesOrderStatusController extends Controller
         }
 
         return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+    }
+
+    public function salesOrderResponsibleUser(Request $request) {
+        $orderId = $request->id;
+        $order = ChangeOrderUser::where('order_id', $orderId)->where('status_id', $request->status);
+        $selectedUser = null;
+
+        $driver = Deliver::where('so_id', $orderId)->first()->user_id ?? null;
+        $seller = SalesOrder::where('id', $orderId)->first()->seller_id ?? null;
+
+        if ($order->exists()) {
+            $selectedUser = $order->first()->user_id ?? null;
+        }
+
+        $usersList = User::with('roles')->whereIn('id', [$driver, $seller]);
+        $users = "<option value='' selected> Select a Product </option>";
+
+        foreach ($usersList->get() as $user) {
+            $selected = '';
+
+            if ($user->id == $selectedUser) {
+                $selected = ' selected ';
+            }
+
+            $users .= "<option value='{$user->id}' {$selected} > {$user->name} - {$user->email} [{$user->roles->first()->name}] </option>";
+        }
+        
+
+        return response()->json(['status' => true, 'users' => $users, 'current' => $selectedUser, 'total' => $usersList->count()]);
+    }
+
+    public function salesOrderResponsibleUserSave(Request $request) {
+        $order = ChangeOrderUser::where('order_id', $request->cuid)->where('status_id', $request->custatus);
+
+        if ($order->exists()) {
+            $order->delete();
+        }
+
+        if (!empty($request->user) && !empty($request->cuid) && !empty($request->custatus)) {
+            ChangeOrderUser::create([
+                'order_id' => $request->cuid,
+                'status_id' => $request->custatus,
+                'added_by' => auth()->user()->id,
+                'user_id' => $request->user
+            ]);
+        }
+
+        return response()->json(['status' => true, 'message' => 'User changed successfully for this order.']);
     }
 }

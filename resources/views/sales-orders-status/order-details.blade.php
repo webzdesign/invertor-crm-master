@@ -62,7 +62,7 @@
 
     <div class="d-flex align-items-center justify-content-between">
         <h6 class="f-14 mb-4 mt-2"><i class="fa fa-list-alt" aria-hidden="true"></i> Trigger Activity</h6>
-        @if(!$order->tstatus->isEmpty())
+        @if($order->tstatus->count() > 3)
         <button class="show-less-more-btn small-btn btn-primary f-500 f-12" id="toggle-status-trigger-list"> Show All </button>
         @endif
     </div>
@@ -108,7 +108,7 @@
 
     <div class="d-flex align-items-center justify-content-between">
         <h6 class="f-14 mb-4 mt-2"><i class="fa fa-list-alt" aria-hidden="true"></i> Task Activity</h6>
-        @if(!$order->task->isEmpty())
+        @if($order->task->count() > 3)
         <button class="show-less-more-btn small-btn btn-primary f-500 f-12" id="toggle-task-trigger-list"> Show All </button>
         @endif
     </div>
@@ -173,6 +173,39 @@
                     <button type="button" class="btn-primary f-500 f-12 small-btn save-complete-task-textarea" data-taskid="{{ $o->id }}"> Done </button>
                 </div>
 
+            </div>
+        @empty
+        <div class="activity py-2 f-13 border-bottom">
+            No Activity to Show
+        </div>
+        @endforelse
+    </div>
+
+    <hr>
+
+    <div class="d-flex align-items-center justify-content-between">
+        <h6 class="f-14 mb-4 mt-2"><i class="fa fa-list-alt" aria-hidden="true"></i> User changes Activity</h6>
+        @if($order->userchanges->count() > 3)
+        <button class="show-less-more-btn small-btn btn-primary f-500 f-12" id="toggle-user-changes-trigger-list"> Show All </button>
+        @endif
+    </div>
+
+    <div class="status-trigger-activity-row">
+        @forelse($order->userchanges as $key => $o)
+            <div class="activity py-1 actvt-cu @if(in_array($loop->iteration, [1,2,3])) show-first-cu @else d-none @endif">
+                <p class="pb-1 f-12" style="margin-bottom:0px;">
+                    <strong>{{ date('d-m-Y H:i:s', strtotime($o->created_at)) }}</strong> : 
+                    order assigned to 
+                    <strong>{{ $o->user->roles->first()->name ?? 'user' }}</strong>
+                    <a target="_blank" href="{{ route('users.view', ($o->user->encid ?? '')) }}"> {{ $o->user->name ?? '' }} </a>
+                    when order in 
+                    <span class="status-lbl f-12" style="background: {{ $o->mainstatus->color }};color:{{ Helper::generateTextColor($o->mainstatus->color) }};text-transform:uppercase;"> {{ $o->mainstatus->name }} </span>
+                    [ @if(empty($o->deleted_at))
+                        <strong style="text-transform: uppercase;color:#009688;" title="to be triggered"> CURRENT </strong>
+                    @else
+                        <strong style="text-transform: uppercase;color:#3d0000;" title="assigned in past"> CHANGED </strong>
+                    @endif ]
+                </p>
             </div>
         @empty
         <div class="activity py-2 f-13 border-bottom">

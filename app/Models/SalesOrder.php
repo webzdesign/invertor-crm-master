@@ -48,4 +48,9 @@ class SalesOrder extends Model
     {
         return $this->hasMany(AddTaskToOrderTrigger::class, 'order_id')->where('executed', 1)->orderBy('id', 'DESC');
     }
+
+    public function userchanges()
+    {
+        return $this->hasMany(ChangeOrderUser::class, 'order_id')->withTrashed()->orderBy('id', 'DESC');
+    }
 }

@@ -7,6 +7,7 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="manage-order-id" name="id" />
+                <input type="hidden" id="manage-order-status-id" name="status" />
                 <div class="row">
 
                     <div class="col-4">

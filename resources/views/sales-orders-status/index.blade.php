@@ -416,6 +416,7 @@
                                             {{ \Carbon\Carbon::parse($order['date'])->diffForHumans() }}
                                         </div>
                                         <button type="button" class="trigger-btn" data-oid="{{ $order['id'] }}"
+                                        data-soid="{{ $order['status'] }}"
                                             data-bs-toggle="modal" data-bs-target="#trigger"
                                             data-title="{{ $order['order_no'] }}">
                                             <i class="fa fa-plus"></i>
@@ -448,6 +449,10 @@
 {{-- add task modal --}}
 @include('sales-orders-status.modal.add-task')
 {{-- add task stage modal --}}
+
+{{-- change user modal --}}
+@include('sales-orders-status.modal.change-user')
+{{-- change user modal --}}
 
 {{-- Order details modal --}}
 @include('sales-orders-status.modal.order-details')
@@ -506,6 +511,8 @@
                 let toBeMoved = $(`[data-cardchild="${data.orderId}"]`).get(0);
                 let toBeMovedAt = $(`[data-cardparent="${data.orderStatus}"]`);
 
+                $(toBeMoved).find('.trigger-btn').attr('data-soid', data.orderStatus);
+
                 $(`[data-cardchild="${data.orderId}"]`).remove();
                 $(toBeMovedAt).append(toBeMoved)
             }
@@ -523,11 +530,13 @@
         /** Order details and Card JS **/
         $(document).on('click', '.trigger-btn', function() {
             let oId = $(this).attr('data-oid');
+            let osId = $(this).attr('data-soid');
             let Title = $(this).attr('data-title');
 
             $('#trigger').modal('show');
             $('#trigger').find('#modal-title').text(Title);
             $('#manage-order-id').val(oId);
+            $('#manage-order-status-id').val(osId);
         });
 
         $(document).on('click', '.draggable-card', function(event) {
@@ -573,6 +582,16 @@
                 $(this).text('Show less');
             } else {
                 $('.actvt-at').not('.show-first-at').addClass('d-none');
+                $(this).text('Show All');
+            }
+        })
+
+        $(document).on('click', '#toggle-user-changes-trigger-list', function (event) {
+            if ($('.actvt-cu').hasClass('d-none')) {
+                $('.actvt-cu').removeClass('d-none')
+                $(this).text('Show less');
+            } else {
+                $('.actvt-cu').not('.show-first-cu').addClass('d-none');
                 $(this).text('Show All');
             }
         })
@@ -1359,6 +1378,86 @@
         })
         /** Add Task JS **/
 
+        /** Change User **/
+        $(document).on('click', '#change-user-btn', function () {
+            let osId = $('#manage-order-status-id').val();
+            let oId = $('#manage-order-id').val();
+            let Title = $('#modal-title').text();
+
+            if (oId != '' && oId != null) {
+                $.ajax({
+                    url: "{{ route('sales-order-responsible-user') }}",
+                    type: 'POST',
+                    data: {
+                        id: oId,
+                        status: osId
+                    },
+                    beforeSend: function() {
+                        $('body').find('.LoaderSec').removeClass('d-none');
+                    },
+                    success: function(response) {
+                        $('#trigger').modal('hide');
+                        $('#change-user').modal('show');
+                        $('#change-user').find('#modal-title-change-user').text(Title);
+                        $('#manage-order-id-for-change-user').val(oId);
+                        $('#manage-order-status-for-change-user').val(osId);
+
+                        $(`#change-user-picker`).empty().append(response.users);
+                        $(`#change-user-picker`).select2({
+                            dropdownParent: $('#change-user'),
+                            width: '100%',
+                            allowClear: true,
+                            placeholder: "Select a User"
+                        });
+
+                        if (response.total > 0) {
+                            $('.hideable-user-change-sbmt-btn').show();
+                        } else {
+                            $('.hideable-user-change-sbmt-btn').hide();
+                        }
+
+                    },
+                    complete: function() {
+                        $('body').find('.LoaderSec').addClass('d-none');
+                    }
+                });
+            }
+        });
+
+        $(document).on('hidden.bs.modal', '#change-user', function (event) {
+            if (event.namespace == 'bs.modal') {
+                $('#change-user-picker-error').remove();
+            }
+        });
+
+        $('#changeUser').validate({
+            submitHandler: function (form, event) {
+                event.preventDefault();
+
+                $.ajax({
+                    url: "{{ route('sales-order-responsible-user-save') }}",
+                    type: "POST",
+                    data: $('#changeUser').serializeArray(),
+                    beforeSend: function () {
+                        $('body').find('.LoaderSec').removeClass('d-none');
+                        $('button[type="submit"]').attr('disabled', true);
+                    },
+                    success: function (response) {
+                        if (response.status) {
+                            $('#change-user').modal('hide');
+                            Swal.fire('', response.message, 'success');
+                        } else {
+                            Swal.fire('', 'Something went wrong. please try again.', 'error');
+                        }
+                    },
+                    complete: function (response) {
+                        $('body').find('.LoaderSec').addClass('d-none');
+                        $('button[type="submit"]').attr('disabled', false);
+                    }
+                });
+            }
+        });
+        /** Change User **/
 
         /** Drag and Drop **/
         $(".drag-area").sortable({
@@ -1369,6 +1468,8 @@
             receive: function(event, ui) {
                 var area = $(event.target).data('cardparent');
                 var box = $(ui.item).data('cardchild');
+
+            $(ui.item).find('.trigger-btn').attr('data-soid', area);
 
                 $.ajax({
                     url: "{{ route('sales-order-status-sequence') }}",
