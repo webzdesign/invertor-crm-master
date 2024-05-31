@@ -26,7 +26,7 @@ class TaskTrigger extends Command
      */
     public function handle($order = null)
     {
-        $iterable = AddTaskToOrderTrigger::where('executed', 0)->whereNotNull('executed_at');
+        $iterable = AddTaskToOrderTrigger::where('executed', 0)->whereNotNull('executed_at')->where('executed_at', '<=', date('Y-m-d H:i:s'));
 
         if (!is_null($order)) {
             $iterable = $iterable->where('order_id', $order);

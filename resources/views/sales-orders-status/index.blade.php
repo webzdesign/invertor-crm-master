@@ -1138,9 +1138,9 @@
 
                 $('.hideable-add-task').show();
                 $('.status-dropdown-menu-inner').find('.no-btn').text('Immediately');
-                $('.add-task-def-selected').text(' Execute: After moved to this status ');
+                $('.add-task-def-selected').text(' Execute: Immediately After moved to this status ');
                 $('.dropdown-menu-inner-sub').attr('data-parenttype', '1');
-                $('.status-dropdown-toggle-inner').find('span').text('Execute: After moved to this status');
+                $('.status-dropdown-toggle-inner').find('span').text('Execute: Immediately After moved to this status');
                 $('.status-dropdown-menu-inner').removeClass('auto-hide');
                 $('.selectable-inner').css('background', '#fff');
                 $('.selectable').css('background', '#fff');

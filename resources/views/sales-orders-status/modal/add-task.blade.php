@@ -19,7 +19,7 @@
                             <div class="status-dropdown-inner mb-2">
                                 <button type="button" style="background:#fff;color: #000;"
                                     class="status-dropdown-toggle-inner d-flex align-items-center justify-content-between f-14">
-                                    <span class="add-task-def-selected"> Execute: After moved to this status </span>
+                                    <span class="add-task-def-selected"> Execute: Immediately after moved to this status </span>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12"
                                         width="12" viewBox="0 0 330 330">
                                         <path id="XMLID_225_"
