@@ -30,7 +30,8 @@
 
                     <div class="col-4">
                         <div class="form-group">
-                            <div class="box" id="change-user-btn">
+                            <div class="box">
+                            {{-- <div class="box" id="change-user-btn"> --}}
                                 <img src="{{ asset('assets/images/swap.png') }}" alt="Change lead's user">
                                 <div> Change lead's user </div>
                             </div>

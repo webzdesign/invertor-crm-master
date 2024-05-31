@@ -181,9 +181,9 @@
         @endforelse
     </div>
 
-    <hr>
+    {{-- <hr> --}}
 
-    <div class="d-flex align-items-center justify-content-between">
+    {{-- <div class="d-flex align-items-center justify-content-between">
         <h6 class="f-14 mb-4 mt-2"><i class="fa fa-list-alt" aria-hidden="true"></i> User changes Activity</h6>
         @if($order->userchanges->count() > 3)
         <button class="show-less-more-btn small-btn btn-primary f-500 f-12" id="toggle-user-changes-trigger-list"> Show All </button>
@@ -212,6 +212,6 @@
             No Activity to Show
         </div>
         @endforelse
-    </div>
+    </div> --}}
 
 </div>
