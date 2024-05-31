@@ -169,8 +169,7 @@
     <table id="list" class="table datatableMain" style="width: 100%!important;">
         <thead>
             <tr>
-                <th> <input type="checkbox" class="form-check-input" id="main-checkbox"> </th>
-                <th>TITLE</th>
+                <th>ORDER NUMBER</th>
                 <th>STATUS</th>
                 <th>ORDER DATE</th>
                 <th>AMOUNT</th>
@@ -336,14 +335,8 @@ var totalOrders = 0;
                 }
             },
             responsive: true,
-            columnDefs: [{ orderable: false, targets: 0 }],
-            order: [[1, 'asc']],
-            columns: [{
-                    data: 'checkbox',
-                    orderable: false,
-                    searchable: false,
-                    width: '50px'
-                },
+            order: [[0, 'asc']],
+            columns: [
                 {
                     data: 'order_no',
                     width: '200px'
@@ -627,7 +620,7 @@ var totalOrders = 0;
         });
     
         $(document).on('click', '.status-dropdown-menu li', function() {
-            var bgColor = $(this).css("background-color");
+            var bgColor = rgbToHex($(this).css("background-color"));
             var text = $(this).text();
             var thisSid = $(this).data('sid');
             var thisOid = $(this).data('oid');
@@ -637,6 +630,7 @@ var totalOrders = 0;
             dropdownToggleText.text(text);
             
             dropdownToggle.css("background-color", bgColor);
+            dropdownToggle.css("color", generateTextColor(bgColor));
             
             // Hide the dropdown menu and remove the active class
             $(this).parent().hide();

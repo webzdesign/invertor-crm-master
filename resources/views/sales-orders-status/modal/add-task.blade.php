@@ -28,18 +28,8 @@
                                 </button>
 
                                 <div class="status-dropdown-menu-inner">
-                                    <li class="f-14 selectable" data-mtype="1"> 
-                                        <button type="button" class="no-btn opt-1" data-selchild="1" data-left="18" data-top="38" data-parent="1"> Immediately </button>
-                                        After created in
-                                        selected status </li>
                                     <li class="f-14 selectable" data-mtype="2"> 
-                                        <button type="button" class="no-btn opt-2" data-selchild="1" data-left="18" data-top="67" data-parent="2"> Immediately </button>
-                                        After moved to
-                                        selected status </li>
-                                    <li class="f-14 selectable" data-mtype="3"> 
-                                        <button type="button" class="no-btn opt-3" data-selchild="1" data-left="18" data-top="92" data-parent="3"> Immediately </button>
-                                        After moved to or
-                                        created to selected status </li>
+                                        <button type="button" class="no-btn opt-2" data-selchild="1" data-left="18" data-top="67" data-parent="2"> Immediately </button> After moved to selected status </li>
                                 </div>
                             </div>
 

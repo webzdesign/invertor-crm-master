@@ -134,7 +134,18 @@
                                 }
                             @endphp
                              {{ $time }}
+
+                             [ @if(is_null($o->updated_by))
+                                @if(!$o->executed)
+                                    <strong style="text-transform: uppercase;color:#009688;" title="to be triggered"> PENDING </strong>
+                                @else
+                                    <strong style="text-transform: uppercase;color:green;" title="Done"> DONE </strong>
+                                @endif
+                            @else
+                                <strong style="text-transform: uppercase;color:#3d0000;" title="Status changed before triggered"> CHANGED </strong>
+                            @endif ]
                         </p>
+
                         <div class="w-100 f-12 outline-none mb-3 completion-content" style="word-break: break-word;">{{ $o->completed_description }}</div>
                         <span class="text-danger this-error f-12 mb-2"></span>
                     </div>

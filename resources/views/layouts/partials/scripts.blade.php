@@ -275,4 +275,11 @@
         );
     }
 
+    function rgbToHex(rgb) {
+        var rgbArray = rgb.match(/\d+/g).map(Number);
+        return "#" + ("0" + rgbArray[0].toString(16)).slice(-2) +
+        ("0" + rgbArray[1].toString(16)).slice(-2) +
+        ("0" + rgbArray[2].toString(16)).slice(-2);
+    }
+
 </script>

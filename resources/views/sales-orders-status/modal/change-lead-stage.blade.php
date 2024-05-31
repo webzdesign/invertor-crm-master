@@ -17,7 +17,7 @@
                             <div class="form-group">
 
                                 <label class="c-gr f-500 f-16 w-100 mb-2"> Status Trigger : </label>
-                                <div class="status-dropdown status-dropdown-2">
+                                <div class="status-dropdown status-dropdown-2" style="z-index:2;">
                                     <button type="button"
                                         class="status-dropdown-toggle status-dropdown-toggle-2 d-flex align-items-center justify-content-between f-14">
                                         <span> Immediatly </span>
@@ -27,7 +27,7 @@
                                                 d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z" />
                                         </svg>
                                     </button>
-                                    <div class="status-dropdown-menu">
+                                    <div class="status-dropdown-menu can-hide-time-picker">
                                         <li class="f-14 sel-time" data-time="1"> Immediatly </li>
                                         <li class="f-14 sel-time" data-time="2"> 5 minutes </li>
                                         <li class="f-14 sel-time" data-time="3"> 10 minutes </li>
@@ -46,6 +46,8 @@
                                     </div>
                                 </div>
                                 <div id="status-dropdown-2-error" class="text-danger"></div>
+
+                                <div class="dropdown-menu-inner-sub-overlay d-none"></div>
 
                             </div>
                         </div>

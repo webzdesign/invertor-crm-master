@@ -516,6 +516,10 @@
         });
         /** Pusher Code **/
 
+        $.validator.setDefaults({
+            ignore: []
+        });
+
         /** Order details and Card JS **/
         $(document).on('click', '.trigger-btn', function() {
             let oId = $(this).attr('data-oid');
@@ -585,7 +589,7 @@
             } else if (type == '4') {
                 return 'One day';
             } else if (type == '5') {
-                return 'Select interval';
+                return '';
             } else {
                 return '';
             }
@@ -701,12 +705,12 @@
                             $('.status-dropdown-toggle-status').css('color',
                                 generateTextColor(response.addedData.status_color));
 
-                            $('.status-dropdown-toggle-2').text(getTypes(response.addedData
-                                .type));
-
                             if (response.addedData.type == 5) {
                                 $('#hour').val(response.addedData.hour);
                                 $('#minute').val(response.addedData.minute);
+                                $('.status-dropdown-toggle-2').text(`${response.addedData.hour} hours ${response.addedData.minute} minutes  ${getTypes(response.addedData.type)}`);
+                            } else {
+                                $('.status-dropdown-toggle-2').text(getTypes(response.addedData.type));
                             }
                         }
                     },
@@ -834,8 +838,10 @@
             }
 
             if (!target.parents().hasClass("status-dropdown")) {
-                $(".status-dropdown .status-dropdown-menu").hide();
-                $(".status-dropdown .status-dropdown-toggle").removeClass("active");
+                if ($('.can-hide-time-picker').css('display') == 'none') {
+                    $(".status-dropdown .status-dropdown-menu").hide();
+                    $(".status-dropdown .status-dropdown-toggle").removeClass("active");
+                }
             }
             
             if (!target.parents().hasClass("status-dropdown-inner") && !$('.status-dropdown-menu-inner').hasClass('auto-hide') && $('.dropdown-menu-inner-sub').css('display') == 'none') {
@@ -860,7 +866,7 @@
         $(document).on('click', '.status-dropdown-menu li', function(e) {
 
             if (!($(e.target).hasClass('hour') || $(e.target).hasClass('minute'))) {
-                var bgColor = $(this).css("background-color");
+                var bgColor = rgbToHex($(this).css("background-color"));
                 var text = $(this).text();
                 var thisTime = $(this).attr('data-time');
                 var thisSid = $(this).data('sid');
@@ -880,8 +886,15 @@
                 dropdownToggle.css("background-color", bgColor);
                 dropdownToggle.css("color", generateTextColor(bgColor));
 
-                $(this).parent().hide();
-                dropdownToggle.removeClass("active");
+                if ($(this).hasClass('sel-time')) {
+                    if ($(this).attr('data-time') !== '5') {
+                        $(this).parent().hide();
+                        dropdownToggle.removeClass("active");
+                    }
+                } else {
+                    $(this).parent().hide();
+                    dropdownToggle.removeClass("active");
+                }
 
                 if (!$(this).hasClass('selectable-2')) {
                     $('.sel-time').css('background', '#fff');
@@ -897,6 +910,7 @@
 
                 if ($(this).hasClass('selectable-2')) {
                     $('#manage-order-status-for-add-task').val(thisSid);
+                    $('#manage-order-status-for-change-lead-stage').val(thisSid);
                 }
 
                 if ($(this).hasAttr('data-time')) {
@@ -905,6 +919,7 @@
             }
 
         });
+
 
         $(document).on('click', '.hide-dropdown', function() {
             $('.dropdown-menu').hide();
@@ -1036,6 +1051,33 @@
 
             $('.dropdown-menu-inner-sub').attr('data-parenttype', parent);
         })
+
+        $(document).on('click', '.sel-time', function (e) {
+            let time = $(this).attr('data-time');
+
+            if ($(this).attr('data-time') == '5') {
+
+                let hour = $(this).find('#hour').val();
+                let minute = $(this).find('#minute').val();
+
+                $('.status-dropdown-toggle-2').find('span').text(`${hour} hours ${minute} minutes`);
+
+                if (((hour == '' ||  minute == '') || (isNaN(hour) || isNaN(minute)))) {
+
+                    $('.dropdown-menu-inner-sub-overlay').removeClass('d-none');
+                    return false;
+                } else {
+                    if (!($(event.target).hasClass('hour') || $(event.target).hasClass('minute'))) {
+                        $('.can-hide-time-picker').hide();
+                    }
+                    $('.dropdown-menu-inner-sub-overlay').addClass('d-none');
+                }
+
+            } else {
+                $('.status-dropdown-toggle-2').find('span').text(getTypes(time));
+                $('.dropdown-menu-inner-sub-overlay').addClass('d-none');
+            }
+        });
 
         $(document).on('click', '.selectable-inner', function (event) {
             let parent = $(this).parent().parent().attr('data-parenttype');

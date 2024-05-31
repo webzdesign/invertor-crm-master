@@ -221,7 +221,7 @@ class SalesOrderStatusController extends Controller
                     return $html;
                 })
                 ->addColumn('date', function ($row) {
-                    return \Carbon\Carbon::parse($row->date)->toFormattedDateString();
+                    return date('d-m-Y', strtotime($row->date));
                 })
                 ->addColumn('amount', function ($row) {
                     return Helper::currencyFormatter($row->items->sum('amount'), true);
