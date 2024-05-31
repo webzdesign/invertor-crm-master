@@ -46,6 +46,6 @@ class SalesOrder extends Model
 
     public function task()
     {
-        return $this->hasMany(AddTaskToOrderTrigger::class, 'order_id')->orderBy('id', 'DESC');
+        return $this->hasMany(AddTaskToOrderTrigger::class, 'order_id')->where('executed', 1)->orderBy('id', 'DESC');
     }
 }
