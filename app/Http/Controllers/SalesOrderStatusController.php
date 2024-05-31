@@ -476,6 +476,21 @@ class SalesOrderStatusController extends Controller
                     'executed_at' => date('Y-m-d H:i:s', strtotime($additionalTime))
                 ]);
 
+                try {
+                    if (isset($additionalTime) && ($additionalTime == '+0 seconds' || ($hour == '0' && $minute == '1'))) {
+                        (new \App\Console\Commands\StatusTrigger())->handle();
+                    }
+
+                    $cron = AddTaskToOrderTrigger::where('executed', 0)->where('order_id',$orderId)->whereNotNull('executed_at')->first();
+
+                    if ($cron !== null) {
+                        (new \App\Console\Commands\TaskTrigger())->handle($orderId);
+                    }
+
+                } catch (\Exception $e) {
+                    Helper::logger($e->getMessage());
+                }
+
                 return response()->json(['status' => true, 'message' => 'Order trigger data saved successfully.']);
 
         } else {

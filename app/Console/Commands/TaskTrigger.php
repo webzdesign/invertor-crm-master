@@ -24,9 +24,15 @@ class TaskTrigger extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle($order = null)
     {
-        foreach (AddTaskToOrderTrigger::where('executed', 0)->whereNotNull('executed_at')->get() as $order) {
+        $iterable = AddTaskToOrderTrigger::where('executed', 0)->whereNotNull('executed_at');
+
+        if (!is_null($order)) {
+            $iterable = $iterable->where('order_id', $order);
+        }
+
+        foreach ($iterable->get() as $order) {
 
             $thisOrder = AddTaskToOrderTrigger::findOrFail($order->id);
             $salesOrder = SalesOrder::findOrFail($thisOrder->order_id ?? null);
