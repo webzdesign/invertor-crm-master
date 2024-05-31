@@ -550,7 +550,7 @@ class SalesOrderStatusController extends Controller
                 'added_by' => auth()->user()->id,
                 'time' => $additionalTime,
                 'type' => $time,
-                'main_type' => $type,
+                'main_type' => 2,
                 'description' => $desc,
                 'current_status_id' => $currentStatusId
             ]);
