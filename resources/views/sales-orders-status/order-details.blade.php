@@ -75,8 +75,16 @@
                     <span class="status-lbl f-12" style="background: {{ $o->mainstatus->color }};color:{{ Helper::generateTextColor($o->mainstatus->color) }};text-transform:uppercase;"> {{ $o->mainstatus->name }} </span>
                     from
                     <span class="status-lbl f-12" style="background: {{ $o->oldstatus->color ?? '#fff' }};color:{{ Helper::generateTextColor($o->oldstatus->color ?? '#fff') }};text-transform:uppercase;"> {{ $o->oldstatus->name ?? '-' }} </span>
-                    at
-                    {{ date('d-m-Y H:i:s', strtotime($o->executed_at)) }}
+                    @php
+                        $time = str_replace('+', '', $o->time);
+
+                        if (trim($time) == '0 seconds') {
+                            $time = 'Immediately';
+                        } else {
+                            $time = " after {$time}";
+                        }
+                    @endphp
+                    {{ $time }}
 
                     [ @if(is_null($o->updated_by))
                         @if(!$o->executed)

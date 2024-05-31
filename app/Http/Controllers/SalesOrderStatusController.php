@@ -566,7 +566,7 @@ class SalesOrderStatusController extends Controller
         $task = AddTaskToOrderTrigger::where('id', $request->id);
 
         if ($task->exists()) {
-            return response()->json(['status' => /*$task->delete()*/ true, 'message' => 'Task deleted successfully.', 'count' => AddTaskToOrderTrigger::where('order_id', $request->order)->count()]);
+            return response()->json(['status' => $task->delete(), 'message' => 'Task deleted successfully.', 'count' => AddTaskToOrderTrigger::where('order_id', $request->order)->where('executed', 1)->count()]);
         }
 
         return response()->json(['status' => false, 'message' => 'Task not found.']);
