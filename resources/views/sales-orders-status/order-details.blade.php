@@ -21,7 +21,7 @@
             @endif
             <div class="col-12">
                 <label for="c-gr f-500 f-16 w-100 mb-2"><strong>Address Line</strong></label> :
-                <span> {{ $order->customer_address_line_2 ?? '-' }} </span>
+                <span> {{ $order->customer_address_line_1 ?? '-' }} </span>
             </div>
             <div class="col-12">
                 <label for="c-gr f-500 f-16 w-100 mb-2"><strong>Postal Code</strong></label> :
@@ -72,9 +72,9 @@
             <div class="activity py-1 actvt @if(in_array($loop->iteration, [1,2,3])) show-first @else d-none @endif">
                 <p class="pb-1 f-12" style="margin-bottom:0px;">
                     <strong>{{ date('d-m-Y H:i:s', strtotime($o->created_at)) }}</strong> : To be triggered to
-                    <span class="status-lbl f-12" style="background: {{ $o->mainstatus->color }};color:{{ Helper::generateTextColor($o->mainstatus->color) }};"> {{ $o->mainstatus->name }} </span>
+                    <span class="status-lbl f-12" style="background: {{ $o->mainstatus->color }};color:{{ Helper::generateTextColor($o->mainstatus->color) }};text-transform:uppercase;"> {{ $o->mainstatus->name }} </span>
                     from
-                    <span class="status-lbl f-12" style="background: {{ $o->oldstatus->color ?? '#fff' }};color:{{ Helper::generateTextColor($o->oldstatus->color ?? '#fff') }};"> {{ $o->oldstatus->name ?? '-' }} </span>
+                    <span class="status-lbl f-12" style="background: {{ $o->oldstatus->color ?? '#fff' }};color:{{ Helper::generateTextColor($o->oldstatus->color ?? '#fff') }};text-transform:uppercase;"> {{ $o->oldstatus->name ?? '-' }} </span>
                     at
                     {{ date('d-m-Y H:i:s', strtotime($o->executed_at)) }}
 
@@ -123,7 +123,7 @@
                                 created or moved order in
                             @endif
                             </strong>
-                            <span class="status-lbl f-12" style="background: {{ $o->mainstatus->color }};color:{{ Helper::generateTextColor($o->mainstatus->color) }};"> {{ $o->mainstatus->name }} </span>
+                            <span class="status-lbl f-12" style="background: {{ $o->mainstatus->color }};color:{{ Helper::generateTextColor($o->mainstatus->color) }};text-transform:uppercase;"> {{ $o->mainstatus->name }} </span>
                             @php
                                 $time = str_replace('+', '', $o->time);
         
