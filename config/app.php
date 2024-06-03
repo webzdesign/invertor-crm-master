@@ -131,6 +131,7 @@ return [
         'PO' => App\Models\PurchaseOrder::class,
         'SO' => App\Models\SalesOrder::class,
         'Product' => App\Models\Product::class,
-        'Category' => App\Models\Category::class
+        'Category' => App\Models\Category::class,
+        'Trigger' => App\Models\Trigger::class
     ],
 ];

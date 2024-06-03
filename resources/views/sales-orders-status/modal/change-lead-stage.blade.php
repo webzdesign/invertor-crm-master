@@ -7,78 +7,67 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" id="manage-order-id-for-change-lead-stage" name="clid" />
+                    <input type="hidden" id="manage-status-id-for-change-lead-stage" name="clid" />
+                    <input type="hidden" id="choosenColor" name="choosenColor" />
                     <input type="hidden" id="manage-order-time-for-change-lead-stage" name="cltime"
+                        value="1" />
+                    <input type="hidden" id="manage-order-type-for-change-lead-stage" name="cltype"
                         value="1" />
                     <input type="hidden" id="manage-order-status-for-change-lead-stage" name="clstatus" />
                     <div class="row">
 
-                        <div class="col-12 mb-2">
-                            <div class="form-group">
+                        <div class="col-12">
 
-                                <label class="c-gr f-500 f-16 w-100 mb-2"> Status Trigger : </label>
-                                <div class="status-dropdown status-dropdown-2" style="z-index:2;">
-                                    <button type="button"
-                                        class="status-dropdown-toggle status-dropdown-toggle-2 d-flex align-items-center justify-content-between f-14">
-                                        <span> Immediatly </span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12"
-                                            width="12" viewBox="0 0 330 330">
-                                            <path id="XMLID_225_"
-                                                d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z" />
-                                        </svg>
-                                    </button>
-                                    <div class="status-dropdown-menu can-hide-time-picker">
-                                        <li class="f-14 sel-time" data-time="1"> Immediatly </li>
-                                        <li class="f-14 sel-time" data-time="2"> 5 minutes </li>
-                                        <li class="f-14 sel-time" data-time="3"> 10 minutes </li>
-                                        <li class="f-14 sel-time" data-time="4"> One day </li>
-                                        <li class="f-14 d-flex sel-time" data-time="5"
-                                            style="flex-direction:row;align-items:center;justify-content:left;">
-                                            <span>Select interval</span>
-                                            <div class="d-flex w-75"
-                                                style="flex-direction:row;align-items:center;justify-content:right;">
-                                                <input type="text" class="hour form-control" name="hour"
-                                                    id="hour" placeholder="hour" />
-                                                <input type="text" class="minute form-control" name="minute"
-                                                    id="minute" placeholder="minute" />
-                                            </div>
-                                        </li>
-                                    </div>
+                            <label class="c-gr f-500 f-12 w-100 mb-2"> PIPELINE TRIGGERS : <span class="text-danger">*</span> </label>
+                            <div class="status-dropdown-inner-2 mb-2">
+                                <button type="button" style="background:#fff;color: #000;"
+                                    class="status-dropdown-toggle-inner-2 d-flex align-items-center justify-content-between f-14">
+                                    <span class="add-task-def-selected"> Execute: Immediately after moved to this status </span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12"
+                                        width="12" viewBox="0 0 330 330">
+                                        <path id="XMLID_225_"
+                                            d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z" />
+                                    </svg>
+                                </button>
+
+                                <div class="status-dropdown-menu-inner-2">
+                                    <li class="f-14 selectable-inner-p-2" data-mtype="1"> <button type="button" data-firstclass=".dropdown-menu-inner-2-sub" class="no-btn opt-2-1" data-selchild="1" data-left="18" data-top="38" data-parent="1"> Immediately </button> After moved to this status </li>
+                                    <li class="f-14 selectable-inner-p-2" data-mtype="2"> <button type="button" data-firstclass=".dropdown-menu-inner-2-sub" class="no-btn opt-2-2" data-selchild="1" data-left="18" data-top="67" data-parent="2"> Immediately </button> After created into this status </li>
+                                    <li class="f-14 selectable-inner-p-2" data-mtype="3"> <button type="button" data-firstclass=".dropdown-menu-inner-2-sub" class="no-btn opt-2-3" data-selchild="1" data-left="18" data-top="92" data-parent="3"> Immediately </button> After moved or created into this status </li>
                                 </div>
-                                <div id="status-dropdown-2-error" class="text-danger"></div>
-
-                                <div class="dropdown-menu-inner-sub-overlay d-none"></div>
-
                             </div>
+
+                            <div class="dropdown-menu-inner-2-sub-overlay d-none"></div>
+
+                            {{-- time picker --}}
+                            <div class="dropdown-menu-inner-2-sub zindex-1 dis-none" data-parenttype="1">
+                                <ul class="p-0 m-0 status-dropdown-menu-inner-2-ul">
+                                    <li class="f-14 selectable-inner-2" data-ttype="1" > Immediately </li>
+                                    <li class="f-14 selectable-inner-2" data-ttype="2" > 5 minutes </li>
+                                    <li class="f-14 selectable-inner-2" data-ttype="3" > 10 minutes </li>
+                                    <li class="f-14 selectable-inner-2" data-ttype="4" > One day </li>
+                                    <li class="d-flex align-items-center justify-content-between f-14 selectable-inner-2" data-ttype="5">
+                                        <span>
+                                            Select interval
+                                        </span>
+                                        <div class="d-flex w-50" style="flex-direction:row;align-items:center;justify-content:right;">
+                                            <input type="text" class="change-stage-hour form-control" name="change_stage_hour" id="change-stage-hour" placeholder="hour">
+                                            <input type="text" class="change-stage-minute form-control" name="change_stage_minute" id="change-stage-minute" placeholder="minute">
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            {{-- time picker --}}
+
+                            <div id="cs-type-error" class="text-danger-error"></div>
                         </div>
 
                         <div class="col-12">
                             <div class="form-group">
 
-                                <label class="c-gr f-500 f-16 w-100 mb-2"> Status : </label>
+                                <label class="c-gr f-500 f-12 w-100 mb-2"> PIPELINE STATUS : <span class="text-danger">*</span> </label>
                                 <div id="stage-container">
-                                    <div class="status-dropdown">
-                                        @foreach ($statuses as $status)
-                                            @if ($loop->first)
-                                                <button type="button" style="background:{{ $status->color }};"
-                                                    class="status-dropdown-toggle status-dropdown-toggle-status d-flex align-items-center justify-content-between f-14">
-                                                    <span>{{ $status['name'] }}</span>
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="#000000"
-                                                        height="12" width="12" viewBox="0 0 330 330">
-                                                        <path id="XMLID_225_"
-                                                            d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z" />
-                                                    </svg>
-                                                </button>
-                                            @endif
-                                        @endforeach
-                                        <div class="status-dropdown-menu">
-                                            @foreach ($statuses as $status)
-                                                <li class="f-14" data-sid="{{ $status->id }}"
-                                                    style="background: {{ $status->color }};"> {{ $status->name }}
-                                                </li>
-                                            @endforeach
-                                        </div>
-                                    </div>
+                                                                        
                                 </div>
 
                             </div>
@@ -86,7 +75,7 @@
 
                     </div>
                 </div>
-                <div class="modal-footer no-border hideable">
+                <div class="modal-footer no-border hideable-change-stage">
                     <button type="button" class="btn-default f-500 f-14" data-bs-dismiss="modal"> Cancel </button>
                     <button type="submit" class="btn-primary f-500 f-14"> Done </button>
                 </div>

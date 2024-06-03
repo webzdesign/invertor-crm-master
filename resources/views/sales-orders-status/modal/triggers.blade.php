@@ -1,25 +1,29 @@
-<div class="modal fade" id="trigger" tabindex="-1" aria-labelledby="exampleModalLabelA" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+<div class="modal fade" id="trigger-options-modal" tabindex="-1" aria-labelledby="exampleModalLabelA" aria-hidden="true">
+    <div class="modal-dialog modal-xs modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header no-border modal-padding">
-                <h1 class="modal-title fs-5"> Add Trigger for Order <span id="modal-title"></span> </h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
             <div class="modal-body">
-                <input type="hidden" id="manage-order-id" name="id" />
-                <input type="hidden" id="manage-order-status-id" name="status" />
+                <input type="hidden" id="performing-status" />
                 <div class="row">
 
-                    <div class="col-4">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <div class="box" id="manage-status-btn">
+                                <img src="{{ asset('assets/images/wrench.png') }}" alt="Manage statuses">
+                                <div> Manage </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
                         <div class="form-group">
                             <div class="box" id="add-task-btn">
-                                <img src="{{ asset('assets/images/add.png') }}" alt="Add Task">
+                                <img src="{{ asset('assets/images/add.png') }}" alt="Add task">
                                 <div> Add Task </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-4">
+                    <div class="col-6">
                         <div class="form-group">
                             <div class="box" id="lead-stage-btn">
                                 <img src="{{ asset('assets/images/change.png') }}" alt="Change order status">
@@ -28,7 +32,7 @@
                         </div>
                     </div>
 
-                    <div class="col-4">
+                    <div class="col-6">
                         <div class="form-group">
                             <div class="box">
                             {{-- <div class="box" id="change-user-btn"> --}}
@@ -39,8 +43,6 @@
                     </div>
 
                 </div>
-            </div>
-            <div class="modal-footer no-border">
             </div>
         </div>
     </div>

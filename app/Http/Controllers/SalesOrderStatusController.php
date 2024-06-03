@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{SalesOrderStatus, SalesOrder, SalesOrderItem, Deliver, Role, ManageStatus, User};
-use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser};
+use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser, Setting};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
@@ -33,8 +33,9 @@ class SalesOrderStatusController extends Controller
         $s = SalesOrderStatus::select('id', 'name')->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
         $colours = ['#99ccff', '#ffcccc', '#ffff99', '#c1c1c1', '#9bffe2', '#f7dd8b', '#c5ffd6'];
         $roles = Role::active()->select('id', 'name')->whereIn('id', [1, 2, 3])->pluck('name', 'id')->toArray();
+        $maxTriggers = Setting::first()->triggers_per_status ?? 10;
 
-        return view('sales-orders-status.edit', compact('moduleName', 'statuses', 'colours', 'roles', 's'));
+        return view('sales-orders-status.edit', compact('moduleName', 'statuses', 'colours', 'roles', 's', 'maxTriggers'));
     }
 
     public function update(Request $request) {
@@ -364,71 +365,47 @@ class SalesOrderStatusController extends Controller
         return response()->json(['exists' => false, 'updatedStatuses' => $updatedStatuses]);
     }
 
+
     public function nextStatus(Request $request) {
-        $order = SalesOrder::with('ostatus')->where('id', $request->id);
-        $addedData = $possibleStatuses = [];
+        $thisStatus = SalesOrderStatus::where('id', $request->id);
+        $possibleStatuses = [];
         $view = '-';
-        $addedAlready = false;
+        
+        if ($thisStatus->exists()) {
 
-        if ($order->exists()) {
-            $status = $order->first()->status;
-
-            $possibleStatuses = ManageStatus::where('status_id', $status)
+            $possibleStatuses = ManageStatus::where('status_id', $request->id)
             ->where('possible_status', '!=', '')
             ->first()->ps ?? [];
 
             $statuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name', 'color')->get();
             $possibleStatuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name')->pluck('name', 'id')->toArray();
-            $cs = $order->first()->ostatus->name ?? '';
+            $cs = $thisStatus->first()->name ?? '';
             
             $view = view('sales-orders-status.status', compact('statuses', 'cs'))->render();
-
-            if (ChangeOrderStatusTrigger::where('order_id', $request->id)->where('executed', 0)->exists()) {
-                $addedAlready = true;
-                $temp = ChangeOrderStatusTrigger::with('mainstatus')->where('order_id', $request->id)->where('executed', 0)->first();
-
-                $addedData['type'] = $temp->type;
-                $addedData['status'] = $temp->status_id;
-                $addedData['status_color'] = $temp->mainstatus->color ?? '';
-                $addedData['status_text'] = $temp->mainstatus->name ?? '';
-
-                $addedData['hour'] = '';
-                $addedData['minute'] = '';
-
-                if ($addedData['type'] == '5') {
-
-                    if(preg_match('/\+(\d+)\s*hours\s*\+\s*(\d+)\s*minutes/', $temp->time, $matches)) {
-                        $addedData['hour'] = intval($matches[1]);
-                        $addedData['minute'] = intval($matches[2]);
-                    }
-                }
-            }
         }
 
-        return response()->json(['data' => $possibleStatuses, 'view' => $view, 'added' => $addedAlready, 'addedData' => $addedData]);
+        return response()->json(['data' => $possibleStatuses, 'view' => $view]);
     }
 
     public function nextStatusForTask(Request $request) {
-        $order = SalesOrder::with('ostatus')->where('id', $request->id);
-        $addedData = $possibleStatuses = [];
+        $thisStatus = SalesOrderStatus::where('id', $request->id);
+        $possibleStatuses = [];
         $view = '-';
-        $addedAlready = false;
+        
+        if ($thisStatus->exists()) {
 
-        if ($order->exists()) {
-            $status = $order->first()->status;
-
-            $possibleStatuses = ManageStatus::where('status_id', $status)
+            $possibleStatuses = ManageStatus::where('status_id', $request->id)
             ->where('possible_status', '!=', '')
             ->first()->ps ?? [];
 
             $statuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name', 'color')->get();
             $possibleStatuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name')->pluck('name', 'id')->toArray();
-            $cs = $order->first()->ostatus->name ?? '';
+            $cs = $thisStatus->first()->name ?? '';
             
             $view = view('sales-orders-status.status', compact('statuses', 'cs'))->render();
         }
 
-        return response()->json(['data' => $possibleStatuses, 'view' => $view, 'added' => $addedAlready, 'addedData' => $addedData]);
+        return response()->json(['data' => $possibleStatuses, 'view' => $view]);
     }
 
     public function putOnCron(Request $request) {

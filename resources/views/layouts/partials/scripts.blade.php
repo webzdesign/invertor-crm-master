@@ -282,4 +282,12 @@
         ("0" + rgbArray[2].toString(16)).slice(-2);
     }
 
+    function isNumeric(arg) {
+        if (typeof arg !== 'undefined' && arg !== '' && arg !== null && !isNaN(arg)) {
+            return true;
+        }
+
+        return false;
+    }
+
 </script>

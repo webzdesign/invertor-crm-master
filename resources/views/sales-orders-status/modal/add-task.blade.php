@@ -7,7 +7,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" id="manage-order-id-for-add-task" name="atid" />
+                    <input type="hidden" id="manage-status-id-for-add-task" name="id" />
                     <input type="hidden" id="manage-order-time-for-add-task" name="attime" value="1" />
                     <input type="hidden" id="manage-order-type-for-add-task" class="manage-order-type-for-add-task" name="attype" value="1" />
                     <input type="hidden" id="manage-order-status-for-add-task" class="manage-order-status-for-add-task" name="atstatus" />
@@ -15,7 +15,7 @@
 
                         <div class="col-12">
 
-                            <label class="c-gr f-500 f-16 w-100 mb-2"> Trigger time : </label>
+                            <label class="c-gr f-500 f-12 w-100 mb-2"> TRIGGER PIPELINE : <span class="text-danger">*</span> </label>
                             <div class="status-dropdown-inner mb-2">
                                 <button type="button" style="background:#fff;color: #000;"
                                     class="status-dropdown-toggle-inner d-flex align-items-center justify-content-between f-14">
@@ -28,8 +28,9 @@
                                 </button>
 
                                 <div class="status-dropdown-menu-inner">
-                                    <li class="f-14 selectable" data-mtype="2"> 
-                                        <button type="button" class="no-btn opt-2" data-selchild="1" data-left="18" data-top="67" data-parent="2"> Immediately </button> After moved to selected status </li>
+                                    <li class="f-14 selectable" data-mtype="1"> <button type="button" data-firstclass=".dropdown-menu-inner-sub" class="no-btn opt-1" data-selchild="1" data-left="18" data-top="38" data-parent="1"> Immediately </button> After moved to selected status </li>
+                                    <li class="f-14 selectable" data-mtype="2"> <button type="button" data-firstclass=".dropdown-menu-inner-sub" class="no-btn opt-2" data-selchild="1" data-left="18" data-top="67" data-parent="2"> Immediately </button> After created into this status </li>
+                                    <li class="f-14 selectable" data-mtype="3"> <button type="button" data-firstclass=".dropdown-menu-inner-sub" class="no-btn opt-3" data-selchild="1" data-left="18" data-top="92" data-parent="3"> Immediately </button> After moved or created into this status </li>
                                 </div>
                             </div>
 
@@ -55,20 +56,12 @@
                             </div>
                             {{-- time picker --}}
 
-                            <div id="at-type-error" class="text-danger"></div>
+                            <div id="at-type-error" class="text-danger-error"></div>
                         </div>
 
                         <div class="col-12 mb-2">
-                            <label class="c-gr f-500 f-16 w-100 mb-2"> Trigger status : </label>
-                            <div id="add-task-status-container">
-                                
-                            </div>
-                            <div id="at-status-error" class="text-danger"></div>
-                        </div>
-
-                        <div class="col-12 mb-2">
-                            <label class="c-gr f-500 f-16 w-100 mb-2"> Task description : </label>
-                            <textarea class="form-control" name="task_desc" id="task-desc" placeholder="Add comment"></textarea>
+                            <label class="c-gr f-500 f-12 w-100 mb-2"> TASK COMMENT : <span class="text-danger">*</span> </label> 
+                            <textarea class="form-control task-desc" name="task_desc" id="task-desc" placeholder="Add comment"></textarea>
                         </div>
 
                     </div>
