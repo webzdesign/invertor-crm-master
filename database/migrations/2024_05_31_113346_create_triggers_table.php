@@ -19,6 +19,10 @@ return new class extends Migration
             $table->tinyInteger('type')->comment('1 = Add Task | 2 = Change Order Status | 3 = Change User');
 
             $table->string('time')->default('+1 minutes');
+
+            $table->tinyInteger('hour')->nullable();
+            $table->tinyInteger('minute')->nullable();
+
             $table->tinyInteger('action_type')->default(1)->comment('1 = After moved to this status | 2 = after created to this stage | 3 = after moved or created to this stage');
             $table->tinyInteger('time_type')->default(1)->comment('1 = Immediately | 2 = 5 minutes | 3 = 10 minutes | 4 = One day | 5 = Set interval');
 

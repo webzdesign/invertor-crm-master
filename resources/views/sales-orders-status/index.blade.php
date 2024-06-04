@@ -415,13 +415,6 @@
                                         <div class="card-date f-12 c-7b">
                                             {{ \Carbon\Carbon::parse($order['date'])->diffForHumans() }}
                                         </div>
-                                        <button type="button" class="trigger-btn" data-oid="{{ $order['id'] }}"
-                                        data-soid="{{ $order['status'] }}"
-                                            data-bs-toggle="modal" data-bs-target="#trigger"
-                                            data-title="{{ $order['order_no'] }}">
-                                            <i class="fa fa-plus"></i>
-                                            Add Trigger
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -437,22 +430,6 @@
     {{-- Board --}}
 
 </div>
-
-{{-- Trigger options modal --}}
-@include('sales-orders-status.modal.triggers')
-{{-- Trigger options modal --}}
-
-{{-- Change lead stage modal --}}
-@include('sales-orders-status.modal.change-lead-stage')
-{{-- Change lead stage modal --}}
-
-{{-- add task modal --}}
-@include('sales-orders-status.modal.add-task')
-{{-- add task stage modal --}}
-
-{{-- change user modal --}}
-@include('sales-orders-status.modal.change-user')
-{{-- change user modal --}}
 
 {{-- Order details modal --}}
 @include('sales-orders-status.modal.order-details')
@@ -528,17 +505,6 @@
         });
 
         /** Order details and Card JS **/
-        $(document).on('click', '.trigger-btn', function() {
-            let oId = $(this).attr('data-oid');
-            let osId = $(this).attr('data-soid');
-            let Title = $(this).attr('data-title');
-
-            $('#trigger').modal('show');
-            $('#trigger').find('#modal-title').text(Title);
-            $('#manage-order-id').val(oId);
-            $('#manage-order-status-id').val(osId);
-        });
-
         $(document).on('click', '.draggable-card', function(event) {
 
             let thisOrderId = $(this).attr('data-cardchild');
@@ -1468,8 +1434,6 @@
             receive: function(event, ui) {
                 var area = $(event.target).data('cardparent');
                 var box = $(ui.item).data('cardchild');
-
-            $(ui.item).find('.trigger-btn').attr('data-soid', area);
 
                 $.ajax({
                     url: "{{ route('sales-order-status-sequence') }}",

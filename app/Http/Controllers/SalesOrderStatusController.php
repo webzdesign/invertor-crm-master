@@ -49,7 +49,7 @@ class SalesOrderStatusController extends Controller
         $sequences = $request->sequence;
         $names = $request->name;
         $colors = $request->color;
-
+        dd($request->all());
         if (count($sequences) != count($names)) {
             return redirect()->route('sales-order-status-edit')->with('error', 'Add atleast a card to save.');
         }

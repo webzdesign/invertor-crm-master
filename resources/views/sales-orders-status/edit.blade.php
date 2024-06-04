@@ -63,10 +63,10 @@
                 $trigger = Trigger::with(['nextstatus', 'currentstatus'])->where('status_id', $status->id)->orderBy('sequence', 'ASC')->get()->toArray();
             @endphp
             @for($i = 0; $i < $maxTriggers; $i++)
-                <div class="card border-light">
+                <div class="card border-light drag-area">
                     @if(isset($trigger[$i]))
-                    <div class="card-body text-center custom-p cursor-pointer min-max-height @if($trigger[$i]['type'] == 1) trigger-add-task @elseif($trigger[$i]['type'] == 2) trigger-change-order-status @elseif($trigger[$i]['type'] == 3) trigger-change-order-user @endif   "  data-title="{{ $status->name }}"  data-sid="{{ $status->id }}" data-triggerid="{{ $trigger[$i]['id'] }}" >
-                        <div class="d-flex flex-row">
+                    <div class="card-body text-center custom-p portlet cursor-pointer min-max-height @if($trigger[$i]['type'] == 1) trigger-add-task @elseif($trigger[$i]['type'] == 2) trigger-change-order-status @elseif($trigger[$i]['type'] == 3) trigger-change-order-user @endif   "  data-title="{{ $status->name }}"  data-sid="{{ $status->id }}" data-triggerid="{{ $trigger[$i]['id'] }}" >
+                        <div class="d-flex flex-row portlet-header">
                             @if($trigger[$i]['type'] == 1)
                             <img src="{{ asset('assets/images/completed.png') }}" class="width-35" />
                             <div class="w-100">
@@ -81,7 +81,16 @@
                                 </div>
                                 <div class="text-start">
                                     <span class="f-12"> <strong>Task:</strong> {{ Str::words(strip_tags($trigger[$i]['task_description']), 18, '...')  }} </span>
-                                    <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i>
+                                    {{-- <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> --}}
+                                </div>
+                                <div class="inp-groups">
+                                    <input type="hidden" data-type="1" class="trigger-saver-input" name="task[{{ $status->id }}][status][]" value="{{ $status->id }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input-maintype" name="task[{{ $status->id }}][maintype][]" value="{{ $trigger[$i]['type'] }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input-timetype" name="task[{{ $status->id }}][timetype][]" value="{{ $trigger[$i]['time_type'] }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input-hour" name="task[{{ $status->id }}][hour][]" value="{{ $trigger[$i]['hour'] }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input-minute" name="task[{{ $status->id }}][minute][]" value="{{ $trigger[$i]['minute'] }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input-desc" name="task[{{ $status->id }}][desc][]" value="{{ $trigger[$i]['task_description'] }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input-sequence" name="task[{{ $status->id }}][sequence][]" value="{{ $trigger[$i]['sequence'] }}" />
                                 </div>
                             </div>
                             @elseif($trigger[$i]['type'] == 2)
@@ -98,8 +107,17 @@
                                 </div>
                                 <div class="text-start">
                                     <strong class="f-12">Change status:</strong>
-                                    <span class="status-lbl f-12" style="background: {{ $trigger[$i]['nextstatus']['name'] }};color:{{ Helper::generateTextColor($trigger[$i]['nextstatus']['name']) }};text-transform:uppercase;"> {{ $trigger[$i]['nextstatus']['name'] }} </span>
-                                    <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i>
+                                    <span class="status-lbl f-10" style="background: {{ $trigger[$i]['nextstatus']['name'] }};color:{{ Helper::generateTextColor($trigger[$i]['nextstatus']['name']) }};text-transform:uppercase;"> {{ $trigger[$i]['nextstatus']['name'] }} </span>
+                                    {{-- <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> --}}
+                                </div>
+                                <div class="inp-groups">
+                                    <input type="hidden" data-type="2" class="trigger-saver-input" name="statuschange[{{ $status->id }}][status][]" value="{{ $status->id }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input-maintype" name="statuschange[{{ $status->id }}][maintype][]" value="{{ $trigger[$i]['type'] }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input-timetype" name="statuschange[{{ $status->id }}][timetype][]" value="{{ $trigger[$i]['time_type'] }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input-hour" name="statuschange[{{ $status->id }}][hour][]" value="{{ $trigger[$i]['hour'] }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input-minute" name="statuschange[{{ $status->id }}][minute][]" value="{{ $trigger[$i]['minute'] }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input-next-status" name="statuschange[{{ $status->id }}][nextstatus][]" value="{{ $trigger[$i]['next_status_id'] }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input-sequence" name="statuschange[{{ $status->id }}][sequence][]" value="{{ $trigger[$i]['sequence'] }}" />
                                 </div>
                             </div>
                             @elseif($trigger[$i]['type'] == 3)
@@ -116,7 +134,10 @@
                                 </div>
                                 <div class="text-start">
                                     <span class="f-12"> <strong>Change order's user:</strong> {{ $trigger[$i]['user']['name'] }} </span>
-                                    <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i>
+                                    {{-- <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> --}}
+                                </div>
+                                <div class="inp-groups">
+                                    <input type="hidden" class="trigger-saver-input" data-type="3" name="userchange[{{ $status->id }}][{{ $i + 1 }}][status][]" value="{{ $status->id }}" />
                                 </div>
                             </div>
                             @endif
@@ -184,6 +205,7 @@
     var content = `<tr><td class="block-a"><div style="min-width: 200px;width: 100%" class="removable-status"><select name="mstatus[0]" data-indexid="0" id="m-status-0" class="select2 select2-hidden-accessible m-status" style="width:100%" data-placeholder="Select a Status"><option value="" selected> --- Select a Status --- </option></select></div></td><td style="width:100px;"><div class="df-fr-jse" style="min-width: 100px;"><button type="button" class="btn btn-primary btn-sm addNewRow">+</button> <button type="button" class="btn btn-danger btn-sm removeRow" tabindex="-1">-</button></div></td></tr>`;
     var statusesHtml = `<option value="" selected> --- Select a Status --- </option>`;
     var allStatuses = {!! json_encode($s) !!};
+    var allStatusesObj = {!! json_encode($statuses) !!};
 
     $(document).ready(function() {
 
@@ -453,7 +475,7 @@
                 $('.selectable-inner').css('background', '#fff');
                 $('.selectable').css('background', '#fff');
                 $('.dropdown-menu-inner-sub').css('display', 'none');
-                $('#task-desc').css('height', '100px');
+                $('#task-desc').css('height', '35px');
                 $('#at-type-error').text('')
                 $('#at-status-error').text('')
 
@@ -540,7 +562,14 @@
 
 
                     if ($(triggerBlock).length > 0 && $(triggerBlock).parent().parent().parent().hasAttr('data-mainstatus')) {
-                        let input = `<input type="hidden" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index() + 1}][]" value="true" />`;
+                        let input = `<div class="inp-groups"><input type="hidden" data-type="1" class="trigger-saver-input" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][status][]" value="${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}" />
+                            <input type="hidden" data-type="1" class="trigger-saver-input-maintype" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][maintype][]" value="${formData.attype}" />
+                            <input type="hidden" data-type="1" class="trigger-saver-input-timetype" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][timetype][]" value="${formData.attime}" />
+                            <input type="hidden" data-type="1" class="trigger-saver-input-hour" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][hour][]" value="${formData.add_task_hour}" />
+                            <input type="hidden" data-type="1" class="trigger-saver-input-minute" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][minute][]" value="${formData.add_task_minute}" />
+                            <input type="hidden" data-type="1" class="trigger-saver-input-desc" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][desc][]" value="${formData.task_desc}" />
+                            <input type="hidden" data-type="1" class="trigger-saver-input-sequence" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][sequence][]" value="${$(triggerBlock).parent().index() + 1}" />
+                            </div>`;
                         $(triggerBlock).removeClass('opener');
                         $(triggerBlock).addClass('trigger-add-task');
                         $(triggerBlock).addClass('bg-light-green');
@@ -900,15 +929,34 @@
 
 
                     if ($(triggerBlock).length > 0 && $(triggerBlock).parent().parent().parent().hasAttr('data-mainstatus')) {
-                        let input = `<input type="hidden" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index() + 1}][]" value="true" />`;
-                        
+                        let input = `<div class="inp-groups" > <input type="hidden" class="trigger-saver-input" data-type="2" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][status][]" value="${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}" />
+                            <input type="hidden" data-type="2" class="trigger-saver-input-maintype" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][maintype][]" value="${formData.cltype}" />
+                            <input type="hidden" data-type="2" class="trigger-saver-input-timetype" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][timetype][]" value="${formData.cltime}" />
+                            <input type="hidden" data-type="2" class="trigger-saver-input-hour" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][hour][]" value="${formData.change_stage_hour}" />
+                            <input type="hidden" data-type="2" class="trigger-saver-input-minute" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][minute][]" value="${formData.change_stage_minute}" />
+                            <input type="hidden" data-type="2" class="trigger-saver-input-next-status" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][nextstatus][]" value="${formData.clstatus}" />
+                            <input type="hidden" data-type="2" class="trigger-saver-input-sequence" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][sequence][]" value="${$(triggerBlock).parent().index() + 1}" />
+                            </div> `;
+
+                        let statusName = 'status';
+                        let statusColor = '#000';
+
+                        if (allStatusesObj.length > 0) {
+                            allStatusesObj.forEach(element => {
+                                if (element.id == formData.clstatus) {
+                                    statusName = element.name;
+                                    statusColor = element.color;
+                                }                                
+                            });
+                        }
+
                         $(triggerBlock).removeClass('opener');
                         $(triggerBlock).addClass('trigger-change-order-status');
                         $(triggerBlock).addClass('bg-light-grey');
                         $(triggerBlock).html(getTriggerTypes(2, formData.cltype, {
-                            bg: formData.choosenColor,
-                            color : generateTextColor(formData.choosenColor),
-                            status : formData.clstatus,
+                            bg: statusColor,
+                            color : generateTextColor(statusColor),
+                            status : statusName,
                             time : formData.cltime,
                             hour : formData.change_stage_hour,
                             minute : formData.change_stage_minute
@@ -941,7 +989,7 @@
         }
 
         function getTriggerTypes(mainType, timeType, data, input) {
-            let type = '<div class="d-flex flex-row">';
+            let type = '<div class="d-flex flex-row portlet-header">';
 
             if (mainType == 1) {
                 type += `<img src="${appUrl + '/assets/images/completed.png'}" class="width-35" /><div class="w-100"><div class="f-12 text-start">`;
@@ -956,7 +1004,7 @@
                 type += `${getTypes(data.time, data.hour, data.minute)} 
                     </div>
                         <div class="text-start">
-                            <span class="f-12"> <strong>Task:</strong> ${data.description.length > 18 ? (data.description.substring(0, 18) + '...') : data.description} </span> <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i>
+                            <span class="f-12"> <strong>Task:</strong> ${data.description.length > 18 ? (data.description.substring(0, 18) + '...') : data.description} </span>
                         </div>${input}
                     </div>
                  </div>`;
@@ -973,7 +1021,7 @@
                 type += `${getTypes(data.time, data.hour, data.minute)} 
                     </div> 
                         <div class="text-start"> <strong class="f-12">Change status:</strong> 
-                            <span class="status-lbl f-12" style="background: ${data.bg};color:${data.color};text-transform:uppercase;"> ${data.status} </span> <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> 
+                            <span class="status-lbl f-10" style="background: ${data.bg};color:${data.color};text-transform:uppercase;"> ${data.status} </span> 
                         </div>${input}
                     </div>
                 </div>`;
@@ -990,7 +1038,7 @@
                 type += `${getTypes(data.time, data.hour, data.minute)} 
                 </div>
                     <div class="text-start"> 
-                        <span class="f-12"> <strong>Change order's user:</strong> ${data.user} </span> <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> 
+                        <span class="f-12"> <strong>Change order's user:</strong> ${data.user} </span> 
                         </div>${input}
                     </div>
                 </div>`;
@@ -999,7 +1047,68 @@
             return `${type}`;
         }
 
+        $(".drag-area").sortable({
+            connectWith: ".drag-area",
+            handle: ".portlet-header",
+            cancel: ".portlet-toggle",
+            helper: "clone",
+            placeholder: "portlet-placeholder ui-corner-all",
+            receive: function(event, ui) {
+                
+                if ($(ui.item).next().hasClass('opener')) {
+                    $(ui.item).next().remove()
+                } else if ($(ui.item).prev().hasClass('opener')) {
+                    $(ui.item).prev().remove()
+                }
 
+                if ($(ui.item).parent().parent().parent().hasAttr('data-mainstatus') && isNumeric($(ui.item).parent().parent().parent().hasAttr('data-mainstatus'))) {
+                    let thisStatus = $(ui.item).parent().parent().parent().attr('data-mainstatus');
+                    let index = $(ui.item).parent().index();
+
+                    if ($(ui.item).find('.trigger-saver-input').length > 0) {
+                        let prefix = '';
+                        let taskType = $(ui.item).find('.trigger-saver-input').attr('data-type');
+
+                        if (taskType == '1') {
+                            prefix = 'task';
+                        } else if (taskType == '2') {
+                            prefix = 'statuschange';
+                        } else if (taskType == '3') {
+                            prefix = 'userchange';
+                        }
+
+                        $(ui.item).find('.trigger-saver-input').attr('name', `${prefix}[${thisStatus}][status][]`);
+                        $(ui.item).find('.trigger-saver-input').val(thisStatus);
+
+                        $(ui.item).find('.trigger-saver-input-maintype').attr('name', `${prefix}[${thisStatus}][maintype][]`);
+                        $(ui.item).find('.trigger-saver-input-maintype').val(thisStatus);
+
+                        $(ui.item).find('.trigger-saver-input-timetype').attr('name', `${prefix}[${thisStatus}][timetype][]`);
+                        $(ui.item).find('.trigger-saver-input-timetype').val(thisStatus);
+
+                        $(ui.item).find('.trigger-saver-input-hour').attr('name', `${prefix}[${thisStatus}][hour][]`);
+                        $(ui.item).find('.trigger-saver-input-hour').val(thisStatus);
+
+                        $(ui.item).find('.trigger-saver-input-minute').attr('name', `${prefix}[${thisStatus}][minute][]`);
+                        $(ui.item).find('.trigger-saver-input-minute').val(thisStatus);
+                        
+                        $(ui.item).find('.trigger-saver-input-sequence').attr('name', `${prefix}[${thisStatus}][sequence][]`);
+                        $(ui.item).find('.trigger-saver-input-sequence').val(thisStatus);
+
+                        if (taskType == '1') {
+                            $(ui.item).find('.trigger-saver-input-desc').attr('name', `${prefix}[${thisStatus}][desc][]`);
+                            $(ui.item).find('.trigger-saver-input-desc').val(thisStatus);
+                        } else if (taskType == '2') {
+                            $(ui.item).find('.trigger-saver-input-next-status').attr('name', `${prefix}[${thisStatus}][nextstatus][]`);
+                            $(ui.item).find('.trigger-saver-input-next-status').val(thisStatus);
+                        }
+                        
+                    }
+                }
+            }
+        });
+
+        $(".portlet").find(".portlet-header").addClass("ui-corner-all")
 
 
 
