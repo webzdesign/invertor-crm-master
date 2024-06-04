@@ -35,4 +35,9 @@ class AddTaskToOrderTrigger extends Model
             'name' => '-',
         ]);
     }
+
+    public function trigger()
+    {
+        return $this->belongsTo(Trigger::class, 'trigger_id');
+    }
 }

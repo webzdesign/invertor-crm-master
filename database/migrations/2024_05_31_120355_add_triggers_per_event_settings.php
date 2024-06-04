@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('settings', function (Blueprint $table) {
-            $table->string('triggers_per_status')->default(15)->nullable();
+            $table->string('triggers_per_status')->default(28)->nullable();
         });
     }
 

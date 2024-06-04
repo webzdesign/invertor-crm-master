@@ -173,6 +173,7 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('save-completion-description-for-task', [SalesOrderStatusController::class, 'saveDescription'])->name('save-completion-description-for-task');
         Route::post('sales-order-responsible-user', [SalesOrderStatusController::class, 'salesOrderResponsibleUser'])->name('sales-order-responsible-user');
         Route::post('sales-order-responsible-user-save', [SalesOrderStatusController::class, 'salesOrderResponsibleUserSave'])->name('sales-order-responsible-user-save');
+        Route::post('get-trigger-tasks', [SalesOrderStatusController::class, 'getTriggerTasks'])->name('get-trigger-tasks');
         /** Sales Order Status **/
 
         /** Common **/

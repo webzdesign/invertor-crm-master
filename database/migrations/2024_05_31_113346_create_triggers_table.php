@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('triggers', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('status_id')->comment('current');
-            $table->unsignedBigInteger('next_status_id')->comment('next');
+            $table->unsignedBigInteger('next_status_id')->comment('next')->nullable();
             $table->integer('sequence')->nullable();
             $table->tinyInteger('type')->comment('1 = Add Task | 2 = Change Order Status | 3 = Change User');
 
@@ -30,7 +30,7 @@ return new class extends Migration
             $table->text('task_description')->nullable();
 
             $table->unsignedBigInteger('added_by');
-            $table->unsignedBigInteger('updated_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->softDeletes();
             $table->timestamps();
 

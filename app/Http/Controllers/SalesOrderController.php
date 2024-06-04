@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock};
 use App\Models\{Category, User, Wallet, Bonus, DistributionItem, Setting, AddressLog, Deliver};
+use App\Models\{AddTaskToOrderTrigger, ChangeOrderStatusTrigger, Trigger};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -436,6 +437,37 @@ class SalesOrderController extends Controller
                             'delivery_location_long' => $request->long,
                             'range' => $request->range
                         ]);
+
+                        // Trigger
+
+                        foreach (Trigger::where('status_id', 1)->whereIn('action_type', [2, 3])->where('type', '1')->orderBy('sequence', 'ASC')->get() as $t) {
+                            AddTaskToOrderTrigger::create([
+                                'order_id' => $soId,
+                                'status_id' => $t->status_id,
+                                'added_by' => auth()->user()->id,
+                                'time' => $t->time,
+                                'type' => $t->time_type,
+                                'main_type' => 2,
+                                'description' => $t->task_description,
+                                'current_status_id' => 1,
+                                'trigger_id' => $t->id
+                            ]);
+                        }
+
+                        foreach (Trigger::where('status_id', 1)->whereIn('action_type', [2, 3])->where('type', '2')->whereIn('action_type', [2, 3])->orderBy('sequence', 'ASC')->get() as $t) {
+                            ChangeOrderStatusTrigger::create([
+                                'order_id' => $soId,
+                                'status_id' => $t->next_status_id,
+                                'added_by' => auth()->user()->id,
+                                'time' => $t->time,
+                                'type' => $t->time_type,
+                                'current_status_id' => 1,
+                                'executed_at' => date('Y-m-d H:i:s', strtotime($t->time)),
+                                'trigger_id' => $t->id
+                            ]);
+                        }
+
+                        // Trigger
 
                         DB::commit();
                         return redirect()->route('sales-orders.index')->with('success', "Sales order added successfully.");

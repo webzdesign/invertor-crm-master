@@ -299,8 +299,8 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 }
 
 .width-35 {
-    width: 35px;
-    height: 35px;
+    width: 25px;
+    height: 25px;
     position: relative;
     right: 10px;
 }
@@ -320,5 +320,22 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 
 .status-dropdown-menu-inner-2-ul {
     z-index: 3;
+}
+.drag-area{
+    height: 76px;
+}
+.cardDrag {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border-right: 1px solid #dbdbdb !important;
+    border-bottom: 1px solid #dbdbdb !important;
+}
+.parent-card:first-child .cardDrag{
+    border-left: 1px solid #dbdbdb !important;
 }
 /* other css */

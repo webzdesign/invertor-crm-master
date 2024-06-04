@@ -20,7 +20,7 @@
 
     @php $iteration = 0;  @endphp
     @forelse($statuses as $key => $status)
-    <div class="card card-row card-secondary parent-card @if($status->id == '1') disable-sorting @endif " data-mainstatus="{{ $status->id }}">
+    <div class="card border-0 card-row card-secondary parent-card @if($status->id == '1') disable-sorting @endif " data-mainstatus="{{ $status->id }}">
         @php $tempColor = !empty($status->color) ? $status->color : (isset($colours[$key]) ? $colours[$key] : (isset($colours[$iteration]) ? $colours[$iteration] : ($iteration = 0 and $colours[0] ? $colours[$iteration] : '#99ccff' )));  @endphp
         <input type="hidden" name="sequence[]" value="{{ $status->id }}" @if($status->id == '1') disabled @endif>
         <div class="card-header px-2" style="border-bottom: 4px solid {{ $tempColor }};">
@@ -58,14 +58,24 @@
 
             </div>
         </div>
-        <div class="card-body" style="padding: 0;">
+        <div class="card-body" style="padding: 0;" data-thisstatus="{{ $status->id }}">
             @php
-                $trigger = Trigger::with(['nextstatus', 'currentstatus'])->where('status_id', $status->id)->orderBy('sequence', 'ASC')->get()->toArray();
+                $trigger = Trigger::with(['nextstatus', 'currentstatus'])->where('status_id', $status->id)->orderBy('sequence', 'ASC')->get()->keyBy('sequence')->toArray();
             @endphp
             @for($i = 0; $i < $maxTriggers; $i++)
-                <div class="card border-light drag-area">
+                <div class="cardDrag drag-area">
                     @if(isset($trigger[$i]))
-                    <div class="card-body text-center custom-p portlet cursor-pointer min-max-height @if($trigger[$i]['type'] == 1) trigger-add-task @elseif($trigger[$i]['type'] == 2) trigger-change-order-status @elseif($trigger[$i]['type'] == 3) trigger-change-order-user @endif   "  data-title="{{ $status->name }}"  data-sid="{{ $status->id }}" data-triggerid="{{ $trigger[$i]['id'] }}" >
+                    <div class="card-body text-center custom-p portlet cursor-pointer min-max-height @if($trigger[$i]['type'] == 1) bg-light-green trigger-add-task @elseif($trigger[$i]['type'] == 2) bg-light-grey trigger-change-order-status @elseif($trigger[$i]['type'] == 3) bg-light-green trigger-change-order-user @endif   "  data-title="{{ $status->name }}"  data-sid="{{ $status->id }}" data-triggerid="{{ $trigger[$i]['id'] }}" 
+                        @if($trigger[$i]['type'] == 1)
+                            data-at-statusid="{{ $trigger[$i]['type'] }}"
+                            data-at-taskdescription="{{ $trigger[$i]['task_description'] }}"
+                            data-at-timetype="{{ $trigger[$i]['time_type'] }}"
+                            data-at-hour="{{ $trigger[$i]['hour'] }}"
+                            data-at-minute="{{ $trigger[$i]['minute'] }}"
+                            data-at-actiontype="{{ $trigger[$i]['action_type'] }}"
+                            data-at-type="{{ $trigger[$i]['type'] }}"
+                        @endif
+                        >
                         <div class="d-flex flex-row portlet-header">
                             @if($trigger[$i]['type'] == 1)
                             <img src="{{ asset('assets/images/completed.png') }}" class="width-35" />
@@ -78,23 +88,36 @@
                                 @elseif($trigger[$i]['action_type'] == 3)
                                 After moved or created in this status
                                 @endif
+                                @if($trigger[$i]['time_type'] == 2)
+                                after 5 minutes
+                                @elseif($trigger[$i]['time_type'] == 3)
+                                after 10 minutes
+                                @elseif($trigger[$i]['time_type'] == 4)
+                                after one day
+                                @elseif($trigger[$i]['time_type'] == 5)
+                                    @if($trigger[$i]['hour'] < 100)
+                                    after {{ sprintf('%02d', $trigger[$i]['hour']) }} hours {{ sprintf('%02d', $trigger[$i]['minute']) }} minutes
+                                    @else
+                                    after {{ sprintf('%03d', $trigger[$i]['hour']) }} hours {{ sprintf('%02d', $trigger[$i]['minute']) }} minutes
+                                    @endif
+                                @endif
                                 </div>
                                 <div class="text-start">
                                     <span class="f-12"> <strong>Task:</strong> {{ Str::words(strip_tags($trigger[$i]['task_description']), 18, '...')  }} </span>
                                     {{-- <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> --}}
                                 </div>
                                 <div class="inp-groups">
-                                    <input type="hidden" data-type="1" class="trigger-saver-input" name="task[{{ $status->id }}][status][]" value="{{ $status->id }}" />
-                                    <input type="hidden" data-type="1" class="trigger-saver-input-maintype" name="task[{{ $status->id }}][maintype][]" value="{{ $trigger[$i]['type'] }}" />
-                                    <input type="hidden" data-type="1" class="trigger-saver-input-timetype" name="task[{{ $status->id }}][timetype][]" value="{{ $trigger[$i]['time_type'] }}" />
-                                    <input type="hidden" data-type="1" class="trigger-saver-input-hour" name="task[{{ $status->id }}][hour][]" value="{{ $trigger[$i]['hour'] }}" />
-                                    <input type="hidden" data-type="1" class="trigger-saver-input-minute" name="task[{{ $status->id }}][minute][]" value="{{ $trigger[$i]['minute'] }}" />
-                                    <input type="hidden" data-type="1" class="trigger-saver-input-desc" name="task[{{ $status->id }}][desc][]" value="{{ $trigger[$i]['task_description'] }}" />
-                                    <input type="hidden" data-type="1" class="trigger-saver-input-sequence" name="task[{{ $status->id }}][sequence][]" value="{{ $trigger[$i]['sequence'] }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status]" value="{{ $status->id }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input-maintype" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][maintype]" value="{{ $trigger[$i]['type'] }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input-timetype" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][timetype]" value="{{ $trigger[$i]['time_type'] }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input-hour" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][hour]" value="{{ $trigger[$i]['hour'] }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input-minute" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][minute]" value="{{ $trigger[$i]['minute'] }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input-desc" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][desc]" value="{{ $trigger[$i]['task_description'] }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input-sequence" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][sequence]" value="{{ $trigger[$i]['sequence'] }}" />
                                 </div>
                             </div>
                             @elseif($trigger[$i]['type'] == 2)
-                            <img src="{{ asset('assets/images/completed.png') }}" class="width-35" />
+                            <img src="{{ asset('assets/images/edit.png') }}" class="width-35" />
                             <div class="w-100">
                                 <div class="f-12 text-start">
                                 @if($trigger[$i]['action_type'] == 1)
@@ -104,25 +127,38 @@
                                 @elseif($trigger[$i]['action_type'] == 3)
                                 After moved or created in this status
                                 @endif
+                                @if($trigger[$i]['time_type'] == 2)
+                                after 5 minutes
+                                @elseif($trigger[$i]['time_type'] == 3)
+                                after 10 minutes
+                                @elseif($trigger[$i]['time_type'] == 4)
+                                after one day
+                                @elseif($trigger[$i]['time_type'] == 5)
+                                    @if($trigger[$i]['hour'] < 100)
+                                    after {{ sprintf('%02d', $trigger[$i]['hour']) }} hours {{ sprintf('%02d', $trigger[$i]['minute']) }} minutes
+                                    @else
+                                    after {{ sprintf('%03d', $trigger[$i]['hour']) }} hours {{ sprintf('%02d', $trigger[$i]['minute']) }} minutes
+                                    @endif
+                                @endif
                                 </div>
                                 <div class="text-start">
                                     <strong class="f-12">Change status:</strong>
-                                    <span class="status-lbl f-10" style="background: {{ $trigger[$i]['nextstatus']['name'] }};color:{{ Helper::generateTextColor($trigger[$i]['nextstatus']['name']) }};text-transform:uppercase;"> {{ $trigger[$i]['nextstatus']['name'] }} </span>
+                                    <span class="status-lbl f-10" style="background: {{ $trigger[$i]['nextstatus']['color'] }};color:{{ Helper::generateTextColor($trigger[$i]['nextstatus']['color']) }};text-transform:uppercase;"> {{ $trigger[$i]['nextstatus']['name'] }} </span>
                                     {{-- <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> --}}
                                 </div>
                                 <div class="inp-groups">
-                                    <input type="hidden" data-type="2" class="trigger-saver-input" name="statuschange[{{ $status->id }}][status][]" value="{{ $status->id }}" />
-                                    <input type="hidden" data-type="2" class="trigger-saver-input-maintype" name="statuschange[{{ $status->id }}][maintype][]" value="{{ $trigger[$i]['type'] }}" />
-                                    <input type="hidden" data-type="2" class="trigger-saver-input-timetype" name="statuschange[{{ $status->id }}][timetype][]" value="{{ $trigger[$i]['time_type'] }}" />
-                                    <input type="hidden" data-type="2" class="trigger-saver-input-hour" name="statuschange[{{ $status->id }}][hour][]" value="{{ $trigger[$i]['hour'] }}" />
-                                    <input type="hidden" data-type="2" class="trigger-saver-input-minute" name="statuschange[{{ $status->id }}][minute][]" value="{{ $trigger[$i]['minute'] }}" />
-                                    <input type="hidden" data-type="2" class="trigger-saver-input-next-status" name="statuschange[{{ $status->id }}][nextstatus][]" value="{{ $trigger[$i]['next_status_id'] }}" />
-                                    <input type="hidden" data-type="2" class="trigger-saver-input-sequence" name="statuschange[{{ $status->id }}][sequence][]" value="{{ $trigger[$i]['sequence'] }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status]" value="{{ $status->id }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input-maintype" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][maintype]" value="{{ $trigger[$i]['type'] }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input-timetype" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][timetype]" value="{{ $trigger[$i]['time_type'] }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input-hour" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][hour]" value="{{ $trigger[$i]['hour'] }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input-minute" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][minute]" value="{{ $trigger[$i]['minute'] }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input-next-status" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][nextstatus]" value="{{ $trigger[$i]['next_status_id'] }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input-sequence" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][sequence]" value="{{ $trigger[$i]['sequence'] }}" />
                                 </div>
                             </div>
                             @elseif($trigger[$i]['type'] == 3)
                             <div class="w-100">
-                                <img src="{{ asset('assets/images/completed.png') }}" class="width-35" />
+                                <img src="{{ asset('assets/images/edit.png') }}" class="width-35" />
                                 <div class="f-12 text-start">
                                 @if($trigger[$i]['action_type'] == 1)
                                 After moved to this status
@@ -130,6 +166,19 @@
                                 After created in this status
                                 @elseif($trigger[$i]['action_type'] == 3)
                                 After moved or created in this status
+                                @endif
+                                @if($trigger[$i]['time_type'] == 2)
+                                after 5 minutes
+                                @elseif($trigger[$i]['time_type'] == 3)
+                                after 10 minutes
+                                @elseif($trigger[$i]['time_type'] == 4)
+                                after one day
+                                @elseif($trigger[$i]['time_type'] == 5)
+                                    @if($trigger[$i]['hour'] < 100)
+                                    after {{ sprintf('%02d', $trigger[$i]['hour']) }} hours {{ sprintf('%02d', $trigger[$i]['minute']) }} minutes
+                                    @else
+                                    after {{ sprintf('%03d', $trigger[$i]['hour']) }} hours {{ sprintf('%02d', $trigger[$i]['minute']) }} minutes
+                                    @endif
                                 @endif
                                 </div>
                                 <div class="text-start">
@@ -137,14 +186,14 @@
                                     {{-- <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> --}}
                                 </div>
                                 <div class="inp-groups">
-                                    <input type="hidden" class="trigger-saver-input" data-type="3" name="userchange[{{ $status->id }}][{{ $i + 1 }}][status][]" value="{{ $status->id }}" />
+                                    <input type="hidden" class="trigger-saver-input" data-type="3" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status][]" value="{{ $status->id }}" />
                                 </div>
                             </div>
                             @endif
                         </div>
                     </div>
                     @else
-                    <div class="card-body text-center custom-p cursor-pointer opener min-max-height" data-title="{{ $status->name }}"  data-sid="{{ $status->id }}">
+                    <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="{{ $status->name }}"  data-sid="{{ $status->id }}">
                         <i class="fa fa-plus-circle"></i> Add trigger
                     </div>
                     @endif
@@ -206,8 +255,13 @@
     var statusesHtml = `<option value="" selected> --- Select a Status --- </option>`;
     var allStatuses = {!! json_encode($s) !!};
     var allStatusesObj = {!! json_encode($statuses) !!};
+    var editingBlock = null;
 
     $(document).ready(function() {
+
+        $.validator.setDefaults({
+            ignore: []
+        });
 
         $(document).on('click', '.opener', function () {
             let thisStatus = $(this).attr('data-sid');
@@ -313,11 +367,95 @@
 
             if (isNumeric(thisStatus)) {
                 $('#trigger-options-modal').modal('hide');
+                $('#editing-add-task').val('0');
                 $('#add-task').modal('show');
                 $('#add-task').find('#modal-title-add-task').text(performingStatusTitle);
                 $('#manage-status-id-for-add-task').val(thisStatus);
             }
 
+        });
+
+        $(document).on('click', '.trigger-add-task', function () {
+            alert('Trigger edit functionality is in development');
+            return false;
+            let thisTrigger = $(this).attr('data-triggerid');
+            let thisTitle = $(this).attr('data-title');
+            let thisstatus = $(this).parent().parent().attr('data-thisstatus');
+            editingBlock = this;
+
+            if (isNumeric(thisTrigger)) {
+
+                let dt = {
+                    status_id: $(this).attr('data-at-statusid'),
+                    task_description: $(this).attr('data-at-taskdescription'),
+                    time_type: $(this).attr('data-at-timetype'),
+                    hour: $(this).attr('data-at-hour'),
+                    minute: $(this).attr('data-at-minute'),
+                    action_type: $(this).attr('data-at-actiontype'),
+                    type: $(this).attr('data-at-type')
+                };
+
+                $('#editing-add-task').val('1');
+                $('#add-task').modal('show');
+                $('#add-task').find('#modal-title-add-task').text(thisTitle);
+                $('#manage-status-id-for-add-task').val(dt.status_id);
+                $('#task-desc').val(dt.task_description);
+
+                let dropdownText = 'Execute: ';
+                let timeString = `Immediately`;
+
+                if (dt.time_type == 1) {
+                    timeString = `Immediately`;
+                } else if (dt.time_type == 2) {
+                    timeString = `5 minutes`;
+                } else if (dt.time_type == 3) {
+                    timeString = `10 minutes`;
+                } else if (dt.time_type == 4) {
+                    timeString = `One day`;
+                } else if (dt.time_type == 5) {
+                    timeString = `Before delay ${dt.hour} hour ${dt.minute} minute`;
+                }
+
+                dropdownText += timeString;
+
+                if (dt.type == 1) {
+                    dropdownText += ` After moved to this status`;
+                } else if (dt.type == 2) {
+                    dropdownText += ` After created into this status`;
+                } else {
+                    dropdownText += ` After moved or created into this status`;
+                }
+
+                $('.status-dropdown-toggle-inner').find('span').text(dropdownText);
+
+                let selectedEle = $('.status-dropdown-menu-inner').find(`.no-btn:eq(${dt.action_type - 1})`);
+
+                if ($(selectedEle).length > 0) {
+                    $(selectedEle).attr('data-selchild', dt.time_type);
+                    $(selectedEle).text(timeString);
+                    $(selectedEle).parent().css('background-color', selectedColorBg);
+
+                    $('.status-dropdown-menu-inner-ul').attr('data-parenttype', dt.action_type);
+
+                    let selectedInnerEle = $('.status-dropdown-menu-inner-ul').find(`li:eq(${dt.time_type - 1})`);
+
+                    if ($(selectedInnerEle).length > 0) {
+                        $(selectedInnerEle).css('background-color', selectedColorBg);
+
+                        if (dt.time_type == 5) {
+                            $('#add-task-hour').val(dt.hour);
+                            $('#add-task-minute').val(dt.minute);
+                        }
+                    }
+                }
+
+                $('#manage-status-id-for-add-task').val(dt.status_id);
+                $('#manage-order-time-for-add-task').val(dt.time_type);
+                $('#manage-order-type-for-add-task').val(dt.action_type);
+                $('#manage-order-status-for-add-task').val(thisstatus);
+
+
+            }
         });
 
         $(document).on('click', function(event) {
@@ -476,8 +614,9 @@
                 $('.selectable').css('background', '#fff');
                 $('.dropdown-menu-inner-sub').css('display', 'none');
                 $('#task-desc').css('height', '35px');
-                $('#at-type-error').text('')
-                $('#at-status-error').text('')
+                $('#at-type-error').text('');
+                $('#at-status-error').text('');
+                $('#editing-add-task').val('0');
 
             }
         });
@@ -493,12 +632,6 @@
                     digits: true,
                     min: 0,
                     max: 60
-                },
-                attype: {
-                    required: true
-                },
-                atstatus: {
-                    required: true
                 },
                 task_desc: {
                     required: true,
@@ -516,12 +649,6 @@
                     min: "Minimum 0 minute allowed.",
                     max: "Maximum 60 minutes allowed."
                 },
-                attype: {
-                    required: "Select trigger time."
-                },
-                atstatus: {
-                    required: "Select trigger status."
-                },
                 task_desc: {
                     required: 'Enter description.',
                     maxlength: 'Maximum 500 characters allowed.'
@@ -534,10 +661,6 @@
                 } else if ($(element).hasClass('add-task-hour')) {
                     $('#at-type-error').text(error.text());
                     $('#add-task-hour').css('border-color', '#ff0000');
-                } else if ($(element).hasClass('manage-order-type-for-add-task')) {
-                    $('#at-type-error').text(error.text());
-                } else if ($(element).hasClass('manage-order-status-for-add-task')) {
-                    $('#at-status-error').text(error.text());
                 } else {
                     $('#at-status-error').text('');
                     $('#at-type-error').text('');
@@ -560,29 +683,66 @@
                         formData[element.name] = element.value;
                     });
 
+                    if ($('#editing-add-task').val() == '1') {
+                        let index = $(editingBlock).parent().index();
 
-                    if ($(triggerBlock).length > 0 && $(triggerBlock).parent().parent().parent().hasAttr('data-mainstatus')) {
-                        let input = `<div class="inp-groups"><input type="hidden" data-type="1" class="trigger-saver-input" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][status][]" value="${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}" />
-                            <input type="hidden" data-type="1" class="trigger-saver-input-maintype" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][maintype][]" value="${formData.attype}" />
-                            <input type="hidden" data-type="1" class="trigger-saver-input-timetype" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][timetype][]" value="${formData.attime}" />
-                            <input type="hidden" data-type="1" class="trigger-saver-input-hour" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][hour][]" value="${formData.add_task_hour}" />
-                            <input type="hidden" data-type="1" class="trigger-saver-input-minute" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][minute][]" value="${formData.add_task_minute}" />
-                            <input type="hidden" data-type="1" class="trigger-saver-input-desc" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][desc][]" value="${formData.task_desc}" />
-                            <input type="hidden" data-type="1" class="trigger-saver-input-sequence" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][sequence][]" value="${$(triggerBlock).parent().index() + 1}" />
-                            </div>`;
-                        $(triggerBlock).removeClass('opener');
-                        $(triggerBlock).addClass('trigger-add-task');
-                        $(triggerBlock).addClass('bg-light-green');
-                        $(triggerBlock).html(getTriggerTypes(1, formData.attype, {
-                            description : formData.task_desc,
-                            time : formData.attime,
-                            hour : formData.add_task_hour,
-                            minute : formData.add_task_minute
-                        },
-                        input));
+                        $(editingBlock).find('.trigger-saver-input').attr('name', `task[${formData.atstatus}][${index}][status]`);
+                        $(editingBlock).find('.trigger-saver-input').val(formData.atstatus);
+
+                        $(editingBlock).find('.trigger-saver-input-maintype').attr('name', `task[${formData.atstatus}][${index}][maintype]`);
+                        $(editingBlock).find('.trigger-saver-input-maintype').val($(editingBlock).find('.trigger-saver-input-maintype').val());
+
+                        $(editingBlock).find('.trigger-saver-input-timetype').attr('name', `task[${formData.atstatus}][${index}][timetype]`);
+                        $(editingBlock).find('.trigger-saver-input-timetype').val($(editingBlock).find('.trigger-saver-input-timetype').val());
+
+                        $(editingBlock).find('.trigger-saver-input-hour').attr('name', `task[${formData.atstatus}][${index}][hour]`);
+                        $(editingBlock).find('.trigger-saver-input-hour').val($(editingBlock).find('.trigger-saver-input-hour').val());
+
+                        $(editingBlock).find('.trigger-saver-input-minute').attr('name', `task[${formData.atstatus}][${index}][minute]`);
+                        $(editingBlock).find('.trigger-saver-input-minute').val($(editingBlock).find('.trigger-saver-input-minute').val());
+                        
+                        $(editingBlock).find('.trigger-saver-input-sequence').attr('name', `task[${formData.atstatus}][${index}][sequence]`);
+                        $(editingBlock).find('.trigger-saver-input-sequence').val(index);
+
+                        $(editingBlock).find('.trigger-saver-input-desc').attr('name', `task[${formData.atstatus}][${index}][desc]`);
+                        $(editingBlock).find('.trigger-saver-input-desc').val($(editingBlock).find('.trigger-saver-input-desc').val());
+
+                        $(editingBlock).html(getTriggerTypes(1, formData.attype, {
+                                description : formData.task_desc,
+                                time : formData.attime,
+                                hour : formData.add_task_hour,
+                                minute : formData.add_task_minute
+                            },
+                        $(editingBlock).find('.inp-groups').html()));
 
                         $('#add-task').modal('hide');
+                        
+                    } else {
+                        if ($(triggerBlock).length > 0 && $(triggerBlock).parent().parent().parent().hasAttr('data-mainstatus')) {
+                            let input = `<div class="inp-groups"><input type="hidden" data-type="1" class="trigger-saver-input" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][status]" value="${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}" />
+                                <input type="hidden" data-type="1" class="trigger-saver-input-maintype" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][maintype]" value="${formData.attype}" />
+                                <input type="hidden" data-type="1" class="trigger-saver-input-timetype" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][timetype]" value="${formData.attime}" />
+                                <input type="hidden" data-type="1" class="trigger-saver-input-hour" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][hour]" value="${formData.add_task_hour}" />
+                                <input type="hidden" data-type="1" class="trigger-saver-input-minute" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][minute]" value="${formData.add_task_minute}" />
+                                <input type="hidden" data-type="1" class="trigger-saver-input-desc" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][desc]" value="${formData.task_desc}" />
+                                <input type="hidden" data-type="1" class="trigger-saver-input-sequence" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][sequence]" value="${$(triggerBlock).parent().index()}" />
+                                </div>`;
+                            $(triggerBlock).removeClass('opener');
+                            $(triggerBlock).removeClass('justify-content-center');
+                            $(triggerBlock).addClass('trigger-add-task');
+                            $(triggerBlock).addClass('bg-light-green');
+                            $(triggerBlock).html(getTriggerTypes(1, formData.attype, {
+                                description : formData.task_desc,
+                                time : formData.attime,
+                                hour : formData.add_task_hour,
+                                minute : formData.add_task_minute
+                            },
+                            input));
+
+                            $('#add-task').modal('hide');
+                        }
                     }
+
                 }
 
                 return false;
@@ -675,6 +835,7 @@
                 $('.no-btn').attr('data-selchild', '1');
                 $('.selectable-inner-p-2').css('background', '#fff');
                 $('.selectable-inner-p-2').css('color', '#000');
+                editingBlock = null;
 
             }
         });
@@ -929,13 +1090,13 @@
 
 
                     if ($(triggerBlock).length > 0 && $(triggerBlock).parent().parent().parent().hasAttr('data-mainstatus')) {
-                        let input = `<div class="inp-groups" > <input type="hidden" class="trigger-saver-input" data-type="2" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][status][]" value="${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}" />
-                            <input type="hidden" data-type="2" class="trigger-saver-input-maintype" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][maintype][]" value="${formData.cltype}" />
-                            <input type="hidden" data-type="2" class="trigger-saver-input-timetype" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][timetype][]" value="${formData.cltime}" />
-                            <input type="hidden" data-type="2" class="trigger-saver-input-hour" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][hour][]" value="${formData.change_stage_hour}" />
-                            <input type="hidden" data-type="2" class="trigger-saver-input-minute" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][minute][]" value="${formData.change_stage_minute}" />
-                            <input type="hidden" data-type="2" class="trigger-saver-input-next-status" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][nextstatus][]" value="${formData.clstatus}" />
-                            <input type="hidden" data-type="2" class="trigger-saver-input-sequence" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][sequence][]" value="${$(triggerBlock).parent().index() + 1}" />
+                        let input = `<div class="inp-groups" > <input type="hidden" class="trigger-saver-input" data-type="2" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][status]" value="${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}" />
+                            <input type="hidden" data-type="2" class="trigger-saver-input-maintype" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][maintype]" value="${formData.cltype}" />
+                            <input type="hidden" data-type="2" class="trigger-saver-input-timetype" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][timetype]" value="${formData.cltime}" />
+                            <input type="hidden" data-type="2" class="trigger-saver-input-hour" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][hour]" value="${formData.change_stage_hour}" />
+                            <input type="hidden" data-type="2" class="trigger-saver-input-minute" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][minute]" value="${formData.change_stage_minute}" />
+                            <input type="hidden" data-type="2" class="trigger-saver-input-next-status" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][nextstatus]" value="${formData.clstatus}" />
+                            <input type="hidden" data-type="2" class="trigger-saver-input-sequence" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][sequence]" value="${$(triggerBlock).parent().index()}" />
                             </div> `;
 
                         let statusName = 'status';
@@ -1077,30 +1238,30 @@
                             prefix = 'userchange';
                         }
 
-                        $(ui.item).find('.trigger-saver-input').attr('name', `${prefix}[${thisStatus}][status][]`);
+                        $(ui.item).find('.trigger-saver-input').attr('name', `${prefix}[${thisStatus}][${index}][status]`);
                         $(ui.item).find('.trigger-saver-input').val(thisStatus);
 
-                        $(ui.item).find('.trigger-saver-input-maintype').attr('name', `${prefix}[${thisStatus}][maintype][]`);
-                        $(ui.item).find('.trigger-saver-input-maintype').val(thisStatus);
+                        $(ui.item).find('.trigger-saver-input-maintype').attr('name', `${prefix}[${thisStatus}][${index}][maintype]`);
+                        $(ui.item).find('.trigger-saver-input-maintype').val($(ui.item).find('.trigger-saver-input-maintype').val());
 
-                        $(ui.item).find('.trigger-saver-input-timetype').attr('name', `${prefix}[${thisStatus}][timetype][]`);
-                        $(ui.item).find('.trigger-saver-input-timetype').val(thisStatus);
+                        $(ui.item).find('.trigger-saver-input-timetype').attr('name', `${prefix}[${thisStatus}][${index}][timetype]`);
+                        $(ui.item).find('.trigger-saver-input-timetype').val($(ui.item).find('.trigger-saver-input-timetype').val());
 
-                        $(ui.item).find('.trigger-saver-input-hour').attr('name', `${prefix}[${thisStatus}][hour][]`);
-                        $(ui.item).find('.trigger-saver-input-hour').val(thisStatus);
+                        $(ui.item).find('.trigger-saver-input-hour').attr('name', `${prefix}[${thisStatus}][${index}][hour]`);
+                        $(ui.item).find('.trigger-saver-input-hour').val($(ui.item).find('.trigger-saver-input-hour').val());
 
-                        $(ui.item).find('.trigger-saver-input-minute').attr('name', `${prefix}[${thisStatus}][minute][]`);
-                        $(ui.item).find('.trigger-saver-input-minute').val(thisStatus);
+                        $(ui.item).find('.trigger-saver-input-minute').attr('name', `${prefix}[${thisStatus}][${index}][minute]`);
+                        $(ui.item).find('.trigger-saver-input-minute').val($(ui.item).find('.trigger-saver-input-minute').val());
                         
-                        $(ui.item).find('.trigger-saver-input-sequence').attr('name', `${prefix}[${thisStatus}][sequence][]`);
-                        $(ui.item).find('.trigger-saver-input-sequence').val(thisStatus);
+                        $(ui.item).find('.trigger-saver-input-sequence').attr('name', `${prefix}[${thisStatus}][${index}][sequence]`);
+                        $(ui.item).find('.trigger-saver-input-sequence').val(index);
 
                         if (taskType == '1') {
-                            $(ui.item).find('.trigger-saver-input-desc').attr('name', `${prefix}[${thisStatus}][desc][]`);
-                            $(ui.item).find('.trigger-saver-input-desc').val(thisStatus);
+                            $(ui.item).find('.trigger-saver-input-desc').attr('name', `${prefix}[${thisStatus}][${index}][desc]`);
+                            $(ui.item).find('.trigger-saver-input-desc').val($(ui.item).find('.trigger-saver-input-desc').val());
                         } else if (taskType == '2') {
-                            $(ui.item).find('.trigger-saver-input-next-status').attr('name', `${prefix}[${thisStatus}][nextstatus][]`);
-                            $(ui.item).find('.trigger-saver-input-next-status').val(thisStatus);
+                            $(ui.item).find('.trigger-saver-input-next-status').attr('name', `${prefix}[${thisStatus}][${index}][nextstatus]`);
+                            $(ui.item).find('.trigger-saver-input-next-status').val($(ui.item).find('.trigger-saver-input-next-status').val());
                         }
                         
                     }

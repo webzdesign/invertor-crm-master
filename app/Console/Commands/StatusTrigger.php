@@ -3,8 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Models\ChangeOrderStatusTrigger;
+use App\Models\AddTaskToOrderTrigger;
 use Illuminate\Console\Command;
 use App\Models\SalesOrder;
+use App\Models\Trigger;
 
 class StatusTrigger extends Command
 {
@@ -27,10 +29,12 @@ class StatusTrigger extends Command
      */
     public function handle()
     {
-        foreach (ChangeOrderStatusTrigger::where('executed', false)->where('executed_at', '<=', date('Y-m-d H:i:s'))->get() as $order) {
+        foreach (ChangeOrderStatusTrigger::whereHas('trigger', function ($builder) {
+            $builder->where('id', '>', 0);
+        })->where('executed', false)->where('executed_at', '<=', date('Y-m-d H:i:s'))->get() as $order) {
 
             $thisOrder = ChangeOrderStatusTrigger::findOrFail($order->id);
-            $salesOrder = SalesOrder::findOrFail($thisOrder->order_id ?? null);
+            $so = $salesOrder = SalesOrder::findOrFail($thisOrder->order_id ?? null);
 
             if (isset($thisOrder->order_id)) {
                 event(new \App\Events\OrderStatusEvent('order-status-change', [
@@ -45,6 +49,33 @@ class StatusTrigger extends Command
             $salesOrder->save();
             $thisOrder->executed = true;
             $thisOrder->save();
+
+            foreach (Trigger::where('status_id', $thisOrder->status_id)->where('type', '1')->orderBy('sequence', 'ASC')->get() as $t) {
+                AddTaskToOrderTrigger::create([
+                    'order_id' => $so->id,
+                    'status_id' => $thisOrder->status_id,
+                    'added_by' => 1,
+                    'time' => $t->time,
+                    'type' => $t->time_type,
+                    'main_type' => 2,
+                    'description' => $t->task_description,
+                    'current_status_id' => $so->status,
+                    'trigger_id' => $t->id
+                ]);
+            }
+
+            foreach (Trigger::where('status_id', $thisOrder->status_id)->where('type', '2')->orderBy('sequence', 'ASC')->get() as $t) {
+                ChangeOrderStatusTrigger::create([
+                    'order_id' => $so->id,
+                    'status_id' => $t->next_status_id,
+                    'added_by' => 1,
+                    'time' => $t->time,
+                    'type' => $t->time_type,
+                    'current_status_id' => $thisOrder->status_id,
+                    'executed_at' => date('Y-m-d H:i:s', strtotime($t->time)),
+                    'trigger_id' => $t->id
+                ]);
+            }
         }
     }
 }

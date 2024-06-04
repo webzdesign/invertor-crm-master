@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser, Setting, Trigger};
 use App\Models\{SalesOrderStatus, SalesOrder, SalesOrderItem, Deliver, Role, ManageStatus, User};
-use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser, Setting};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
@@ -46,13 +46,19 @@ class SalesOrderStatusController extends Controller
             'name.*.distinct' => 'Status name must be unique.'
         ]);
 
+        $tasks = $request->task;
+        $changeStatus = $request->statuschange;
         $sequences = $request->sequence;
         $names = $request->name;
         $colors = $request->color;
-        dd($request->all());
+
         if (count($sequences) != count($names)) {
             return redirect()->route('sales-order-status-edit')->with('error', 'Add atleast a card to save.');
         }
+
+        $userId = auth()->user()->id;
+        $allStatusList = SalesOrderStatus::select('id', 'name')->pluck('name', 'id')->toArray();
+        $toBeDeleted = [];
 
         DB::beginTransaction();
 
@@ -78,9 +84,103 @@ class SalesOrderStatusController extends Controller
                     }
                 }
 
+                if (is_array($tasks) && count($tasks) > 0) {
+                    foreach ($tasks as $thisStatus => $array) {
+                        if (isset($allStatusList[$thisStatus])) {
+                            foreach ($array as $k => $v) {
+                                $toBeDeleted[$thisStatus][] = $k;
+                                if (Trigger::where('sequence', $k)->where('status_id', $thisStatus)->exists()) {
+                                    Trigger::where('sequence', $k)->where('status_id', $thisStatus)->update([
+                                        'status_id' => $v['status'],
+                                        'hour' => $v['hour'],
+                                        'minute' => $v['minute'],
+                                        'type' => 1,
+                                        'time' => self::getStringToTime($v['timetype'], $v['hour'], $v['minute']),
+                                        'action_type' => $v['maintype'],
+                                        'time_type' => $v['timetype'],
+                                        'user_id' => null,
+                                        'task_description' => $v['desc'],
+                                        'updated_by' => $userId
+                                    ]);
+                                } else {
+                                    Trigger::create([
+                                        'status_id' => $v['status'],
+                                        'sequence' => $k,
+                                        'hour' => $v['hour'] ?? null,
+                                        'minute' => $v['minute'] ?? null,
+                                        'type' => 1,
+                                        'time' => self::getStringToTime($v['timetype'], ($v['hour'] ?? null), ($v['minute'] ?? null)),
+                                        'action_type' => $v['maintype'],
+                                        'time_type' => $v['timetype'],
+                                        'task_description' => $v['desc'] ?? null,
+                                        'added_by' => $userId
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+                }
+    
+                if (is_array($changeStatus) && count($changeStatus) > 0) {
+                    foreach ($changeStatus as $thisStatus => $array) {
+                        if (isset($allStatusList[$thisStatus])) {
+                            foreach ($array as $k => $v) {
+                                $toBeDeleted[$thisStatus][] = $k;
+                                if (Trigger::where('sequence', $k)->where('status_id', $thisStatus)->exists()) {
+                                    Trigger::where('sequence', $k)->where('status_id', $thisStatus)->update([
+                                        'status_id' => $v['status'],
+                                        'next_status_id' => $v['nextstatus'],
+                                        'hour' => $v['hour'],
+                                        'minute' => $v['minute'],
+                                        'type' => 2,
+                                        'time' => self::getStringToTime($v['timetype'], $v['hour'], $v['minute']),
+                                        'action_type' => $v['maintype'],
+                                        'time_type' => $v['timetype'],
+                                        'user_id' => null,
+                                        'task_description' => null,
+                                        'updated_by' => $userId
+                                    ]);
+                                } else {
+                                    Trigger::create([
+                                        'status_id' => $v['status'],
+                                        'next_status_id' => $v['nextstatus'],
+                                        'sequence' => $k,
+                                        'hour' => $v['hour'] ?? null,
+                                        'minute' => $v['minute'] ?? null,
+                                        'type' => 2,
+                                        'time' => self::getStringToTime($v['timetype'], ($v['hour'] ?? null), ($v['minute'] ?? null)),
+                                        'action_type' => $v['maintype'],
+                                        'time_type' => $v['timetype'],
+                                        'task_description' => $v['desc'] ?? null,
+                                        'added_by' => $userId
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (is_array($toBeDeleted) && count($toBeDeleted) > 0) {
+                    $ids = [];
+                    foreach ($toBeDeleted as $status => $sequence) {
+                        $ids[] = Trigger::where('status_id', $status)->whereIn('sequence', $sequence)->select('id')->pluck('id')->toArray();
+                    }
+
+                    $ids = \Illuminate\Support\Arr::flatten($ids);
+                    $ids = Trigger::whereNotIn('id', $ids)->select('id')->pluck('id')->toArray();
+
+                    if (count($ids) > 0) {
+                        AddTaskToOrderTrigger::whereIn('trigger_id', $ids)->delete();
+                        ChangeOrderStatusTrigger::whereIn('trigger_id', $ids)->delete();
+
+                        Trigger::whereIn('id', $ids)->delete();
+                    }
+                }
+
                 DB::commit();
                 return redirect()->route('sales-order-status')->with('success', 'Sales order status updated successfully.');
-            }   
+            }
+
         } catch (\Exception $e) {
             Helper::logger($e->getMessage() . ' ' . $e->getLine());
             DB::rollBack();
@@ -110,6 +210,35 @@ class SalesOrderStatusController extends Controller
                 'orderOldStatus' => $oldStatus,
                 'windowId' => $request->windowId
             ]));
+            
+            foreach (Trigger::where('status_id', $request->status)->whereIn('action_type', [1, 3])->where('type', '1')->orderBy('sequence', 'ASC')->get() as $t) {
+                AddTaskToOrderTrigger::create([
+                    'order_id' => $request->order,
+                    'status_id' => $request->status,
+                    'added_by' => auth()->user()->id,
+                    'time' => $t->time,
+                    'type' => $t->time_type,
+                    'main_type' => 2,
+                    'description' => $t->task_description,
+                    'current_status_id' => $oldStatus,
+                    'trigger_id' => $t->id
+                ]);
+            }
+
+            foreach (Trigger::where('status_id', $request->status)->whereIn('action_type', [1, 3])->where('type', '2')->orderBy('sequence', 'ASC')->get() as $t) {
+                ChangeOrderStatusTrigger::create([
+                    'order_id' => $request->order,
+                    'status_id' => $t->next_status_id,
+                    'added_by' => auth()->user()->id,
+                    'time' => $t->time,
+                    'type' => $t->time_type,
+                    'current_status_id' => $request->status,
+                    'executed_at' => date('Y-m-d H:i:s', strtotime($t->time)),
+                    'trigger_id' => $t->id
+                ]);
+            }
+
+
 
             $tmp = AddTaskToOrderTrigger::where('executed', 0)->where('order_id', $request->order)->where('current_status_id', $oldStatus)->where('status_id', $request->status);
 
@@ -408,6 +537,37 @@ class SalesOrderStatusController extends Controller
         return response()->json(['data' => $possibleStatuses, 'view' => $view]);
     }
 
+    public static function getStringToTime($type, $hour, $minute) {
+        $additionalTime = '+0 seconds';
+
+        if ($type == '1') {
+            $additionalTime = '+0 seconds';
+        } else if ($type == '2') {
+            $additionalTime = '+5 minutes';
+        } else if ($type == '3') {
+            $additionalTime = '+10 minutes';
+        } else if ($type == '4') {
+            $additionalTime = '+24 hours';
+        } else if ($type == '5') {
+            if (!is_numeric($hour)) {
+                $hour = 1;
+            }
+            if ($hour > 720) {
+                $hour = 720;
+            }
+            if (!is_numeric($minute)) {
+                $minute = 0;
+            }
+            if ($minute > 60) {
+                $minute = 60;
+            }
+
+            $additionalTime = "+{$hour} hours +{$minute} minutes";
+        }
+
+        return $additionalTime;
+    }
+
     public function putOnCron(Request $request) {
         $orderId = $request->clid;
         $time = $request->cltime;
@@ -609,5 +769,13 @@ class SalesOrderStatusController extends Controller
         }
 
         return response()->json(['status' => true, 'message' => 'User changed successfully for this order.']);
+    }
+
+    public function getTriggerTasks(Request $request) {
+        if (Trigger::where('id', $request->id)->exists()) {
+            return response()->json(['status' => true, 'data' => Trigger::where('id', $request->id)->first()]);
+        }
+
+        return response()->json(['status' => false, 'message' => 'No trigger found.']);
     }
 }

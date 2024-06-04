@@ -11,6 +11,7 @@
                     <input type="hidden" id="manage-order-time-for-add-task" name="attime" value="1" />
                     <input type="hidden" id="manage-order-type-for-add-task" class="manage-order-type-for-add-task" name="attype" value="1" />
                     <input type="hidden" id="manage-order-status-for-add-task" class="manage-order-status-for-add-task" name="atstatus" />
+                    <input type="hidden" id="editing-add-task" value="0" />
                     <div class="row">
 
                         <div class="col-12">
@@ -28,7 +29,7 @@
                                 </button>
 
                                 <div class="status-dropdown-menu-inner">
-                                    <li class="f-14 selectable" data-mtype="1"> <button type="button" data-firstclass=".dropdown-menu-inner-sub" class="no-btn opt-1" data-selchild="1" data-left="18" data-top="38" data-parent="1"> Immediately </button> After moved to selected status </li>
+                                    <li class="f-14 selectable" data-mtype="1"> <button type="button" data-firstclass=".dropdown-menu-inner-sub" class="no-btn opt-1" data-selchild="1" data-left="18" data-top="38" data-parent="1"> Immediately </button> After moved to this status </li>
                                     <li class="f-14 selectable" data-mtype="2"> <button type="button" data-firstclass=".dropdown-menu-inner-sub" class="no-btn opt-2" data-selchild="1" data-left="18" data-top="67" data-parent="2"> Immediately </button> After created into this status </li>
                                     <li class="f-14 selectable" data-mtype="3"> <button type="button" data-firstclass=".dropdown-menu-inner-sub" class="no-btn opt-3" data-selchild="1" data-left="18" data-top="92" data-parent="3"> Immediately </button> After moved or created into this status </li>
                                 </div>
