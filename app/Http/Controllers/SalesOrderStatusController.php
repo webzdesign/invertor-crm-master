@@ -170,8 +170,8 @@ class SalesOrderStatusController extends Controller
                     $ids = Trigger::whereNotIn('id', $ids)->select('id')->pluck('id')->toArray();
 
                     if (count($ids) > 0) {
-                        AddTaskToOrderTrigger::whereIn('trigger_id', $ids)->delete();
-                        ChangeOrderStatusTrigger::whereIn('trigger_id', $ids)->delete();
+                        AddTaskToOrderTrigger::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
+                        ChangeOrderStatusTrigger::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
 
                         Trigger::whereIn('id', $ids)->delete();
                     }
