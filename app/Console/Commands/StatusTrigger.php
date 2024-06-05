@@ -3,10 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Models\ChangeOrderStatusTrigger;
-use App\Models\AddTaskToOrderTrigger;
 use Illuminate\Console\Command;
 use App\Models\SalesOrder;
-use App\Models\Trigger;
+use App\Helpers\Helper;
 
 class StatusTrigger extends Command
 {
@@ -27,54 +26,48 @@ class StatusTrigger extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle($triggers = null)
     {
-        foreach (ChangeOrderStatusTrigger::whereHas('trigger', function ($builder) {
+        $iterable = ChangeOrderStatusTrigger::whereHas('trigger', function ($builder) {
             $builder->where('id', '>', 0);
-        })->where('executed', false)->where('executed_at', '<=', date('Y-m-d H:i:s'))->get() as $order) {
+        })->where('executed', false)->where('executed_at', '<=', date('Y-m-d H:i:s'));
 
-            $thisOrder = ChangeOrderStatusTrigger::findOrFail($order->id);
-            $so = $salesOrder = SalesOrder::findOrFail($thisOrder->order_id ?? null);
+        if (!empty($triggers)) {
+            $iterable = $iterable->whereIn('id', $triggers);
+        }
 
-            if (isset($thisOrder->order_id)) {
-                event(new \App\Events\OrderStatusEvent('order-status-change', [
-                    'orderId' => $thisOrder->order_id,
-                    'orderStatus' => $thisOrder->status_id,
-                    'orderOldStatus' => $salesOrder->status,
-                    'windowId' => \Illuminate\Support\Str::random(30)
-                ]));
-            }
+        if ($iterable->count() > 0) {
+            foreach ($iterable->get() as $order) {
 
-            $salesOrder->status = $thisOrder->status_id;
-            $salesOrder->save();
-            $thisOrder->executed = true;
-            $thisOrder->save();
-
-            foreach (Trigger::where('status_id', $thisOrder->status_id)->where('type', '1')->orderBy('sequence', 'ASC')->get() as $t) {
-                AddTaskToOrderTrigger::create([
-                    'order_id' => $so->id,
-                    'status_id' => $thisOrder->status_id,
-                    'added_by' => 1,
-                    'time' => $t->time,
-                    'type' => $t->time_type,
-                    'main_type' => 2,
-                    'description' => $t->task_description,
-                    'current_status_id' => $so->status,
-                    'trigger_id' => $t->id
-                ]);
-            }
-
-            foreach (Trigger::where('status_id', $thisOrder->status_id)->where('type', '2')->orderBy('sequence', 'ASC')->get() as $t) {
-                ChangeOrderStatusTrigger::create([
-                    'order_id' => $so->id,
-                    'status_id' => $t->next_status_id,
-                    'added_by' => 1,
-                    'time' => $t->time,
-                    'type' => $t->time_type,
-                    'current_status_id' => $thisOrder->status_id,
-                    'executed_at' => date('Y-m-d H:i:s', strtotime($t->time)),
-                    'trigger_id' => $t->id
-                ]);
+                $thisOrder = ChangeOrderStatusTrigger::findOrFail($order->id);
+                $so = $salesOrder = SalesOrder::findOrFail($thisOrder->order_id ?? null);
+                $tempStatus = $thisOrder->status_id;
+    
+                if (isset($thisOrder->order_id)) {
+                    event(new \App\Events\OrderStatusEvent('order-status-change', [
+                        'orderId' => $thisOrder->order_id,
+                        'orderStatus' => $thisOrder->status_id,
+                        'orderOldStatus' => $salesOrder->status,
+                        'windowId' => \Illuminate\Support\Str::random(30)
+                    ]));
+                }
+    
+                $thisOrder->current_status_id = $salesOrder->status;
+                $thisOrder->executed = true;
+                $thisOrder->save();
+    
+                $salesOrder->status = $tempStatus;
+                $salesOrder->save();
+    
+    
+                Helper::fireTriggers(['status_id' => $tempStatus], [
+                   'id' => $so->id,
+                   'status' => $so->status
+                ], '1', [1, 3]);
+                Helper::fireTriggers(['status_id' => $tempStatus], [
+                    'id' => $so->id,
+                    'status' => $so->status
+                ], '2', [1, 3]);
             }
         }
     }

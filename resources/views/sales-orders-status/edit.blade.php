@@ -108,12 +108,13 @@
                                 </div>
                                 <div class="inp-groups">
                                     <input type="hidden" data-type="1" class="trigger-saver-input" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status]" value="{{ $status->id }}" />
-                                    <input type="hidden" data-type="1" class="trigger-saver-input-maintype" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][maintype]" value="{{ $trigger[$i]['type'] }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input-maintype" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][maintype]" value="{{ $trigger[$i]['action_type'] }}" />
                                     <input type="hidden" data-type="1" class="trigger-saver-input-timetype" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][timetype]" value="{{ $trigger[$i]['time_type'] }}" />
                                     <input type="hidden" data-type="1" class="trigger-saver-input-hour" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][hour]" value="{{ $trigger[$i]['hour'] }}" />
                                     <input type="hidden" data-type="1" class="trigger-saver-input-minute" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][minute]" value="{{ $trigger[$i]['minute'] }}" />
                                     <input type="hidden" data-type="1" class="trigger-saver-input-desc" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][desc]" value="{{ $trigger[$i]['task_description'] }}" />
                                     <input type="hidden" data-type="1" class="trigger-saver-input-sequence" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][sequence]" value="{{ $trigger[$i]['sequence'] }}" />
+                                    <input type="hidden" data-type="1" class="trigger-saver-input-edit_id" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][edit_id]" value="{{ $trigger[$i]['id'] }}" />
                                 </div>
                             </div>
                             @elseif($trigger[$i]['type'] == 2)
@@ -148,12 +149,13 @@
                                 </div>
                                 <div class="inp-groups">
                                     <input type="hidden" data-type="2" class="trigger-saver-input" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status]" value="{{ $status->id }}" />
-                                    <input type="hidden" data-type="2" class="trigger-saver-input-maintype" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][maintype]" value="{{ $trigger[$i]['type'] }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input-maintype" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][maintype]" value="{{ $trigger[$i]['action_type'] }}" />
                                     <input type="hidden" data-type="2" class="trigger-saver-input-timetype" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][timetype]" value="{{ $trigger[$i]['time_type'] }}" />
                                     <input type="hidden" data-type="2" class="trigger-saver-input-hour" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][hour]" value="{{ $trigger[$i]['hour'] }}" />
                                     <input type="hidden" data-type="2" class="trigger-saver-input-minute" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][minute]" value="{{ $trigger[$i]['minute'] }}" />
                                     <input type="hidden" data-type="2" class="trigger-saver-input-next-status" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][nextstatus]" value="{{ $trigger[$i]['next_status_id'] }}" />
                                     <input type="hidden" data-type="2" class="trigger-saver-input-sequence" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][sequence]" value="{{ $trigger[$i]['sequence'] }}" />
+                                    <input type="hidden" data-type="2" class="trigger-saver-input-edit_id" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][edit_id]" value="{{ $trigger[$i]['id'] }}" />
                                 </div>
                             </div>
                             @elseif($trigger[$i]['type'] == 3)
@@ -1212,7 +1214,6 @@
             connectWith: ".drag-area",
             handle: ".portlet-header",
             cancel: ".portlet-toggle",
-            helper: "clone",
             placeholder: "portlet-placeholder ui-corner-all",
             receive: function(event, ui) {
                 
@@ -1238,6 +1239,13 @@
                             prefix = 'userchange';
                         }
 
+                        let triggerBtn = `
+                        <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="${$(ui.item).attr('data-title')}"  data-sid="${$(ui.item).attr('data-sid')}">
+                            <i class="fa fa-plus-circle"></i> Add trigger
+                        </div>`;
+
+                        x($(ui.sender).html(triggerBtn))
+
                         $(ui.item).find('.trigger-saver-input').attr('name', `${prefix}[${thisStatus}][${index}][status]`);
                         $(ui.item).find('.trigger-saver-input').val(thisStatus);
 
@@ -1255,6 +1263,11 @@
                         
                         $(ui.item).find('.trigger-saver-input-sequence').attr('name', `${prefix}[${thisStatus}][${index}][sequence]`);
                         $(ui.item).find('.trigger-saver-input-sequence').val(index);
+
+                        if ($(ui.item).find('.trigger-saver-input-edit_id').length > 0) {
+                            $(ui.item).find('.trigger-saver-input-edit_id').attr('name', `${prefix}[${thisStatus}][${index}][edit_id]`);
+                            $(ui.item).find('.trigger-saver-input-edit_id').val($(ui.item).find('.trigger-saver-input-edit_id').val());
+                        }
 
                         if (taskType == '1') {
                             $(ui.item).find('.trigger-saver-input-desc').attr('name', `${prefix}[${thisStatus}][${index}][desc]`);

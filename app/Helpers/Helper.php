@@ -3,6 +3,8 @@
 namespace App\Helpers;
 
 
+use App\Models\ChangeOrderStatusTrigger;
+use App\Models\AddTaskToOrderTrigger;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Number;
 use App\Models\PurchaseOrder;
@@ -10,6 +12,7 @@ use App\Models\Distribution;
 use Illuminate\Http\Request;
 use App\Models\SalesOrder;
 use App\Models\Setting;
+use App\Models\Trigger;
 use App\Models\Product;
 use App\Models\Country;
 use App\Models\Wallet;
@@ -307,5 +310,59 @@ class Helper {
         $yiq = (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
 
         return ($yiq >= 128) ? '#000' : '#fff';
+    }
+
+    public static function fireTriggers($trigger, $salesOrder, $type, $action = [3]) {
+        if ($type == '1') { //task
+
+            foreach (Trigger::where('status_id', $trigger['status_id'])->where('action_type', $action)->where('type', '1')->orderBy('sequence', 'ASC')->get() as $t) {
+                AddTaskToOrderTrigger::create([
+                    'order_id' => $salesOrder['id'],
+                    'status_id' => $trigger['status_id'],
+                    'added_by' => isset(auth()->user()->id) ? auth()->user()->id : 1,
+                    'time' => $t->time,
+                    'type' => $t->time_type,
+                    'main_type' => 2,
+                    'description' => $t->task_description,
+                    'current_status_id' => $salesOrder['status'],
+                    'trigger_id' => $t->id
+                ]);
+            }
+
+        } else if ($type == '2') { //change order status
+
+            foreach (Trigger::where('status_id', $trigger['status_id'])->where('action_type', $action)->where('type', '2')->orderBy('sequence', 'ASC')->get() as $t) {
+                ChangeOrderStatusTrigger::create([
+                    'order_id' => $salesOrder['id'],
+                    'status_id' => $t->next_status_id,
+                    'added_by' => isset(auth()->user()->id) ? auth()->user()->id : 1,
+                    'time' => $t->time,
+                    'type' => $t->time_type,
+                    'current_status_id' => $trigger['status_id'],
+                    'executed_at' => date('Y-m-d H:i:s', strtotime($t->time)),
+                    'trigger_id' => $t->id
+                ]);
+            }
+
+        }
+
+        $changeOrderStatuses = ChangeOrderStatusTrigger::whereHas('trigger', function ($builder) {
+            $builder->where('id', '>', 0);
+        })->where('executed', 0)->where('executed_at', '<=', date('Y-m-d H:i:s'))
+        ->where('order_id', $salesOrder['id']);
+
+        if ($changeOrderStatuses->count() > 0) {
+            (new \App\Console\Commands\StatusTrigger())->handle($changeOrderStatuses->select('id')->pluck('id')->toArray());
+        }
+
+        $addTasks = AddTaskToOrderTrigger::whereHas('trigger', function ($builder) {
+            $builder->where('id', '>', 0);
+        })->where('executed', 0)->where('executed_at', '<=', date('Y-m-d H:i:s'))
+        ->where('order_id', $salesOrder['id']);
+
+
+        if ($addTasks->count() > 0) {
+            (new \App\Console\Commands\TaskTrigger())->handle($changeOrderStatuses->select('id')->pluck('id')->toArray());            
+        }
     }
 }

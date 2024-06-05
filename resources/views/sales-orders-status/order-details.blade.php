@@ -73,8 +73,6 @@
                 <p class="pb-1 f-12" style="margin-bottom:0px;">
                     <strong>{{ date('d-m-Y H:i:s', strtotime($o->created_at)) }}</strong> : To be triggered to
                     <span class="status-lbl f-12" style="background: {{ $o->mainstatus->color }};color:{{ Helper::generateTextColor($o->mainstatus->color) }};text-transform:uppercase;"> {{ $o->mainstatus->name }} </span>
-                    from
-                    <span class="status-lbl f-12" style="background: {{ $o->oldstatus->color ?? '#fff' }};color:{{ Helper::generateTextColor($o->oldstatus->color ?? '#fff') }};text-transform:uppercase;"> {{ $o->oldstatus->name ?? '-' }} </span>
                     @php
                         $time = str_replace('+', '', $o->time);
 
