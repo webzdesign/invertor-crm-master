@@ -34,13 +34,11 @@ class StatusTrigger extends Command
             $iterable = $iterable->whereIn('id', $triggers);
         }
 
-
         foreach ($iterable->get() as $order) {
 
             $thisOrder = ChangeOrderStatusTrigger::findOrFail($order->id);
             $salesOrder = SalesOrder::findOrFail($thisOrder->order_id ?? null);
-            $newStatus = $nstatus = $thisOrder->status_id;
-            $oldStatus = $salesOrder->status;
+            $newStatus = $thisOrder->status_id;
 
             if (isset($thisOrder->order_id)) {
                 Helper::logger("X Found change trigger for status:" . $newStatus );
@@ -53,51 +51,52 @@ class StatusTrigger extends Command
 
                 $thisOrder->executed = true;
                 $thisOrder->save();
-
-                $newStatus = Trigger::where('status_id', $newStatus)->where('type', 2)
-                ->whereIn('action_type', [1, 3])->first()->next_status_id ?? 0;
                 
                 $salesOrder->status = $newStatus;
                 $salesOrder->save();
 
-                Helper::logger("OLD : $thisOrder->status_id  AND NEW : $newStatus");
+                // Task
+            $currentTime1 = date('Y-m-d H:i:s');
+            $y = [];
 
+            try {
 
-                //Status Change
-                $newTrigger = Trigger::where('status_id', $newStatus)->where('type', 1)
-                ->whereIn('action_type', [1, 3])
-                ->get();
+                $triggers = Trigger::where('type', 1)->where('status_id', $newStatus)->whereIn('action_type', [1, 3])->where('time_type', 1);
+                if ($triggers->count() > 0) {
 
-                $x = [];
+                    foreach ($triggers->get() as $t) {
 
-                foreach ($newTrigger as $t) {
+                        $currentTime1 = date('Y-m-d H:i:s', strtotime("{$currentTime1} {$t->time}"));
+                        
+                        $record = AddTaskToOrderTrigger::create([
+                            'order_id' => $thisOrder->order_id,
+                            'status_id' => $newStatus,
+                            'added_by' => 1,
+                            'time' => $t->time,
+                            'type' => $t->time_type,
+                            'main_type' => 2,
+                            'description' => $t->task_description,
+                            'current_status_id' => $newStatus,
+                            'executed_at' => $currentTime1,
+                            'trigger_id' => $t->id
+                        ]);
 
-                    $record = AddTaskToOrderTrigger::create([
-                        'order_id' => $thisOrder->order_id,
-                        'status_id' => $nstatus,
-                        'added_by' => 1,
-                        'time' => $t->time,
-                        'type' => $t->time_type,
-                        'main_type' => 2,
-                        'description' => $t->task_description,
-                        'current_status_id' => $oldStatus,
-                        'executed_at' => date('Y-m-d H:i:s', strtotime($t->time)),
-                        'trigger_id' => $t->id
-                    ]);
-    
-                    if ($t->time_type == 1) {
-                        $x[] = $record->id;
+                        if ($t->time_type == 1) {
+                            $y[] = $record->id;
+                        }
                     }
                 }
 
-                if (!empty($x)) {
-                    Helper::logger("Found task trigger for status:" . $newStatus . ' ' . $nstatus);
-                    (new \App\Console\Commands\TaskTrigger())->handle($x);
-                }
-                // Status Change
+                (new \App\Console\Commands\TaskTrigger)->handle($y);
 
+            } catch (\Exception $e) {
+                Helper::logger($e->getMessage());
+            }
 
-                // Task
+            /** TASKS **/
+
+                Helper::logger("OLD : $thisOrder->status_id  AND NEW : $newStatus");
+
                 $newTrigger = Trigger::where('status_id', $newStatus)->where('type', 2)
                 ->whereIn('action_type', [1, 3])
                 ->get();
@@ -111,11 +110,11 @@ class StatusTrigger extends Command
 
                     $record = ChangeOrderStatusTrigger::create([
                         'order_id' => $thisOrder->order_id,
-                        'status_id' => $newStatus,
-                        'added_by' => auth()->user()->id,
+                        'status_id' => $t->next_status_id,
+                        'added_by' => 1,
                         'time' => $t->time,
                         'type' => $t->time_type,
-                        'current_status_id' => $nstatus,
+                        'current_status_id' => $t->status_id,
                         'executed_at' => date('Y-m-d H:i:s', strtotime($t->time)),
                         'trigger_id' => $t->id
                     ]);
@@ -129,7 +128,6 @@ class StatusTrigger extends Command
                     Helper::logger("Found change trigger for status:" . $newStatus );
                     $this->handle($y);
                 }
-                //  Task
 
             }
         }
