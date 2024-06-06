@@ -23,6 +23,8 @@ class StatusTrigger extends Command
 
     public function handle($triggers = []) {
 
+
+        
         $iterable = ChangeOrderStatusTrigger::whereHas('trigger', function ($builder) {
             $builder->where('id', '>', 0);
         })->where('executed', 0)->where('executed_at', '<=', date('Y-m-d H:i:s')); 
