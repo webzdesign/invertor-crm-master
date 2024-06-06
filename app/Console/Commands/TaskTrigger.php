@@ -2,7 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\{AddTaskToOrderTrigger, SalesOrder};
+use App\Models\{AddTaskToOrderTrigger, SalesOrder, Trigger};
+use App\Models\{ChangeOrderStatusTrigger};
 use Illuminate\Console\Command;
 
 class TaskTrigger extends Command
@@ -44,6 +45,7 @@ class TaskTrigger extends Command
 
                 $thisOrder->executed = true;
                 $thisOrder->save();
+
             }
         }
     }
