@@ -378,6 +378,11 @@
         });
 
         $(document).on('click', '.trigger-add-task', function () {
+
+            alert('Trigger edit functionality is in development');
+            return false;
+
+
             let thisTrigger = $(this).attr('data-triggerid');
             let thisTitle = $(this).attr('data-title');
             let thisstatus = $(this).parent().parent().attr('data-thisstatus');
