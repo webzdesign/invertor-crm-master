@@ -103,7 +103,7 @@
                                 @endif
                                 </div>
                                 <div class="text-start">
-                                    <span class="f-12"> <strong>Task:</strong> {{ Str::words(strip_tags($trigger[$i]['task_description']), 18, '...')  }} </span>
+                                    <span class="f-12"> <strong>Task:</strong> {{ Str::of(strip_tags($trigger[$i]['task_description']))->limit(18)  }} </span>
                                     {{-- <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> --}}
                                 </div>
                                 <div class="inp-groups">

@@ -259,7 +259,7 @@ class SalesOrderStatusController extends Controller
                 $statuses = SalesOrderStatus::where('sequence', '>', $seq)->orderBy('sequence', 'ASC')->get();
 
                 foreach ($statuses  as $status) {
-                    $triggers = Trigger::where('type', 2)->where('status_id', $status->id)->whereIn('action_type', [1, 3])->where('time_type', 1);
+                    $triggers = Trigger::where('type', 1)->where('status_id', $status->id)->whereIn('action_type', [1, 3])->where('time_type', 1);
                     if ($triggers->count() > 0) {
                         foreach ($triggers->get() as $t) {
 
