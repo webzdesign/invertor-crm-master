@@ -211,76 +211,86 @@ class SalesOrderStatusController extends Controller
             
             //tasks
 
+            $currentTime = date('Y-m-d H:i:s');
+            $x = [];
 
-            $tDatas = Trigger::where('status_id', $request->status)->whereIn('action_type', [1, 3])->where('type', '1')->orderBy('sequence', 'ASC');
-            if ($tDatas->count() > 0) {
-                foreach ($tDatas->get() as $t) {
-                    AddTaskToOrderTrigger::create([
-                        'order_id' => $request->order,
-                        'status_id' => $request->status,
-                        'added_by' => auth()->user()->id,
-                        'time' => $t->time,
-                        'type' => $t->time_type,
-                        'main_type' => 2,
-                        'description' => $t->task_description,
-                        'current_status_id' => $oldStatus,
-                        'trigger_id' => $t->id
-                    ]);
+            try {
+
+                $seq = SalesOrderStatus::where('id', $request->status)->first()->sequence;
+                $statuses = SalesOrderStatus::where('sequence', '>', $seq)->orderBy('sequence', 'ASC')->get();
+
+                foreach ($statuses  as $status) {
+                    $triggers = Trigger::where('type', 2)->where('status_id', $status->id)->whereIn('action_type', [1, 3]);
+                    if ($triggers->count() > 0) {
+                        foreach ($triggers->get() as $t) {
+
+                            $currentTime = date($currentTime, strtotime($t->time));
+
+                            $record = ChangeOrderStatusTrigger::create([
+                                'order_id' => $request->order,
+                                'status_id' => $status->id,
+                                'added_by' => auth()->user()->id,
+                                'time' => $t->time,
+                                'type' => $t->time_type,
+                                'current_status_id' => $oldStatus,
+                                'executed_at' => $currentTime,
+                                'trigger_id' => $t->id
+                            ]);
+
+                            if ($t->time_type == 1) {
+                                $x[] = $record->id;
+                            }
+                        }
+                    }
                 }
 
-                try {
-                    $immediatelyTasks = AddTaskToOrderTrigger::where('type', 1)->where('executed', 0)
-                    ->where('status_id', $request->status);
-                    $orderIds = $immediatelyTasks->clone()->select('id')->pluck('id')->toArray();
-                    if ($immediatelyTasks->exists()) {
-                        $immediatelyTasks->update(['executed_at' => date('Y-m-d H:i:s')]);
-                    }
-    
-                    $cron = AddTaskToOrderTrigger::whereIn('id', $orderIds);
-                    if ($cron->exists()) {
-                        (new \App\Console\Commands\TaskTrigger())->handle($cron->pluck('id')->toArray());
-                    }
-                } catch (\Exception $e) {
-                    Helper::logger($e->getMessage());
-                }
+                (new \App\Console\Commands\StatusTrigger)->handle($x);
+
+            } catch (\Exception $e) {
+                Helper::logger($e->getMessage());
             }
 
+            $currentTime1 = date('Y-m-d H:i:s');
+            $y = [];
 
-            // Change order status
+            try {
 
-            $tData2 = Trigger::where('status_id', $request->status)->whereIn('action_type', [1, 3])->where('type', '2')->orderBy('sequence', 'ASC');
+                $seq = SalesOrderStatus::where('id', $request->status)->first()->sequence;
+                $statuses = SalesOrderStatus::where('sequence', '>', $seq)->orderBy('sequence', 'ASC')->get();
 
-            if ($tData2->count() > 0) {
-                foreach ($tData2->get() as $t) {
-                    ChangeOrderStatusTrigger::create([
-                        'order_id' => $request->order,
-                        'status_id' => $t->next_status_id,
-                        'added_by' => auth()->user()->id,
-                        'time' => $t->time,
-                        'type' => $t->time_type,
-                        'current_status_id' => $request->status,
-                        'executed_at' => date('Y-m-d H:i:s'),
-                        'trigger_id' => $t->id
-                    ]);
+                foreach ($statuses  as $status) {
+                    $triggers = Trigger::where('type', 2)->where('status_id', $status->id)->whereIn('action_type', [1, 3])->where('time_type', 1);
+                    if ($triggers->count() > 0) {
+                        foreach ($triggers->get() as $t) {
+
+                            $currentTime1 = date($currentTime1, strtotime($t->time));
+
+                            $record = AddTaskToOrderTrigger::create([
+                                'order_id' => $request->order,
+                                'status_id' => $status->id,
+                                'added_by' => auth()->user()->id,
+                                'time' => $t->time,
+                                'type' => $t->time_type,
+                                'main_type' => 2,
+                                'description' => $t->task_description,
+                                'current_status_id' => $oldStatus,
+                                'executed_at' => $currentTime,
+                                'trigger_id' => $t->id
+                            ]);
+
+                            if ($t->time_type == 1) {
+                                $y[] = $record->id;
+                            }
+                        }
+                    }
                 }
 
-                try {
-                    $immediatelyStatus = ChangeOrderStatusTrigger::where('type', 1)->where('executed', 0)
-                    ->where('current_status_id', $request->status);
-                    $orderIds1 = $immediatelyStatus->clone()->select('id')->pluck('id')->toArray();
-    
-                    if ($immediatelyStatus->exists()) {
-                        $immediatelyStatus->update(['executed_at' => date('Y-m-d H:i:s')]);
-                    }
-    
-                    $cron = ChangeOrderStatusTrigger::whereIn('id', $orderIds1);
-                    if ($cron->exists()) {
-                        (new \App\Console\Commands\StatusTrigger())->handle($cron->pluck('id')->toArray());
-                    }
-                } catch (\Exception $e) {
-                    Helper::logger($e->getMessage());
-                }
+                (new \App\Console\Commands\TaskTrigger)->handle($y);
+
+            } catch (\Exception $e) {
+                Helper::logger($e->getMessage());
             }
+
 
             return response()->json(['status' => true]);
         }
