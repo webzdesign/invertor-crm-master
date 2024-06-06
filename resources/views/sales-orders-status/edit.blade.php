@@ -378,8 +378,6 @@
         });
 
         $(document).on('click', '.trigger-add-task', function () {
-            alert('Trigger edit functionality is in development');
-            return false;
             let thisTrigger = $(this).attr('data-triggerid');
             let thisTitle = $(this).attr('data-title');
             let thisstatus = $(this).parent().parent().attr('data-thisstatus');
@@ -396,7 +394,7 @@
                     action_type: $(this).attr('data-at-actiontype'),
                     type: $(this).attr('data-at-type')
                 };
-
+                
                 $('#editing-add-task').val('1');
                 $('#add-task').modal('show');
                 $('#add-task').find('#modal-title-add-task').text(thisTitle);
@@ -420,14 +418,14 @@
 
                 dropdownText += timeString;
 
-                if (dt.type == 1) {
+                if (dt.action_type == 1) {
                     dropdownText += ` After moved to this status`;
-                } else if (dt.type == 2) {
+                } else if (dt.action_type == 2) {
                     dropdownText += ` After created into this status`;
                 } else {
                     dropdownText += ` After moved or created into this status`;
                 }
-
+                
                 $('.status-dropdown-toggle-inner').find('span').text(dropdownText);
 
                 let selectedEle = $('.status-dropdown-menu-inner').find(`.no-btn:eq(${dt.action_type - 1})`);
@@ -692,30 +690,31 @@
                         $(editingBlock).find('.trigger-saver-input').val(formData.atstatus);
 
                         $(editingBlock).find('.trigger-saver-input-maintype').attr('name', `task[${formData.atstatus}][${index}][maintype]`);
-                        $(editingBlock).find('.trigger-saver-input-maintype').val($(editingBlock).find('.trigger-saver-input-maintype').val());
-
+                        $(editingBlock).find('.trigger-saver-input-maintype').val(formData.attype);
+                        
                         $(editingBlock).find('.trigger-saver-input-timetype').attr('name', `task[${formData.atstatus}][${index}][timetype]`);
-                        $(editingBlock).find('.trigger-saver-input-timetype').val($(editingBlock).find('.trigger-saver-input-timetype').val());
+                        $(editingBlock).find('.trigger-saver-input-timetype').val(formData.attime);
 
                         $(editingBlock).find('.trigger-saver-input-hour').attr('name', `task[${formData.atstatus}][${index}][hour]`);
-                        $(editingBlock).find('.trigger-saver-input-hour').val($(editingBlock).find('.trigger-saver-input-hour').val());
+                        $(editingBlock).find('.trigger-saver-input-hour').val(formData.add_task_hour);
 
                         $(editingBlock).find('.trigger-saver-input-minute').attr('name', `task[${formData.atstatus}][${index}][minute]`);
-                        $(editingBlock).find('.trigger-saver-input-minute').val($(editingBlock).find('.trigger-saver-input-minute').val());
+                        $(editingBlock).find('.trigger-saver-input-minute').val(formData.add_task_minute);
                         
                         $(editingBlock).find('.trigger-saver-input-sequence').attr('name', `task[${formData.atstatus}][${index}][sequence]`);
                         $(editingBlock).find('.trigger-saver-input-sequence').val(index);
 
                         $(editingBlock).find('.trigger-saver-input-desc').attr('name', `task[${formData.atstatus}][${index}][desc]`);
-                        $(editingBlock).find('.trigger-saver-input-desc').val($(editingBlock).find('.trigger-saver-input-desc').val());
+                        $(editingBlock).find('.trigger-saver-input-desc').val(formData.task_desc);
 
-                        $(editingBlock).html(getTriggerTypes(1, formData.attype, {
-                                description : formData.task_desc,
-                                time : formData.attime,
-                                hour : formData.add_task_hour,
-                                minute : formData.add_task_minute
-                            },
-                        $(editingBlock).find('.inp-groups').html()));
+                        $(editingBlock).attr('data-at-statusid', formData.atstatus);
+                        $(editingBlock).attr('data-at-taskdescription', formData.task_desc);
+                        $(editingBlock).attr('data-at-timetype', formData.attime);
+                        $(editingBlock).attr('data-at-hour', formData.add_task_hour);
+                        $(editingBlock).attr('data-at-minute', formData.add_task_minute);
+                        $(editingBlock).attr('data-at-actiontype', formData.attype);
+                        $(editingBlock).attr('data-at-type', formData.attype);
+                        
 
                         $('#add-task').modal('hide');
                         

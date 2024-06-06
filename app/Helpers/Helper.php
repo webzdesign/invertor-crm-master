@@ -314,36 +314,53 @@ class Helper {
 
     public static function fireTriggers($trigger, $salesOrder, $type, $action = [3]) {
         if ($type == '1') { //task
+            Helper::logger("Helper: ORDER STATUS FROM  : " . $salesOrder['status'] . " TO NEW STATUS " . $trigger['status_id'] . " CHANGING ");
+            foreach (Trigger::where('status_id', $trigger['status_id'])->whereIn('action_type', $action)->where('type', '1')->orderBy('sequence', 'ASC')->get() as $t) {
+                if (AddTaskToOrderTrigger::where('order_id', $salesOrder['id'])
+                    ->where('status_id', $trigger['status_id'])
+                    ->where('trigger_id', $t->id)
+                    ->where('executed', 0)
+                    ->doesntExist()
+                ) {
 
-            foreach (Trigger::where('status_id', $trigger['status_id'])->where('action_type', $action)->where('type', '1')->orderBy('sequence', 'ASC')->get() as $t) {
-                AddTaskToOrderTrigger::create([
-                    'order_id' => $salesOrder['id'],
-                    'status_id' => $trigger['status_id'],
-                    'added_by' => isset(auth()->user()->id) ? auth()->user()->id : 1,
-                    'time' => $t->time,
-                    'type' => $t->time_type,
-                    'main_type' => 2,
-                    'description' => $t->task_description,
-                    'current_status_id' => $salesOrder['status'],
-                    'trigger_id' => $t->id
-                ]);
+                    Helper::logger("Helper: ORDER STATUS FROM  : " . $salesOrder['status'] . " TO NEW STATUS " . $trigger['status_id'] . " CREATED ");
+
+                    AddTaskToOrderTrigger::create([
+                        'order_id' => $salesOrder['id'],
+                        'status_id' => $trigger['status_id'],
+                        'added_by' => isset(auth()->user()->id) ? auth()->user()->id : 1,
+                        'time' => $t->time,
+                        'type' => $t->time_type,
+                        'main_type' => 2,
+                        'description' => $t->task_description,
+                        'current_status_id' => $salesOrder['status'],
+                        'trigger_id' => $t->id
+                    ]);
+                } else {
+                    Helper::logger("Helper: NOT FOUND ORDER STATUS FROM  : " . $salesOrder['status'] . " TO NEW STATUS " . $trigger['status_id'] . " CHANGING ");
+                }
             }
-
         } else if ($type == '2') { //change order status
-
-            foreach (Trigger::where('status_id', $trigger['status_id'])->where('action_type', $action)->where('type', '2')->orderBy('sequence', 'ASC')->get() as $t) {
-                ChangeOrderStatusTrigger::create([
-                    'order_id' => $salesOrder['id'],
-                    'status_id' => $t->next_status_id,
-                    'added_by' => isset(auth()->user()->id) ? auth()->user()->id : 1,
-                    'time' => $t->time,
-                    'type' => $t->time_type,
-                    'current_status_id' => $trigger['status_id'],
-                    'executed_at' => date('Y-m-d H:i:s', strtotime($t->time)),
-                    'trigger_id' => $t->id
-                ]);
+            foreach (Trigger::where('status_id', $trigger['status_id'])->whereIn('action_type', $action)->where('type', '2')->orderBy('sequence', 'ASC')->get() as $t) {
+                if (ChangeOrderStatusTrigger::where('order_id', $salesOrder['id'])
+                ->where('status_id', $t->next_status_id)
+                ->where('trigger_id', $t->id)
+                ->where('executed', 0)
+                ->doesntExist()
+                ) {
+                    ChangeOrderStatusTrigger::create([
+                        'order_id' => $salesOrder['id'],
+                        'status_id' => $t->next_status_id,
+                        'added_by' => isset(auth()->user()->id) ? auth()->user()->id : 1,
+                        'time' => $t->time,
+                        'type' => $t->time_type,
+                        'current_status_id' => $trigger['status_id'],
+                        'executed_at' => date('Y-m-d H:i:s', strtotime($t->time)),
+                        'trigger_id' => $t->id
+                    ]);
+                }
+                // Helper::logger("Helper: " . $trigger['status_id'] . ' ' . $salesOrder['status'] . "\n");
             }
-
         }
 
         $changeOrderStatuses = ChangeOrderStatusTrigger::whereHas('trigger', function ($builder) {
@@ -362,7 +379,8 @@ class Helper {
 
 
         if ($addTasks->count() > 0) {
-            (new \App\Console\Commands\TaskTrigger())->handle($changeOrderStatuses->select('id')->pluck('id')->toArray());            
+            (new \App\Console\Commands\TaskTrigger())->handle($addTasks->select('id')->pluck('id')->toArray());
         }
+
     }
 }

@@ -40,7 +40,7 @@ class TaskTrigger extends Command
 
                 $thisOrder = AddTaskToOrderTrigger::findOrFail($order->id);
                 $salesOrder = SalesOrder::findOrFail($thisOrder->order_id ?? null);
-                $tempStatus = $thisOrder->status_id;
+                $newStatus = $thisOrder->status_id;
     
                 if (isset($thisOrder->order_id)) {
     
@@ -51,11 +51,11 @@ class TaskTrigger extends Command
                     $thisOrder->executed = true;
                     $thisOrder->save();
     
-                    Helper::fireTriggers(['status_id' => $tempStatus], [
+                    Helper::fireTriggers(['status_id' => $newStatus], [
                        'id' => $salesOrder->id,
                        'status' => $salesOrder->status
                     ], '1', [1, 3]);
-                    Helper::fireTriggers(['status_id' => $tempStatus], [
+                    Helper::fireTriggers(['status_id' => $newStatus], [
                         'id' => $salesOrder->id,
                         'status' => $salesOrder->status
                     ], '2', [1, 3]);

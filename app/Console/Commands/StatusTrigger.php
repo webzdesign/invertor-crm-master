@@ -30,7 +30,7 @@ class StatusTrigger extends Command
     {
         $iterable = ChangeOrderStatusTrigger::whereHas('trigger', function ($builder) {
             $builder->where('id', '>', 0);
-        })->where('executed', false)->where('executed_at', '<=', date('Y-m-d H:i:s'));
+        })->where('executed', 0)->where('executed_at', '<=', date('Y-m-d H:i:s'));
 
         if (!empty($triggers)) {
             $iterable = $iterable->whereIn('id', $triggers);
@@ -40,33 +40,40 @@ class StatusTrigger extends Command
             foreach ($iterable->get() as $order) {
 
                 $thisOrder = ChangeOrderStatusTrigger::findOrFail($order->id);
-                $so = $salesOrder = SalesOrder::findOrFail($thisOrder->order_id ?? null);
-                $tempStatus = $thisOrder->status_id;
+                $salesOrder = SalesOrder::findOrFail($thisOrder->order_id ?? null);
+                $newStatus = $thisOrder->status_id;
+
+                $so = [
+                    'id' => $salesOrder->id,
+                    'status' => $salesOrder->status
+                ];
     
                 if (isset($thisOrder->order_id)) {
                     event(new \App\Events\OrderStatusEvent('order-status-change', [
                         'orderId' => $thisOrder->order_id,
-                        'orderStatus' => $thisOrder->status_id,
+                        'orderStatus' => $newStatus,
                         'orderOldStatus' => $salesOrder->status,
                         'windowId' => \Illuminate\Support\Str::random(30)
                     ]));
                 }
     
-                $thisOrder->current_status_id = $salesOrder->status;
+                Helper::logger("Command: ORDER STATUS FROM  : " . $salesOrder->status . " TO NEW STATUS " . $newStatus . " CHANGED ");
+
+                $thisOrder->status_id = $salesOrder->status;
                 $thisOrder->executed = true;
                 $thisOrder->save();
     
-                $salesOrder->status = $tempStatus;
+                $salesOrder->status = $so['status'];
                 $salesOrder->save();
     
-    
-                Helper::fireTriggers(['status_id' => $tempStatus], [
-                   'id' => $so->id,
-                   'status' => $so->status
+                // Helper::logger("Command: {$newStatus} " . $so['status'] . "\n");
+                Helper::fireTriggers(['status_id' => $newStatus], [
+                   'id' => $so['id'],
+                   'status' => $so['status']
                 ], '1', [1, 3]);
-                Helper::fireTriggers(['status_id' => $tempStatus], [
-                    'id' => $so->id,
-                    'status' => $so->status
+                Helper::fireTriggers(['status_id' => $newStatus], [
+                    'id' => $so['id'],
+                    'status' => $so['status']
                 ], '2', [1, 3]);
             }
         }
