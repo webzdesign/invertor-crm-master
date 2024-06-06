@@ -61,7 +61,7 @@ class StatusTrigger extends Command
 
             try {
 
-                $triggers = Trigger::where('type', 1)->where('status_id', $newStatus)->whereIn('action_type', [1, 3])->where('time_type', 1);
+                $triggers = Trigger::where('type', 1)->where('status_id', $newStatus)->whereIn('action_type', [1, 3]);
                 if ($triggers->count() > 0) {
 
                     foreach ($triggers->get() as $t) {
