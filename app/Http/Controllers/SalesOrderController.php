@@ -438,57 +438,67 @@ class SalesOrderController extends Controller
                             'range' => $request->range
                         ]);
 
-                        /** Tasks **/
+                        $oldStatus = SalesOrder::where('id', $soId)->select('status')->first()->status;
+
+                        $newStatus = Trigger::where('status_id', 1)->where('type', 2)
+                        ->whereIn('action_type', [1, 3])->first()->next_status_id ?? 0;
+            
+                        /** TASKS **/
                         $currentTime1 = date('Y-m-d H:i:s');
                         $y = [];
             
-                        $statuses = SalesOrderStatus::where('sequence', '>', 0)->orderBy('sequence', 'ASC')->get();
-        
-                        foreach ($statuses  as $status) {
-                            $triggers = Trigger::where('type', 1)->where('status_id', $status->id)->whereIn('action_type', [1, 3])->where('time_type', 1);
+                        try {
+            
+                            $triggers = Trigger::where('type', 1)->where('status_id', 1)->whereIn('action_type', [1, 3]);
                             if ($triggers->count() > 0) {
+            
                                 foreach ($triggers->get() as $t) {
-        
-                                    $currentTime1 = date("Y-m-d H:i:s", strtotime("{$currentTime1} {$t->time}"));
-        
+            
+                                    $currentTime1 = date('Y-m-d H:i:s', strtotime("{$currentTime1} {$t->time}"));
+                                    
                                     $record = AddTaskToOrderTrigger::create([
                                         'order_id' => $soId,
-                                        'status_id' => $status->id,
+                                        'status_id' => 1,
                                         'added_by' => auth()->user()->id,
                                         'time' => $t->time,
                                         'type' => $t->time_type,
                                         'main_type' => 2,
                                         'description' => $t->task_description,
-                                        'current_status_id' => 1,
+                                        'current_status_id' => $oldStatus,
                                         'executed_at' => $currentTime1,
                                         'trigger_id' => $t->id
                                     ]);
-        
+            
                                     if ($t->time_type == 1) {
                                         $y[] = $record->id;
                                     }
                                 }
                             }
-                        }            
-                        (new \App\Console\Commands\TaskTrigger)->handle($y);
-                        /** Tasks **/
-
+            
+                            (new \App\Console\Commands\TaskTrigger)->handle($y);
+            
+                        } catch (\Exception $e) {
+                            Helper::logger($e->getMessage());
+                        }
+            
+                        /** TASKS **/
+            
+            
                         /** Change order status **/
                         $currentTime = date('Y-m-d H:i:s');
                         $x = [];
             
-                        $statuses = SalesOrderStatus::where('sequence', '>', 0)->orderBy('sequence', 'ASC')->get();
-        
-                        foreach ($statuses  as $status) {
-                            $triggers = Trigger::where('type', 2)->where('status_id', $status->id)->whereIn('action_type', [1, 3]);
+                        try {
+            
+                            $triggers = Trigger::where('type', 2)->where('status_id', 1)->whereIn('action_type', [1, 3]);
                             if ($triggers->count() > 0) {
                                 foreach ($triggers->get() as $t) {
-        
-                                    $currentTime = date("Y-m-d H:i:s", strtotime("{$currentTime} {$t->time}"));
-        
+            
+                                    $currentTime = date('Y-m-d H:i:s', strtotime("{$currentTime} {$t->time}"));
+            
                                     $record = ChangeOrderStatusTrigger::create([
                                         'order_id' => $soId,
-                                        'status_id' => $status->id,
+                                        'status_id' => $newStatus,
                                         'added_by' => auth()->user()->id,
                                         'time' => $t->time,
                                         'type' => $t->time_type,
@@ -496,14 +506,18 @@ class SalesOrderController extends Controller
                                         'executed_at' => $currentTime,
                                         'trigger_id' => $t->id
                                     ]);
-        
+                                    
                                     if ($t->time_type == 1) {
                                         $x[] = $record->id;
                                     }
                                 }
                             }
-                        }        
-                        (new \App\Console\Commands\StatusTrigger)->handle($x);
+            
+                            (new \App\Console\Commands\StatusTrigger)->handle($x);
+            
+                        } catch (\Exception $e) {
+                            Helper::logger($e->getMessage());
+                        }
                         /** Change order status **/
 
                         DB::commit();
