@@ -46,7 +46,7 @@
                     <span class="me-2">
                         @if($status->id != '1')
                         @permission("sales-order-status.delete")
-                        <i class="fa fa fa-trash"></i>
+                        <i class="fa fa fa-trash delete-main-status-card"></i>
                         @endpermission
                         @endif
                     </span>
@@ -253,7 +253,7 @@
     let appUrl = "{{ asset('') }}";
 
     @if(auth()->user()->hasPermission('sales-order-status.delete'))
-    deletePermission = '<span class="me-2"> <i class="fa fa fa-trash"></i></span>';
+    deletePermission = '<span class="me-2"> <i class="fa fa fa-trash delete-main-status-card"></i></span>';
     @endif
 
     @if(auth()->user()->hasPermission('sales-order-status.create'))
@@ -1844,7 +1844,7 @@
             $(this).parent().prev().focus();
         });
 
-        $(document).on('click', '.fa-trash', function () {
+        $(document).on('click', '.delete-main-status-card', function () {
             $(this).parent().parent().attr('style', 'display:none!important;');
             Swal.fire('', 'This functionality is in development.', 'info');            
         })
