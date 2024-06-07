@@ -157,7 +157,6 @@ class Helper {
         }
 
         $proNo += 1;
-        $prefix = date('-Y-');
         $proNo = sprintf('%03d', $proNo);
         $proNo = "{$proNo}";
 

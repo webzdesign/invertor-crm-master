@@ -162,16 +162,24 @@ class SalesOrderStatusController extends Controller
                     }
                 }
 
-                if (is_array($toNotBeDeleted) && count($toNotBeDeleted) > 0) {
+                if (is_array($toNotBeDeleted)) {
 
-                    $ids = Trigger::whereNotIn('id', $toNotBeDeleted)->select('id')->pluck('id')->toArray();
-                    $ids = Trigger::whereIn('id', $ids)->select('id')->pluck('id')->toArray();
+                    if (count($toNotBeDeleted) > 0) {
+                        $ids = Trigger::whereNotIn('id', $toNotBeDeleted)->select('id')->pluck('id')->toArray();
+                        $ids = Trigger::whereIn('id', $ids)->select('id')->pluck('id')->toArray();
+    
+                        if (count($ids) > 0) {
+                            AddTaskToOrderTrigger::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
+                            ChangeOrderStatusTrigger::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
+    
+                            Trigger::whereIn('id', $ids)->delete();
+                        }
+                    } else if (empty($toNotBeDeleted)) {
+                            $ids = Trigger::select('id')->pluck('id')->toArray();
+                            AddTaskToOrderTrigger::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
+                            ChangeOrderStatusTrigger::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
 
-                    if (count($ids) > 0) {
-                        AddTaskToOrderTrigger::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
-                        ChangeOrderStatusTrigger::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
-
-                        Trigger::whereIn('id', $ids)->delete();
+                            Trigger::whereIn('id', $ids)->delete();
                     }
                 }
 
