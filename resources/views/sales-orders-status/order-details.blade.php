@@ -71,7 +71,10 @@
         @forelse($order->tstatus as $key => $o)
             <div class="activity py-1 actvt @if(in_array($loop->iteration, [1,2,3])) show-first @else d-none @endif">
                 <p class="pb-1 f-12" style="margin-bottom:0px;">
-                    <strong>{{ date('d-m-Y H:i:s', strtotime($o->created_at)) }}</strong> : To be triggered to
+                    <strong>{{ date('d-m-Y H:i:s', strtotime($o->created_at)) }}</strong> :
+                    from
+                    <span class="status-lbl f-12" style="background: {{ $o->oldstatus->color }};color:{{ Helper::generateTextColor($o->oldstatus->color) }};text-transform:uppercase;"> {{ $o->oldstatus->name }} </span>
+                    to be triggered to
                     <span class="status-lbl f-12" style="background: {{ $o->mainstatus->color }};color:{{ Helper::generateTextColor($o->mainstatus->color) }};text-transform:uppercase;"> {{ $o->mainstatus->name }} </span>
                     @php
                         $time = str_replace('+', '', $o->time);

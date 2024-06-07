@@ -1,5 +1,5 @@
 <div class="modal fade" id="add-task" tabindex="-1" aria-labelledby="exampleModalLabelA" aria-hidden="true">
-    <div class="modal-dialog modal-xs modal-dialog-centered" style="width: 400px;">
+    <div class="modal-dialog modal-xs modal-dialog-centered m-auto" style="max-width: 400px;">
         <div class="modal-content">
             <form action="{{ route('put-task-for-order') }}" method="POST" id="addToTask"> @csrf
                 <div class="modal-header no-border modal-padding">
@@ -67,9 +67,14 @@
 
                     </div>
                 </div>
-                <div class="modal-footer no-border hideable-add-task">
-                    <button type="button" class="btn-default f-500 f-14" data-bs-dismiss="modal"> Cancel </button>
-                    <button type="submit" class="btn-primary f-500 f-14"> Done </button>
+                <div class="modal-footer no-border">
+                    <div class="me-auto">
+                        <button class="btn-default f-500 f-14" id="delete-btn-add-task"> <i class="fa fa-trash"></i> </button>
+                    </div>
+                    <div class="hideable-add-task">
+                        <button type="button" class="btn-default f-500 f-14" data-bs-dismiss="modal"> Cancel </button>
+                        <button type="submit" class="btn-primary f-500 f-14"> Done </button>
+                    </div>
                 </div>
             </form>
         </div>

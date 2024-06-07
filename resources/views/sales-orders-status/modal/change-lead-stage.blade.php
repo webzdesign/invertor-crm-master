@@ -9,6 +9,7 @@
                 <div class="modal-body">
                     <input type="hidden" id="manage-status-id-for-change-lead-stage" name="clid" />
                     <input type="hidden" id="choosenColor" name="choosenColor" />
+                    <input type="hidden" id="choosenStatusText" name="choosenStatusText" />
                     <input type="hidden" id="manage-order-time-for-change-lead-stage" name="cltime"
                         value="1" />
                     <input type="hidden" id="manage-order-type-for-change-lead-stage" name="cltype"
@@ -78,9 +79,14 @@
 
                     </div>
                 </div>
-                <div class="modal-footer no-border hideable-change-stage">
-                    <button type="button" class="btn-default f-500 f-14" data-bs-dismiss="modal"> Cancel </button>
-                    <button type="submit" class="btn-primary f-500 f-14"> Done </button>
+                <div class="modal-footer no-border">
+                    <div class="me-auto">
+                        <button class="btn-default f-500 f-14" id="delete-btn-change-status"> <i class="fa fa-trash"></i> </button>
+                    </div>
+                    <div class="hideable-change-stage">
+                        <button type="button" class="btn-default f-500 f-14" data-bs-dismiss="modal"> Cancel </button>
+                        <button type="submit" class="btn-primary f-500 f-14"> Done </button>
+                    </div>
                 </div>
             </form>
         </div>

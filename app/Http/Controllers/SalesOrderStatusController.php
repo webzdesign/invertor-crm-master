@@ -535,6 +535,13 @@ class SalesOrderStatusController extends Controller
             ->where('possible_status', '!=', '')
             ->first()->ps ?? [];
 
+            if (!empty($request->trigger)) {
+                $thisSts = Trigger::where('id', $request->trigger)->first()->next_status_id ?? null;
+                if (!is_null($thisSts)) {
+                    array_push($possibleStatuses, $thisSts);
+                }
+            }
+
             $statuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name', 'color')->get();
             $possibleStatuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name')->pluck('name', 'id')->toArray();
             $cs = $thisStatus->first()->name ?? '';

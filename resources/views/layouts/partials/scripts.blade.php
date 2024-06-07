@@ -283,11 +283,25 @@
     }
 
     function isNumeric(arg) {
-        if (typeof arg !== 'undefined' && arg !== '' && arg !== null && !isNaN(arg)) {
-            return true;
+        try {
+            if (typeof arg !== 'undefined' && arg !== '' && arg !== null && !isNaN(arg)) {
+                return true;
+            }
+            return false;
+        } catch (err) {
+            return false;
         }
+    }
 
-        return false;
+    function isNotEmpty(arg) {
+        try {
+            if (typeof arg !== 'undefined' && typeof arg == 'string' && arg !== '' && arg !== null) {
+                return true;
+            }
+            return false;
+        } catch (err) {
+            return false;
+        }
     }
 
 </script>

@@ -18,7 +18,7 @@
     width: 300px;
     margin: 0 !important;
     min-width: 270px;
-    height: calc(100vh - 180px);
+    height: calc(100vh - 200px);
     border-radius: 0;
     border-right: 0;
 }
@@ -337,5 +337,15 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 }
 .parent-card:first-child .cardDrag{
     border-left: 1px solid #dbdbdb !important;
+}
+
+#delete-btn-change-status, #delete-btn-add-task {
+    min-width: 45px;
+    background: #dd2d20!important;
+    border: none!important;
+}
+    
+#delete-btn-change-status > i, #delete-btn-add-task > i {
+    color: white!important;
 }
 /* other css */

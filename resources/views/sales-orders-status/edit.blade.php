@@ -70,18 +70,20 @@
                             data-at-statusid="{{ $trigger[$i]['status_id'] }}"
                             data-at-taskdescription="{{ $trigger[$i]['task_description'] }}"
                             data-at-timetype="{{ $trigger[$i]['time_type'] }}"
-                            data-at-hour="{{ $trigger[$i]['hour'] }}"
-                            data-at-minute="{{ $trigger[$i]['minute'] }}"
+                            data-at-hour="{{ $trigger[$i]['hour'] < 100 ? sprintf('%02d', $trigger[$i]['hour']) : sprintf('%03d', $trigger[$i]['hour']) }}"
+                            data-at-minute="{{ sprintf('%02d', $trigger[$i]['minute']) }}"
                             data-at-actiontype="{{ $trigger[$i]['action_type'] }}"
                             data-at-type="{{ $trigger[$i]['type'] }}"
-                        @else
+                        @elseif($trigger[$i]['type'] == 2)
                             data-cs-statusid="{{ $trigger[$i]['status_id'] }}"
                             data-cs-nextstatusid="{{ $trigger[$i]['next_status_id'] }}"
                             data-cs-timetype="{{ $trigger[$i]['time_type'] }}"
-                            data-cs-hour="{{ $trigger[$i]['hour'] }}"
-                            data-cs-minute="{{ $trigger[$i]['minute'] }}"
+                            data-cs-hour="{{ $trigger[$i]['hour'] < 100 ? sprintf('%02d', $trigger[$i]['hour']) : sprintf('%03d', $trigger[$i]['hour']) }}"
+                            data-cs-minute="{{ sprintf('%02d', $trigger[$i]['minute']) }}"
                             data-cs-actiontype="{{ $trigger[$i]['action_type'] }}"
                             data-cs-type="{{ $trigger[$i]['type'] }}"
+                            data-cs-status-bg="{{ $trigger[$i]['nextstatus']['color'] }}"
+                            data-cs-status-text="{{ strtoupper($trigger[$i]['nextstatus']['name']) }}"
                         @endif
                         >
                         <div class="d-flex flex-row portlet-header">
@@ -111,7 +113,7 @@
                                 @endif
                                 </div>
                                 <div class="text-start">
-                                    <span class="f-12"> <strong>Task:</strong> <span class="trigger-box-label-task-description"> {{ Str::of(strip_tags($trigger[$i]['task_description']))->limit(18)  }} </span> </span>
+                                    <span class="f-12 d-flex align-items-center"> <strong>Task:</strong> <span class="ms-1 trigger-box-label-task-description" title="{{ $trigger[$i]['task_description'] }}"> {{( Str::of(strip_tags($trigger[$i]['task_description']))->limit(18) )}} </span> </span>
                                     {{-- <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> --}}
                                 </div>
                                 <div class="inp-groups">
@@ -280,6 +282,8 @@
 
             if (isNumeric(thisStatus)) {
                 $('#trigger-options-modal').modal('show');
+                $('#delete-btn-add-task').hide();
+                $('#delete-btn-change-status').hide();
                 $('#performing-status').val(thisStatus);
                 performingStatusTitle = modalTitle.toUpperCase();
             }
@@ -464,8 +468,8 @@
         });
 
         $(document).on('click', '.trigger-change-order-status', function () {
-            return false;
 
+            let thisTrigger = $(this).attr('data-triggerid');
             let thisTitle = $(this).attr('data-title');
             let thisstatus = $(this).parent().parent().attr('data-thisstatus');
             editingBlock = this;   
@@ -480,14 +484,103 @@
                 type: $(this).attr('data-cs-type')
             };
 
-            $('#editing-change-lead-status').val('1');
-            $('#lead-stage').modal('show');
-            $('#lead-stage').find('#modal-title-lead-stage').text(thisTitle);
-            $('#manage-status-id-for-change-lead-stage').val(dt.status_id);
-            $('#manage-order-status-for-change-lead-stage').val(dt.next_status_id);
+            $.ajax({
+                url: "{{ route('sales-order-next-status') }}",
+                type: 'POST',
+                data: {
+                    id: thisstatus,
+                    trigger: thisTrigger
+                },
+                beforeSend: function() {
+                    $('body').find('.LoaderSec').removeClass('d-none');
+                },
+                success: function(response) {
+                    /** Show Update Modal **/
+                    $('#editing-change-lead-status').val('1');
+                    $('#lead-stage').modal('show');
+                    $('#lead-stage').find('#modal-title-lead-stage').text(thisTitle);
+                    $('#manage-status-id-for-change-lead-stage').val(dt.status_id);
+                    $('#manage-order-status-for-change-lead-stage').val(dt.next_status_id);
 
-            $(".status-dropdown-inner-2 .status-dropdown-menu-inner-2").hide();
-            $(".status-dropdown-for-cs .status-dropdown-menu-for-cs").hide();
+                    let dropdownText = 'Execute: ';
+                    let timeString = `Immediately`;
+
+                    if (dt.time_type == 1) {
+                        timeString = `Immediately`;
+                    } else if (dt.time_type == 2) {
+                        timeString = `5 minutes`;
+                    } else if (dt.time_type == 3) {
+                        timeString = `10 minutes`;
+                    } else if (dt.time_type == 4) {
+                        timeString = `one day`;
+                    } else if (dt.time_type == 5) {
+                        timeString = `Before delay ${dt.hour} hour ${dt.minute} minute`;
+                    }
+
+                    dropdownText += timeString;
+
+                    if (dt.action_type == 1) {
+                        dropdownText += ` After moved to this status`;
+                    } else if (dt.action_type == 2) {
+                        dropdownText += ` After created in this status`;
+                    } else {
+                        dropdownText += ` After moved or created in this status`;
+                    }
+
+                    $('.status-dropdown-toggle-inner-2').find('span').text(dropdownText);
+
+                    let selectedEle = $('.status-dropdown-menu-inner-2').find(`.no-btn:eq(${dt.action_type - 1})`);
+
+                    if ($(selectedEle).length > 0) {
+                        $(selectedEle).attr('data-selchild', dt.time_type);
+                        $(selectedEle).text(timeString);
+                        $(selectedEle).parent().css('background-color', selectedColorBg);
+
+                        $('.dropdown-menu-inner-2-sub').attr('data-parenttype', dt.action_type);
+
+                        let selectedInnerEle = $('.status-dropdown-menu-inner-2-ul').find(`li:eq(${dt.time_type - 1})`);
+
+                        if ($(selectedInnerEle).length > 0) {
+                            $(selectedInnerEle).css('background-color', selectedColorBg);
+
+                            if (dt.time_type == 5) {
+                                $('#change-stage-hour').val(dt.hour);
+                                $('#change-stage-minute').val(dt.minute);
+                            }
+                        }
+                    }
+
+                    if (Object.values(response.data).length < 1) {
+                        $('.hideable-change-stage').hide();
+                    }
+
+                    $('#stage-container').html(response.view);
+
+                    $('#manage-order-status-for-change-lead-stage').val(isNumeric($(editingBlock).attr('data-cs-nextstatusid')) ? $(editingBlock).attr('data-cs-nextstatusid') : (isNotEmpty(response.addedData.status) ? response.addedData.status : ''));
+                    $('#manage-order-time-for-change-lead-stage').val(isNumeric($(editingBlock).attr('data-cs-type')) ? $(editingBlock).attr('data-cs-type') : (isNotEmpty(response.addedData.type) ? response.addedData.type : ''));
+
+                    $('.status-dropdown-toggle-for-cs').text(isNotEmpty($(editingBlock).attr('data-cs-status-text')) ? $(editingBlock).attr('data-cs-status-text') : (isNotEmpty(response?.addedData?.status_text) ? response.addedData.status_text : ''));
+                    $('.status-dropdown-toggle-for-cs').css('background', isNotEmpty($(editingBlock).attr('data-cs-status-bg')) ? $(editingBlock).attr('data-cs-status-bg') : (isNotEmpty(response?.addedData?.status_color) ? response.addedData.status_color : ''));
+                    $('.status-dropdown-toggle-for-cs').css('color', isNotEmpty($(editingBlock).attr('data-cs-status-bg')) ? generateTextColor($(editingBlock).attr('data-cs-status-bg')) : (isNotEmpty(response?.addedData?.status_color) ? generateTextColor(response.addedData.status_color) : '') );
+
+                    if (isNumeric($(editingBlock).attr('data-cs-type'))) {
+                        if ($(editingBlock).attr('data-cs-type') == 5) {
+                            $('#change-stage-hour').val($(editingBlock).attr('data-cs-hour'));
+                            $('#change-stage-minute').val($(editingBlock).attr('data-cs-minute'));
+                            $('.status-dropdown-toggle-2').text(`${$(editingBlock).attr('data-cs-hour')} hours ${$(editingBlock).attr('data-cs-minute')} minutes  ${getTypes($(editingBlock).attr('data-cs-type'))}`);
+                        } else {
+                            $('.status-dropdown-toggle-2').text(getTypes($(editingBlock).attr('data-cs-type')));
+                        }                            
+                    }
+
+                    /** Show Update Modal **/
+                },
+                complete: function() {
+                    $('body').find('.LoaderSec').addClass('d-none');
+                    $(".status-dropdown-inner-2 .status-dropdown-menu-inner-2").hide();
+                    $(".status-dropdown-for-cs .status-dropdown-menu-for-cs").hide();
+                }
+            });
         });
 
         $(document).on('click', function(event) {
@@ -649,7 +742,10 @@
                 $('#at-type-error').text('');
                 $('#at-status-error').text('');
                 $('#editing-add-task').val('0');
+                $('#task-desc-error').remove();
+                $('#delete-btn-add-task').show();
 
+                editingBlock = null;
             }
         });
 
@@ -770,6 +866,7 @@
                         dropdownText += timeString;
                         
                         $(editingBlock).find('.trigger-box-label-task-description').html(formData.task_desc.substring(0, 18) + '...');
+                        $(editingBlock).find('.trigger-box-label-task-description').attr('title', formData.task_desc);
                         $(editingBlock).find('.trigger-box-label-timetype').html(dropdownText);
 
                         $('#add-task').modal('hide');
@@ -902,6 +999,8 @@
                 $('.selectable-inner-p-2').css('background', '#fff');
                 $('.selectable-inner-p-2').css('color', '#000');
                 $('#editing-change-lead-status').val('0');
+                $('#delete-btn-change-status').show();
+
                 editingBlock = null;
 
             }
@@ -1079,6 +1178,10 @@
             dropdownToggle.css("color", generateTextColor(bgColor));
 
             $('#choosenColor').val(thisColor);
+            $('#choosenStatusText').val(text);
+
+            $(editingBlock).attr('data-cs-status-bg', thisColor);
+            $(editingBlock).attr('data-cs-status-text', text);
 
             if ($(this).hasClass('selectable-for-cs')) {
                 $('#manage-order-status-for-change-lead-stage').val(thisSid);
@@ -1091,6 +1194,37 @@
             }
 
         });
+
+        $(document).on('click', '#delete-btn-change-status', function (event) {
+            if ($(editingBlock).length > 0) {
+                let thisStatus = $(editingBlock).attr('data-sid');
+                let thisTitle = $(editingBlock).attr('data-title');
+
+                let triggerBtn = `
+                <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="${thisTitle}"  data-sid="${thisStatus}">
+                    <i class="fa fa-plus-circle"></i> Add trigger
+                </div>`;
+
+                $(editingBlock).parent().html(triggerBtn);
+                $('#lead-stage').modal('hide');
+            }
+        });
+
+        $(document).on('click', '#delete-btn-add-task', function (event) {
+            if ($(editingBlock).length > 0) {
+                let thisStatus = $(editingBlock).attr('data-sid');
+                let thisTitle = $(editingBlock).attr('data-title');
+
+                let triggerBtn = `
+                <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="${thisTitle}"  data-sid="${thisStatus}">
+                    <i class="fa fa-plus-circle"></i> Add trigger
+                </div>`;
+
+                $(editingBlock).parent().html(triggerBtn);
+                $('#add-task').modal('hide');
+            }
+        });
+
 
         $('#putOnCron').validate({
             rules: {
@@ -1142,7 +1276,6 @@
                     $('#change-stage-hour').css('border-color', '#000');
                     $('#change-stage-minute').css('border-color', '#000');
                 }
-
             },
             submitHandler: function(form, event) {
                 event.preventDefault();
@@ -1155,43 +1288,113 @@
                         formData[element.name] = element.value;
                     });
 
+                    if ($('#editing-change-lead-status').val() == '1') {
+                        let index = $(editingBlock).parent().index();
 
-                    if ($(triggerBlock).length > 0 && $(triggerBlock).parent().parent().parent().hasAttr('data-mainstatus')) {
-                        let input = `<div class="inp-groups" > <input type="hidden" class="trigger-saver-input" data-type="2" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][status]" value="${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}" />
-                            <input type="hidden" data-type="2" class="trigger-saver-input-maintype" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][maintype]" value="${formData.cltype}" />
-                            <input type="hidden" data-type="2" class="trigger-saver-input-timetype" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][timetype]" value="${formData.cltime}" />
-                            <input type="hidden" data-type="2" class="trigger-saver-input-hour" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][hour]" value="${formData.change_stage_hour}" />
-                            <input type="hidden" data-type="2" class="trigger-saver-input-minute" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][minute]" value="${formData.change_stage_minute}" />
-                            <input type="hidden" data-type="2" class="trigger-saver-input-next-status" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][nextstatus]" value="${formData.clstatus}" />
-                            <input type="hidden" data-type="2" class="trigger-saver-input-sequence" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][sequence]" value="${$(triggerBlock).parent().index()}" />
-                            </div> `;
+                        $(editingBlock).find('.trigger-saver-input').attr('name', `statuschange[${formData.clid}][${index}][status]`);
+                        $(editingBlock).find('.trigger-saver-input').val(formData.clid);
 
-                        let statusName = 'status';
-                        let statusColor = '#000';
+                        $(editingBlock).find('.trigger-saver-input-maintype').attr('name', `statuschange[${formData.clid}][${index}][maintype]`);
+                        $(editingBlock).find('.trigger-saver-input-maintype').val(formData.cltype);
+                        
+                        $(editingBlock).find('.trigger-saver-input-timetype').attr('name', `statuschange[${formData.clid}][${index}][timetype]`);
+                        $(editingBlock).find('.trigger-saver-input-timetype').val(formData.cltime);
 
-                        if (allStatusesObj.length > 0) {
-                            allStatusesObj.forEach(element => {
-                                if (element.id == formData.clstatus) {
-                                    statusName = element.name;
-                                    statusColor = element.color;
-                                }                                
-                            });
+                        $(editingBlock).find('.trigger-saver-input-hour').attr('name', `statuschange[${formData.clid}][${index}][hour]`);
+                        $(editingBlock).find('.trigger-saver-input-hour').val(formData.change_stage_hour);
+
+                        $(editingBlock).find('.trigger-saver-input-minute').attr('name', `statuschange[${formData.clid}][${index}][minute]`);
+                        $(editingBlock).find('.trigger-saver-input-minute').val(formData.change_stage_minute);
+                        
+                        $(editingBlock).find('.trigger-saver-input-sequence').attr('name', `statuschange[${formData.clid}][${index}][sequence]`);
+                        $(editingBlock).find('.trigger-saver-input-sequence').val(index);
+
+                        $(editingBlock).find('.trigger-saver-input-next-status').attr('name', `statuschange[${formData.clid}][${index}][nextstatus]`);
+                        $(editingBlock).find('.trigger-saver-input-next-status').val(formData.clstatus);
+
+                        $(editingBlock).attr('data-cs-statusid', formData.clid);
+                        $(editingBlock).attr('data-cs-nextstatusid', formData.clstatus);
+                        $(editingBlock).attr('data-cs-timetype', formData.cltime);
+                        $(editingBlock).attr('data-cs-hour', formData.change_stage_hour);
+                        $(editingBlock).attr('data-cs-minute', formData.change_stage_minute);
+                        $(editingBlock).attr('data-cs-actiontype', formData.cltype);
+                        
+                        let timeString = ``;
+                        let dropdownText = '';
+
+                        if (formData.cltime == 2) {
+                            timeString = ` after 5 minutes`;
+                        } else if (formData.cltime == 3) {
+                            timeString = ` after 10 minutes`;
+                        } else if (formData.cltime == 4) {
+                            timeString = ` after one day`;
+                        } else if (formData.cltime == 5) {
+                            timeString = ` after delay ${formData.change_stage_hour} hour ${formData.change_stage_minute} minute`;
                         }
 
-                        $(triggerBlock).removeClass('opener');
-                        $(triggerBlock).addClass('trigger-change-order-status');
-                        $(triggerBlock).addClass('bg-light-grey');
-                        $(triggerBlock).html(getTriggerTypes(2, formData.cltype, {
-                            bg: statusColor,
-                            color : generateTextColor(statusColor),
-                            status : statusName,
-                            time : formData.cltime,
-                            hour : formData.change_stage_hour,
-                            minute : formData.change_stage_minute
-                        },
-                        input));
+                        if (formData.cltype == 1) {
+                            dropdownText += ` After moved to this status`;
+                        } else if (formData.cltype == 2) {
+                            dropdownText += ` After created in this status`;
+                        } else {
+                            dropdownText += ` After moved or created in this status`;
+                        }
+
+                        dropdownText += timeString;
+                        
+                        $(editingBlock).find('.trigger-box-label-task-ns').text($(editingBlock).attr('data-cs-status-text'));
+                        $(editingBlock).find('.trigger-box-label-task-ns').css('background', $(editingBlock).attr('data-cs-status-bg'));
+                        $(editingBlock).find('.trigger-box-label-task-ns').css('color', generateTextColor($(editingBlock).attr('data-cs-status-bg')));
+                        $(editingBlock).find('.trigger-box-label-timetype').html(dropdownText);
 
                         $('#lead-stage').modal('hide');
+
+                    } else {
+                        if ($(triggerBlock).length > 0 && $(triggerBlock).parent().parent().parent().hasAttr('data-mainstatus')) {
+                            let input = `<div class="inp-groups" > <input type="hidden" class="trigger-saver-input" data-type="2" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][status]" value="${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}" />
+                                <input type="hidden" data-type="2" class="trigger-saver-input-maintype" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][maintype]" value="${formData.cltype}" />
+                                <input type="hidden" data-type="2" class="trigger-saver-input-timetype" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][timetype]" value="${formData.cltime}" />
+                                <input type="hidden" data-type="2" class="trigger-saver-input-hour" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][hour]" value="${formData.change_stage_hour}" />
+                                <input type="hidden" data-type="2" class="trigger-saver-input-minute" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][minute]" value="${formData.change_stage_minute}" />
+                                <input type="hidden" data-type="2" class="trigger-saver-input-next-status" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][nextstatus]" value="${formData.clstatus}" />
+                                <input type="hidden" data-type="2" class="trigger-saver-input-sequence" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][sequence]" value="${$(triggerBlock).parent().index()}" />
+                                </div> `;
+
+                            $(triggerBlock).attr('data-cs-statusid', formData.clstatus);
+                            $(triggerBlock).attr('data-cs-nextstatusid', formData.clstatus);
+                            $(triggerBlock).attr('data-cs-timetype', formData.cltime);
+                            $(triggerBlock).attr('data-cs-hour', formData.change_stage_hour);
+                            $(triggerBlock).attr('data-cs-minute', formData.change_stage_minute);
+                            $(triggerBlock).attr('data-cs-actiontype', formData.cltype);
+
+                            let statusName = 'status';
+                            let statusColor = '#000';
+
+                            if (allStatusesObj.length > 0) {
+                                allStatusesObj.forEach(element => {
+                                    if (element.id == formData.clstatus) {
+                                        statusName = element.name;
+                                        statusColor = element.color;
+                                    }                                
+                                });
+                            }
+
+                            $(triggerBlock).removeClass('opener');
+                            $(triggerBlock).removeClass('justify-content-center');
+                            $(triggerBlock).addClass('trigger-change-order-status');
+                            $(triggerBlock).addClass('bg-light-grey');
+                            $(triggerBlock).html(getTriggerTypes(2, formData.cltype, {
+                                bg: statusColor,
+                                color : generateTextColor(statusColor),
+                                status : statusName,
+                                time : formData.cltime,
+                                hour : formData.change_stage_hour,
+                                minute : formData.change_stage_minute
+                            },
+                            input));
+
+                            $('#lead-stage').modal('hide');
+                        }
                     }
                 }
 
@@ -1232,7 +1435,7 @@
                 type += `${getTypes(data.time, data.hour, data.minute)} 
                     </div>
                         <div class="text-start">
-                            <span class="f-12"> <strong>Task:</strong> <span class="trigger-box-label-task-description"> ${data.description.length > 18 ? (data.description.substring(0, 18) + '...') : data.description} </span> </span>
+                            <span class="f-12"> <strong>Task:</strong> <span class="trigger-box-label-task-description" title="${data.description}" > ${data.description.length > 18 ? (data.description.substring(0, 18) + '...') : data.description} </span> </span>
                         </div>${input}
                     </div>
                  </div>`;
@@ -1280,8 +1483,11 @@
             handle: ".portlet-header",
             cancel: ".portlet-toggle",
             placeholder: "portlet-placeholder ui-corner-all",
-            stop: function (event, ui) {
-                
+            over: function(event, ui) {
+                var $this = $(this);
+                if ($this.children().length > 1) {
+                    $(ui.sender).sortable('cancel');
+                }
             },
             receive: function(event, ui) {
                 
