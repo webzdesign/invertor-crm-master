@@ -233,27 +233,7 @@ class SalesOrderController extends Controller
             $availStock = intval($inStock) - intval($outStock);
 
             if ($availStock > 0) {
-                $orderAssigned = Deliver::select('soi_id')->where('user_id', $ele['id'])->where('status', '1');
-                if ($orderAssigned->exists()) {
-                    $orderAssigned = $orderAssigned->pluck('soi_id')->toArray();
-
-                    $orderAssigned = SalesOrderItem::whereIn('id', $orderAssigned)->where('product_id', $thisProduct)->sum('qty');
-
-                    $availStock -= $orderAssigned;
-
-                    if ($availStock > 0) {
-                        if (!is_null($neededStock)) {
-                            if (($availStock - $neededStock) > 0) {
-                                return $ele;
-                            }
-                        } else {
-                            return $ele;
-                        }
-                    }
-
-                } else {
-                    return $ele;
-                }
+                return $ele;
             }
 
         })->filter()->values()->toArray();

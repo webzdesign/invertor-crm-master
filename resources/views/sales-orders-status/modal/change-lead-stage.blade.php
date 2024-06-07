@@ -14,6 +14,9 @@
                     <input type="hidden" id="manage-order-type-for-change-lead-stage" name="cltype"
                         value="1" />
                     <input type="hidden" id="manage-order-status-for-change-lead-stage" name="clstatus" />
+                    <input type="hidden" id="editing-change-lead-status" value="0" />
+
+
                     <div class="row">
 
                         <div class="col-12">

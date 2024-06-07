@@ -67,20 +67,28 @@
                     @if(isset($trigger[$i]))
                     <div class="card-body text-center custom-p portlet cursor-pointer min-max-height @if($trigger[$i]['type'] == 1) bg-light-green trigger-add-task @elseif($trigger[$i]['type'] == 2) bg-light-grey trigger-change-order-status @elseif($trigger[$i]['type'] == 3) bg-light-green trigger-change-order-user @endif   "  data-title="{{ $status->name }}"  data-sid="{{ $status->id }}" data-triggerid="{{ $trigger[$i]['id'] }}" 
                         @if($trigger[$i]['type'] == 1)
-                            data-at-statusid="{{ $trigger[$i]['type'] }}"
+                            data-at-statusid="{{ $trigger[$i]['status_id'] }}"
                             data-at-taskdescription="{{ $trigger[$i]['task_description'] }}"
                             data-at-timetype="{{ $trigger[$i]['time_type'] }}"
                             data-at-hour="{{ $trigger[$i]['hour'] }}"
                             data-at-minute="{{ $trigger[$i]['minute'] }}"
                             data-at-actiontype="{{ $trigger[$i]['action_type'] }}"
                             data-at-type="{{ $trigger[$i]['type'] }}"
+                        @else
+                            data-cs-statusid="{{ $trigger[$i]['status_id'] }}"
+                            data-cs-nextstatusid="{{ $trigger[$i]['next_status_id'] }}"
+                            data-cs-timetype="{{ $trigger[$i]['time_type'] }}"
+                            data-cs-hour="{{ $trigger[$i]['hour'] }}"
+                            data-cs-minute="{{ $trigger[$i]['minute'] }}"
+                            data-cs-actiontype="{{ $trigger[$i]['action_type'] }}"
+                            data-cs-type="{{ $trigger[$i]['type'] }}"
                         @endif
                         >
                         <div class="d-flex flex-row portlet-header">
                             @if($trigger[$i]['type'] == 1)
                             <img src="{{ asset('assets/images/completed.png') }}" class="width-35" />
                             <div class="w-100">
-                                <div class="f-12 text-start">
+                                <div class="f-12 text-start trigger-box-label-timetype">
                                 @if($trigger[$i]['action_type'] == 1)
                                 After moved to this status
                                 @elseif($trigger[$i]['action_type'] == 2)
@@ -103,7 +111,7 @@
                                 @endif
                                 </div>
                                 <div class="text-start">
-                                    <span class="f-12"> <strong>Task:</strong> {{ Str::of(strip_tags($trigger[$i]['task_description']))->limit(18)  }} </span>
+                                    <span class="f-12"> <strong>Task:</strong> <span class="trigger-box-label-task-description"> {{ Str::of(strip_tags($trigger[$i]['task_description']))->limit(18)  }} </span> </span>
                                     {{-- <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> --}}
                                 </div>
                                 <div class="inp-groups">
@@ -120,7 +128,7 @@
                             @elseif($trigger[$i]['type'] == 2)
                             <img src="{{ asset('assets/images/edit.png') }}" class="width-35" />
                             <div class="w-100">
-                                <div class="f-12 text-start">
+                                <div class="f-12 text-start trigger-box-label-timetype">
                                 @if($trigger[$i]['action_type'] == 1)
                                 After moved to this status
                                 @elseif($trigger[$i]['action_type'] == 2)
@@ -144,7 +152,7 @@
                                 </div>
                                 <div class="text-start">
                                     <strong class="f-12">Change status:</strong>
-                                    <span class="status-lbl f-10" style="background: {{ $trigger[$i]['nextstatus']['color'] }};color:{{ Helper::generateTextColor($trigger[$i]['nextstatus']['color']) }};text-transform:uppercase;"> {{ $trigger[$i]['nextstatus']['name'] }} </span>
+                                    <span class="status-lbl f-10 trigger-box-label-task-ns" style="background: {{ $trigger[$i]['nextstatus']['color'] }};color:{{ Helper::generateTextColor($trigger[$i]['nextstatus']['color']) }};text-transform:uppercase;"> {{ $trigger[$i]['nextstatus']['name'] }} </span>
                                     {{-- <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> --}}
                                 </div>
                                 <div class="inp-groups">
@@ -161,7 +169,7 @@
                             @elseif($trigger[$i]['type'] == 3)
                             <div class="w-100">
                                 <img src="{{ asset('assets/images/edit.png') }}" class="width-35" />
-                                <div class="f-12 text-start">
+                                <div class="f-12 text-start trigger-box-label-timetype">
                                 @if($trigger[$i]['action_type'] == 1)
                                 After moved to this status
                                 @elseif($trigger[$i]['action_type'] == 2)
@@ -379,88 +387,107 @@
 
         $(document).on('click', '.trigger-add-task', function () {
 
-            alert('Trigger edit functionality is in development');
-            return false;
-
-
             let thisTrigger = $(this).attr('data-triggerid');
             let thisTitle = $(this).attr('data-title');
             let thisstatus = $(this).parent().parent().attr('data-thisstatus');
             editingBlock = this;
 
-            if (isNumeric(thisTrigger)) {
+            let dt = {
+                status_id: $(this).attr('data-at-statusid'),
+                task_description: $(this).attr('data-at-taskdescription'),
+                time_type: $(this).attr('data-at-timetype'),
+                hour: $(this).attr('data-at-hour'),
+                minute: $(this).attr('data-at-minute'),
+                action_type: $(this).attr('data-at-actiontype'),
+                type: $(this).attr('data-at-type')
+            };
+            
+            $('#editing-add-task').val('1');
+            $('#add-task').modal('show');
+            $('#add-task').find('#modal-title-add-task').text(thisTitle);
+            $('#manage-status-id-for-add-task').val(dt.status_id);
+            $('#task-desc').val(dt.task_description);
 
-                let dt = {
-                    status_id: $(this).attr('data-at-statusid'),
-                    task_description: $(this).attr('data-at-taskdescription'),
-                    time_type: $(this).attr('data-at-timetype'),
-                    hour: $(this).attr('data-at-hour'),
-                    minute: $(this).attr('data-at-minute'),
-                    action_type: $(this).attr('data-at-actiontype'),
-                    type: $(this).attr('data-at-type')
-                };
-                
-                $('#editing-add-task').val('1');
-                $('#add-task').modal('show');
-                $('#add-task').find('#modal-title-add-task').text(thisTitle);
-                $('#manage-status-id-for-add-task').val(dt.status_id);
-                $('#task-desc').val(dt.task_description);
+            let dropdownText = 'Execute: ';
+            let timeString = `Immediately`;
 
-                let dropdownText = 'Execute: ';
-                let timeString = `Immediately`;
+            if (dt.time_type == 1) {
+                timeString = `Immediately`;
+            } else if (dt.time_type == 2) {
+                timeString = `5 minutes`;
+            } else if (dt.time_type == 3) {
+                timeString = `10 minutes`;
+            } else if (dt.time_type == 4) {
+                timeString = `one day`;
+            } else if (dt.time_type == 5) {
+                timeString = `Before delay ${dt.hour} hour ${dt.minute} minute`;
+            }
 
-                if (dt.time_type == 1) {
-                    timeString = `Immediately`;
-                } else if (dt.time_type == 2) {
-                    timeString = `5 minutes`;
-                } else if (dt.time_type == 3) {
-                    timeString = `10 minutes`;
-                } else if (dt.time_type == 4) {
-                    timeString = `One day`;
-                } else if (dt.time_type == 5) {
-                    timeString = `Before delay ${dt.hour} hour ${dt.minute} minute`;
-                }
+            dropdownText += timeString;
 
-                dropdownText += timeString;
+            if (dt.action_type == 1) {
+                dropdownText += ` After moved to this status`;
+            } else if (dt.action_type == 2) {
+                dropdownText += ` After created in this status`;
+            } else {
+                dropdownText += ` After moved or created in this status`;
+            }
+            
+            $('.status-dropdown-toggle-inner').find('span').text(dropdownText);
 
-                if (dt.action_type == 1) {
-                    dropdownText += ` After moved to this status`;
-                } else if (dt.action_type == 2) {
-                    dropdownText += ` After created into this status`;
-                } else {
-                    dropdownText += ` After moved or created into this status`;
-                }
-                
-                $('.status-dropdown-toggle-inner').find('span').text(dropdownText);
+            let selectedEle = $('.status-dropdown-menu-inner').find(`.no-btn:eq(${dt.action_type - 1})`);
 
-                let selectedEle = $('.status-dropdown-menu-inner').find(`.no-btn:eq(${dt.action_type - 1})`);
+            if ($(selectedEle).length > 0) {
+                $(selectedEle).attr('data-selchild', dt.time_type);
+                $(selectedEle).text(timeString);
+                $(selectedEle).parent().css('background-color', selectedColorBg);
 
-                if ($(selectedEle).length > 0) {
-                    $(selectedEle).attr('data-selchild', dt.time_type);
-                    $(selectedEle).text(timeString);
-                    $(selectedEle).parent().css('background-color', selectedColorBg);
+                $('.status-dropdown-menu-inner-ul').attr('data-parenttype', dt.action_type);
 
-                    $('.status-dropdown-menu-inner-ul').attr('data-parenttype', dt.action_type);
+                let selectedInnerEle = $('.status-dropdown-menu-inner-ul').find(`li:eq(${dt.time_type - 1})`);
 
-                    let selectedInnerEle = $('.status-dropdown-menu-inner-ul').find(`li:eq(${dt.time_type - 1})`);
+                if ($(selectedInnerEle).length > 0) {
+                    $(selectedInnerEle).css('background-color', selectedColorBg);
 
-                    if ($(selectedInnerEle).length > 0) {
-                        $(selectedInnerEle).css('background-color', selectedColorBg);
-
-                        if (dt.time_type == 5) {
-                            $('#add-task-hour').val(dt.hour);
-                            $('#add-task-minute').val(dt.minute);
-                        }
+                    if (dt.time_type == 5) {
+                        $('#add-task-hour').val(dt.hour);
+                        $('#add-task-minute').val(dt.minute);
                     }
                 }
-
-                $('#manage-status-id-for-add-task').val(dt.status_id);
-                $('#manage-order-time-for-add-task').val(dt.time_type);
-                $('#manage-order-type-for-add-task').val(dt.action_type);
-                $('#manage-order-status-for-add-task').val(thisstatus);
-
-
             }
+
+            $('#manage-status-id-for-add-task').val(dt.status_id);
+            $('#manage-order-time-for-add-task').val(dt.time_type);
+            $('#manage-order-type-for-add-task').val(dt.action_type);
+            $('#manage-order-status-for-add-task').val(thisstatus);
+
+        });
+
+        $(document).on('click', '.trigger-change-order-status', function () {
+            return false;
+
+            let thisTitle = $(this).attr('data-title');
+            let thisstatus = $(this).parent().parent().attr('data-thisstatus');
+            editingBlock = this;   
+
+            let dt = {
+                status_id: $(this).attr('data-cs-statusid'),
+                next_status_id: $(this).attr('data-cs-nextstatusid'),
+                time_type: $(this).attr('data-cs-timetype'),
+                hour: $(this).attr('data-cs-hour'),
+                minute: $(this).attr('data-cs-minute'),
+                action_type: $(this).attr('data-cs-actiontype'),
+                type: $(this).attr('data-cs-type')
+            };
+
+            $('#editing-change-lead-status').val('1');
+            $('#lead-stage').modal('show');
+            $('#lead-stage').find('#modal-title-lead-stage').text(thisTitle);
+            $('#manage-status-id-for-change-lead-stage').val(dt.status_id);
+            $('#manage-order-status-for-change-lead-stage').val(dt.next_status_id);
+
+            $(".status-dropdown-inner-2 .status-dropdown-menu-inner-2").hide();
+            $(".status-dropdown-for-cs .status-dropdown-menu-for-cs").hide();
         });
 
         $(document).on('click', function(event) {
@@ -571,7 +598,7 @@
                 } else if (type == '3') {
                     timestamp = '10 minutes';
                 } else if (type == '4') {
-                    timestamp = 'One day';
+                    timestamp = 'one day';
                 } else if (type == '5') {
                     timestamp = `Before delay ${hour} hour ${minute} minute`;
                 }
@@ -718,8 +745,32 @@
                         $(editingBlock).attr('data-at-hour', formData.add_task_hour);
                         $(editingBlock).attr('data-at-minute', formData.add_task_minute);
                         $(editingBlock).attr('data-at-actiontype', formData.attype);
-                        $(editingBlock).attr('data-at-type', formData.attype);
                         
+                        let timeString = ``;
+                        let dropdownText = '';
+
+                        if (formData.attime == 2) {
+                            timeString = ` after 5 minutes`;
+                        } else if (formData.attime == 3) {
+                            timeString = ` after 10 minutes`;
+                        } else if (formData.attime == 4) {
+                            timeString = ` after one day`;
+                        } else if (formData.attime == 5) {
+                            timeString = ` after delay ${formData.add_task_hour} hour ${formData.add_task_minute} minute`;
+                        }
+
+                        if (formData.attype == 1) {
+                            dropdownText += ` After moved to this status`;
+                        } else if (formData.attype == 2) {
+                            dropdownText += ` After created in this status`;
+                        } else {
+                            dropdownText += ` After moved or created in this status`;
+                        }
+
+                        dropdownText += timeString;
+                        
+                        $(editingBlock).find('.trigger-box-label-task-description').html(formData.task_desc.substring(0, 18) + '...');
+                        $(editingBlock).find('.trigger-box-label-timetype').html(dropdownText);
 
                         $('#add-task').modal('hide');
                         
@@ -733,6 +784,14 @@
                                 <input type="hidden" data-type="1" class="trigger-saver-input-desc" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][desc]" value="${formData.task_desc}" />
                                 <input type="hidden" data-type="1" class="trigger-saver-input-sequence" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][sequence]" value="${$(triggerBlock).parent().index()}" />
                                 </div>`;
+
+                            $(triggerBlock).attr('data-at-statusid', formData.atstatus);
+                            $(triggerBlock).attr('data-at-taskdescription', formData.task_desc);
+                            $(triggerBlock).attr('data-at-timetype', formData.attime);
+                            $(triggerBlock).attr('data-at-hour', formData.add_task_hour);
+                            $(triggerBlock).attr('data-at-minute', formData.add_task_minute);
+                            $(triggerBlock).attr('data-at-actiontype', formData.attype);
+
                             $(triggerBlock).removeClass('opener');
                             $(triggerBlock).removeClass('justify-content-center');
                             $(triggerBlock).addClass('trigger-add-task');
@@ -777,6 +836,7 @@
                         $('#lead-stage').find('#modal-title-lead-stage').text(performingStatusTitle);
                         $('#manage-status-id-for-change-lead-stage').val(thisStatus);
                         $('#stage-container').html(response.view);
+                        $('#editing-change-lead-status').val('0');
 
                         if (Object.values(response.data).length > 0) {
                             $('#manage-order-status-for-change-lead-stage').val(Object.keys(
@@ -841,6 +901,7 @@
                 $('.no-btn').attr('data-selchild', '1');
                 $('.selectable-inner-p-2').css('background', '#fff');
                 $('.selectable-inner-p-2').css('color', '#000');
+                $('#editing-change-lead-status').val('0');
                 editingBlock = null;
 
             }
@@ -910,7 +971,7 @@
                 } else if (type == '3') {
                     timestamp = '10 minutes';
                 } else if (type == '4') {
-                    timestamp = 'One day';
+                    timestamp = 'one day';
                 } else if (type == '5') {
                     timestamp = `Before delay ${hour} hour ${minute} minute`;
                 }
@@ -954,7 +1015,7 @@
                 } else if (type == '3') {
                     timestamp = '10 minutes';
                 } else if (type == '4') {
-                    timestamp = 'One day';
+                    timestamp = 'one day';
                 } else if (type == '5') {
                     timestamp = `Before delay ${hour} hour ${minute} minute`;
                 }
@@ -1008,7 +1069,7 @@
             var dropdownToggleText = $(this).closest(".status-dropdown-for-cs").find(".status-dropdown-toggle-for-cs");
 
             dropdownToggleText.html(`
-                    <span> Execute: ${text} </span>
+                    <span> ${text} </span>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
                         <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
                     </svg>
@@ -1147,7 +1208,7 @@
             } else if (type == 3) {
                 return ' after 10 minutes';
             } else if (type == 4) {
-                return ' after One day';
+                return ' after one day';
             } else if (type == 5) {
                 return ` after ${hour} hour and ${minute} minute`;
             } else {
@@ -1159,7 +1220,7 @@
             let type = '<div class="d-flex flex-row portlet-header">';
 
             if (mainType == 1) {
-                type += `<img src="${appUrl + '/assets/images/completed.png'}" class="width-35" /><div class="w-100"><div class="f-12 text-start">`;
+                type += `<img src="${appUrl + '/assets/images/completed.png'}" class="width-35" /><div class="w-100"><div class="f-12 text-start trigger-box-label-timetype">`;
                 if (timeType == 1) {
                     type += `After moved to this status`
                 } else if (timeType == 2) {
@@ -1171,12 +1232,12 @@
                 type += `${getTypes(data.time, data.hour, data.minute)} 
                     </div>
                         <div class="text-start">
-                            <span class="f-12"> <strong>Task:</strong> ${data.description.length > 18 ? (data.description.substring(0, 18) + '...') : data.description} </span>
+                            <span class="f-12"> <strong>Task:</strong> <span class="trigger-box-label-task-description"> ${data.description.length > 18 ? (data.description.substring(0, 18) + '...') : data.description} </span> </span>
                         </div>${input}
                     </div>
                  </div>`;
             } else if (mainType == 2) {
-                type += `<img src="${appUrl + '/assets/images/edit.png'}" class="width-35" /><div class="w-100"><div class="f-12 text-start">`;
+                type += `<img src="${appUrl + '/assets/images/edit.png'}" class="width-35" /><div class="w-100"><div class="f-12 text-start trigger-box-label-timetype">`;
                 if (timeType == 1) {
                     type += `After moved to this status`
                 } else if (timeType == 2) {
@@ -1188,12 +1249,12 @@
                 type += `${getTypes(data.time, data.hour, data.minute)} 
                     </div> 
                         <div class="text-start"> <strong class="f-12">Change status:</strong> 
-                            <span class="status-lbl f-10" style="background: ${data.bg};color:${data.color};text-transform:uppercase;"> ${data.status} </span> 
+                            <span class="status-lbl f-10 trigger-box-label-task-ns" style="background: ${data.bg};color:${data.color};text-transform:uppercase;"> ${data.status} </span> 
                         </div>${input}
                     </div>
                 </div>`;
             } else if (mainType == 3) {
-                type += `<img src="${appUrl + '/assets/images/completed.png'}" class="width-35" /><div class="w-100"><div class="f-12 text-start">`;
+                type += `<img src="${appUrl + '/assets/images/completed.png'}" class="width-35" /><div class="w-100"><div class="f-12 text-start trigger-box-label-timetype">`;
                 if (timeType == 1) {
                     type += `After moved to this status`
                 } else if (timeType == 2) {
@@ -1219,6 +1280,9 @@
             handle: ".portlet-header",
             cancel: ".portlet-toggle",
             placeholder: "portlet-placeholder ui-corner-all",
+            stop: function (event, ui) {
+                
+            },
             receive: function(event, ui) {
                 
                 if ($(ui.item).next().hasClass('opener')) {
@@ -1247,8 +1311,6 @@
                         <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="${$(ui.item).attr('data-title')}"  data-sid="${$(ui.item).attr('data-sid')}">
                             <i class="fa fa-plus-circle"></i> Add trigger
                         </div>`;
-
-                        x($(ui.sender).html(triggerBtn))
 
                         $(ui.item).find('.trigger-saver-input').attr('name', `${prefix}[${thisStatus}][${index}][status]`);
                         $(ui.item).find('.trigger-saver-input').val(thisStatus);
