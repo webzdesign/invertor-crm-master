@@ -16,7 +16,7 @@
         <a href="{{ route('sales-order-status') }}" class="btn-default f-500 f-14"> BACK </a>
     </div>
 
-<div class="d-flex overflow-auto pb-3" id="sortable">
+<div class="d-flex overflow-auto pb-3 dragMain" id="sortable">
 
     @php $iteration = 0;  @endphp
     @forelse($statuses as $key => $status)
@@ -2314,7 +2314,7 @@
             }
 
             toBeAppened = `
-            <div class="card card-row card-secondary parent-card border-left-1p-solid-grey">
+            <div class="card card-row border-start-0 border-bottom-0 card-secondary parent-card border-left-1p-solid-grey">
                 <input type="hidden" name="sequence[]" value="">
                 <div class="card-header px-2" style="border-bottom: 4px solid ${thisColor};">
                     ${totalCards - thisIndex !== 0 && addPermission ? `<span class="sticky-add-icon" data-color="${thisColor}"><i class="fa fa-plus" style="color:#bfbfbf;"></i></span>` : ''}

@@ -301,6 +301,46 @@ class SalesOrderStatusController extends Controller
 
             /** TASKS **/
 
+            /** Change User **/
+            $currentTime1 = date('Y-m-d H:i:s');
+            $y = [];
+
+            try {
+
+                $triggers = Trigger::where('type', 3)->where('status_id', $request->status)->whereIn('action_type', [1, 3]);
+                if ($triggers->count() > 0) {
+
+                    foreach ($triggers->get() as $t) {
+
+                        $currentTime1 = date('Y-m-d H:i:s', strtotime("{$currentTime1} {$t->time}"));
+                        
+                        $record = ChangeOrderUser::create([
+                            'order_id' => $request->order,
+                            'status_id' => $request->status,
+                            'added_by' => auth()->user()->id,
+                            'time' => $t->time,
+                            'type' => $t->time_type,
+                            'main_type' => 3,
+                            'user_id' => $t->user_id,
+                            'current_status_id' => $oldStatus,
+                            'executed_at' => $currentTime1,
+                            'trigger_id' => $t->id
+                        ]);
+
+                        if ($t->time_type == 1) {
+                            $y[] = $record->id;
+                        }
+                    }
+                }
+
+                (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($y);
+
+            } catch (\Exception $e) {
+                Helper::logger($e->getMessage());
+            }
+
+            /** Change User **/
+
 
             /** Change order status **/
             $currentTime = date('Y-m-d H:i:s');

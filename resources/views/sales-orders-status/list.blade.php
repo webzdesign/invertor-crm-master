@@ -5,6 +5,7 @@
 @section('css')
 <link href="{{ asset('assets/css/dataTables.bootstrap5.css') }}" rel="stylesheet">
 <link href="{{ asset('assets/css/responsive.bootstrap5.css') }}" rel="stylesheet">
+<link rel="stylesheet" href="{{ asset('assets/css/toastr.min.css') }}">
 <style>
     .color-blue {
         color: #0057a9;
@@ -301,8 +302,28 @@
 <script src="{{ asset('assets/js/dataTables.bootstrap5.js') }}"></script>
 <script src="{{ asset('assets/js/dataTables.responsive.js') }}"></script>
 <script src="{{ asset('assets/js/responsive.bootstrap5.js') }}"></script>
+<script src="{{ asset('assets/js/toastr.min.js') }}"></script>
 <script src="{{ asset('assets/js/pusher.min.js') }}"></script>
 <script>
+
+    toastr.options = {
+        "closeButton": false,
+        "debug": false,
+        "newestOnTop": false,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "5000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    }
+
 var totalOrders = 0;
 var thisWindowId = uuid();
 
@@ -401,6 +422,7 @@ var thisWindowId = uuid();
         channel.bind('change-user-for-order', function(data) {
             if ("{{ auth()->user()->id }}" == data.userId) {
                 ServerDataTable.ajax.reload();
+                toastr["info"](data.orderId, `You are now responsible user for order ${data.orderId}`)
             }
         });
 

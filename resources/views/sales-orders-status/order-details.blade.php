@@ -182,7 +182,62 @@
         @endforelse
     </div>
 
-    {{-- <hr> --}}
+    <hr>
+
+    <div class="d-flex align-items-center justify-content-between">
+        <h6 class="f-14 mb-4 mt-2"><i class="fa fa-list-alt" aria-hidden="true"></i> User Assignation Activity</h6>
+        @if($order->userchanges->count() > 3)
+        <button class="show-less-more-btn small-btn btn-primary f-500 f-12" id="toggle-change-user-trigger-list"> Show All </button>
+        @endif
+    </div>
+
+    <div class="change-user-trigger-activity-row">
+        @forelse($order->userchanges as $key => $o)
+            <div class="activity py-1 actvt-cu @if(in_array($loop->iteration, [1,2,3])) show-first-cu @else d-none @endif">
+                <p class="pb-1 f-12" style="margin-bottom:0px;">
+                    <strong>{{ date('d-m-Y H:i:s', strtotime($o->created_at)) }}</strong> :
+                    order @if(!$o->executed) will be @else was @endif assigned to
+                    <strong>
+                        @if(isset($o->user->name)) {{ $o->user->name }} @else user @endif
+                    </strong>
+                    when 
+                    order 
+                    @if($o->main_type == '1')
+                        moved to 
+                    @elseif($o->main_type == '2')
+                        created into
+                    @else
+                        moved or created into
+                    @endif
+                    <span class="status-lbl f-12" style="background: {{ $o->mainstatus->color }};color:{{ Helper::generateTextColor($o->mainstatus->color) }};text-transform:uppercase;"> {{ $o->mainstatus->name }} </span>
+                    @php
+                        $time = str_replace('+', '', $o->time);
+
+                        if (trim($time) == '0 seconds') {
+                            $time = 'Immediately';
+                        } else {
+                            $time = " after {$time}";
+                        }
+                    @endphp
+                    {{ $time }}
+
+                    [ @if(is_null($o->updated_by))
+                        @if(!$o->executed)
+                            <strong style="text-transform: uppercase;color:#009688;" title="to be triggered"> PENDING </strong>
+                        @else
+                            <strong style="text-transform: uppercase;color:green;" title="Done"> DONE </strong>
+                        @endif
+                    @else
+                        <strong style="text-transform: uppercase;color:#3d0000;" title="Status changed before triggered"> CHANGED </strong>
+                    @endif ]
+                </p>
+            </div>
+        @empty
+        <div class="activity py-2 f-13 border-bottom">
+            No Activity to Show
+        </div>
+        @endforelse
+    </div>
 
     {{-- <div class="d-flex align-items-center justify-content-between">
         <h6 class="f-14 mb-4 mt-2"><i class="fa fa-list-alt" aria-hidden="true"></i> User changes Activity</h6>

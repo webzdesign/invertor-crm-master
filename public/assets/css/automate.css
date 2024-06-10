@@ -345,8 +345,11 @@ input[type="color"]::-webkit-color-swatch-wrapper {
     word-wrap: break-word;
     background-color: #fff;
     background-clip: border-box;
-    border-right: 1px solid #dbdbdb !important;
     border-bottom: 1px solid #dbdbdb !important;
+    }
+.dragMain:last-child{
+    border-right: 1px solid #dbdbdb !important;
+
 }
 .parent-card:first-child .cardDrag{
     border-left: 1px solid #dbdbdb !important;

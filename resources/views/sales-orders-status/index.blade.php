@@ -556,7 +556,7 @@
             }
         })
 
-        $(document).on('click', '#toggle-user-changes-trigger-list', function (event) {
+        $(document).on('click', '#toggle-change-user-trigger-list', function (event) {
             if ($('.actvt-cu').hasClass('d-none')) {
                 $('.actvt-cu').removeClass('d-none')
                 $(this).text('Show less');
