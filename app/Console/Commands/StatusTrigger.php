@@ -42,6 +42,22 @@ class StatusTrigger extends Command
 
             if (isset($thisOrder->order_id)) {
 
+                // AddTaskToOrderTrigger::where('status_id', $thisOrder->current_status_id)->where('executed_at', '>', date('Y-m-d H:i:s'))->where('executed', 0)->update(['executed_at' => null]);
+                // ChangeOrderUser::where('status_id', $thisOrder->current_status_id)->where('executed_at', '>', date('Y-m-d H:i:s'))->where('executed', 0)->update(['executed_at' => null]);
+                // ChangeOrderStatusTrigger::where('status_id', $thisOrder->current_status_id)->where('executed_at', '>', date('Y-m-d H:i:s'))->where('executed', 0)->update(['executed_at' => null]);
+
+                // if (AddTaskToOrderTrigger::where('current_status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->exists()) {
+                //     AddTaskToOrderTrigger::where('current_status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->update(['executed_at' => date('Y-m-d H:i:s')]);
+                // }
+
+                // if (ChangeOrderUser::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->exists()) {
+                //     ChangeOrderUser::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->update(['executed_at' => date('Y-m-d H:i:s')]);
+                // }
+
+                // if (ChangeOrderStatusTrigger::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->exists()) {
+                //     ChangeOrderStatusTrigger::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->update(['executed_at' => date('Y-m-d H:i:s')]);
+                // }
+
                 event(new \App\Events\OrderStatusEvent('order-status-change', [
                     'orderId' => $thisOrder->order_id,
                     'orderStatus' => $newStatus,

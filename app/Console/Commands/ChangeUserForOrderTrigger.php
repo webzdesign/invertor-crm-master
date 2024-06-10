@@ -12,7 +12,7 @@ class ChangeUserForOrderTrigger extends Command
      *
      * @var string
      */
-    protected $signature = 'change-user:trigger';
+    protected $signature = 'change_user:trigger';
 
     /**
      * The console command description.

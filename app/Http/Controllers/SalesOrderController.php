@@ -418,6 +418,9 @@ class SalesOrderController extends Controller
                             'range' => $request->range
                         ]);
 
+
+                        /** TRIGGERS **/
+
                         $oldStatus = SalesOrder::where('id', $soId)->select('status')->first()->status;
 
                         $newStatus = Trigger::where('status_id', 1)->where('type', 2)

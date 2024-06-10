@@ -261,6 +261,8 @@ class SalesOrderStatusController extends Controller
             $newStatus = Trigger::where('status_id', $request->status)->where('type', 2)
             ->whereIn('action_type', [1, 3])->first()->next_status_id ?? 0;
 
+            /** TRIGGERS **/
+
             /** TASKS **/
             $currentTime1 = date('Y-m-d H:i:s');
             $y = [];
@@ -280,7 +282,7 @@ class SalesOrderStatusController extends Controller
                             'added_by' => auth()->user()->id,
                             'time' => $t->time,
                             'type' => $t->time_type,
-                            'main_type' => 2,
+                            'main_type' => 3,
                             'description' => $t->task_description,
                             'current_status_id' => $oldStatus,
                             'executed_at' => $currentTime1,
