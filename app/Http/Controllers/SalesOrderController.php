@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock};
 use App\Models\{Category, User, Wallet, Bonus, DistributionItem, Setting, AddressLog, Deliver};
-use App\Models\{AddTaskToOrderTrigger, ChangeOrderStatusTrigger, Trigger};
+use App\Models\{AddTaskToOrderTrigger, ChangeOrderStatusTrigger, Trigger, ChangeOrderUser};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -429,7 +429,7 @@ class SalesOrderController extends Controller
             
                         try {
             
-                            $triggers = Trigger::where('type', 1)->where('status_id', 1)->whereIn('action_type', [1, 3]);
+                            $triggers = Trigger::where('type', 1)->where('status_id', 1)->whereIn('action_type', [2, 3]);
                             if ($triggers->count() > 0) {
             
                                 foreach ($triggers->get() as $t) {
@@ -462,6 +462,46 @@ class SalesOrderController extends Controller
                         }
             
                         /** TASKS **/
+
+                        /** Change User **/
+                        $currentTime1 = date('Y-m-d H:i:s');
+                        $y = [];
+            
+                        try {
+            
+                            $triggers = Trigger::where('type', 3)->where('status_id', 1)->whereIn('action_type', [2, 3]);
+                            if ($triggers->count() > 0) {
+            
+                                foreach ($triggers->get() as $t) {
+            
+                                    $currentTime1 = date('Y-m-d H:i:s', strtotime("{$currentTime1} {$t->time}"));
+                                    
+                                    $record = ChangeOrderUser::create([
+                                        'order_id' => $soId,
+                                        'status_id' => 1,
+                                        'added_by' => auth()->user()->id,
+                                        'time' => $t->time,
+                                        'type' => $t->time_type,
+                                        'main_type' => 3,
+                                        'user_id' => $t->user_id,
+                                        'current_status_id' => $oldStatus,
+                                        'executed_at' => $currentTime1,
+                                        'trigger_id' => $t->id
+                                    ]);
+            
+                                    if ($t->time_type == 1) {
+                                        $y[] = $record->id;
+                                    }
+                                }
+                            }
+            
+                            (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($y);
+            
+                        } catch (\Exception $e) {
+                            Helper::logger($e->getMessage());
+                        }
+            
+                        /** Change User **/
             
             
                         /** Change order status **/
@@ -470,7 +510,7 @@ class SalesOrderController extends Controller
             
                         try {
             
-                            $triggers = Trigger::where('type', 2)->where('status_id', 1)->whereIn('action_type', [1, 3]);
+                            $triggers = Trigger::where('type', 2)->where('status_id', 1)->whereIn('action_type', [2, 3]);
                             if ($triggers->count() > 0) {
                                 foreach ($triggers->get() as $t) {
             
@@ -901,14 +941,17 @@ class SalesOrderController extends Controller
             return view('so.delivery-list', compact('moduleName'));
         }
 
+        $responsibleUser = SalesOrder::where('responsible_user', auth()->user()->id)->select('id')->pluck('id')->toArray();
+
         $d = Deliver::with('item.order');
         $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
 
         if (!in_array('1', $thisUserRoles)) {
             if (in_array('3', $thisUserRoles)) {
-                $d = $d->where('user_id', auth()->user()->id);
-            } else {
-                $d = $d->where('id', '0');
+                $d = $d->where(function ($builder) use ($responsibleUser) {
+                    $builder->whereIn('so_id', $responsibleUser)
+                    ->orWhere('user_id', auth()->user()->id);
+                });
             }
         }
 

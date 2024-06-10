@@ -498,6 +498,10 @@
         channel.bind('add-task-to-order', function(data) {
             toastr["info"](data.orderId, "Task added successfully")
         });
+
+        channel.bind('change-user-for-order', function(data) {
+            toastr["info"](data.orderId, "Responsible user changed for order successfully.")
+        });
         /** Pusher Code **/
 
         $.validator.setDefaults({

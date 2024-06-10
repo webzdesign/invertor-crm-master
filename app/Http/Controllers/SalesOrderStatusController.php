@@ -48,6 +48,8 @@ class SalesOrderStatusController extends Controller
 
         $tasks = $request->task;
         $changeStatus = $request->statuschange;
+        $changeUsers = $request->userchange;
+
         $sequences = $request->sequence;
         $names = $request->name;
         $colors = $request->color;
@@ -162,6 +164,43 @@ class SalesOrderStatusController extends Controller
                     }
                 }
 
+                if (is_array($changeUsers) && count($changeUsers) > 0) {
+                    foreach ($changeUsers as $thisStatus => $array) {
+                        if (isset($allStatusList[$thisStatus])) {
+                            foreach ($array as $k => $v) {
+                                if (isset($v['edit_id']) && $v['edit_id'] > 0) {
+                                    Trigger::where('id', $v['edit_id'])->update([
+                                        'status_id' => $v['status'],
+                                        'hour' => $v['hour'],
+                                        'minute' => $v['minute'],
+                                        'sequence' => $k,
+                                        'type' => 3,
+                                        'time' => self::getStringToTime($v['timetype'], $v['hour'], $v['minute']),
+                                        'action_type' => $v['maintype'],
+                                        'time_type' => $v['timetype'],
+                                        'user_id' => $v['user'],
+                                        'updated_by' => $userId
+                                    ]);
+                                    $toNotBeDeleted[] = $v['edit_id'];
+                                } else {
+                                    $toNotBeDeleted[] = Trigger::create([
+                                        'status_id' => $v['status'],
+                                        'sequence' => $k,
+                                        'hour' => $v['hour'] ?? null,
+                                        'minute' => $v['minute'] ?? null,
+                                        'type' => 3,
+                                        'time' => self::getStringToTime($v['timetype'], ($v['hour'] ?? null), ($v['minute'] ?? null)),
+                                        'action_type' => $v['maintype'],
+                                        'time_type' => $v['timetype'],
+                                        'user_id' => $v['user'],
+                                        'added_by' => $userId
+                                    ])->id;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (is_array($toNotBeDeleted)) {
 
                     if (count($toNotBeDeleted) > 0) {
@@ -171,6 +210,7 @@ class SalesOrderStatusController extends Controller
                         if (count($ids) > 0) {
                             AddTaskToOrderTrigger::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
                             ChangeOrderStatusTrigger::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
+                            ChangeOrderUser::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
     
                             Trigger::whereIn('id', $ids)->delete();
                         }
@@ -178,6 +218,7 @@ class SalesOrderStatusController extends Controller
                             $ids = Trigger::select('id')->pluck('id')->toArray();
                             AddTaskToOrderTrigger::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
                             ChangeOrderStatusTrigger::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
+                            ChangeOrderUser::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
 
                             Trigger::whereIn('id', $ids)->delete();
                     }
@@ -322,12 +363,14 @@ class SalesOrderStatusController extends Controller
 
         if (!in_array(1, $thisUserRoles)) {
             if (in_array(2, $thisUserRoles)) {
-                $orders = $orders->where('seller_id', auth()->user()->id);
+                $orders = $orders->where(function ($builder) {
+                    $builder->where('seller_id', auth()->user()->id)->orWhere('responsible_user', auth()->user()->id);
+                });
             } else if (in_array(3, $thisUserRoles)) {
-                $driversOrder = Deliver::where('user_id', auth()->user()->id)->select('soi_id')->pluck('soi_id')->toArray();
-                $driversOrder = SalesOrderItem::select('so_id')->whereIn('id', $driversOrder)->groupBy('so_id')->pluck('so_id')->toArray();
-
-                $orders = $orders->whereIn('id', $driversOrder);
+                $driversOrder = Deliver::where('user_id', auth()->user()->id)->select('so_id')->pluck('so_id')->toArray();
+                $orders = $orders->where(function ($builder) use ($driversOrder) {
+                    $builder->whereIn('id', $driversOrder)->orWhere('responsible_user', auth()->user()->id);
+                });
             }
         }
 
@@ -768,19 +811,17 @@ class SalesOrderStatusController extends Controller
     }
 
     public function salesOrderResponsibleUser(Request $request) {
-        $orderId = $request->id;
-        $order = ChangeOrderUser::where('order_id', $orderId)->where('status_id', $request->status);
         $selectedUser = null;
+        $addedData = ['user' => null, 'type' => null];
 
-        $driver = Deliver::where('so_id', $orderId)->first()->user_id ?? null;
-        $seller = SalesOrder::where('id', $orderId)->first()->seller_id ?? null;
+        $usersList = User::with('role')->whereHas('role', function ($builder) {
+            $builder->whereIn('roles.id', [2, 3]);
+        });
+        $users = "<option value='' selected> Select a user </option>";
 
-        if ($order->exists()) {
-            $selectedUser = $order->first()->user_id ?? null;
+        if ($request->has('trigger') && !empty($request->trigger)) {
+            $selectedUser = Trigger::where('id', $request->trigger)->first()->user_id ?? null;
         }
-
-        $usersList = User::with('roles')->whereIn('id', [$driver, $seller]);
-        $users = "<option value='' selected> Select a Product </option>";
 
         foreach ($usersList->get() as $user) {
             $selected = '';
@@ -789,11 +830,13 @@ class SalesOrderStatusController extends Controller
                 $selected = ' selected ';
             }
 
-            $users .= "<option value='{$user->id}' {$selected} > {$user->name} - {$user->email} [{$user->roles->first()->name}] </option>";
+            $label = "{$user->name} - {$user->email} [{$user->roles->first()->name}]";
+
+            $users .= "<option value='{$user->id}' data-name='{$user->name}' {$selected} data-label='{$label}' > {$label} </option>";
         }
         
 
-        return response()->json(['status' => true, 'users' => $users, 'current' => $selectedUser, 'total' => $usersList->count()]);
+        return response()->json(['status' => true, 'users' => $users, 'current' => $selectedUser, 'total' => $usersList->count(), 'addedData' => $addedData]);
     }
 
     public function salesOrderResponsibleUserSave(Request $request) {

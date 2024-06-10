@@ -301,8 +301,10 @@
 <script src="{{ asset('assets/js/dataTables.bootstrap5.js') }}"></script>
 <script src="{{ asset('assets/js/dataTables.responsive.js') }}"></script>
 <script src="{{ asset('assets/js/responsive.bootstrap5.js') }}"></script>
+<script src="{{ asset('assets/js/pusher.min.js') }}"></script>
 <script>
 var totalOrders = 0;
+var thisWindowId = uuid();
 
     $(document).ready(function() {
 
@@ -387,6 +389,18 @@ var totalOrders = 0;
                     }
                 });
                 totalOrders = data.json.totalOrders;
+            }
+        });
+
+        var pusher = new Pusher("{{ env('PUSHER_APP_KEY') }}", {
+            cluster: "{{ env('PUSHER_APP_CLUSTER') }}",
+            encrypted: true
+        });
+
+        var channel = pusher.subscribe('card-trigger');
+        channel.bind('change-user-for-order', function(data) {
+            if ("{{ auth()->user()->id }}" == data.userId) {
+                ServerDataTable.ajax.reload();
             }
         });
 

@@ -23,4 +23,9 @@ class ChangeOrderUser extends Model
     public function mainstatus() {
         return $this->belongsTo(SalesOrderStatus::class, 'status_id');
     }
+
+    public function trigger()
+    {
+        return $this->belongsTo(Trigger::class, 'trigger_id');
+    }
 }

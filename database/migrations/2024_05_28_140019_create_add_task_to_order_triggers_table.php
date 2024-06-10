@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('add_task_to_order_triggers', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('order_id');
-            $table->integer('current_status_id');
+            $table->integer('current_status_id')->nullable();
             $table->unsignedBigInteger('status_id');
             $table->text('description')->nullable();
             $table->text('completed_description')->nullable();

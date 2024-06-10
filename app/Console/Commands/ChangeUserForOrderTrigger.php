@@ -2,28 +2,31 @@
 
 namespace App\Console\Commands;
 
-use App\Models\{AddTaskToOrderTrigger, SalesOrder};
+use App\Models\{ChangeOrderUser, SalesOrder};
 use Illuminate\Console\Command;
 
-class TaskTrigger extends Command
+class ChangeUserForOrderTrigger extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'task:trigger';
+    protected $signature = 'change-user:trigger';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'When order is moved then add task';
+    protected $description = 'When order is moved then change responsible user.';
 
-    public function handle($triggers = null) {
-
-        $iterable = AddTaskToOrderTrigger::whereHas('trigger', function ($builder) {
+    /**
+     * Execute the console command.
+     */
+    public function handle($triggers = null)
+    {
+        $iterable = ChangeOrderUser::whereHas('trigger', function ($builder) {
             $builder->where('id', '>', 0);
         })->where('executed', 0)->where('executed_at', '<=', date('Y-m-d H:i:s')); 
 
@@ -33,18 +36,21 @@ class TaskTrigger extends Command
 
 
         foreach ($iterable->get() as $order) {
-            $thisOrder = AddTaskToOrderTrigger::findOrFail($order->id);
+            $thisOrder = ChangeOrderUser::findOrFail($order->id);
             $salesOrder = SalesOrder::findOrFail($thisOrder->order_id ?? null);
 
             if (isset($thisOrder->order_id)) {
 
-                event(new \App\Events\OrderStatusEvent('add-task-to-order', [
-                    'orderId' => $salesOrder->order_no
+                event(new \App\Events\OrderStatusEvent('change-user-for-order', [
+                    'orderId' => $salesOrder->order_no,
+                    'userId' => $thisOrder->user_id
                 ]));
 
                 $thisOrder->executed = true;
                 $thisOrder->save();
 
+                $salesOrder->responsible_user = $thisOrder->user_id;
+                $salesOrder->save();
             }
         }
     }

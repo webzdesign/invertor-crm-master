@@ -20,7 +20,7 @@
 
     @php $iteration = 0;  @endphp
     @forelse($statuses as $key => $status)
-    <div class="card border-0 card-row card-secondary parent-card @if($status->id == '1') disable-sorting @endif " data-mainstatus="{{ $status->id }}">
+    <div class="card border-0 card-row card-secondary parent-card border-left-1p-solid-grey @if($status->id == '1') disable-sorting @endif " data-mainstatus="{{ $status->id }}">
         @php $tempColor = !empty($status->color) ? $status->color : (isset($colours[$key]) ? $colours[$key] : (isset($colours[$iteration]) ? $colours[$iteration] : ($iteration = 0 and $colours[0] ? $colours[$iteration] : '#99ccff' )));  @endphp
         <input type="hidden" name="sequence[]" value="{{ $status->id }}" @if($status->id == '1') disabled @endif>
         <div class="card-header px-2" style="border-bottom: 4px solid {{ $tempColor }};">
@@ -60,12 +60,12 @@
         </div>
         <div class="card-body" style="padding: 0;" data-thisstatus="{{ $status->id }}">
             @php
-                $trigger = Trigger::with(['nextstatus', 'currentstatus'])->where('status_id', $status->id)->orderBy('sequence', 'ASC')->get()->keyBy('sequence')->toArray();
+                $trigger = Trigger::with(['nextstatus', 'currentstatus', 'user.roles'])->where('status_id', $status->id)->orderBy('sequence', 'ASC')->get()->keyBy('sequence')->toArray();
             @endphp
             @for($i = 0; $i < $maxTriggers; $i++)
                 <div class="cardDrag drag-area">
                     @if(isset($trigger[$i]))
-                    <div class="card-body text-center custom-p portlet cursor-pointer min-max-height @if($trigger[$i]['type'] == 1) bg-light-green trigger-add-task @elseif($trigger[$i]['type'] == 2) bg-light-grey trigger-change-order-status @elseif($trigger[$i]['type'] == 3) bg-light-green trigger-change-order-user @endif   "  data-title="{{ $status->name }}"  data-sid="{{ $status->id }}" data-triggerid="{{ $trigger[$i]['id'] }}" 
+                    <div class="card-body text-center custom-p portlet cursor-pointer min-max-height @if($trigger[$i]['type'] == 1) bg-light-green trigger-add-task @elseif($trigger[$i]['type'] == 2) bg-light-grey trigger-change-order-status @elseif($trigger[$i]['type'] == 3) bg-light-grey trigger-change-order-user @endif   "  data-title="{{ $status->name }}"  data-sid="{{ $status->id }}" data-triggerid="{{ $trigger[$i]['id'] }}" 
                         @if($trigger[$i]['type'] == 1)
                             data-at-statusid="{{ $trigger[$i]['status_id'] }}"
                             data-at-taskdescription="{{ $trigger[$i]['task_description'] }}"
@@ -84,6 +84,15 @@
                             data-cs-type="{{ $trigger[$i]['type'] }}"
                             data-cs-status-bg="{{ $trigger[$i]['nextstatus']['color'] }}"
                             data-cs-status-text="{{ strtoupper($trigger[$i]['nextstatus']['name']) }}"
+                        @elseif($trigger[$i]['type'] == 3)
+                            data-cu-statusid="{{ $trigger[$i]['status_id'] }}"
+                            data-cu-user="{{ $trigger[$i]['user_id'] }}"
+                            data-cu-timetype="{{ $trigger[$i]['time_type'] }}"
+                            data-cu-hour="{{ $trigger[$i]['hour'] < 100 ? sprintf('%02d', $trigger[$i]['hour']) : sprintf('%03d', $trigger[$i]['hour']) }}"
+                            data-cu-minute="{{ sprintf('%02d', $trigger[$i]['minute']) }}"
+                            data-cu-actiontype="{{ $trigger[$i]['action_type'] }}"
+                            data-cu-type="{{ $trigger[$i]['type'] }}"
+                            data-cu-user-label="{{ $trigger[$i]['user']['name'] }}"
                         @endif
                         >
                         <div class="d-flex flex-row portlet-header">
@@ -169,8 +178,8 @@
                                 </div>
                             </div>
                             @elseif($trigger[$i]['type'] == 3)
+                            <img src="{{ asset('assets/images/edit.png') }}" class="width-35" />
                             <div class="w-100">
-                                <img src="{{ asset('assets/images/edit.png') }}" class="width-35" />
                                 <div class="f-12 text-start trigger-box-label-timetype">
                                 @if($trigger[$i]['action_type'] == 1)
                                 After moved to this status
@@ -194,11 +203,24 @@
                                 @endif
                                 </div>
                                 <div class="text-start">
-                                    <span class="f-12"> <strong>Change order's user:</strong> {{ $trigger[$i]['user']['name'] }} </span>
+                                    <span class="f-12"> 
+                                        <strong>Change order's user:
+                                            <span class="change-user-trigger-user-label">
+                                                {{ $trigger[$i]['user']['name'] }} 
+                                            </span>
+                                        </strong>
+                                    </span>
                                     {{-- <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> --}}
                                 </div>
                                 <div class="inp-groups">
-                                    <input type="hidden" class="trigger-saver-input" data-type="3" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status][]" value="{{ $status->id }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status]" value="{{ $status->id }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input-maintype" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][maintype]" value="{{ $trigger[$i]['action_type'] }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input-timetype" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][timetype]" value="{{ $trigger[$i]['time_type'] }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input-hour" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][hour]" value="{{ $trigger[$i]['hour'] }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input-minute" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][minute]" value="{{ $trigger[$i]['minute'] }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input-user" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][user]" value="{{ $trigger[$i]['user_id'] }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input-sequence" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][sequence]" value="{{ $trigger[$i]['sequence'] }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input-edit_id" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][edit_id]" value="{{ $trigger[$i]['id'] }}" />
                                 </div>
                             </div>
                             @endif
@@ -236,6 +258,10 @@
 
 {{-- Change Status Modal --}}
 @include('sales-orders-status.modal.change-lead-stage')
+{{-- Change Status Modal --}}
+
+{{-- Change Status Modal --}}
+@include('sales-orders-status.modal.change-user')
 {{-- Change Status Modal --}}
 
 @endsection
@@ -563,16 +589,6 @@
                     $('.status-dropdown-toggle-for-cs').css('background', isNotEmpty($(editingBlock).attr('data-cs-status-bg')) ? $(editingBlock).attr('data-cs-status-bg') : (isNotEmpty(response?.addedData?.status_color) ? response.addedData.status_color : ''));
                     $('.status-dropdown-toggle-for-cs').css('color', isNotEmpty($(editingBlock).attr('data-cs-status-bg')) ? generateTextColor($(editingBlock).attr('data-cs-status-bg')) : (isNotEmpty(response?.addedData?.status_color) ? generateTextColor(response.addedData.status_color) : '') );
 
-                    if (isNumeric($(editingBlock).attr('data-cs-type'))) {
-                        if ($(editingBlock).attr('data-cs-type') == 5) {
-                            $('#change-stage-hour').val($(editingBlock).attr('data-cs-hour'));
-                            $('#change-stage-minute').val($(editingBlock).attr('data-cs-minute'));
-                            $('.status-dropdown-toggle-2').text(`${$(editingBlock).attr('data-cs-hour')} hours ${$(editingBlock).attr('data-cs-minute')} minutes  ${getTypes($(editingBlock).attr('data-cs-type'))}`);
-                        } else {
-                            $('.status-dropdown-toggle-2').text(getTypes($(editingBlock).attr('data-cs-type')));
-                        }                            
-                    }
-
                     /** Show Update Modal **/
                 },
                 complete: function() {
@@ -594,6 +610,14 @@
             if (!target.parents().hasClass("status-dropdown-inner-2") && !$('.status-dropdown-menu-inner-2').hasClass('auto-hide') && $('.dropdown-menu-inner-sub-2').css('display') == 'none') {
                 $(".status-dropdown-inner-2 .status-dropdown-menu-inner-2").hide();
                 $(".status-dropdown-inner-2 .status-dropdown-toggle-inner-2").removeClass("active");
+            }
+
+            if ($(target).hasClass('title-of-card')) {
+                $(target).next().attr('style', "display:block!important;");
+            } else if ($(target).hasClass('color-picker')) {
+                $(target).parent().parent().prev().focus()
+            } else {
+                $('.title-of-card').next().attr('style', "display:none!important;");
             }
         });
 
@@ -1457,7 +1481,7 @@
                     </div>
                 </div>`;
             } else if (mainType == 3) {
-                type += `<img src="${appUrl + '/assets/images/completed.png'}" class="width-35" /><div class="w-100"><div class="f-12 text-start trigger-box-label-timetype">`;
+                type += `<img src="${appUrl + '/assets/images/edit.png'}" class="width-35" /><div class="w-100"><div class="f-12 text-start trigger-box-label-timetype">`;
                 if (timeType == 1) {
                     type += `After moved to this status`
                 } else if (timeType == 2) {
@@ -1469,7 +1493,7 @@
                 type += `${getTypes(data.time, data.hour, data.minute)} 
                 </div>
                     <div class="text-start"> 
-                        <span class="f-12"> <strong>Change order's user:</strong> ${data.user} </span> 
+                        <span class="f-12"> <strong>Change order's user: <span class="change-user-trigger-user-label"> ${data.username} </span> </strong> </span> 
                         </div>${input}
                     </div>
                 </div>`;
@@ -1563,7 +1587,505 @@
 
 
 
+        /** User Change **/
+        $(document).on('click', '#responsible-user', function () {
+            let thisStatus = $('#performing-status').val();
 
+            if (isNumeric(thisStatus)) {
+
+                $.ajax({
+                    url : "{{ route('sales-order-responsible-user') }}",
+                    type : "POST",
+                    beforeSend: function() {
+                        $('body').find('.LoaderSec').removeClass('d-none');
+                    },
+                    success: function (response) {
+
+                        $('#trigger-options-modal').modal('hide');
+                        $('#editing-change-user').val('0');
+                        $('#change-user').modal('show');
+                        $('#change-user').find('#modal-title-change-user').text(performingStatusTitle);
+                        $('#manage-order-id-for-change-user').val(thisStatus);
+
+                        $(`#change-user-picker`).empty().append(response.users);
+                        $(`#change-user-picker`).select2({
+                            dropdownParent: $('#change-user'),
+                            width: '100%',
+                            placeholder: "Select a user"
+                        });
+
+                        if (response.total > 0) {
+                            $('.hideable-user-change-sbmt-btn').show();
+                        } else {
+                            $('.hideable-user-change-sbmt-btn').hide();
+                        }
+
+                    },
+                    complete: function () {
+                        $('body').find('.LoaderSec').addClass('d-none');
+                        $(".status-dropdown-inner-3 .status-dropdown-menu-inner-3").hide();
+                    }
+
+                });
+            }
+        });
+
+        $(document).on('hidden.bs.modal', '#change-user', function(event) {
+            if (event.namespace == 'bs.modal') {
+
+                $('#manage-order-id-for-change-user').val(null);
+                $('#manage-order-time-for-change-user').val('1');
+                $('#manage-order-type-for-change-user').val('1');
+                
+                $('#change-user-hour').val(null).css('border-color', '#000');
+                $('#change-user-minute').val(null).css('border-color', '#000');
+
+                $('.hideable-user-change-sbmt-btn').show();
+                $('.status-dropdown-menu-inner-3').find('.no-btn').text('Immediately');
+                $('.change-user-def-selected').text(' Execute: Immediately After moved to this status ');
+                $('.dropdown-menu-inner-3-sub').attr('data-parenttype', '1');
+                $('.status-dropdown-toggle-inner-3').find('span').text('Execute: Immediately After moved to this status');
+                $('.status-dropdown-menu-inner-3').removeClass('auto-hide');
+                $('.selectable-inner-3').css('background', '#fff');
+                $('.dropdown-menu-inner-3-sub').css('display', 'none');
+                $('#cu-type-error').text('');
+                $('.no-btn').attr('data-selchild', '1');
+                $('.selectable-inner-p-3').css('background', '#fff');
+                $('.selectable-inner-p-3').css('color', '#000');
+                $('#editing-change-user-status').val('0');
+                $('#delete-btn-change-user').show();
+                $(`#change-user-picker`).empty();
+                $('#change-user-name-label').val('');
+                $('#change-user-picker-error').remove();
+
+                editingBlock = null;
+
+            }
+        });
+
+        $('.change-user-picker').on('change', function() {
+            if ($(this).find(':selected').attr('data-name') !== undefined) {
+                $('#change-user-name-label').val($(this).find(':selected').attr('data-name'));
+            }
+        });
+
+        $(document).on('click', '.status-dropdown-toggle-inner-3', function() {
+            var isHidden = $(this).parents(".status-dropdown-inner-3").children(".status-dropdown-menu-inner-3").is(":hidden");
+            $(".status-dropdown-inner-3 .status-dropdown-menu-inner-3").hide();
+            $(".status-dropdown-inner-3 .status-dropdown-toggle-inner-3").removeClass("active");
+
+            if (isHidden) {
+                $(this).parents(".status-dropdown-inner-3").children(".status-dropdown-menu-inner-3").toggle()
+                .parents(".status-dropdown-inner-3")
+                .children(".status-dropdown-toggle-inner-3").addClass("active");
+            }
+        });
+
+        $(document).on('click', '.status-dropdown-menu-inner-3 li', function(e) {
+
+            var text = $(this).text();
+            var type = $(this).attr('data-mtype');
+
+            var dropdownToggle = $(this).closest(".status-dropdown-inner-3").find(".status-dropdown-toggle-inner-3");
+            var dropdownToggleText = $(this).closest(".status-dropdown-inner-3").find(".status-dropdown-toggle-inner-3");
+
+            dropdownToggleText.html(`
+            <span> Execute: ${text} </span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
+                <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
+            </svg>
+            `);
+
+            if ($(this).hasClass('selectable-inner-p-3') && $(this).hasAttr('data-mtype')) {
+                $('#manage-order-type-for-change-user').val(type);
+                let el = $(this).find('.no-btn');
+                if ($(el).hasAttr('data-selchild') && !isNaN($(el).attr('data-selchild'))) {
+                    $('#manage-order-time-for-change-user').val($(el).attr('data-selchild'));
+                }
+            }
+
+            $('.selectable-inner-p-3').css('background', '#fff');
+            $(this).css('background', selectedColorBg);
+
+            if (!$(e.target).hasClass('no-btn')) {
+                $(this).parent().hide();
+                dropdownToggle.removeClass("active");
+                $('.dropdown-menu-inner-3-sub').css('display', 'none');
+            }
+        });
+
+        $(document).on('click', '.status-dropdown-menu-inner-3-ul li', function(e) {
+            let parent = $(this).parent().parent().attr('data-parenttype');
+            let type = $(this).attr('data-ttype');
+
+            let hour = $('#change-user-hour').val();
+            let minute = $('#change-user-minute').val();
+            
+            if ($(`.opt-3-${parent}`).length > 0) {
+                let timestamp = '';
+
+                if (type == '1') {
+                    timestamp = 'Immediately';
+                } else if (type == '2') {
+                    timestamp = '5 minutes';
+                } else if (type == '3') {
+                    timestamp = '10 minutes';
+                } else if (type == '4') {
+                    timestamp = 'one day';
+                } else if (type == '5') {
+                    timestamp = `Before delay ${hour} hour ${minute} minute`;
+                }
+
+                $(`.opt-3-${parent}`).text(timestamp)
+                $('#manage-order-time-for-change-user').val(type)
+                $(`.opt-3-${parent}`).attr('data-selchild', type);
+            }
+            
+            $('.status-dropdown-menu-inner-3').addClass('auto-hide');
+
+            $('.selectable-inner-3').css('background', '#fff');
+            $(this).css('background', selectedColorBg);
+
+            if (((hour == '' ||  minute == '') || (isNaN(hour) || isNaN(minute))) && type == '5') {
+                $('.dropdown-menu-inner-3-sub-overlay').removeClass('d-none');
+                return false;
+            } else {
+                $('.dropdown-menu-inner-3-sub-overlay').addClass('d-none');
+            }
+
+            if (!($(event.target).hasClass('change-user-hour') || $(event.target).hasClass('change-user-minute'))) {
+                $('.dropdown-menu-inner-3-sub').hide();
+            }
+        });
+
+        $(document).on('click', '.selectable-inner-3', function (event) {
+            let parent = $(this).parent().parent().attr('data-parenttype');
+            let type = $(this).attr('data-ttype');
+
+            let hour = $('#change-user-hour').val();
+            let minute = $('#change-user-minute').val();
+            
+            if ($(`.opt-3-${parent}`).length > 0) {
+                let timestamp = '';
+
+                if (type == '1') {
+                    timestamp = 'Immediately';
+                } else if (type == '2') {
+                    timestamp = '5 minutes';
+                } else if (type == '3') {
+                    timestamp = '10 minutes';
+                } else if (type == '4') {
+                    timestamp = 'one day';
+                } else if (type == '5') {
+                    timestamp = `Before delay ${hour} hour ${minute} minute`;
+                }
+
+                $(`.opt-3-${parent}`).text(timestamp)
+                $('#manage-order-time-for-change-user').val(type)
+                $(`.opt-3-${parent}`).attr('data-selchild', type);
+            }
+            
+            $('.selectable-inner-3').css('background', '#fff');
+            $('.status-dropdown-menu-inner-3').addClass('auto-hide');
+            $(this).css('background', selectedColorBg);
+
+            if (((hour == '' ||  minute == '') || (isNaN(hour) || isNaN(minute))) && type == '5') {
+                $('.dropdown-menu-inner-3-sub-overlay').removeClass('d-none');
+                return false;
+            } else {
+                $('.dropdown-menu-inner-3-sub-overlay').addClass('d-none');
+            }
+
+            if (!($(event.target).hasClass('change-user-hour') || $(event.target).hasClass('change-user-minute'))) {
+                $('.dropdown-menu-inner-3-sub').hide();
+            }
+        });
+
+        $(document).on('click', '.trigger-change-order-user', function () {
+
+            let thisTrigger = $(this).attr('data-triggerid');
+            let thisTitle = $(this).attr('data-title');
+            let thisstatus = $(this).parent().parent().attr('data-thisstatus');
+            editingBlock = this;   
+
+            let dt = {
+                status_id: $(this).attr('data-cu-statusid'),
+                user: $(this).attr('data-cu-user'),
+                time_type: $(this).attr('data-cu-timetype'),
+                hour: $(this).attr('data-cu-hour'),
+                minute: $(this).attr('data-cu-minute'),
+                action_type: $(this).attr('data-cu-actiontype'),
+                type: $(this).attr('data-cu-type'),
+                username : $(this).attr('data-cu-user-label')
+            };
+
+            $.ajax({
+                url: "{{ route('sales-order-responsible-user') }}",
+                type: 'POST',
+                data: {
+                    id: thisstatus,
+                    trigger: thisTrigger
+                },
+                beforeSend: function() {
+                    $('body').find('.LoaderSec').removeClass('d-none');
+                },
+                success: function(response) {
+                    /** Show Update Modal **/
+                    $('#editing-change-user').val('1');
+                    $('#change-user').modal('show');
+                    $('#change-user').find('#modal-title-change-user').text(thisTitle);
+                    $('#manage-order-id-for-change-user').val(dt.status_id);
+                    $('.change-user-picker').val(dt.user).trigger('change');
+                    $('#change-user-name-label').val(dt.username);
+
+                    let dropdownText = 'Execute: ';
+                    let timeString = `Immediately`;
+
+                    if (dt.time_type == 1) {
+                        timeString = `Immediately`;
+                    } else if (dt.time_type == 2) {
+                        timeString = `5 minutes`;
+                    } else if (dt.time_type == 3) {
+                        timeString = `10 minutes`;
+                    } else if (dt.time_type == 4) {
+                        timeString = `one day`;
+                    } else if (dt.time_type == 5) {
+                        timeString = `Before delay ${dt.hour} hour ${dt.minute} minute`;
+                    }
+
+                    dropdownText += timeString;
+
+                    if (dt.action_type == 1) {
+                        dropdownText += ` After moved to this status`;
+                    } else if (dt.action_type == 2) {
+                        dropdownText += ` After created in this status`;
+                    } else {
+                        dropdownText += ` After moved or created in this status`;
+                    }
+
+                    $('.status-dropdown-toggle-inner-3').find('span').text(dropdownText);
+
+                    let selectedEle = $('.status-dropdown-menu-inner-3').find(`.no-btn:eq(${dt.action_type - 1})`);
+
+                    if ($(selectedEle).length > 0) {
+                        $(selectedEle).attr('data-selchild', dt.time_type);
+                        $(selectedEle).text(timeString);
+                        $(selectedEle).parent().css('background-color', selectedColorBg);
+
+                        $('.dropdown-menu-inner-3-sub').attr('data-parenttype', dt.action_type);
+
+                        let selectedInnerEle = $('.status-dropdown-menu-inner-3-ul').find(`li:eq(${dt.time_type - 1})`);
+
+                        if ($(selectedInnerEle).length > 0) {
+                            $(selectedInnerEle).css('background-color', selectedColorBg);
+
+                            if (dt.time_type == 5) {
+                                $('#change-user-hour').val(dt.hour);
+                                $('#change-user-minute').val(dt.minute);
+                            }
+                        }
+                    }
+
+                    $(`#change-user-picker`).empty().append(response.users);
+                    $(`#change-user-picker`).select2({
+                        dropdownParent: $('#change-user'),
+                        width: '100%',
+                        placeholder: "Select a user"
+                    });
+
+                    if (response.total > 0) {
+                        $('.hideable-user-change-sbmt-btn').show();
+                    } else {
+                        $('.hideable-user-change-sbmt-btn').hide();
+                    }
+
+                    $('.change-user-picker').val(isNumeric($(editingBlock).attr('data-cu-user')) ? $(editingBlock).attr('data-cu-user') : (isNotEmpty(response.addedData.status) ? response.addedData.user : ''));
+                    $('#manage-order-time-for-change-user').val(isNumeric($(editingBlock).attr('data-cu-timetype')) ? $(editingBlock).attr('data-cu-timetype') : (isNotEmpty(response.addedData.timetype) ? response.addedData.timetype : '1'));
+                    $('#manage-order-type-for-change-user').val(isNumeric($(editingBlock).attr('data-cu-actiontype')) ? $(editingBlock).attr('data-cu-actiontype') : (isNotEmpty(response.addedData.type) ? response.addedData.type : '1'));
+
+                    /** Show Update Modal **/
+                },
+                complete: function() {
+                    $('body').find('.LoaderSec').addClass('d-none');
+                    $(".status-dropdown-inner-3 .status-dropdown-menu-inner-3").hide();
+                }
+            });
+        });
+
+        $('#changeUser').validate({
+            rules: {
+                change_user_hour: {
+                    digits: true,
+                    min: 0,
+                    max: 720
+                },
+                change_user_minute: {
+                    digits: true,
+                    min: 0,
+                    max: 60
+                },
+                user: {
+                    required: true
+                }
+            },
+            messages: {
+                change_user_hour: {
+                    digits: "Only digits allowed.",
+                    min: "Minimum 0 hour allowed.",
+                    max: "Maximum 720 hours allowed."
+                },
+                change_user_minute: {
+                    digits: "Only digits allowed.",
+                    min: "Minimum 0 minute allowed.",
+                    max: "Maximum 60 minutes allowed."
+                },
+                user: {
+                    required: "Select a user."
+                }
+            },
+            errorPlacement: function(error, element) {
+                if ($(element).hasClass('change-user-minute')) {
+                    $('#cu-type-error').text(error.text());
+                    $('#change-user-minute').css('border-color', '#ff0000');
+                } else if ($(element).hasClass('change-user-hour')) {
+                    $('#cu-type-error').text(error.text());
+                    $('#change-user-hour').css('border-color', '#ff0000');
+                } else if ($(element).hasClass('change-user-picker')) {
+                    error.appendTo(element.parent("div"));
+                } else {
+                    $('#cu-status-error').text('');
+                    $('#cu-type-error').text('');
+                    $('#change-user-hour').css('border-color', '#000');
+                    $('#change-user-minute').css('border-color', '#000');
+                }
+            },
+            submitHandler: function(form, event) {
+                event.preventDefault();
+
+                if ($(form).valid()) {
+                    let formData = {};
+                    let thisData = $(form).serializeArray();
+
+                    thisData.forEach(element => {
+                        formData[element.name] = element.value;
+                    });
+
+                    if ($('#editing-change-user').val() == '1') {
+                        let index = $(editingBlock).parent().index();
+
+                        $(editingBlock).find('.trigger-saver-input').attr('name', `userchange[${formData.cuid}][${index}][status]`);
+                        $(editingBlock).find('.trigger-saver-input').val(formData.cuid);
+
+                        $(editingBlock).find('.trigger-saver-input-maintype').attr('name', `userchange[${formData.cuid}][${index}][maintype]`);
+                        $(editingBlock).find('.trigger-saver-input-maintype').val(formData.cutype);
+                        
+                        $(editingBlock).find('.trigger-saver-input-timetype').attr('name', `userchange[${formData.cuid}][${index}][timetype]`);
+                        $(editingBlock).find('.trigger-saver-input-timetype').val(formData.cutime);
+
+                        $(editingBlock).find('.trigger-saver-input-hour').attr('name', `userchange[${formData.cuid}][${index}][hour]`);
+                        $(editingBlock).find('.trigger-saver-input-hour').val(formData.change_user_hour);
+
+                        $(editingBlock).find('.trigger-saver-input-minute').attr('name', `userchange[${formData.cuid}][${index}][minute]`);
+                        $(editingBlock).find('.trigger-saver-input-minute').val(formData.change_user_minute);
+                        
+                        $(editingBlock).find('.trigger-saver-input-sequence').attr('name', `userchange[${formData.cuid}][${index}][sequence]`);
+                        $(editingBlock).find('.trigger-saver-input-sequence').val(index);
+
+                        $(editingBlock).find('.trigger-saver-input-user').attr('name', `userchange[${formData.cuid}][${index}][user]`);
+                        $(editingBlock).find('.trigger-saver-input-user').val(formData.user);
+
+                        $(editingBlock).attr('data-cu-statusid', formData.cuid);
+                        $(editingBlock).attr('data-cu-user', formData.user);
+                        $(editingBlock).attr('data-cu-timetype', formData.cutime);
+                        $(editingBlock).attr('data-cu-hour', formData.change_user_hour);
+                        $(editingBlock).attr('data-cu-minute', formData.change_user_minute);
+                        $(editingBlock).attr('data-cu-actiontype', formData.cutype);
+                        
+                        let timeString = ``;
+                        let dropdownText = '';
+
+                        if (formData.cutime == 2) {
+                            timeString = ` after 5 minutes`;
+                        } else if (formData.cutime == 3) {
+                            timeString = ` after 10 minutes`;
+                        } else if (formData.cutime == 4) {
+                            timeString = ` after one day`;
+                        } else if (formData.cutime == 5) {
+                            timeString = ` after delay ${formData.change_user_hour} hour ${formData.change_user_minute} minute`;
+                        }
+
+                        if (formData.cutype == 1) {
+                            dropdownText += ` After moved to this status`;
+                        } else if (formData.cutype == 2) {
+                            dropdownText += ` After created in this status`;
+                        } else {
+                            dropdownText += ` After moved or created in this status`;
+                        }
+
+                        dropdownText += timeString;
+                        
+                        $(editingBlock).find('.trigger-box-label-timetype').html(dropdownText);
+                        $('.change-user-trigger-user-label').text($('#change-user-name-label').val());
+
+                        $('#change-user').modal('hide');
+
+                    } else {
+                        if ($(triggerBlock).length > 0 && $(triggerBlock).parent().parent().parent().hasAttr('data-mainstatus')) {
+                            let input = `<div class="inp-groups" > <input type="hidden" class="trigger-saver-input" data-type="3" name="userchange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][status]" value="${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}" />
+                                <input type="hidden" data-type="3" class="trigger-saver-input-maintype" name="userchange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][maintype]" value="${formData.cutype}" />
+                                <input type="hidden" data-type="3" class="trigger-saver-input-timetype" name="userchange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][timetype]" value="${formData.cutime}" />
+                                <input type="hidden" data-type="3" class="trigger-saver-input-hour" name="userchange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][hour]" value="${formData.change_user_hour}" />
+                                <input type="hidden" data-type="3" class="trigger-saver-input-minute" name="userchange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][minute]" value="${formData.change_user_minute}" />
+                                <input type="hidden" data-type="3" class="trigger-saver-input-user" name="userchange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][user]" value="${formData.user}" />
+                                <input type="hidden" data-type="3" class="trigger-saver-input-sequence" name="userchange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][sequence]" value="${$(triggerBlock).parent().index()}" />
+                                </div> `;
+
+                            $(triggerBlock).attr('data-cu-statusid', formData.cuid);
+                            $(triggerBlock).attr('data-cu-user', formData.user);
+                            $(triggerBlock).attr('data-cu-timetype', formData.cutime);
+                            $(triggerBlock).attr('data-cu-hour', formData.change_user_hour);
+                            $(triggerBlock).attr('data-cu-minute', formData.change_user_minute);
+                            $(triggerBlock).attr('data-cu-actiontype', formData.cutype);
+
+                            let userName = $('#change-user-picker').find(':selected').attr('data-name');
+
+                            $(triggerBlock).removeClass('opener');
+                            $(triggerBlock).removeClass('justify-content-center');
+                            $(triggerBlock).addClass('trigger-change-order-user');
+                            $(triggerBlock).addClass('bg-light-grey');
+                            $(triggerBlock).html(getTriggerTypes(3, formData.cutype, {
+                                user : formData.user,
+                                username : userName,
+                                time : formData.cutime,
+                                hour : formData.change_user_hour,
+                                minute : formData.change_user_minute
+                            },
+                            input));
+
+                            $('#change-user').modal('hide');
+                        }
+                    }
+                }
+
+                return false;
+            }
+        });
+
+        $(document).on('click', '#delete-btn-change-user', function (event) {
+            if ($(editingBlock).length > 0) {
+                let thisStatus = $(editingBlock).attr('data-sid');
+                let thisTitle = $(editingBlock).attr('data-title');
+
+                let triggerBtn = `
+                <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="${thisTitle}"  data-sid="${thisStatus}">
+                    <i class="fa fa-plus-circle"></i> Add trigger
+                </div>`;
+
+                $(editingBlock).parent().html(triggerBtn);
+                $('#change-user').modal('hide');
+            }
+        });
+        /** User Change **/
 
 
 
@@ -1792,7 +2314,7 @@
             }
 
             toBeAppened = `
-            <div class="card card-row card-secondary parent-card">
+            <div class="card card-row card-secondary parent-card border-left-1p-solid-grey">
                 <input type="hidden" name="sequence[]" value="">
                 <div class="card-header px-2" style="border-bottom: 4px solid ${thisColor};">
                     ${totalCards - thisIndex !== 0 && addPermission ? `<span class="sticky-add-icon" data-color="${thisColor}"><i class="fa fa-plus" style="color:#bfbfbf;"></i></span>` : ''}
@@ -1817,31 +2339,12 @@
             `;
 
             $(toBeAppened).insertAfter($(this).parent().parent());
+            $(this).parent().parent().next().find('.title-of-card').focus()
         });
 
         $(document).on('change', '.color-picker', function () {
             $(this).parent().parent().parent().css('border-bottom', `5px solid ${$(this).val()}`);
             $(this).parent().parent().parent().find('.sticky-add-icon').attr('data-color', $(this).val());
-        });
-
-        $(document).on('focus', '.title-of-card', function () {
-            $(this).next().attr('style', 'display:block!important;');
-        });
-
-        $(document).on('blur', '.title-of-card', function () {
-            if ($(this).next().find('.color-picker').hasClass('is-active')) {
-                $(this).next().find('.color-picker').removeClass('is-active')
-                $(this).next().attr('style', 'display:none!important;');
-            }
-            
-        });
-
-        $(document).on('click', '.color-picker', function () {
-            if (!$(this).hasClass('is-active')) {
-                $(this).addClass('is-active');
-            }
-
-            $(this).parent().prev().focus();
         });
 
         $(document).on('click', '.delete-main-status-card', function () {

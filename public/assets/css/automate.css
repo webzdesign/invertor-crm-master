@@ -18,7 +18,7 @@
     width: 300px;
     margin: 0 !important;
     min-width: 270px;
-    height: calc(100vh - 200px);
+    /* height: calc(100vh - 200px); */
     border-radius: 0;
     border-right: 0;
 }
@@ -106,7 +106,6 @@ input[type="color"]::-webkit-color-swatch-wrapper {
     margin-right: 2px;
     line-height: 1;
     display: inline-block;
-    font
 }
 
 .box {
@@ -148,7 +147,8 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 /* Dropdowns */
 .status-dropdown-toggle-for-cs,
 .status-dropdown-toggle-inner,
-.status-dropdown-toggle-inner-2 {
+.status-dropdown-toggle-inner-2,
+.status-dropdown-toggle-inner-3 {
     border: 1px solid #92989b66;
     width: 100%;
     text-align: left;
@@ -161,7 +161,9 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 .status-dropdown-menu-inner,
 .status-dropdown-menu-inner-ul,
 .status-dropdown-menu-inner-2,
-.status-dropdown-menu-inner-2-ul{
+.status-dropdown-menu-inner-2-ul,
+.status-dropdown-menu-inner-3,
+.status-dropdown-menu-inner-3-ul{
     border: 1px solid #92989b66;
     width: 100%;
     text-align: left;
@@ -175,18 +177,21 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 }
 
 .status-dropdown-menu-inner::-webkit-scrollbar-track,
-.status-dropdown-menu-inner-2::-webkit-scrollbar-track {
+.status-dropdown-menu-inner-2::-webkit-scrollbar-track,
+.status-dropdown-menu-inner-3::-webkit-scrollbar-track {
     background-color: #ffffff;
 }
 
 .status-dropdown-menu-inner::-webkit-scrollbar,
-.status-dropdown-menu-inner-2::-webkit-scrollbar {
+.status-dropdown-menu-inner-2::-webkit-scrollbar,
+.status-dropdown-menu-inner-3::-webkit-scrollbar {
     width: 6px;
     background-color: #ffffff;
 }
 
 .status-dropdown-menu-inner::-webkit-scrollbar-thumb,
-.status-dropdown-menu-inner-2::-webkit-scrollbar-thumb {
+.status-dropdown-menu-inner-2::-webkit-scrollbar-thumb,
+.status-dropdown-menu-inner-3::-webkit-scrollbar-thumb {
     background-color: #c7c7c7;
 }
 
@@ -194,19 +199,23 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 .status-dropdown-menu-inner li,
 .status-dropdown-menu-inner-ul li,
 .status-dropdown-menu-inner-2 li,
-.status-dropdown-menu-inner-2-ul li{
+.status-dropdown-menu-inner-2-ul li,
+.status-dropdown-menu-inner-3 li,
+.status-dropdown-menu-inner-3-ul li{
     padding: 3px 6px;
     cursor: pointer;
 }
 
 .status-dropdown-menu-inner>li:hover,
-.status-dropdown-menu-inner-2>li:hover {
+.status-dropdown-menu-inner-2>li:hover,
+.status-dropdown-menu-inner-3>li:hover {
     background: #e8e8e8;
     color: #000;
 }
 
 .dropdown-menu-inner-sub,
-.dropdown-menu-inner-2-sub {
+.dropdown-menu-inner-2-sub,
+.dropdown-menu-inner-3-sub {
     position: absolute;
     top: 8px;
     background: #fff;
@@ -216,7 +225,8 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 }
 
 .dropdown-menu-inner-sub li:hover,
-.dropdown-menu-inner-2-sub li:hover {
+.dropdown-menu-inner-2-sub li:hover,
+.dropdown-menu-inner-3-sub li:hover {
     background: #e8e8e8!important;
     color: #000;
 }
@@ -232,14 +242,16 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 }
 
 #change-stage-minute,
-#add-task-minute {
+#add-task-minute, 
+#change-user-minute {
     width: 67px;
     margin-left: 10px;
     height: 28px;
 }
 
 #change-stage-hour,
-#add-task-hour {
+#add-task-hour,
+#change-user-hour {
     margin-left: 10px;
     height: 28px;
     width: 52px;
@@ -256,7 +268,8 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 
 /* overlays */
 .dropdown-menu-inner-sub-overlay,
-.dropdown-menu-inner-2-sub-overlay{
+.dropdown-menu-inner-2-sub-overlay,
+.dropdown-menu-inner-3-sub-overlay{
     position: fixed;
     width: 100%;
     height: 100%;
@@ -322,7 +335,7 @@ input[type="color"]::-webkit-color-swatch-wrapper {
     z-index: 3;
 }
 .drag-area{
-    height: 76px;
+    height: 78px;
 }
 .cardDrag {
     position: relative;
@@ -339,13 +352,17 @@ input[type="color"]::-webkit-color-swatch-wrapper {
     border-left: 1px solid #dbdbdb !important;
 }
 
-#delete-btn-change-status, #delete-btn-add-task {
+#delete-btn-change-status, #delete-btn-add-task, #delete-btn-change-user {
     min-width: 45px;
     background: #dd2d20!important;
     border: none!important;
 }
     
-#delete-btn-change-status > i, #delete-btn-add-task > i {
+#delete-btn-change-status > i, #delete-btn-add-task > i, #delete-btn-change-user > i {
     color: white!important;
+}
+
+.border-left-1p-solid-grey {
+    border-right: 1px solid rgba(0,0,0,.125)!important;
 }
 /* other css */

@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, SalesOrder, Trigger};
+use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, SalesOrder, Trigger, ChangeOrderUser};
 use Illuminate\Console\Command;
 use App\Helpers\Helper;
 
@@ -41,7 +41,7 @@ class StatusTrigger extends Command
             $newStatus = $thisOrder->status_id;
 
             if (isset($thisOrder->order_id)) {
-                Helper::logger("X Found change trigger for status:" . $newStatus );
+
                 event(new \App\Events\OrderStatusEvent('order-status-change', [
                     'orderId' => $thisOrder->order_id,
                     'orderStatus' => $newStatus,
@@ -55,7 +55,7 @@ class StatusTrigger extends Command
                 $salesOrder->status = $newStatus;
                 $salesOrder->save();
 
-                // Task
+            /** TASKS **/
             $currentTime1 = date('Y-m-d H:i:s');
             $y = [];
 
@@ -87,27 +87,71 @@ class StatusTrigger extends Command
                     }
                 }
 
-                (new \App\Console\Commands\TaskTrigger)->handle($y);
+                if (!empty($y)) {
+                    (new \App\Console\Commands\TaskTrigger)->handle($y);
+                }
 
             } catch (\Exception $e) {
-                Helper::logger($e->getMessage());
+                Helper::logger("TASK REC. ERROR :" . $e->getMessage());
             }
-
             /** TASKS **/
 
-                Helper::logger("OLD : $thisOrder->status_id  AND NEW : $newStatus");
 
+            /** Change User **/
+            $currentTime1 = date('Y-m-d H:i:s');
+            $y = [];
+
+            try {
+
+                $triggers = Trigger::where('type', 3)->where('status_id', $newStatus)->whereIn('action_type', [1, 3]);
+                if ($triggers->count() > 0) {
+
+                    foreach ($triggers->get() as $t) {
+
+                        $currentTime1 = date('Y-m-d H:i:s', strtotime("{$currentTime1} {$t->time}"));
+                        
+                        $record = ChangeOrderUser::create([
+                            'order_id' => $thisOrder->order_id,
+                            'status_id' => $newStatus,
+                            'added_by' => 1,
+                            'time' => $t->time,
+                            'type' => $t->time_type,
+                            'main_type' => 3,
+                            'user_id' => $t->user_id,
+                            'current_status_id' => $newStatus,
+                            'executed_at' => $currentTime1,
+                            'trigger_id' => $t->id
+                        ]);
+
+                        if ($t->time_type == 1) {
+                            $y[] = $record->id;
+                        }
+                    }
+                }
+
+                if (!empty($y)) {
+                    (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($y);
+                }
+
+            } catch (\Exception $e) {
+                Helper::logger("CHANGE USER REC. ERROR :" . $e->getMessage());
+            }
+            /** Change User **/
+
+
+            /** Change Order Status **/
+            $currentTime1 = date('Y-m-d H:i:s');
+            $y = [];
+
+            try {
                 $newTrigger = Trigger::where('status_id', $newStatus)->where('type', 2)
                 ->whereIn('action_type', [1, 3])
                 ->get();
-
-                $currentTime1 = date('Y-m-d H:i:s');
-                $y = [];
+    
                 foreach ($newTrigger as $t) {
-
+    
                     $currentTime1 = date('Y-m-d H:i:s', strtotime("{$currentTime1} {$t->time}"));
-                    Helper::logger("$t->time AND {$currentTime1} \n");
-
+    
                     $record = ChangeOrderStatusTrigger::create([
                         'order_id' => $thisOrder->order_id,
                         'status_id' => $t->next_status_id,
@@ -118,16 +162,19 @@ class StatusTrigger extends Command
                         'executed_at' => date('Y-m-d H:i:s', strtotime($t->time)),
                         'trigger_id' => $t->id
                     ]);
-
+    
                     if ($t->time_type == 1) {
                         $y[] = $record->id;
                     }
                 }
-
+    
                 if (!empty($y)) {
-                    Helper::logger("Found change trigger for status:" . $newStatus );
                     $this->handle($y);
                 }
+            } catch (\Exception $e) {
+                Helper::logger("CHANGE STATUS ORDER REC. ERROR :" . $e->getMessage());
+            }
+            /** Change Order Status **/
 
             }
         }
