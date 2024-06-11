@@ -605,7 +605,8 @@
                     $('#stage-container').html(response.view);
 
                     $('#manage-order-status-for-change-lead-stage').val(isNumeric($(editingBlock).attr('data-cs-nextstatusid')) ? $(editingBlock).attr('data-cs-nextstatusid') : (isNotEmpty(response.addedData.status) ? response.addedData.status : ''));
-                    $('#manage-order-time-for-change-lead-stage').val(isNumeric($(editingBlock).attr('data-cs-type')) ? $(editingBlock).attr('data-cs-type') : (isNotEmpty(response.addedData.type) ? response.addedData.type : ''));
+                    $('#manage-order-time-for-change-lead-stage').val(isNumeric($(editingBlock).attr('data-cs-timetype')) ? $(editingBlock).attr('data-cs-timetype') : (isNotEmpty(response.addedData.type) ? response.addedData.type : ''));
+                    $('#manage-order-type-for-change-lead-stage').val(isNumeric($(editingBlock).attr('data-cs-actiontype')) ? $(editingBlock).attr('data-cs-actiontype') : 1);
 
                     $('.status-dropdown-toggle-for-cs').text(isNotEmpty($(editingBlock).attr('data-cs-status-text')) ? $(editingBlock).attr('data-cs-status-text') : (isNotEmpty(response?.addedData?.status_text) ? response.addedData.status_text : ''));
                     $('.status-dropdown-toggle-for-cs').css('background', isNotEmpty($(editingBlock).attr('data-cs-status-bg')) ? $(editingBlock).attr('data-cs-status-bg') : (isNotEmpty(response?.addedData?.status_color) ? response.addedData.status_color : ''));
