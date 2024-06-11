@@ -1513,6 +1513,12 @@
 
                 if ($this.children().hasClass('trigger-add-task') || $this.children().hasClass('trigger-change-order-status') || $this.children().hasClass('trigger-change-order-user')) {
                     $(ui.sender).sortable('cancel');
+                    x('over first')
+                    if ($(ui.sender).find('.trigger-change-order-status').length > 0 || $(ui.sender).find('.trigger-add-task').length > 0 || $(ui.sender).find('.trigger-change-order-user').length > 0) {
+                        if ($(ui.sender).find('.opener').length > 0) {
+                            $(ui.sender).find('.opener').remove();
+                        }
+                    }
                 }
 
                 if ($(ui.item).hasClass('trigger-change-order-status')) {
@@ -1520,11 +1526,17 @@
 
                     if (thisClass != $this.attr('data-uniqueclass')) {
                         $(ui.sender).sortable('cancel');
+                        x('over second')
+                        if ($(ui.sender).find('.trigger-change-order-status').length > 0 || $(ui.sender).find('.trigger-add-task').length > 0 || $(ui.sender).find('.trigger-change-order-user').length > 0) {
+                        if ($(ui.sender).find('.opener').length > 0) {
+                            $(ui.sender).find('.opener').remove();
+                        }
+                    }
                     }
                 }
             },
             receive: function(event, ui) {
-                
+                x('receive')
                 if ($(ui.item).next().hasClass('opener')) {
                     $(ui.item).next().remove()
                 } else if ($(ui.item).prev().hasClass('opener')) {
@@ -1583,6 +1595,9 @@
                         } else if (taskType == '2') {
                             $(ui.item).find('.trigger-saver-input-next-status').attr('name', `${prefix}[${thisStatus}][${index}][nextstatus]`);
                             $(ui.item).find('.trigger-saver-input-next-status').val($(ui.item).find('.trigger-saver-input-next-status').val());
+                        } else if (taskType == '3') {
+                            $(ui.item).find('.trigger-saver-input-user').attr('name', `${prefix}[${thisStatus}][${index}][user]`);
+                            $(ui.item).find('.trigger-saver-input-user').val($(ui.item).find('.trigger-saver-input-user').val());
                         }
                         
                     }
