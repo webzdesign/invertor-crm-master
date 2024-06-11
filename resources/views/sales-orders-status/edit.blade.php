@@ -2,6 +2,7 @@
 
 @section('css')
 <link rel="stylesheet" href="{{ asset('assets/css/automate.css') . '?v=' . time() }}">
+<link rel="stylesheet" href="{{ asset('assets/css/toastr.min.css') }}">
 @endsection
 
 @section('content')
@@ -268,7 +269,27 @@
 @endsection
 
 @section('script')
+<script src="{{ asset('assets/js/toastr.min.js') }}"></script>
 <script>
+
+    toastr.options = {
+        "closeButton": false,
+        "debug": false,
+        "newestOnTop": false,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "5000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    }
+
     let deletePermission = '';
     let addPermission = false;
     let isChanging = false;
@@ -1503,6 +1524,8 @@
             return `${type}`;
         }
 
+        let dragDropMessageError = true;
+
         $(".drag-area").sortable({
             connectWith: ".drag-area",
             handle: ".portlet-header",
@@ -1526,6 +1549,14 @@
                     let statusContainer = $(ui.item).parent().parent();
 
                     $('.layover-container').not(statusContainer).addClass('dragOverlay');
+
+                    if (dragDropMessageError) {
+                        toastr["error"]("Can't move this trigger to another status. because new status might not have the next possible status")
+                        dragDropMessageError = !dragDropMessageError;
+                    } else {
+                        dragDropMessageError = !dragDropMessageError;
+                    }
+
 
                         if (thisClass != $this.attr('data-uniqueclass')) {
                             $(ui.sender).sortable('cancel');
