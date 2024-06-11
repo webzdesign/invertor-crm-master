@@ -89,7 +89,11 @@
 
                     [ @if(is_null($o->updated_by))
                         @if(!$o->executed)
+                            @if(!$o->skipped)
                             <strong style="text-transform: uppercase;color:#009688;" title="to be triggered"> PENDING </strong>
+                            @else
+                            <strong style="text-transform: uppercase;color:#963900;" title="skipped"> SKIPPED </strong>
+                            @endif
                         @else
                             <strong style="text-transform: uppercase;color:green;" title="Done"> DONE </strong>
                         @endif
@@ -146,7 +150,11 @@
 
                              [ @if(is_null($o->updated_by))
                                 @if(!$o->executed)
+                                    @if(!$o->skipped)
                                     <strong style="text-transform: uppercase;color:#009688;" title="to be triggered"> PENDING </strong>
+                                    @else
+                                    <strong style="text-transform: uppercase;color:#963900;" title="skipped"> SKIPPED </strong>
+                                    @endif
                                 @else
                                     <strong style="text-transform: uppercase;color:green;" title="Done"> DONE </strong>
                                 @endif
@@ -223,7 +231,11 @@
 
                     [ @if(is_null($o->updated_by))
                         @if(!$o->executed)
+                            @if(!$o->skipped)
                             <strong style="text-transform: uppercase;color:#009688;" title="to be triggered"> PENDING </strong>
+                            @else
+                            <strong style="text-transform: uppercase;color:#963900;" title="skipped"> SKIPPED </strong>
+                            @endif
                         @else
                             <strong style="text-transform: uppercase;color:green;" title="Done"> DONE </strong>
                         @endif

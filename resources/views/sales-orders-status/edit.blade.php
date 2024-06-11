@@ -1511,16 +1511,16 @@
             over: function(event, ui) {
                 var $this = $(this);
 
+                if ($this.children().hasClass('trigger-add-task') || $this.children().hasClass('trigger-change-order-status') || $this.children().hasClass('trigger-change-order-user')) {
+                    $(ui.sender).sortable('cancel');
+                }
+
                 if ($(ui.item).hasClass('trigger-change-order-status')) {
                     let thisClass = $(ui.item).parent().attr('data-uniqueclass');
 
                     if (thisClass != $this.attr('data-uniqueclass')) {
                         $(ui.sender).sortable('cancel');
                     }
-                }
-
-                if ($this.children().hasClass('trigger-add-task') || $this.children().hasClass('trigger-change-order-status') || $this.children().hasClass('trigger-change-order-user')) {
-                    $(ui.sender).sortable('cancel');
                 }
             },
             receive: function(event, ui) {
