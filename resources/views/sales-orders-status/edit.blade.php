@@ -20,6 +20,7 @@
 
     @php $iteration = 0;  @endphp
     @forelse($statuses as $key => $status)
+    @php $uniqueClass = "class-" . str()->random(9);  @endphp
     <div class="card border-0 card-row card-secondary parent-card border-left-1p-solid-grey @if($status->id == '1') disable-sorting @endif " data-mainstatus="{{ $status->id }}">
         @php $tempColor = !empty($status->color) ? $status->color : (isset($colours[$key]) ? $colours[$key] : (isset($colours[$iteration]) ? $colours[$iteration] : ($iteration = 0 and $colours[0] ? $colours[$iteration] : '#99ccff' )));  @endphp
         <input type="hidden" name="sequence[]" value="{{ $status->id }}" @if($status->id == '1') disabled @endif>
@@ -63,7 +64,7 @@
                 $trigger = Trigger::with(['nextstatus', 'currentstatus', 'user.roles'])->where('status_id', $status->id)->orderBy('sequence', 'ASC')->get()->keyBy('sequence')->toArray();
             @endphp
             @for($i = 0; $i < $maxTriggers; $i++)
-                <div class="cardDrag drag-area">
+                <div class="cardDrag drag-area {{ $uniqueClass }}" data-uniqueclass="{{ $uniqueClass }}">
                     @if(isset($trigger[$i]))
                     <div class="card-body text-center custom-p portlet cursor-pointer min-max-height @if($trigger[$i]['type'] == 1) bg-light-green trigger-add-task @elseif($trigger[$i]['type'] == 2) bg-light-grey trigger-change-order-status @elseif($trigger[$i]['type'] == 3) bg-light-grey trigger-change-order-user @endif   "  data-title="{{ $status->name }}"  data-sid="{{ $status->id }}" data-triggerid="{{ $trigger[$i]['id'] }}" 
                         @if($trigger[$i]['type'] == 1)
@@ -1509,7 +1510,16 @@
             placeholder: "portlet-placeholder ui-corner-all",
             over: function(event, ui) {
                 var $this = $(this);
-                if ($this.children().length > 1) {
+
+                if ($(ui.item).hasClass('trigger-change-order-status')) {
+                    let thisClass = $(ui.item).parent().attr('data-uniqueclass');
+
+                    if (thisClass != $this.attr('data-uniqueclass')) {
+                        $(ui.sender).sortable('cancel');
+                    }
+                }
+
+                if ($this.children().hasClass('trigger-add-task') || $this.children().hasClass('trigger-change-order-status') || $this.children().hasClass('trigger-change-order-user')) {
                     $(ui.sender).sortable('cancel');
                 }
             },
@@ -1541,6 +1551,8 @@
                         <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="${$(ui.item).attr('data-title')}"  data-sid="${$(ui.item).attr('data-sid')}">
                             <i class="fa fa-plus-circle"></i> Add trigger
                         </div>`;
+                        
+                        $(ui.sender).html(triggerBtn)
 
                         $(ui.item).find('.trigger-saver-input').attr('name', `${prefix}[${thisStatus}][${index}][status]`);
                         $(ui.item).find('.trigger-saver-input').val(thisStatus);
