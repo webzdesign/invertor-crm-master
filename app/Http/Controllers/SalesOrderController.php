@@ -437,7 +437,7 @@ class SalesOrderController extends Controller
             
                                 foreach ($triggers->get() as $t) {
             
-                                    $currentTime1 = date('Y-m-d H:i:s', strtotime("{$currentTime1} {$t->time}"));
+                                    $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
                                     
                                     $record = AddTaskToOrderTrigger::create([
                                         'order_id' => $soId,
@@ -477,7 +477,7 @@ class SalesOrderController extends Controller
             
                                 foreach ($triggers->get() as $t) {
             
-                                    $currentTime1 = date('Y-m-d H:i:s', strtotime("{$currentTime1} {$t->time}"));
+                                    $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
                                     
                                     $record = ChangeOrderUser::create([
                                         'order_id' => $soId,
@@ -517,7 +517,7 @@ class SalesOrderController extends Controller
                             if ($triggers->count() > 0) {
                                 foreach ($triggers->get() as $t) {
             
-                                    $currentTime = date('Y-m-d H:i:s', strtotime("{$currentTime} {$t->time}"));
+                                    $currentTime = date('Y-m-d H:i:s', strtotime("{$t->time}"));
             
                                     $record = ChangeOrderStatusTrigger::create([
                                         'order_id' => $soId,

@@ -42,21 +42,27 @@ class StatusTrigger extends Command
 
             if (isset($thisOrder->order_id)) {
 
-                // AddTaskToOrderTrigger::where('status_id', $thisOrder->current_status_id)->where('executed_at', '>', date('Y-m-d H:i:s'))->where('executed', 0)->update(['executed_at' => null]);
-                // ChangeOrderUser::where('status_id', $thisOrder->current_status_id)->where('executed_at', '>', date('Y-m-d H:i:s'))->where('executed', 0)->update(['executed_at' => null]);
-                // ChangeOrderStatusTrigger::where('status_id', $thisOrder->current_status_id)->where('executed_at', '>', date('Y-m-d H:i:s'))->where('executed', 0)->update(['executed_at' => null]);
+                AddTaskToOrderTrigger::where('status_id', $thisOrder->current_status_id)->where('executed_at', '>', date('Y-m-d H:i:s'))->where('executed', 0)->update(['executed_at' => null]);
+                ChangeOrderUser::where('status_id', $thisOrder->current_status_id)->where('executed_at', '>', date('Y-m-d H:i:s'))->where('executed', 0)->update(['executed_at' => null]);
+                ChangeOrderStatusTrigger::where('status_id', $thisOrder->current_status_id)->where('executed_at', '>', date('Y-m-d H:i:s'))->where('executed', 0)->update(['executed_at' => null]);
 
-                // if (AddTaskToOrderTrigger::where('current_status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->exists()) {
-                //     AddTaskToOrderTrigger::where('current_status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->update(['executed_at' => date('Y-m-d H:i:s')]);
-                // }
+                if (AddTaskToOrderTrigger::where('current_status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->exists()) {
+                    foreach (AddTaskToOrderTrigger::where('current_status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->get() as $iterator) {
+                        AddTaskToOrderTrigger::where('id', $iterator->id)->update(['executed_at' => date('Y-m-d H:i:s', strtotime($iterator->time))]);
+                    }
+                }
 
-                // if (ChangeOrderUser::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->exists()) {
-                //     ChangeOrderUser::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->update(['executed_at' => date('Y-m-d H:i:s')]);
-                // }
+                if (ChangeOrderUser::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->exists()) {
+                    foreach (ChangeOrderUser::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->get() as $iterator) {
+                        ChangeOrderUser::where('id', $iterator->id)->update(['executed_at' => date('Y-m-d H:i:s', strtotime($iterator->time))]);
+                    }
+                }
 
-                // if (ChangeOrderStatusTrigger::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->exists()) {
-                //     ChangeOrderStatusTrigger::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->update(['executed_at' => date('Y-m-d H:i:s')]);
-                // }
+                if (ChangeOrderStatusTrigger::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->exists()) {
+                    foreach (ChangeOrderStatusTrigger::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->get() as $iterator) {
+                        ChangeOrderStatusTrigger::where('id', $iterator->id)->update(['executed_at' => date('Y-m-d H:i:s', strtotime($iterator->time))]);
+                    }
+                }
 
                 event(new \App\Events\OrderStatusEvent('order-status-change', [
                     'orderId' => $thisOrder->order_id,
@@ -82,7 +88,7 @@ class StatusTrigger extends Command
 
                     foreach ($triggers->get() as $t) {
 
-                        $currentTime1 = date('Y-m-d H:i:s', strtotime("{$currentTime1} {$t->time}"));
+                        $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
                         
                         $record = AddTaskToOrderTrigger::create([
                             'order_id' => $thisOrder->order_id,
@@ -124,7 +130,7 @@ class StatusTrigger extends Command
 
                     foreach ($triggers->get() as $t) {
 
-                        $currentTime1 = date('Y-m-d H:i:s', strtotime("{$currentTime1} {$t->time}"));
+                        $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
                         
                         $record = ChangeOrderUser::create([
                             'order_id' => $thisOrder->order_id,
@@ -166,7 +172,7 @@ class StatusTrigger extends Command
     
                 foreach ($newTrigger as $t) {
     
-                    $currentTime1 = date('Y-m-d H:i:s', strtotime("{$currentTime1} {$t->time}"));
+                    $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
     
                     $record = ChangeOrderStatusTrigger::create([
                         'order_id' => $thisOrder->order_id,

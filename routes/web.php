@@ -174,6 +174,7 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('sales-order-responsible-user', [SalesOrderStatusController::class, 'salesOrderResponsibleUser'])->name('sales-order-responsible-user');
         Route::post('sales-order-responsible-user-save', [SalesOrderStatusController::class, 'salesOrderResponsibleUserSave'])->name('sales-order-responsible-user-save');
         Route::post('get-trigger-tasks', [SalesOrderStatusController::class, 'getTriggerTasks'])->name('get-trigger-tasks');
+        Route::delete('delete-status', [SalesOrderStatusController::class, 'deleteStatus'])->name('delete-status');
         /** Sales Order Status **/
 
         /** Common **/

@@ -71,14 +71,14 @@ class SalesOrderStatusController extends Controller
 
                     if (!is_null($value)) {
                         SalesOrderStatus::where('id', $value)->update([
-                            'name' => $names[$key],
+                            'name' => strtoupper($names[$key]),
                             'slug' => Helper::slug($names[$key]),
                             'color' => isset($colors[$key]) ? $colors[$key] : '#bfbfbf',
                             'sequence' => $key + 1
                         ]);
                     } else {
                         SalesOrderStatus::create([
-                            'name' => $names[$key],
+                            'name' => strtoupper($names[$key]),
                             'slug' => Helper::slug($names[$key]),
                             'color' => isset($colors[$key]) ? $colors[$key] : '#bfbfbf',
                             'sequence' => $key + 1
@@ -249,7 +249,7 @@ class SalesOrderStatusController extends Controller
 
         $oldStatus = SalesOrder::where('id', $request->order)->select('status')->first()->status;
 
-        if (SalesOrder::where('id', $request->order)->update(['status' => $request->status]) && isset($oldStatus)) {
+        if (SalesOrder::where('id', $request->order)->update(['status' => $request->status, 'responsible_user' => null]) && isset($oldStatus)) {
 
             event(new \App\Events\OrderStatusEvent('order-status-change', [
                 'orderId' => $request->order,
@@ -274,7 +274,7 @@ class SalesOrderStatusController extends Controller
 
                     foreach ($triggers->get() as $t) {
 
-                        $currentTime1 = date('Y-m-d H:i:s', strtotime("{$currentTime1} {$t->time}"));
+                        $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
                         
                         $record = AddTaskToOrderTrigger::create([
                             'order_id' => $request->order,
@@ -314,7 +314,7 @@ class SalesOrderStatusController extends Controller
 
                     foreach ($triggers->get() as $t) {
 
-                        $currentTime1 = date('Y-m-d H:i:s', strtotime("{$currentTime1} {$t->time}"));
+                        $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
                         
                         $record = ChangeOrderUser::create([
                             'order_id' => $request->order,
@@ -354,7 +354,7 @@ class SalesOrderStatusController extends Controller
                 if ($triggers->count() > 0) {
                     foreach ($triggers->get() as $t) {
 
-                        $currentTime = date('Y-m-d H:i:s', strtotime("{$currentTime} {$t->time}"));
+                        $currentTime = date('Y-m-d H:i:s', strtotime("{$t->time}"));
 
                         $record = ChangeOrderStatusTrigger::create([
                             'order_id' => $request->order,
@@ -583,12 +583,8 @@ class SalesOrderStatusController extends Controller
         DB::beginTransaction();
 
         try {
-            ManageStatus::where('status_id', $request->id)->forceDelete();
-            ManageStatus::create([
-                'status_id' => $request->id,
-                'possible_status' => !is_null($request->mstatus) ? implode(',', array_filter($request->mstatus)) : ''
-            ]);
-
+            ManageStatus::updateOrCreate(['status_id' => $request->id], ['possible_status' => !is_null($request->mstatus) ? implode(',', array_filter($request->mstatus)) : '']);
+            
             DB::commit();
             return response()->json(['status' => true, 'messages' => 'Status data saved successfully.']);
 
@@ -906,5 +902,166 @@ class SalesOrderStatusController extends Controller
         }
 
         return response()->json(['status' => false, 'message' => 'No trigger found.']);
+    }
+
+    public function deleteStatus(Request $request) {
+        $status = SalesOrderStatus::where('id', $request->id);
+
+        if ($status->exists()) {
+
+            DB::beginTransaction();
+            $status = $status->first()->id ?? null;
+
+            try {
+                AddTaskToOrderTrigger::where('status_id', $status)->delete();
+                ChangeOrderStatusTrigger::where('status_id', $status)->delete();
+                ChangeOrderUser::where('status_id', $status)->delete();
+                Trigger::where('status_id', $status)->whereIn('type', [1, 3])->delete();
+                Trigger::where('next_status_id', $status)->where('type', [2])->delete();
+                ManageStatus::where('status_id', $status)->delete();
+                SalesOrderStatus::where('id', $status)->delete();
+
+                $allSalesOrders = SalesOrder::where('status', $status)->select('id')->pluck('id')->toArray();
+                SalesOrder::where('status', $status)->update(['status' => 1]);
+
+
+                foreach ($allSalesOrders as $soId) {
+
+                    /** TRIGGERS **/
+
+                    $oldStatus = SalesOrder::where('id', $soId)->select('status')->first()->status;
+
+                    $newStatus = Trigger::where('status_id', 1)->where('type', 2)
+                    ->whereIn('action_type', [1, 3])->first()->next_status_id ?? 0;
+        
+                    /** TASKS **/
+                    $currentTime1 = date('Y-m-d H:i:s');
+                    $y = [];
+        
+                    try {
+        
+                        $triggers = Trigger::where('type', 1)->where('status_id', 1)->whereIn('action_type', [1, 3]);
+                        if ($triggers->count() > 0) {
+        
+                            foreach ($triggers->get() as $t) {
+        
+                                $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
+                                
+                                $record = AddTaskToOrderTrigger::create([
+                                    'order_id' => $soId,
+                                    'status_id' => 1,
+                                    'added_by' => auth()->user()->id,
+                                    'time' => $t->time,
+                                    'type' => $t->time_type,
+                                    'main_type' => 2,
+                                    'description' => $t->task_description,
+                                    'current_status_id' => $oldStatus,
+                                    'executed_at' => $currentTime1,
+                                    'trigger_id' => $t->id
+                                ]);
+        
+                                if ($t->time_type == 1) {
+                                    $y[] = $record->id;
+                                }
+                            }
+                        }
+        
+                        (new \App\Console\Commands\TaskTrigger)->handle($y);
+        
+                    } catch (\Exception $e) {
+                        Helper::logger($e->getMessage());
+                    }
+        
+                    /** TASKS **/
+
+                    /** Change User **/
+                    $currentTime1 = date('Y-m-d H:i:s');
+                    $y = [];
+        
+                    try {
+        
+                        $triggers = Trigger::where('type', 3)->where('status_id', 1)->whereIn('action_type', [1, 3]);
+                        if ($triggers->count() > 0) {
+        
+                            foreach ($triggers->get() as $t) {
+        
+                                $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
+                                
+                                $record = ChangeOrderUser::create([
+                                    'order_id' => $soId,
+                                    'status_id' => 1,
+                                    'added_by' => auth()->user()->id,
+                                    'time' => $t->time,
+                                    'type' => $t->time_type,
+                                    'main_type' => 3,
+                                    'user_id' => $t->user_id,
+                                    'current_status_id' => $oldStatus,
+                                    'executed_at' => $currentTime1,
+                                    'trigger_id' => $t->id
+                                ]);
+        
+                                if ($t->time_type == 1) {
+                                    $y[] = $record->id;
+                                }
+                            }
+                        }
+        
+                        (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($y);
+        
+                    } catch (\Exception $e) {
+                        Helper::logger($e->getMessage());
+                    }
+        
+                    /** Change User **/
+        
+        
+                    /** Change order status **/
+                    $currentTime = date('Y-m-d H:i:s');
+                    $x = [];
+        
+                    try {
+        
+                        $triggers = Trigger::where('type', 2)->where('status_id', 1)->whereIn('action_type', [1, 3]);
+                        if ($triggers->count() > 0) {
+                            foreach ($triggers->get() as $t) {
+        
+                                $currentTime = date('Y-m-d H:i:s', strtotime("{$t->time}"));
+        
+                                $record = ChangeOrderStatusTrigger::create([
+                                    'order_id' => $soId,
+                                    'status_id' => $newStatus,
+                                    'added_by' => auth()->user()->id,
+                                    'time' => $t->time,
+                                    'type' => $t->time_type,
+                                    'current_status_id' => 1,
+                                    'executed_at' => $currentTime,
+                                    'trigger_id' => $t->id
+                                ]);
+                                
+                                if ($t->time_type == 1) {
+                                    $x[] = $record->id;
+                                }
+                            }
+                        }
+        
+                        (new \App\Console\Commands\StatusTrigger)->handle($x);
+        
+                    } catch (\Exception $e) {
+                        Helper::logger($e->getMessage());
+                    }
+                    /** Change order status **/
+
+                }
+
+                DB::commit();
+                return response()->json(['status' => true, 'message' => "Status deleted successfully."]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+            }
+
+        }
+
+        return response()->json(['status' => false, 'message' => "Status not found."]);
     }
 }

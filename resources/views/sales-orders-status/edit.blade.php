@@ -46,7 +46,7 @@
                     <span class="me-2">
                         @if($status->id != '1')
                         @permission("sales-order-status.delete")
-                        <i class="fa fa fa-trash delete-main-status-card"></i>
+                        <i class="fa fa fa-trash delete-main-status-card" data-sid="{{ $status->id }}" data-name="{{ $status->name }}"></i>
                         @endpermission
                         @endif
                     </span>
@@ -2347,9 +2347,71 @@
             $(this).parent().parent().parent().find('.sticky-add-icon').attr('data-color', $(this).val());
         });
 
+        $(document).on('keyup', '.title-of-card', function () {
+            let thisTitle = $(this).val();
+            $(this).next().find('.delete-main-status-card').attr('data-name', thisTitle);
+        });
+
         $(document).on('click', '.delete-main-status-card', function () {
-            $(this).parent().parent().attr('style', 'display:none!important;');
-            Swal.fire('', 'This functionality is in development.', 'info');            
+            let element = this;
+            let thisStatus = $(this).attr('data-sid');
+            let statusName = $(this).attr('data-name').toUpperCase();
+
+            if (isNumeric(thisStatus)) {
+
+                Swal.fire({
+                    title: 'Are you sure want to delete?',
+                    text: `The status «${statusName}» will be deleted and all orders in this status will be moved to the «NEW» status, and all automations will be deleted.`,
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.value) {
+                        $.ajax({
+                            url: "{{ route('delete-status') }}",
+                            type: "POST",
+                            data: {
+                                id: thisStatus,
+                                _method: 'DELETE'
+                            },
+                            beforeSend: function() {
+                                $('body').find('.LoaderSec').removeClass('d-none');
+                            },
+                            success: function (response) {
+                                if (response.status) {
+                                    $(element).closest('.parent-card').remove();
+                                    Swal.fire('', 'Status deleted successfully.', 'success');
+                                }
+                            },
+                            complete: function () {
+                                $('body').find('.LoaderSec').addClass('d-none');
+                            }
+                        });
+                    }
+                });
+
+
+            } else {
+
+                Swal.fire({
+                    title: 'Are you sure want to delete?',
+                    text: `The status «${statusName}» will be deleted.`,
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.value) {
+                        $(element).closest('.parent-card').remove();
+                        Swal.fire('', 'Status deleted successfully.', 'success');
+                    }
+                });
+
+            }
+
         })
 
     });
