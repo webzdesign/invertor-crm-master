@@ -12,7 +12,7 @@ class PaymentForDeliveryController extends Controller
     public function index(Request $request) {
         if ($request->method() == 'GET') {
             $moduleName = 'Payment for Delivery';
-            $payments = PaymentForDelivery::select('driver_id', 'distance', 'payment')->whereNotNull('driver_id')->get();
+            $payments = PaymentForDelivery::select('id', 'driver_id', 'distance', 'payment')->whereNotNull('driver_id')->get();
             $payment = PaymentForDelivery::select('distance', 'payment')->whereNull('driver_id')->first();
 
             $drivers = User::whereHas('role', function ($builder) {
@@ -56,9 +56,11 @@ class PaymentForDeliveryController extends Controller
                     }
                 }
 
-                PaymentForDelivery::query()->delete();
+                $toBeEdited = is_array($request->edit_id) && !empty($request->edit_id) ? array_values($request->edit_id) : [];
 
-                PaymentForDelivery::create([
+                PaymentForDelivery::whereNotNull('driver_id')->whereNotIn('id', $toBeEdited)->delete();
+
+                PaymentForDelivery::whereNull('driver_id')->update([
                     'added_by' => auth()->user()->id,
                     'distance' => $request->distance,
                     'payment' => $request->payment
@@ -66,12 +68,23 @@ class PaymentForDeliveryController extends Controller
 
                 if (is_array($drivers) && count($drivers) > 0) {
                     foreach ($drivers as $k => $driver) {
-                        PaymentForDelivery::create([
-                            'driver_id' => $driver,
-                            'added_by' => auth()->user()->id,
-                            'distance' => $request->mdistance[$k],
-                            'payment' => $request->mpayment[$k]
-                        ]);
+
+                        if (isset($request->edit_id[$k])) {
+                            PaymentForDelivery::where('id', $request->edit_id[$k])->update([
+                                'driver_id' => $driver,
+                                'added_by' => auth()->user()->id,
+                                'distance' => $request->mdistance[$k],
+                                'payment' => $request->mpayment[$k]
+                            ]);                            
+                        } else {
+                            PaymentForDelivery::create([
+                                'driver_id' => $driver,
+                                'added_by' => auth()->user()->id,
+                                'distance' => $request->mdistance[$k],
+                                'payment' => $request->mpayment[$k]
+                            ]);
+                        }
+
                     }
                 } 
 

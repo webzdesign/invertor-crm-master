@@ -318,35 +318,63 @@ class PurchaseOrderController extends Controller
                 $po->date = now();
                 $po->save();
 
-                $poItems = [];
-                $poItemForStock = [];
+                $poItems = $poItemForStock = [];
 
-                PurchaseOrderItem::where('po_id', $id)->delete();
+                $editableItems = is_array($request->edit_id) && !empty($request->edit_id) ? array_values($request->edit_id) : [];
+
+                PurchaseOrderItem::where('po_id', $id)->whereNotIn('id', $editableItems)->delete();
                 Stock::where('type', '0')->where('form', '1')->where('form_record_id', $id)->delete();
 
                 foreach ($request->product as $key => $product) {
-                    $poItems[] = [
-                        'po_id' => $id,
-                        'category_id' => $request->category[$key] ?? '',
-                        'product_id' => $product,
-                        'price' => floatval($request->price[$key]) ?? 0,
-                        'qty' => intval($request->quantity[$key]) ?? 0,
-                        'amount' => floatval($request->amount[$key]) ?? 0,
-                        'remarks' => $request->remarks[$key] ?? '',
-                        'added_by' => $userId,
-                        'created_at' => now()
-                    ];
 
-                    $poItemForStock[] = [
-                        'product_id' => $product,
-                        'type' => 0,
-                        'date' => now(),
-                        'qty' => intval($request->quantity[$key]) ?? 0,
-                        'added_by' => $userId,
-                        'form' => 1,
-                        'form_record_id' => $id,
-                        'created_at' => now()
-                    ];
+                    if (isset($request->edit_id[$key])) {
+
+                        PurchaseOrderItem::where('id', $request->edit_id[$key])->update([
+                            'po_id' => $id,
+                            'category_id' => $request->category[$key] ?? '',
+                            'product_id' => $product,
+                            'price' => floatval($request->price[$key]) ?? 0,
+                            'qty' => intval($request->quantity[$key]) ?? 0,
+                            'amount' => floatval($request->amount[$key]) ?? 0,
+                            'remarks' => $request->remarks[$key] ?? '',
+                            'updated_by' => $userId,
+                        ]);
+
+                        Stock::create([
+                            'product_id' => $product,
+                            'type' => 0,
+                            'date' => now(),
+                            'qty' => intval($request->quantity[$key]) ?? 0,
+                            'added_by' => $userId,
+                            'form' => 1,
+                            'form_record_id' => $id,
+                            'created_at' => now()
+                        ]);
+
+                    } else {
+                        $poItems[] = [
+                            'po_id' => $id,
+                            'category_id' => $request->category[$key] ?? '',
+                            'product_id' => $product,
+                            'price' => floatval($request->price[$key]) ?? 0,
+                            'qty' => intval($request->quantity[$key]) ?? 0,
+                            'amount' => floatval($request->amount[$key]) ?? 0,
+                            'remarks' => $request->remarks[$key] ?? '',
+                            'added_by' => $userId,
+                            'created_at' => now()
+                        ];
+
+                        $poItemForStock[] = [
+                            'product_id' => $product,
+                            'type' => 0,
+                            'date' => now(),
+                            'qty' => intval($request->quantity[$key]) ?? 0,
+                            'added_by' => $userId,
+                            'form' => 1,
+                            'form_record_id' => $id,
+                            'created_at' => now()
+                        ];
+                    }
                 }
 
                 PurchaseOrderItem::insert($poItems);

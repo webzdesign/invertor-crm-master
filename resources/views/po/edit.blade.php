@@ -132,6 +132,7 @@
 
                                                 <td >
                                                     <div style="min-width: 200px;">
+                                                        <input type="hidden" data-indexid="{{ $key }}" value="{{ $item->id }}" name="edit_id[{{ $key }}]" id="edit_id-{{ $key }}" class="form-control edit_id">
                                                         <input type="number" data-indexid="{{ $key }}" value="{{ $item->qty }}" name="quantity[{{ $key }}]" id="quantity-{{ $key }}" class="form-control m-quantity" style="background:#ffffff" min='1'>
                                                     </div>
                                                 </td>

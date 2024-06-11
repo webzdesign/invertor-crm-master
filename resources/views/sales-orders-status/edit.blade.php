@@ -59,7 +59,7 @@
 
             </div>
         </div>
-        <div class="card-body" style="padding: 0;" data-thisstatus="{{ $status->id }}">
+        <div class="card-body layover-container" style="padding: 0;" data-thisstatus="{{ $status->id }}">
             @php
                 $trigger = Trigger::with(['nextstatus', 'currentstatus', 'user.roles'])->where('status_id', $status->id)->orderBy('sequence', 'ASC')->get()->keyBy('sequence')->toArray();
             @endphp
@@ -1513,7 +1513,7 @@
 
                 if ($this.children().hasClass('trigger-add-task') || $this.children().hasClass('trigger-change-order-status') || $this.children().hasClass('trigger-change-order-user')) {
                     $(ui.sender).sortable('cancel');
-                    x('over first')
+                    $('.layover-container').removeClass('dragOverlay');
                     if ($(ui.sender).find('.trigger-change-order-status').length > 0 || $(ui.sender).find('.trigger-add-task').length > 0 || $(ui.sender).find('.trigger-change-order-user').length > 0) {
                         if ($(ui.sender).find('.opener').length > 0) {
                             $(ui.sender).find('.opener').remove();
@@ -1523,20 +1523,23 @@
 
                 if ($(ui.item).hasClass('trigger-change-order-status')) {
                     let thisClass = $(ui.item).parent().attr('data-uniqueclass');
+                    let statusContainer = $(ui.item).parent().parent();
 
-                    if (thisClass != $this.attr('data-uniqueclass')) {
-                        $(ui.sender).sortable('cancel');
-                        x('over second')
-                        if ($(ui.sender).find('.trigger-change-order-status').length > 0 || $(ui.sender).find('.trigger-add-task').length > 0 || $(ui.sender).find('.trigger-change-order-user').length > 0) {
-                        if ($(ui.sender).find('.opener').length > 0) {
-                            $(ui.sender).find('.opener').remove();
+                    $('.layover-container').not(statusContainer).addClass('dragOverlay');
+
+                        if (thisClass != $this.attr('data-uniqueclass')) {
+                            $(ui.sender).sortable('cancel');
+                            $('.layover-container').removeClass('dragOverlay');
+                            if ($(ui.sender).find('.trigger-change-order-status').length > 0 || $(ui.sender).find('.trigger-add-task').length > 0 || $(ui.sender).find('.trigger-change-order-user').length > 0) {
+                            if ($(ui.sender).find('.opener').length > 0) {
+                                $(ui.sender).find('.opener').remove();
+                            }
                         }
-                    }
                     }
                 }
             },
             receive: function(event, ui) {
-                x('receive')
+
                 if ($(ui.item).next().hasClass('opener')) {
                     $(ui.item).next().remove()
                 } else if ($(ui.item).prev().hasClass('opener')) {
@@ -1602,6 +1605,11 @@
                         
                     }
                 }
+                
+                $('.layover-container').removeClass('dragOverlay');
+            },
+            deactivate: function (event, ui) {
+                $('.layover-container').removeClass('dragOverlay');
             }
         });
 

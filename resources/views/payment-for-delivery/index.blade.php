@@ -70,6 +70,7 @@
                 
                                         <td class="block-b">
                                             <div style="min-width: 200px;width: 100%" class="removable-product">
+                                                <input type="hidden" data-indexid="{{ $key }}" value="{{ $value->id }}" name="edit_id[{{ $key }}]" id="edit_id-{{ $key }}" class="form-control edit_id">
                                                 <input type="text" data-indexid="{{ $key }}" name="mdistance[{{ $key }}]" id="m-distance-{{ $key }}" class="form-control m-distance" style="background:#ffffff" value="{{ $value->distance }}" placeholder="Enter payment for distance">
                                             </div>
                                         </td>
