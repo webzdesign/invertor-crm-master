@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sales_orders', function (Blueprint $table) {
-            $table->dropForeign(['responsible_user']);
             $table->string('responsible_user')->nullable()->after('user_id')->change();
         });
     }
