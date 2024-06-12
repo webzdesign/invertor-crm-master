@@ -1407,12 +1407,6 @@
                                 <input type="hidden" data-type="2" class="trigger-saver-input-sequence" name="statuschange[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][sequence]" value="${$(triggerBlock).parent().index()}" />
                                 </div> `;
 
-                            $(triggerBlock).attr('data-cs-statusid', formData.clstatus);
-                            $(triggerBlock).attr('data-cs-nextstatusid', formData.clstatus);
-                            $(triggerBlock).attr('data-cs-timetype', formData.cltime);
-                            $(triggerBlock).attr('data-cs-hour', formData.change_stage_hour);
-                            $(triggerBlock).attr('data-cs-minute', formData.change_stage_minute);
-                            $(triggerBlock).attr('data-cs-actiontype', formData.cltype);
 
                             let statusName = 'status';
                             let statusColor = '#000';
@@ -1425,6 +1419,15 @@
                                     }                                
                                 });
                             }
+
+                            $(triggerBlock).attr('data-cs-statusid', formData.clstatus);
+                            $(triggerBlock).attr('data-cs-nextstatusid', formData.clstatus);
+                            $(triggerBlock).attr('data-cs-timetype', formData.cltime);
+                            $(triggerBlock).attr('data-cs-hour', formData.change_stage_hour);
+                            $(triggerBlock).attr('data-cs-minute', formData.change_stage_minute);
+                            $(triggerBlock).attr('data-cs-actiontype', formData.cltype);
+                            $(triggerBlock).attr('data-cs-status-bg', statusColor);
+                            $(triggerBlock).attr('data-cs-status-text', statusName);
 
                             $(triggerBlock).removeClass('opener');
                             $(triggerBlock).removeClass('justify-content-center');

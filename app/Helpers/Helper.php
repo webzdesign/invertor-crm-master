@@ -310,4 +310,32 @@ class Helper {
 
         return ($yiq >= 128) ? '#000' : '#fff';
     }
+
+    public static function getStrToTime($date1, $date2) {
+        $diffString = '+0 seconds';
+
+        $date1 = new \DateTime($date1);
+        $date2 = new \DateTime($date2);
+
+        if ($date1 < $date2) {
+            $diff = $date1->diff($date2);
+
+            if ($diff->days > 0) {
+                $diffString .= '+' . $diff->days . ' days ';
+            }
+            if ($diff->h > 0) {
+                $diffString .= '+' . $diff->h . ' hours ';
+            }
+            if ($diff->i > 0) {
+                $diffString .= '+' . $diff->i . ' minutes ';
+            }
+            if ($diff->s > 0) {
+                $diffString .= '+' . $diff->s . ' seconds ';
+            }
+            
+            $diffString = trim($diffString);
+        }
+
+        return $diffString;
+    }
 }

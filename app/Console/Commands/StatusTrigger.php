@@ -48,19 +48,22 @@ class StatusTrigger extends Command
 
                 if (AddTaskToOrderTrigger::where('current_status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->exists()) {
                     foreach (AddTaskToOrderTrigger::where('current_status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->get() as $iterator) {
-                        AddTaskToOrderTrigger::where('id', $iterator->id)->update(['executed_at' => date('Y-m-d H:i:s', strtotime($iterator->time)), 'skipped' => false]);
+                        $strtotime = Helper::getStrToTime(date('Y-m-d H:i:s'), $iterator->executed_at);
+                        AddTaskToOrderTrigger::where('id', $iterator->id)->update(['executed_at' => date('Y-m-d H:i:s', strtotime($strtotime)), 'skipped' => false]);
                     }
                 }
 
                 if (ChangeOrderUser::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->exists()) {
                     foreach (ChangeOrderUser::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->get() as $iterator) {
-                        ChangeOrderUser::where('id', $iterator->id)->update(['executed_at' => date('Y-m-d H:i:s', strtotime($iterator->time)), 'skipped' => false]);
+                        $strtotime = Helper::getStrToTime(date('Y-m-d H:i:s'), $iterator->executed_at);
+                        ChangeOrderUser::where('id', $iterator->id)->update(['executed_at' => date('Y-m-d H:i:s', strtotime($strtotime)), 'skipped' => false]);
                     }
                 }
 
                 if (ChangeOrderStatusTrigger::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->exists()) {
                     foreach (ChangeOrderStatusTrigger::where('status_id', $thisOrder->status_id)->whereNull('executed_at')->where('executed', 0)->get() as $iterator) {
-                        ChangeOrderStatusTrigger::where('id', $iterator->id)->update(['executed_at' => date('Y-m-d H:i:s', strtotime($iterator->time)), 'skipped' => false]);
+                        $strtotime = Helper::getStrToTime(date('Y-m-d H:i:s'), $iterator->executed_at);
+                        ChangeOrderStatusTrigger::where('id', $iterator->id)->update(['executed_at' => date('Y-m-d H:i:s', strtotime($strtotime)), 'skipped' => false]);
                     }
                 }
 
@@ -74,6 +77,7 @@ class StatusTrigger extends Command
                 $thisOrder->executed = true;
                 $thisOrder->save();
                 
+                $salesOrder->responsible_user = null;
                 $salesOrder->status = $newStatus;
                 $salesOrder->save();
 
