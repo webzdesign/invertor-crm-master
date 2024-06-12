@@ -125,7 +125,7 @@
                                 </div>
                                 <div class="text-start">
                                     <span class="f-12 d-flex align-items-center"> <strong>Task:</strong> <span class="ms-1 trigger-box-label-task-description" title="{{ $trigger[$i]['task_description'] }}"> {{( Str::of(strip_tags($trigger[$i]['task_description']))->limit(18) )}} </span> </span>
-                                    {{-- <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> --}}
+                                    {{-- <i class="fa fa-copy copy-task float-end" ></i> --}}
                                 </div>
                                 <div class="inp-groups">
                                     <input type="hidden" data-type="1" class="trigger-saver-input" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status]" value="{{ $status->id }}" />
@@ -166,7 +166,7 @@
                                 <div class="text-start">
                                     <strong class="f-12">Change status:</strong>
                                     <span class="status-lbl f-10 trigger-box-label-task-ns" style="background: {{ $trigger[$i]['nextstatus']['color'] }};color:{{ Helper::generateTextColor($trigger[$i]['nextstatus']['color']) }};text-transform:uppercase;"> {{ $trigger[$i]['nextstatus']['name'] }} </span>
-                                    {{-- <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> --}}
+                                    {{-- <i class="fa fa-copy copy-task float-end" ></i> --}}
                                 </div>
                                 <div class="inp-groups">
                                     <input type="hidden" data-type="2" class="trigger-saver-input" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status]" value="{{ $status->id }}" />
@@ -212,7 +212,7 @@
                                             </span>
                                         </strong>
                                     </span>
-                                    {{-- <i class="fa fa-bars drag-task float-end"></i> <i class="fa fa-copy copy-task float-end" ></i> --}}
+                                    {{-- <i class="fa fa-copy copy-task float-end" ></i> --}}
                                 </div>
                                 <div class="inp-groups">
                                     <input type="hidden" data-type="3" class="trigger-saver-input" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status]" value="{{ $status->id }}" />
@@ -230,7 +230,7 @@
                     </div>
                     @else
                     <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="{{ $status->name }}"  data-sid="{{ $status->id }}">
-                        <i class="fa fa-plus-circle"></i> Add trigger
+                        <i class="fa fa-plus-circle"></i> &nbsp; Add trigger
                     </div>
                     @endif
                 </div>
@@ -266,6 +266,7 @@
 @include('sales-orders-status.modal.change-user')
 {{-- Change Status Modal --}}
 
+<div id="custom-cursor"></div>
 @endsection
 
 @section('script')
@@ -438,6 +439,10 @@
         });
 
         $(document).on('click', '.trigger-add-task', function () {
+
+            if ($(event.target).hasClass('copy-task')) {
+                return false;
+            }
 
             let thisTrigger = $(this).attr('data-triggerid');
             let thisTitle = $(this).attr('data-title');
@@ -1249,7 +1254,7 @@
 
                 let triggerBtn = `
                 <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="${thisTitle}"  data-sid="${thisStatus}">
-                    <i class="fa fa-plus-circle"></i> Add trigger
+                    <i class="fa fa-plus-circle"></i> &nbsp; Add trigger
                 </div>`;
 
                 $(editingBlock).parent().html(triggerBtn);
@@ -1264,7 +1269,7 @@
 
                 let triggerBtn = `
                 <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="${thisTitle}"  data-sid="${thisStatus}">
-                    <i class="fa fa-plus-circle"></i> Add trigger
+                    <i class="fa fa-plus-circle"></i> &nbsp; Add trigger
                 </div>`;
 
                 $(editingBlock).parent().html(triggerBtn);
@@ -1599,7 +1604,7 @@
 
                         let triggerBtn = `
                         <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="${$(ui.item).attr('data-title')}"  data-sid="${$(ui.item).attr('data-sid')}">
-                            <i class="fa fa-plus-circle"></i> Add trigger
+                            <i class="fa fa-plus-circle"></i> &nbsp; Add trigger
                         </div>`;
                         
                         $(ui.sender).html(triggerBtn)
@@ -1650,10 +1655,20 @@
 
         $(".portlet").find(".portlet-header").addClass("ui-corner-all")
 
+        $(".copy-task").on("mousedown", function(event) {
+            event.stopImmediatePropagation();
 
+            $('#custom-cursor').css('display', 'block');
+            $('#custom-cursor').html($(this).parent().parent().parent().parent().parent().html());
+        });
 
-
-
+        let customCursor = document.getElementById('custom-cursor');
+        document.addEventListener('mousemove', (e) => {
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            
+            customCursor.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+        });
 
 
 
@@ -1871,7 +1886,11 @@
             }
         });
 
-        $(document).on('click', '.trigger-change-order-user', function () {
+        $(document).on('click', '.trigger-change-order-user', function (event) {
+
+            if ($(event.target).hasClass('copy-task')) {
+                return false;
+            }
 
             let thisTrigger = $(this).attr('data-triggerid');
             let thisTitle = $(this).attr('data-title');
@@ -2095,7 +2114,7 @@
                         dropdownText += timeString;
                         
                         $(editingBlock).find('.trigger-box-label-timetype').html(dropdownText);
-                        $('.change-user-trigger-user-label').text($('#change-user-name-label').val());
+                        $(editingBlock).find('.change-user-trigger-user-label').text($('#change-user-name-label').val());
 
                         $('#change-user').modal('hide');
 
@@ -2148,7 +2167,7 @@
 
                 let triggerBtn = `
                 <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="${thisTitle}"  data-sid="${thisStatus}">
-                    <i class="fa fa-plus-circle"></i> Add trigger
+                    <i class="fa fa-plus-circle"></i> &nbsp; Add trigger
                 </div>`;
 
                 $(editingBlock).parent().html(triggerBtn);

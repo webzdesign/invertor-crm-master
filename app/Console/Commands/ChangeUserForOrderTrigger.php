@@ -49,7 +49,11 @@ class ChangeUserForOrderTrigger extends Command
                 $thisOrder->executed = true;
                 $thisOrder->save();
 
-                $salesOrder->responsible_user = $thisOrder->user_id;
+                $respUsers = explode(',', $salesOrder->responsible_user);
+                array_push($respUsers, $thisOrder->user_id);
+                $respUsers = array_filter(array_unique($respUsers));
+
+                $salesOrder->responsible_user = implode(',', $respUsers);
                 $salesOrder->save();
             }
         }

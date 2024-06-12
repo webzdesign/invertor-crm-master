@@ -944,7 +944,7 @@ class SalesOrderController extends Controller
             return view('so.delivery-list', compact('moduleName'));
         }
 
-        $responsibleUser = SalesOrder::where('responsible_user', auth()->user()->id)->select('id')->pluck('id')->toArray();
+        $responsibleUser = SalesOrder::whereRaw('FIND_IN_SET(?, responsible_user)', [auth()->user()->id])->select('id')->pluck('id')->toArray();
 
         $d = Deliver::with('item.order');
         $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();

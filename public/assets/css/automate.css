@@ -301,15 +301,17 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 
 .drag-task {
     position: relative;
-    top: 9px;
+    top: 24px;
     left: 10px;
+    cursor: col-resize;
+    rotate: 90deg;
 }
 
-.copy-task {
+/* .copy-task {
     position: relative;
-    top: 8px;
-    left: 5px;
-}
+    top: 23px;
+    left: 4px;
+} */
 
 .width-35 {
     width: 25px;
@@ -318,10 +320,10 @@ input[type="color"]::-webkit-color-swatch-wrapper {
     right: 10px;
 }
 
-.min-max-height {
+/* .min-max-height { */
     /* min-height: 75px;
     max-height: 75px; */
-}
+/* } */
 
 .custom-p {
     padding: 0.5rem 1rem!important;
@@ -379,3 +381,29 @@ input[type="color"]::-webkit-color-swatch-wrapper {
     cursor: no-drop;
 }
 /* other css */
+
+.dragMain {
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#custom-cursor {
+    position: absolute;
+    left: -512px;
+    top: -60px;
+    pointer-events: none;
+    display: none;
+    z-index: 99999!important;
+    word-wrap: break-word;
+    background-clip: border-box;
+}
+
+#custom-cursor > div {
+    height: 76px;
+    width: 269px;
+}
+
+.hover-trigger-add-div:hover {
+    background-color: #2a52bc1a!important;
+}
