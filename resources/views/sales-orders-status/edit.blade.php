@@ -124,8 +124,14 @@
                                 @endif
                                 </div>
                                 <div class="text-start">
-                                    <span class="f-12 d-flex align-items-center"> <strong>Task:</strong> <span class="ms-1 trigger-box-label-task-description" title="{{ $trigger[$i]['task_description'] }}"> {{( Str::of(strip_tags($trigger[$i]['task_description']))->limit(18) )}} </span> </span>
-                                    {{-- <i class="fa fa-copy copy-task float-end" ></i> --}}
+                                    <span class="f-12 d-flex align-items-center"> 
+                                        <strong>Task:
+                                            <span class="ms-1 trigger-box-label-task-description" title="{{ $trigger[$i]['task_description'] }}"> 
+                                                {{( Str::of(strip_tags($trigger[$i]['task_description']))->limit(20) )}} 
+                                            </span> 
+                                        </strong>
+                                        <i class="fa fa-copy copy-task pos-abs-0 f-14" ></i>
+                                    </span>
                                 </div>
                                 <div class="inp-groups">
                                     <input type="hidden" data-type="1" class="trigger-saver-input" name="task[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status]" value="{{ $status->id }}" />
@@ -165,8 +171,10 @@
                                 </div>
                                 <div class="text-start">
                                     <strong class="f-12">Change status:</strong>
-                                    <span class="status-lbl f-10 trigger-box-label-task-ns" style="background: {{ $trigger[$i]['nextstatus']['color'] }};color:{{ Helper::generateTextColor($trigger[$i]['nextstatus']['color']) }};text-transform:uppercase;"> {{ $trigger[$i]['nextstatus']['name'] }} </span>
-                                    {{-- <i class="fa fa-copy copy-task float-end" ></i> --}}
+                                    <span class="status-lbl f-10 trigger-box-label-task-ns" title="{{ $trigger[$i]['nextstatus']['name'] }}" style="background: {{ $trigger[$i]['nextstatus']['color'] }};color:{{ Helper::generateTextColor($trigger[$i]['nextstatus']['color']) }};text-transform:uppercase;"> 
+                                        {{( Str::of(strip_tags($trigger[$i]['nextstatus']['name']))->limit(12) )}} 
+                                    </span>
+                                    {{-- <i class="fa fa-copy copy-task pos-abs-0 f-14" ></i> --}}
                                 </div>
                                 <div class="inp-groups">
                                     <input type="hidden" data-type="2" class="trigger-saver-input" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status]" value="{{ $status->id }}" />
@@ -205,14 +213,14 @@
                                 @endif
                                 </div>
                                 <div class="text-start">
-                                    <span class="f-12"> 
+                                    <span class="f-12 d-flex align-items-center"> 
                                         <strong>Change order's user:
-                                            <span class="change-user-trigger-user-label">
-                                                {{ $trigger[$i]['user']['name'] }} 
+                                            <span class="change-user-trigger-user-label" title="{{ $trigger[$i]['user']['name'] }}">
+                                                {{( Str::of(strip_tags($trigger[$i]['user']['name']))->limit(10) )}}
                                             </span>
                                         </strong>
+                                    <i class="fa fa-copy copy-task pos-abs-0 f-14" ></i>
                                     </span>
-                                    {{-- <i class="fa fa-copy copy-task float-end" ></i> --}}
                                 </div>
                                 <div class="inp-groups">
                                     <input type="hidden" data-type="3" class="trigger-saver-input" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status]" value="{{ $status->id }}" />
@@ -324,7 +332,94 @@
             ignore: []
         });
 
-        $(document).on('click', '.opener', function () {
+        $(document).on('click', '.opener', function (event) {
+            if ($(this).hasClass('hover-trigger-add-div')) {
+
+                if ($(event.target).hasClass('opener')) {
+                    let copiedTriggerBlock = $('#custom-cursor').html();
+                    $copiedTriggerBlock = $(copiedTriggerBlock);
+
+                    $('#custom-cursor').css('display', 'none').html('');
+                    $(event.target).removeClass('hover-trigger-add-div')
+                    $(event.target).removeClass('d-flex');
+                    $(event.target).removeClass('align-items-center');
+                    $(event.target).removeClass('opener');
+                    $(event.target).removeClass('justify-content-center');
+
+                    let copiedBlockTitle = $(event.target).attr('data-title');
+                    let copiedBlockSid = $(event.target).attr('data-sid');
+
+                    $copiedTriggerBlock.attr('data-title', copiedBlockTitle);
+                    $copiedTriggerBlock.attr('data-sid', copiedBlockSid);
+                    
+                    $(event.target).parent().html($copiedTriggerBlock);
+
+                    let blockIndex = $copiedTriggerBlock.parent().index();
+                                        
+                    if ($copiedTriggerBlock.hasClass('trigger-add-task')) {
+
+                        let actionType = $copiedTriggerBlock.attr('data-at-actiontype');
+                        let timeType = $copiedTriggerBlock.attr('data-at-timetype');
+                        let hour = $copiedTriggerBlock.attr('data-at-hour');
+                        let minute = $copiedTriggerBlock.attr('data-at-minute');
+                        let desc = $copiedTriggerBlock.attr('data-at-taskdescription');
+
+                        $copiedTriggerBlock.find('.trigger-saver-input-sequence').attr('name', `task[${copiedBlockSid}][${blockIndex}][sequence]`);
+                        $copiedTriggerBlock.find('.trigger-saver-input-sequence').val(blockIndex);
+
+                        $copiedTriggerBlock.find('.trigger-saver-input').attr('name', `task[${copiedBlockSid}][${blockIndex}][status]`);
+                        $copiedTriggerBlock.find('.trigger-saver-input').val(copiedBlockSid);
+
+                        $copiedTriggerBlock.find('.trigger-saver-input-maintype').attr('name', `task[${copiedBlockSid}][${blockIndex}][maintype]`);
+                        $copiedTriggerBlock.find('.trigger-saver-input-maintype').val(actionType);
+                        
+                        $copiedTriggerBlock.find('.trigger-saver-input-timetype').attr('name', `task[${copiedBlockSid}][${blockIndex}][timetype]`);
+                        $copiedTriggerBlock.find('.trigger-saver-input-timetype').val(timeType);
+
+                        $copiedTriggerBlock.find('.trigger-saver-input-hour').attr('name', `task[${copiedBlockSid}][${blockIndex}][hour]`);
+                        $copiedTriggerBlock.find('.trigger-saver-input-hour').val(hour);
+
+                        $copiedTriggerBlock.find('.trigger-saver-input-minute').attr('name', `task[${copiedBlockSid}][${blockIndex}][minute]`);
+                        $copiedTriggerBlock.find('.trigger-saver-input-minute').val(minute);
+                    
+                        $copiedTriggerBlock.find('.trigger-saver-input-desc').attr('name', `task[${copiedBlockSid}][${blockIndex}][desc]`);
+                        $copiedTriggerBlock.find('.trigger-saver-input-desc').val(desc);
+                        
+                    } else if ($copiedTriggerBlock.hasClass('trigger-change-order-user')) {
+
+                        let actionType = $copiedTriggerBlock.attr('data-cu-actiontype');
+                        let timeType = $copiedTriggerBlock.attr('data-cu-timetype');
+                        let hour = $copiedTriggerBlock.attr('data-cu-hour');
+                        let minute = $copiedTriggerBlock.attr('data-cu-minute');
+                        let user = $copiedTriggerBlock.attr('data-cu-user');
+
+                        $copiedTriggerBlock.find('.trigger-saver-input-sequence').attr('name', `userchange[${copiedBlockSid}][${blockIndex}][sequence]`);
+                        $copiedTriggerBlock.find('.trigger-saver-input-sequence').val(blockIndex);
+
+                        $copiedTriggerBlock.find('.trigger-saver-input').attr('name', `userchange[${copiedBlockSid}][${blockIndex}][status]`);
+                        $copiedTriggerBlock.find('.trigger-saver-input').val(copiedBlockSid);
+
+                        $copiedTriggerBlock.find('.trigger-saver-input-maintype').attr('name', `userchange[${copiedBlockSid}][${blockIndex}][maintype]`);
+                        $copiedTriggerBlock.find('.trigger-saver-input-maintype').val(actionType);
+                        
+                        $copiedTriggerBlock.find('.trigger-saver-input-timetype').attr('name', `userchange[${copiedBlockSid}][${blockIndex}][timetype]`);
+                        $copiedTriggerBlock.find('.trigger-saver-input-timetype').val(timeType);
+
+                        $copiedTriggerBlock.find('.trigger-saver-input-hour').attr('name', `userchange[${copiedBlockSid}][${blockIndex}][hour]`);
+                        $copiedTriggerBlock.find('.trigger-saver-input-hour').val(hour);
+
+                        $copiedTriggerBlock.find('.trigger-saver-input-minute').attr('name', `userchange[${copiedBlockSid}][${blockIndex}][minute]`);
+                        $copiedTriggerBlock.find('.trigger-saver-input-minute').val(minute);
+
+                        $copiedTriggerBlock.find('.trigger-saver-input-user').attr('name', `userchange[${copiedBlockSid}][${blockIndex}][user]`);
+                        $copiedTriggerBlock.find('.trigger-saver-input-user').val(user);
+
+                    }
+                }
+
+                return false;
+            }
+
             let thisStatus = $(this).attr('data-sid');
             modalTitle = $(this).attr('data-title');
             triggerBlock = this;
@@ -647,6 +742,23 @@
             } else {
                 $('.title-of-card').next().attr('style', "display:none!important;");
             }
+
+            if ($('#custom-cursor').css('display') != 'none') {
+                if (!$(target).hasClass('opener')) {
+                    $('#custom-cursor').css('display', 'none').html('');
+                }
+            }
+        });
+
+        $(".opener").on({
+            mouseenter: function() {
+                if ($('#custom-cursor').css('display') != 'none') {
+                    $(this).addClass('hover-trigger-add-div');
+                }
+            },
+            mouseleave: function() {
+                $(this).removeClass('hover-trigger-add-div');
+            }
         });
 
         $(document).on('click', '.status-dropdown-toggle-inner', function() {
@@ -917,7 +1029,7 @@
 
                         dropdownText += timeString;
                         
-                        $(editingBlock).find('.trigger-box-label-task-description').html(formData.task_desc.substring(0, 18) + '...');
+                        $(editingBlock).find('.trigger-box-label-task-description').html(formData.task_desc.length > 20 ? formData.task_desc.substring(0, 20) + '...' : formData.task_desc);
                         $(editingBlock).find('.trigger-box-label-task-description').attr('title', formData.task_desc);
                         $(editingBlock).find('.trigger-box-label-timetype').html(dropdownText);
 
@@ -941,6 +1053,8 @@
                             $(triggerBlock).attr('data-at-minute', formData.add_task_minute);
                             $(triggerBlock).attr('data-at-actiontype', formData.attype);
 
+                            $(triggerBlock).removeClass('d-flex');
+                            $(triggerBlock).removeClass('align-items-center');
                             $(triggerBlock).removeClass('opener');
                             $(triggerBlock).removeClass('justify-content-center');
                             $(triggerBlock).addClass('trigger-add-task');
@@ -1394,7 +1508,9 @@
 
                         dropdownText += timeString;
                         
-                        $(editingBlock).find('.trigger-box-label-task-ns').text($(editingBlock).attr('data-cs-status-text'));
+                        let statusDispName = $(editingBlock).attr('data-cs-status-text');
+                        $(editingBlock).find('.trigger-box-label-task-ns').text(statusDispName.length > 12 ? statusDispName.substring(0, 20) + '...' : statusDispName);
+                        $(editingBlock).find('.trigger-box-label-task-ns').attr('title', statusDispName);
                         $(editingBlock).find('.trigger-box-label-task-ns').css('background', $(editingBlock).attr('data-cs-status-bg'));
                         $(editingBlock).find('.trigger-box-label-task-ns').css('color', generateTextColor($(editingBlock).attr('data-cs-status-bg')));
                         $(editingBlock).find('.trigger-box-label-timetype').html(dropdownText);
@@ -1435,6 +1551,8 @@
                             $(triggerBlock).attr('data-cs-status-text', statusName);
 
                             $(triggerBlock).removeClass('opener');
+                            $(triggerBlock).removeClass('d-flex');
+                            $(triggerBlock).removeClass('align-items-center');
                             $(triggerBlock).removeClass('justify-content-center');
                             $(triggerBlock).addClass('trigger-change-order-status');
                             $(triggerBlock).addClass('bg-light-grey');
@@ -1490,7 +1608,14 @@
                 type += `${getTypes(data.time, data.hour, data.minute)} 
                     </div>
                         <div class="text-start">
-                            <span class="f-12"> <strong>Task:</strong> <span class="trigger-box-label-task-description" title="${data.description}" > ${data.description.length > 18 ? (data.description.substring(0, 18) + '...') : data.description} </span> </span>
+                            <span class="f-12 d-flex align-items-center"> 
+                                <strong>Task:
+                                    <span class="ms-1 trigger-box-label-task-description" title="${data.description}" >
+                                        ${data.description.length > 20 ? (data.description.substring(0, 20) + '...') : data.description} 
+                                    </span> 
+                                </strong>
+                                <i class="fa fa-copy copy-task pos-abs-0 f-14" ></i>
+                            </span>
                         </div>${input}
                     </div>
                  </div>`;
@@ -1506,8 +1631,13 @@
 
                 type += `${getTypes(data.time, data.hour, data.minute)} 
                     </div> 
-                        <div class="text-start"> <strong class="f-12">Change status:</strong> 
-                            <span class="status-lbl f-10 trigger-box-label-task-ns" style="background: ${data.bg};color:${data.color};text-transform:uppercase;"> ${data.status} </span> 
+                        <div class="text-start">
+                            <span class="f-12">
+                                <strong>Change status: </strong>
+                                <span class="status-lbl f-10 trigger-box-label-task-ns" style="background: ${data.bg};color:${data.color};text-transform:uppercase;" title="${data.status}"> 
+                                    ${data.status.length > 12 ? data.status.substring(0, 12) + '...' : data.status} 
+                                </span>
+                            </span>
                         </div>${input}
                     </div>
                 </div>`;
@@ -1524,7 +1654,14 @@
                 type += `${getTypes(data.time, data.hour, data.minute)} 
                 </div>
                     <div class="text-start"> 
-                        <span class="f-12"> <strong>Change order's user: <span class="change-user-trigger-user-label"> ${data.username} </span> </strong> </span> 
+                        <span class="f-12 d-flex align-items-center"> 
+                            <strong>Change order's user: 
+                                <span class="change-user-trigger-user-label" title="${data.username}"> 
+                                    ${data.username.length > 10 ? data.username.substring(0, 10) + '...' : data.username} 
+                                </span> 
+                            </strong> 
+                            <i class="fa fa-copy copy-task pos-abs-0 f-14" ></i>
+                        </span> 
                         </div>${input}
                     </div>
                 </div>`;
@@ -1655,11 +1792,11 @@
 
         $(".portlet").find(".portlet-header").addClass("ui-corner-all")
 
-        $(".copy-task").on("mousedown", function(event) {
+        $(document).on("mousedown", ".copy-task", function(event) {
             event.stopImmediatePropagation();
 
             $('#custom-cursor').css('display', 'block');
-            $('#custom-cursor').html($(this).parent().parent().parent().parent().parent().html());
+            $('#custom-cursor').html($(this).parent().parent().parent().parent().parent().parent().html());
         });
 
         let customCursor = document.getElementById('custom-cursor');
@@ -2113,8 +2250,10 @@
 
                         dropdownText += timeString;
                         
+                        let statusDispName = $('#change-user-name-label').val();
                         $(editingBlock).find('.trigger-box-label-timetype').html(dropdownText);
-                        $(editingBlock).find('.change-user-trigger-user-label').text($('#change-user-name-label').val());
+                        $(editingBlock).find('.change-user-trigger-user-label').text(statusDispName.length > 10 ? statusDispName.substring(0, 10) + '...' : statusDispName);
+                        $(editingBlock).find('.change-user-trigger-user-label').attr('title', statusDispName);
 
                         $('#change-user').modal('hide');
 
@@ -2139,6 +2278,8 @@
                             let userName = $('#change-user-picker').find(':selected').attr('data-name');
 
                             $(triggerBlock).removeClass('opener');
+                            $(triggerBlock).removeClass('d-flex');
+                            $(triggerBlock).removeClass('align-items-center');
                             $(triggerBlock).removeClass('justify-content-center');
                             $(triggerBlock).addClass('trigger-change-order-user');
                             $(triggerBlock).addClass('bg-light-grey');

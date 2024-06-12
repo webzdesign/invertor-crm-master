@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::table('sales_orders', function (Blueprint $table) {
             $table->unsignedBigInteger('responsible_user')->nullable()->after('user_id');
-            $table->foreign('responsible_user')->references('id')->on('users');
         });
     }
 

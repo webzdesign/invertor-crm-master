@@ -36,8 +36,8 @@
                         <div class="form-group">
                             <div class="box" id="responsible-user">
                             {{-- <div class="box" id="change-user-btn"> --}}
-                                <img src="{{ asset('assets/images/swap.png') }}" alt="Change lead's user">
-                                <div> Change lead's user </div>
+                                <img src="{{ asset('assets/images/swap.png') }}" alt="Change user">
+                                <div> Change user </div>
                             </div>
                         </div>
                     </div>
