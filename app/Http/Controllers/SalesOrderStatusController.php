@@ -411,7 +411,7 @@ class SalesOrderStatusController extends Controller
             } else if (in_array(3, $thisUserRoles)) {
                 $driversOrder = Deliver::where('user_id', auth()->user()->id)->select('so_id')->pluck('so_id')->toArray();
                 $orders = $orders->where(function ($builder) use ($driversOrder) {
-                    $builder->whereIn('id', $driversOrder)->orWhere('FIND_IN_SET(?, responsible_user)', [auth()->user()->id]);
+                    $builder->whereIn('id', $driversOrder)->orWhereRaw('FIND_IN_SET(?, responsible_user)', [auth()->user()->id]);
                 });
             }
         }
