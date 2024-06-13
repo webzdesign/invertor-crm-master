@@ -24,7 +24,7 @@ class ChangeUserForOrderTrigger extends Command
     /**
      * Execute the console command.
      */
-    public function handle($triggers = null)
+    public function handle($triggers = [], $executor = null)
     {
         $iterable = ChangeOrderUser::whereHas('trigger', function ($builder) {
             $builder->where('id', '>', 0);
@@ -43,14 +43,32 @@ class ChangeUserForOrderTrigger extends Command
 
                 event(new \App\Events\OrderStatusEvent('change-user-for-order', [
                     'orderId' => $salesOrder->order_no,
-                    'userId' => $thisOrder->user_id
+                    'userId' => $salesOrder->responsible_user
                 ]));
+
+                \App\Models\TriggerLog::create([
+                    'trigger_id' => $order->trigger_id,
+                    'cron_id' => $order->id,
+                    'order_id' => $order->order_id,
+                    'watcher_id' => $executor,
+                    'next_status_id' => $order->status_id,
+                    'current_status_id' => $order->current_status_id,
+                    'user_id' => $salesOrder->responsible_user,
+                    'type' => 3,
+                    'time_type' => $order->time_type,
+                    'main_type' => $order->main_type,
+                    'hour' => $order->hour,
+                    'minute' => $order->minute,
+                    'time' => $order->time,
+                    'executed_at' => $order->executed_at,
+                    'executed' => 1
+                ]);
 
                 $thisOrder->executed = true;
                 $thisOrder->save();
 
                 $respUsers = explode(',', $salesOrder->responsible_user);
-                array_push($respUsers, $thisOrder->user_id);
+                array_push($respUsers, $salesOrder->seller_id);
                 $respUsers = array_filter(array_unique($respUsers));
 
                 $salesOrder->responsible_user = implode(',', $respUsers);

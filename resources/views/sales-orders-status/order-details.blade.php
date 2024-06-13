@@ -2,7 +2,7 @@
 
     <div class="">
 
-        <h6 class="f-14 mb-1 mt-2 mb-2"><i class="fa fa-user" aria-hidden="true"></i> Customer Details</h6>
+        <h6 class="f-14 mb-1 mt-2 mb-2"><i class="fa fa-user" aria-hidden="true"></i> Customer details</h6>
 
         <div class="form-group f-12">
             <div class="col-12">
@@ -32,7 +32,7 @@
         
         <hr class="border-secondary">
 
-        <h6 class="f-14 mb-1 mt-2 mb-2"><i class="fa fa-tag" aria-hidden="true"></i> Order Details</h6>
+        <h6 class="f-14 mb-1 mt-2 mb-2"><i class="fa fa-tag" aria-hidden="true"></i> Order details</h6>
 
         <div class="form-group f-12">
             <div class="col-12">
@@ -60,18 +60,57 @@
         <hr class="border-secondary">
     </div>
 
+    {{-- History --}}
+    
     <div class="d-flex align-items-center justify-content-between">
-        <h6 class="f-14 mb-4 mt-2"><i class="fa fa-list-alt" aria-hidden="true"></i> Trigger Activity</h6>
-        @if($order->tstatus->count() > 3)
+        <h6 class="f-14 mb-4 mt-2"><i class="fa fa-clock-o" aria-hidden="true"></i> Order trigger history</h6>
+        @if(count($logs) > 3)
+        <button class="show-less-more-btn small-btn btn-primary f-500 f-12" id="toggle-history"> Show All </button>
+        @endif
+    </div>
+
+    <div class="order-history">
+        @forelse($logs as $key => $l)
+            <div class="activity py-1 hist @if(in_array($loop->iteration, [1,2,3])) show-first-history @else d-none @endif">
+                <p class="f-12" style="margin-bottom:0px;">
+                    <strong> {{ date('d-m-Y H:i', strtotime($l->created_at)) }} @if(!empty($l->watcher_id)) {{ $l->watcher->name }} @else Robot @endif </strong> :
+                    @if($l->type == 1)
+                        added a task [ <strong>{{ $l->description }}</strong> ]
+                    @elseif($l->type == 2)
+                        moved to
+                        <span class="status-lbl f-12" style="background: {{ $l->to_status->color }};color:{{ Helper::generateTextColor($l->to_status->color) }};text-transform:uppercase;"> {{ $l->to_status->name }} </span>
+                        from
+                        <span class="status-lbl f-12" style="background: {{ $l->from_status->color }};color:{{ Helper::generateTextColor($l->from_status->color) }};text-transform:uppercase;"> {{ $l->from_status->name }} </span>
+                    @elseif($l->type == 3)
+                        assigned order to it's seller
+                    @endif
+                </p>
+            </div>
+        @empty
+        <div class="activity f-13">
+            History not available
+        </div>
+        @endforelse
+    </div>
+
+    <hr>
+    {{-- History --}}
+
+    @php
+        $allChangeOrderStatusLogs = \App\Models\ChangeOrderStatusTrigger::with(['oldstatus' => fn ($builder) => $builder->withTrashed(), 'mainstatus' => fn ($builder) => $builder->withTrashed()])->where('order_id', $order->id)->withTrashed()->get();
+    @endphp
+    <div class="d-flex align-items-center justify-content-between">
+        <h6 class="f-14 mb-4 mt-2"><i class="fa fa-clock-o" aria-hidden="true"></i> Status change triggers</h6>
+        @if(count($allChangeOrderStatusLogs) > 3)
         <button class="show-less-more-btn small-btn btn-primary f-500 f-12" id="toggle-status-trigger-list"> Show All </button>
         @endif
     </div>
 
     <div class="status-trigger-activity-row">
-        @forelse($order->tstatus as $key => $o)
+        @forelse($allChangeOrderStatusLogs as $key => $o)
             <div class="activity py-1 actvt @if(in_array($loop->iteration, [1,2,3])) show-first @else d-none @endif">
                 <p class="pb-1 f-12" style="margin-bottom:0px;">
-                    <strong>{{ date('d-m-Y H:i:s', strtotime($o->created_at)) }}</strong> :
+                    <strong>{{ date('d-m-Y H:i', strtotime($o->created_at)) }}</strong> :
                     from
                     <span class="status-lbl f-12" style="background: {{ $o->oldstatus->color }};color:{{ Helper::generateTextColor($o->oldstatus->color) }};text-transform:uppercase;"> {{ $o->oldstatus->name }} </span>
                     to be triggered to
@@ -103,29 +142,33 @@
                 </p>
             </div>
         @empty
-        <div class="activity py-2 f-13 border-bottom">
-            No Activity to Show
+        <div class="activity f-13">
+            No triggers set for this order
         </div>
         @endforelse
     </div>
 
     <hr>
 
+    @php
+        $allAddTaskToOrderTrigger = \App\Models\AddTaskToOrderTrigger::with(['mainstatus' => fn ($builder) => $builder->withTrashed()])->where('order_id', $order->id)->withTrashed()->get();
+    @endphp
+
     <div class="d-flex align-items-center justify-content-between">
-        <h6 class="f-14 mb-4 mt-2"><i class="fa fa-list-alt" aria-hidden="true"></i> Task Activity</h6>
-        @if($order->task->count() > 3)
+        <h6 class="f-14 mb-4 mt-2"><i class="fa fa-clock-o" aria-hidden="true"></i> Tasks triggers </h6>
+        @if(count($allAddTaskToOrderTrigger) > 3)
         <button class="show-less-more-btn small-btn btn-primary f-500 f-12" id="toggle-task-trigger-list"> Show All </button>
         @endif
     </div>
 
     <div class="task-trigger-activity-row">
-        @forelse($order->task as $key => $o)
+        @forelse($allAddTaskToOrderTrigger as $key => $o)
             <div class="activity mb-3 px-2 py-1 border actvt-at @if(in_array($loop->iteration, [1,2,3])) show-first-at @else d-none @endif">
                 <div class="d-flex align-items-start justify-content-between">
                     <div class="w-100 pe-3">
                         <span class="f-15"> <strong>{{ $o->description ?? 'Task' }}</strong> </span>
                         <p class="mb-0 f-14">
-                            <strong>{{ date('d-m-Y H:i:s', strtotime($o->created_at)) }}</strong> : 
+                            <strong>{{ date('d-m-Y H:i', strtotime($o->created_at)) }}</strong> : 
                             Task added when
                             <strong>
                             @if($o->main_type == '1')
@@ -184,32 +227,32 @@
 
             </div>
         @empty
-        <div class="activity py-2 f-13 border-bottom">
-            No Activity to Show
+        <div class="activity f-13">
+            No triggers set for this order
         </div>
         @endforelse
     </div>
 
     <hr>
 
+    @php
+        $allChangeOrderUser = \App\Models\ChangeOrderUser::with(['mainstatus' => fn ($builder) => $builder->withTrashed()])->where('order_id', $order->id)->withTrashed()->get();
+    @endphp
+
     <div class="d-flex align-items-center justify-content-between">
-        <h6 class="f-14 mb-4 mt-2"><i class="fa fa-list-alt" aria-hidden="true"></i> User Assignation Activity</h6>
-        @if($order->userchanges->count() > 3)
+        <h6 class="f-14 mb-4 mt-2"><i class="fa fa-clock-o" aria-hidden="true"></i> User assignation triggers </h6>
+        @if(count($allChangeOrderUser) > 3)
         <button class="show-less-more-btn small-btn btn-primary f-500 f-12" id="toggle-change-user-trigger-list"> Show All </button>
         @endif
     </div>
 
     <div class="change-user-trigger-activity-row">
-        @forelse($order->userchanges as $key => $o)
+        @forelse($allChangeOrderUser as $key => $o)
             <div class="activity py-1 actvt-cu @if(in_array($loop->iteration, [1,2,3])) show-first-cu @else d-none @endif">
                 <p class="pb-1 f-12" style="margin-bottom:0px;">
-                    <strong>{{ date('d-m-Y H:i:s', strtotime($o->created_at)) }}</strong> :
-                    order @if(!$o->executed) will be @else was @endif assigned to
+                    <strong>{{ date('d-m-Y H:i', strtotime($o->created_at)) }}</strong> :
+                    order @if(!$o->executed) will be @else was @endif assigned to it's when order 
                     <strong>
-                        @if(isset($o->user->name)) {{ $o->user->name }} @else user @endif
-                    </strong>
-                    when 
-                    order 
                     @if($o->main_type == '1')
                         moved to 
                     @elseif($o->main_type == '2')
@@ -217,6 +260,7 @@
                     @else
                         moved or created into
                     @endif
+                    </strong>
                     <span class="status-lbl f-12" style="background: {{ $o->mainstatus->color }};color:{{ Helper::generateTextColor($o->mainstatus->color) }};text-transform:uppercase;"> {{ $o->mainstatus->name }} </span>
                     @php
                         $time = str_replace('+', '', $o->time);
@@ -245,41 +289,10 @@
                 </p>
             </div>
         @empty
-        <div class="activity py-2 f-13 border-bottom">
-            No Activity to Show
+        <div class="activity f-13">
+            No triggers set for this order
         </div>
         @endforelse
     </div>
-
-    {{-- <div class="d-flex align-items-center justify-content-between">
-        <h6 class="f-14 mb-4 mt-2"><i class="fa fa-list-alt" aria-hidden="true"></i> User changes Activity</h6>
-        @if($order->userchanges->count() > 3)
-        <button class="show-less-more-btn small-btn btn-primary f-500 f-12" id="toggle-user-changes-trigger-list"> Show All </button>
-        @endif
-    </div>
-
-    <div class="status-trigger-activity-row">
-        @forelse($order->userchanges as $key => $o)
-            <div class="activity py-1 actvt-cu @if(in_array($loop->iteration, [1,2,3])) show-first-cu @else d-none @endif">
-                <p class="pb-1 f-12" style="margin-bottom:0px;">
-                    <strong>{{ date('d-m-Y H:i:s', strtotime($o->created_at)) }}</strong> : 
-                    order assigned to 
-                    <strong>{{ $o->user->roles->first()->name ?? 'user' }}</strong>
-                    <a target="_blank" href="{{ route('users.view', ($o->user->encid ?? '')) }}"> {{ $o->user->name ?? '' }} </a>
-                    when order in 
-                    <span class="status-lbl f-12" style="background: {{ $o->mainstatus->color }};color:{{ Helper::generateTextColor($o->mainstatus->color) }};text-transform:uppercase;"> {{ $o->mainstatus->name }} </span>
-                    [ @if(empty($o->deleted_at))
-                        <strong style="text-transform: uppercase;color:#009688;" title="to be triggered"> CURRENT </strong>
-                    @else
-                        <strong style="text-transform: uppercase;color:#3d0000;" title="assigned in past"> CHANGED </strong>
-                    @endif ]
-                </p>
-            </div>
-        @empty
-        <div class="activity py-2 f-13 border-bottom">
-            No Activity to Show
-        </div>
-        @endforelse
-    </div> --}}
 
 </div>

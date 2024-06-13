@@ -94,7 +94,7 @@
                             data-cu-minute="{{ sprintf('%02d', $trigger[$i]['minute']) }}"
                             data-cu-actiontype="{{ $trigger[$i]['action_type'] }}"
                             data-cu-type="{{ $trigger[$i]['type'] }}"
-                            data-cu-user-label="{{ $trigger[$i]['user']['name'] }}"
+                            data-cu-user-label="{{ isset($trigger[$i]['user']['name']) ? $trigger[$i]['user']['name'] : '' }}"
                         @endif
                         >
                         <div class="d-flex flex-row portlet-header">
@@ -130,7 +130,7 @@
                                                 {{( Str::of(strip_tags($trigger[$i]['task_description']))->limit(20) )}} 
                                             </span> 
                                         </strong>
-                                        <i class="fa fa-copy copy-task pos-abs-0 f-14" ></i>
+                                        <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy"></i>
                                     </span>
                                 </div>
                                 <div class="inp-groups">
@@ -174,7 +174,7 @@
                                     <span class="status-lbl f-10 trigger-box-label-task-ns" title="{{ $trigger[$i]['nextstatus']['name'] }}" style="background: {{ $trigger[$i]['nextstatus']['color'] }};color:{{ Helper::generateTextColor($trigger[$i]['nextstatus']['color']) }};text-transform:uppercase;"> 
                                         {{( Str::of(strip_tags($trigger[$i]['nextstatus']['name']))->limit(12) )}} 
                                     </span>
-                                    <i class="fa fa-copy copy-task pos-abs-0 f-14" ></i>
+                                    <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy"></i>
                                 </div>
                                 <div class="inp-groups">
                                     <input type="hidden" data-type="2" class="trigger-saver-input" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status]" value="{{ $status->id }}" />
@@ -214,12 +214,8 @@
                                 </div>
                                 <div class="text-start">
                                     <span class="f-12 d-flex align-items-center"> 
-                                        <strong>Change order's user:
-                                            <span class="change-user-trigger-user-label" title="{{ $trigger[$i]['user']['name'] }}">
-                                                {{( Str::of(strip_tags($trigger[$i]['user']['name']))->limit(10) )}}
-                                            </span>
-                                        </strong>
-                                    <i class="fa fa-copy copy-task pos-abs-0 f-14" ></i>
+                                        <strong> SELLER IS RESPONSIBLE </strong>
+                                    <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy"></i>
                                     </span>
                                 </div>
                                 <div class="inp-groups">
@@ -1663,7 +1659,7 @@
                                         ${data.description.length > 20 ? (data.description.substring(0, 20) + '...') : data.description} 
                                     </span> 
                                 </strong>
-                                <i class="fa fa-copy copy-task pos-abs-0 f-14" ></i>
+                                <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy" ></i>
                             </span>
                         </div>${input}
                     </div>
@@ -1685,7 +1681,7 @@
                                 <span class="status-lbl f-10 trigger-box-label-task-ns" style="background: ${data.bg};color:${data.color};text-transform:uppercase;" title="${data.status}"> 
                                     ${data.status.length > 12 ? data.status.substring(0, 12) + '...' : data.status} 
                                 </span>
-                                <i class="fa fa-copy copy-task pos-abs-0 f-14" ></i>
+                                <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy"></i>
                         </div>${input}
                     </div>
                 </div>`;
@@ -1703,12 +1699,8 @@
                 </div>
                     <div class="text-start"> 
                         <span class="f-12 d-flex align-items-center"> 
-                            <strong>Change order's user: 
-                                <span class="change-user-trigger-user-label" title="${data.username}"> 
-                                    ${data.username.length > 10 ? data.username.substring(0, 10) + '...' : data.username} 
-                                </span> 
-                            </strong> 
-                            <i class="fa fa-copy copy-task pos-abs-0 f-14" ></i>
+                            <strong> SELLER IS RESPONSIBLE </strong> 
+                            <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy"></i>
                         </span> 
                         </div>${input}
                     </div>
@@ -2206,9 +2198,9 @@
                     min: 0,
                     max: 60
                 },
-                user: {
-                    required: true
-                }
+                // user: {
+                //     required: true
+                // }
             },
             messages: {
                 change_user_hour: {
@@ -2221,9 +2213,9 @@
                     min: "Minimum 0 minute allowed.",
                     max: "Maximum 60 minutes allowed."
                 },
-                user: {
-                    required: "Select a user."
-                }
+                // user: {
+                //     required: "Select a user."
+                // }
             },
             errorPlacement: function(error, element) {
                 if ($(element).hasClass('change-user-minute')) {

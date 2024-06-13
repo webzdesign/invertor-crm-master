@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, SalesOrder, Trigger, ChangeOrderUser};
+use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, SalesOrder, Trigger, ChangeOrderUser, SalesOrderStatus};
 use Illuminate\Console\Command;
 use App\Helpers\Helper;
 
@@ -22,7 +22,7 @@ class StatusTrigger extends Command
      */
     protected $description = 'Change status of orders';
 
-    public function handle($triggers = []) {
+    public function handle($triggers = [], $executor = null) {
 
 
         
@@ -74,10 +74,37 @@ class StatusTrigger extends Command
                     'windowId' => \Illuminate\Support\Str::random(30)
                 ]));
 
+                $fromStatus = SalesOrderStatus::withTrashed()->where('id', $salesOrder->status)->first();
+                $toStatus = SalesOrderStatus::withTrashed()->where('id', $newStatus)->first();
+
+                \App\Models\TriggerLog::create([
+                    'trigger_id' => $order->trigger_id,
+                    'cron_id' => $order->id,
+                    'order_id' => $order->order_id,
+                    'watcher_id' => $executor,
+                    'next_status_id' => $newStatus,
+                    'current_status_id' => $salesOrder->status,
+                    'type' => 2,
+                    'time_type' => $order->time_type,
+                    'main_type' => $order->main_type,
+                    'hour' => $order->hour,
+                    'minute' => $order->minute,
+                    'time' => $order->time,
+                    'executed_at' => $order->executed_at,
+                    'executed' => 1,
+                    'from_status' => [
+                       'name' => $fromStatus->name ?? '-',
+                       'color' => $fromStatus->color ?? ''
+                    ],
+                    'to_status' => [
+                        'name' => $toStatus->name ?? '-',
+                        'color' => $toStatus->color ?? ''
+                     ]
+                ]);
+
                 $thisOrder->executed = true;
                 $thisOrder->save();
                 
-                $salesOrder->responsible_user = null;
                 $salesOrder->status = $newStatus;
                 $salesOrder->save();
 
@@ -100,7 +127,7 @@ class StatusTrigger extends Command
                             'added_by' => 1,
                             'time' => $t->time,
                             'type' => $t->time_type,
-                            'main_type' => 2,
+                            'main_type' => $t->action_type,
                             'description' => $t->task_description,
                             'current_status_id' => $newStatus,
                             'executed_at' => $currentTime1,
@@ -142,7 +169,7 @@ class StatusTrigger extends Command
                             'added_by' => 1,
                             'time' => $t->time,
                             'type' => $t->time_type,
-                            'main_type' => 3,
+                            'main_type' => $t->action_type,
                             'user_id' => $t->user_id,
                             'current_status_id' => $newStatus,
                             'executed_at' => $currentTime1,
@@ -183,6 +210,7 @@ class StatusTrigger extends Command
                         'status_id' => $t->next_status_id,
                         'added_by' => 1,
                         'time' => $t->time,
+                        'main_type' => $t->action_type,
                         'type' => $t->time_type,
                         'current_status_id' => $t->status_id,
                         'executed_at' => date('Y-m-d H:i:s', strtotime($t->time)),

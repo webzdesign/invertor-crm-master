@@ -51,6 +51,6 @@ class SalesOrder extends Model
 
     public function userchanges()
     {
-        return $this->hasMany(ChangeOrderUser::class, 'order_id')->withTrashed()->orderBy('id', 'DESC');
+        return $this->hasMany(ChangeOrderUser::class, 'order_id')->orderBy('id', 'DESC');
     }
 }

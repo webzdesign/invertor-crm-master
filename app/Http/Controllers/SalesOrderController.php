@@ -445,7 +445,7 @@ class SalesOrderController extends Controller
                                         'added_by' => auth()->user()->id,
                                         'time' => $t->time,
                                         'type' => $t->time_type,
-                                        'main_type' => 2,
+                                        'main_type' => $t->action_type,
                                         'description' => $t->task_description,
                                         'current_status_id' => $oldStatus,
                                         'executed_at' => $currentTime1,
@@ -458,7 +458,7 @@ class SalesOrderController extends Controller
                                 }
                             }
             
-                            (new \App\Console\Commands\TaskTrigger)->handle($y);
+                            (new \App\Console\Commands\TaskTrigger)->handle($y, auth()->user()->id);
             
                         } catch (\Exception $e) {
                             Helper::logger($e->getMessage());
@@ -485,7 +485,7 @@ class SalesOrderController extends Controller
                                         'added_by' => auth()->user()->id,
                                         'time' => $t->time,
                                         'type' => $t->time_type,
-                                        'main_type' => 3,
+                                        'main_type' => $t->action_type,
                                         'user_id' => $t->user_id,
                                         'current_status_id' => $oldStatus,
                                         'executed_at' => $currentTime1,
@@ -498,7 +498,7 @@ class SalesOrderController extends Controller
                                 }
                             }
             
-                            (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($y);
+                            (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($y, auth()->user()->id);
             
                         } catch (\Exception $e) {
                             Helper::logger($e->getMessage());
@@ -525,6 +525,7 @@ class SalesOrderController extends Controller
                                         'added_by' => auth()->user()->id,
                                         'time' => $t->time,
                                         'type' => $t->time_type,
+                                        'main_type' => $t->action_type,
                                         'current_status_id' => 1,
                                         'executed_at' => $currentTime,
                                         'trigger_id' => $t->id
@@ -536,7 +537,7 @@ class SalesOrderController extends Controller
                                 }
                             }
             
-                            (new \App\Console\Commands\StatusTrigger)->handle($x);
+                            (new \App\Console\Commands\StatusTrigger)->handle($x, auth()->user()->id);
             
                         } catch (\Exception $e) {
                             Helper::logger($e->getMessage());
@@ -944,17 +945,12 @@ class SalesOrderController extends Controller
             return view('so.delivery-list', compact('moduleName'));
         }
 
-        $responsibleUser = SalesOrder::whereRaw('FIND_IN_SET(?, responsible_user)', [auth()->user()->id])->select('id')->pluck('id')->toArray();
-
         $d = Deliver::with('item.order');
         $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
 
         if (!in_array('1', $thisUserRoles)) {
             if (in_array('3', $thisUserRoles)) {
-                $d = $d->where(function ($builder) use ($responsibleUser) {
-                    $builder->whereIn('so_id', $responsibleUser)
-                    ->orWhere('user_id', auth()->user()->id);
-                });
+                $d = $d->where('user_id', auth()->user()->id);
             }
         }
 

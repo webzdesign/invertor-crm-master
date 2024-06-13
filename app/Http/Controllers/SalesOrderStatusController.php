@@ -249,7 +249,7 @@ class SalesOrderStatusController extends Controller
 
         $oldStatus = SalesOrder::where('id', $request->order)->select('status')->first()->status;
 
-        if (SalesOrder::where('id', $request->order)->update(['status' => $request->status, 'responsible_user' => null]) && isset($oldStatus)) {
+        if (SalesOrder::where('id', $request->order)->update(['status' => $request->status]) && isset($oldStatus)) {
 
             event(new \App\Events\OrderStatusEvent('order-status-change', [
                 'orderId' => $request->order,
@@ -282,7 +282,7 @@ class SalesOrderStatusController extends Controller
                             'added_by' => auth()->user()->id,
                             'time' => $t->time,
                             'type' => $t->time_type,
-                            'main_type' => 3,
+                            'main_type' => $t->action_type,
                             'description' => $t->task_description,
                             'current_status_id' => $oldStatus,
                             'executed_at' => $currentTime1,
@@ -295,7 +295,7 @@ class SalesOrderStatusController extends Controller
                     }
                 }
 
-                (new \App\Console\Commands\TaskTrigger)->handle($y);
+                (new \App\Console\Commands\TaskTrigger)->handle($y, auth()->user()->id);
 
             } catch (\Exception $e) {
                 Helper::logger($e->getMessage());
@@ -322,7 +322,7 @@ class SalesOrderStatusController extends Controller
                             'added_by' => auth()->user()->id,
                             'time' => $t->time,
                             'type' => $t->time_type,
-                            'main_type' => 3,
+                            'main_type' => $t->action_type,
                             'user_id' => $t->user_id,
                             'current_status_id' => $oldStatus,
                             'executed_at' => $currentTime1,
@@ -335,7 +335,7 @@ class SalesOrderStatusController extends Controller
                     }
                 }
 
-                (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($y);
+                (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($y, auth()->user()->id);
 
             } catch (\Exception $e) {
                 Helper::logger($e->getMessage());
@@ -362,6 +362,7 @@ class SalesOrderStatusController extends Controller
                             'added_by' => auth()->user()->id,
                             'time' => $t->time,
                             'type' => $t->time_type,
+                            'main_type' => $t->action_type,
                             'current_status_id' => $request->status,
                             'executed_at' => $currentTime,
                             'trigger_id' => $t->id
@@ -373,7 +374,7 @@ class SalesOrderStatusController extends Controller
                     }
                 }
 
-                (new \App\Console\Commands\StatusTrigger)->handle($x);
+                (new \App\Console\Commands\StatusTrigger)->handle($x, auth()->user()->id);
 
             } catch (\Exception $e) {
                 Helper::logger($e->getMessage());
@@ -406,12 +407,12 @@ class SalesOrderStatusController extends Controller
         if (!in_array(1, $thisUserRoles)) {
             if (in_array(2, $thisUserRoles)) {
                 $orders = $orders->where(function ($builder) {
-                    $builder->where('seller_id', auth()->user()->id)->orWhereRaw('FIND_IN_SET(?, responsible_user)', [auth()->user()->id]);
+                    $builder->where('seller_id', auth()->user()->id);
                 });
             } else if (in_array(3, $thisUserRoles)) {
                 $driversOrder = Deliver::where('user_id', auth()->user()->id)->select('so_id')->pluck('so_id')->toArray();
                 $orders = $orders->where(function ($builder) use ($driversOrder) {
-                    $builder->whereIn('id', $driversOrder)->orWhereRaw('FIND_IN_SET(?, responsible_user)', [auth()->user()->id]);
+                    $builder->whereIn('id', $driversOrder);
                 });
             }
         }
@@ -767,7 +768,8 @@ class SalesOrderStatusController extends Controller
 
         if ($order->exists()) {
             $order = $order->first();
-            return response()->json(['status' => true, 'view' => view('sales-orders-status.order-details', compact('order'))->render()]);
+            $logs = \App\Models\TriggerLog::where('order_id', $order->id)->orderBy('id', 'DESC')->get();
+            return response()->json(['status' => true, 'view' => view('sales-orders-status.order-details', compact('order', 'logs'))->render()]);
         }
 
         return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
@@ -921,6 +923,18 @@ class SalesOrderStatusController extends Controller
                 ManageStatus::where('status_id', $status)->delete();
                 SalesOrderStatus::where('id', $status)->delete();
 
+                foreach (ManageStatus::orWhereRaw('FIND_IN_SET(?, possible_status)', [$status])->get() as $s) {
+                    $arr = $s->ps;
+
+                    if (in_array($status, $arr)) {
+                        $arr = array_diff($arr, [$status]);
+                    }
+
+                    ManageStatus::where('id', $s->id)->update([
+                        'possible_status' => implode(',', $arr)
+                    ]);
+                }
+
                 $allSalesOrders = SalesOrder::where('status', $status)->select('id')->pluck('id')->toArray();
                 SalesOrder::where('status', $status)->update(['status' => 1]);
 
@@ -953,7 +967,7 @@ class SalesOrderStatusController extends Controller
                                     'added_by' => auth()->user()->id,
                                     'time' => $t->time,
                                     'type' => $t->time_type,
-                                    'main_type' => 2,
+                                    'main_type' => $t->action_type,
                                     'description' => $t->task_description,
                                     'current_status_id' => $oldStatus,
                                     'executed_at' => $currentTime1,
@@ -993,7 +1007,7 @@ class SalesOrderStatusController extends Controller
                                     'added_by' => auth()->user()->id,
                                     'time' => $t->time,
                                     'type' => $t->time_type,
-                                    'main_type' => 3,
+                                    'main_type' => $t->action_type,
                                     'user_id' => $t->user_id,
                                     'current_status_id' => $oldStatus,
                                     'executed_at' => $currentTime1,
@@ -1033,6 +1047,7 @@ class SalesOrderStatusController extends Controller
                                     'added_by' => auth()->user()->id,
                                     'time' => $t->time,
                                     'type' => $t->time_type,
+                                    'main_type' => $t->action_type,
                                     'current_status_id' => 1,
                                     'executed_at' => $currentTime,
                                     'trigger_id' => $t->id

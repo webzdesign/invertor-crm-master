@@ -61,7 +61,9 @@
                             <div id="cu-type-error" class="text-danger-error"></div>
                         </div>
 
-                        <div class="col-12 mb-2">
+                        <strong class="mb-2">CHANGE THE RESPONSIBLE USER</strong>
+
+                        <div class="col-12 mb-2" style="display: none;">
                             <div class="form-group">
 
                                 <label class="c-gr f-500 f-12 w-100 mb-2"> RESPONSIBLE USER : <span class="text-danger">*</span> </label>

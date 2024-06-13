@@ -37,7 +37,7 @@
                             <div class="box" id="responsible-user">
                             {{-- <div class="box" id="change-user-btn"> --}}
                                 <img src="{{ asset('assets/images/swap.png') }}" alt="Change user">
-                                <div> Change user </div>
+                                <div> Change responsible user </div>
                             </div>
                         </div>
                     </div>

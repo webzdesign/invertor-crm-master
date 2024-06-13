@@ -565,6 +565,16 @@
                 $(this).text('Show All');
             }
         })
+
+        $(document).on('click', '#toggle-history', function (event) {
+            if ($('.hist').hasClass('d-none')) {
+                $('.hist').removeClass('d-none')
+                $(this).text('Show less');
+            } else {
+                $('.hist').not('.show-first-history').addClass('d-none');
+                $(this).text('Show All');
+            }
+        })
         /** Order details and Card JS **/
 
         /** Change lead stage JS **/
