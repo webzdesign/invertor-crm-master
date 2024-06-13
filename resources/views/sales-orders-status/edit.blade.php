@@ -2633,6 +2633,7 @@
             $(toBeAppened).insertAfter($(this).parent().parent());
             $(this).parent().parent().next().find('.title-of-card').focus()
             checkOverflow();
+            updateThumbWidth();
         });
 
         $(document).on('change', '.color-picker', function () {
@@ -2676,6 +2677,7 @@
                                 if (response.status) {
                                     $(element).closest('.parent-card').remove();
                                     checkOverflow();
+                                    updateThumbWidth();
                                 }
                             },
                             complete: function () {
