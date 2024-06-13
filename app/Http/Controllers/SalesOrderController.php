@@ -458,7 +458,7 @@ class SalesOrderController extends Controller
                                 }
                             }
             
-                            (new \App\Console\Commands\TaskTrigger)->handle($y, auth()->user()->id);
+                            (new \App\Console\Commands\TaskTrigger)->handle($y);
             
                         } catch (\Exception $e) {
                             Helper::logger($e->getMessage());
@@ -498,7 +498,7 @@ class SalesOrderController extends Controller
                                 }
                             }
             
-                            (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($y, auth()->user()->id);
+                            (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($y);
             
                         } catch (\Exception $e) {
                             Helper::logger($e->getMessage());
@@ -537,7 +537,7 @@ class SalesOrderController extends Controller
                                 }
                             }
             
-                            (new \App\Console\Commands\StatusTrigger)->handle($x, auth()->user()->id);
+                            (new \App\Console\Commands\StatusTrigger)->handle($x);
             
                         } catch (\Exception $e) {
                             Helper::logger($e->getMessage());
