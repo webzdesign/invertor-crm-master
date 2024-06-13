@@ -257,7 +257,36 @@ class SalesOrderStatusController extends Controller
                 'orderOldStatus' => $oldStatus,
                 'windowId' => $request->windowId
             ]));
-            
+           
+            $fromStatus = SalesOrderStatus::withTrashed()->where('id', $oldStatus)->first();
+            $toStatus = SalesOrderStatus::withTrashed()->where('id', $request->status)->first();
+            $disOrder = SalesOrder::where('id', $request->order)->first();
+
+            \App\Models\TriggerLog::create([
+                'trigger_id' => 0,
+                'cron_id' => $disOrder->id,
+                'order_id' => $disOrder->id,
+                'watcher_id' => auth()->user()->id,
+                'next_status_id' => $request->status,
+                'current_status_id' => $oldStatus,
+                'type' => 2,
+                'time_type' => $disOrder->time_type,
+                'main_type' => $disOrder->main_type,
+                'hour' => $disOrder->hour,
+                'minute' => $disOrder->minute,
+                'time' => $disOrder->time,
+                'executed_at' => $disOrder->executed_at,
+                'executed' => 1,
+                'from_status' => [
+                   'name' => $fromStatus->name ?? '-',
+                   'color' => $fromStatus->color ?? ''
+                ],
+                'to_status' => [
+                    'name' => $toStatus->name ?? '-',
+                    'color' => $toStatus->color ?? ''
+                 ]
+            ]);
+
             $newStatus = Trigger::where('status_id', $request->status)->where('type', 2)
             ->whereIn('action_type', [1, 3])->first()->next_status_id ?? 0;
 

@@ -97,7 +97,7 @@
     {{-- History --}}
 
     @php
-        $allChangeOrderStatusLogs = \App\Models\ChangeOrderStatusTrigger::with(['oldstatus' => fn ($builder) => $builder->withTrashed(), 'mainstatus' => fn ($builder) => $builder->withTrashed()])->where('order_id', $order->id)->withTrashed()->get();
+        $allChangeOrderStatusLogs = \App\Models\ChangeOrderStatusTrigger::with(['oldstatus' => fn ($builder) => $builder->withTrashed(), 'mainstatus' => fn ($builder) => $builder->withTrashed()])->where('order_id', $order->id)->withTrashed()->orderBy('id', 'DESC')->get();
     @endphp
     <div class="d-flex align-items-center justify-content-between">
         <h6 class="f-14 mb-4 mt-2"><i class="fa fa-clock-o" aria-hidden="true"></i> Status change triggers</h6>
@@ -151,7 +151,7 @@
     <hr>
 
     @php
-        $allAddTaskToOrderTrigger = \App\Models\AddTaskToOrderTrigger::with(['mainstatus' => fn ($builder) => $builder->withTrashed()])->where('order_id', $order->id)->withTrashed()->get();
+        $allAddTaskToOrderTrigger = \App\Models\AddTaskToOrderTrigger::with(['mainstatus' => fn ($builder) => $builder->withTrashed()])->where('order_id', $order->id)->withTrashed()->orderBy('id', 'DESC')->get();
     @endphp
 
     <div class="d-flex align-items-center justify-content-between">
@@ -236,7 +236,7 @@
     <hr>
 
     @php
-        $allChangeOrderUser = \App\Models\ChangeOrderUser::with(['mainstatus' => fn ($builder) => $builder->withTrashed()])->where('order_id', $order->id)->withTrashed()->get();
+        $allChangeOrderUser = \App\Models\ChangeOrderUser::with(['mainstatus' => fn ($builder) => $builder->withTrashed()])->where('order_id', $order->id)->withTrashed()->orderBy('id', 'DESC')->get();
     @endphp
 
     <div class="d-flex align-items-center justify-content-between">
