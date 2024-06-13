@@ -174,7 +174,7 @@
                                     <span class="status-lbl f-10 trigger-box-label-task-ns" title="{{ $trigger[$i]['nextstatus']['name'] }}" style="background: {{ $trigger[$i]['nextstatus']['color'] }};color:{{ Helper::generateTextColor($trigger[$i]['nextstatus']['color']) }};text-transform:uppercase;"> 
                                         {{( Str::of(strip_tags($trigger[$i]['nextstatus']['name']))->limit(12) )}} 
                                     </span>
-                                    {{-- <i class="fa fa-copy copy-task pos-abs-0 f-14" ></i> --}}
+                                    <i class="fa fa-copy copy-task pos-abs-0 f-14" ></i>
                                 </div>
                                 <div class="inp-groups">
                                     <input type="hidden" data-type="2" class="trigger-saver-input" name="statuschange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status]" value="{{ $status->id }}" />
@@ -414,9 +414,41 @@
                         $copiedTriggerBlock.find('.trigger-saver-input-user').attr('name', `userchange[${copiedBlockSid}][${blockIndex}][user]`);
                         $copiedTriggerBlock.find('.trigger-saver-input-user').val(user);
 
+                    } else if ($copiedTriggerBlock.hasClass('trigger-change-order-status')) {
+
+                    let actionType = $copiedTriggerBlock.attr('data-cs-actiontype');
+                    let timeType = $copiedTriggerBlock.attr('data-cs-timetype');
+                    let hour = $copiedTriggerBlock.attr('data-cs-hour');
+                    let minute = $copiedTriggerBlock.attr('data-cs-minute');
+                    let next = $copiedTriggerBlock.attr('data-cs-nextstatusid');
+
+                    $copiedTriggerBlock.find('.trigger-saver-input-sequence').attr('name', `statuschange[${copiedBlockSid}][${blockIndex}][sequence]`);
+                    $copiedTriggerBlock.find('.trigger-saver-input-sequence').val(blockIndex);
+
+                    $copiedTriggerBlock.find('.trigger-saver-input').attr('name', `statuschange[${copiedBlockSid}][${blockIndex}][status]`);
+                    $copiedTriggerBlock.find('.trigger-saver-input').val(copiedBlockSid);
+
+                    $copiedTriggerBlock.find('.trigger-saver-input-maintype').attr('name', `statuschange[${copiedBlockSid}][${blockIndex}][maintype]`);
+                    $copiedTriggerBlock.find('.trigger-saver-input-maintype').val(actionType);
+
+                    $copiedTriggerBlock.find('.trigger-saver-input-timetype').attr('name', `statuschange[${copiedBlockSid}][${blockIndex}][timetype]`);
+                    $copiedTriggerBlock.find('.trigger-saver-input-timetype').val(timeType);
+
+                    $copiedTriggerBlock.find('.trigger-saver-input-hour').attr('name', `statuschange[${copiedBlockSid}][${blockIndex}][hour]`);
+                    $copiedTriggerBlock.find('.trigger-saver-input-hour').val(hour);
+
+                    $copiedTriggerBlock.find('.trigger-saver-input-minute').attr('name', `statuschange[${copiedBlockSid}][${blockIndex}][minute]`);
+                    $copiedTriggerBlock.find('.trigger-saver-input-minute').val(minute);
+
+                    $copiedTriggerBlock.find('.trigger-saver-input-next-status').attr('name', `statuschange[${copiedBlockSid}][${blockIndex}][nextstatus]`);
+                    $copiedTriggerBlock.find('.trigger-saver-input-next-status').val(next);
+
                     }
                 }
 
+                return false;
+            } else if ($(this).hasClass('hover-trigger-add-div-error')) {
+                $('#custom-cursor').css('display', 'none').html('');
                 return false;
             }
 
@@ -428,6 +460,7 @@
                 $('#trigger-options-modal').modal('show');
                 $('#delete-btn-add-task').hide();
                 $('#delete-btn-change-status').hide();
+                $('#delete-btn-change-user').hide();
                 $('#performing-status').val(thisStatus);
                 performingStatusTitle = modalTitle.toUpperCase();
             }
@@ -559,6 +592,7 @@
             $('#add-task').find('#modal-title-add-task').text(thisTitle);
             $('#manage-status-id-for-add-task').val(dt.status_id);
             $('#task-desc').val(dt.task_description);
+            $('#delete-btn-add-task').show();
 
             let dropdownText = 'Execute: ';
             let timeString = `Immediately`;
@@ -617,6 +651,10 @@
 
         $(document).on('click', '.trigger-change-order-status', function () {
 
+            if ($(event.target).hasClass('copy-task')) {
+                return false;
+            }
+
             let thisTrigger = $(this).attr('data-triggerid');
             let thisTitle = $(this).attr('data-title');
             let thisstatus = $(this).parent().parent().attr('data-thisstatus');
@@ -649,6 +687,7 @@
                     $('#lead-stage').find('#modal-title-lead-stage').text(thisTitle);
                     $('#manage-status-id-for-change-lead-stage').val(dt.status_id);
                     $('#manage-order-status-for-change-lead-stage').val(dt.next_status_id);
+                    $('#delete-btn-change-status').show();
 
                     let dropdownText = 'Execute: ';
                     let timeString = `Immediately`;
@@ -750,16 +789,26 @@
             }
         });
 
-        $(".opener").on({
+        $(document).on({
             mouseenter: function() {
                 if ($('#custom-cursor').css('display') != 'none') {
-                    $(this).addClass('hover-trigger-add-div');
+
+                    if ($('#custom-cursor').find('.trigger-change-order-status').length > 0) {
+                        if ($(this).parent().attr('data-uniqueclass') != $('#custom-cursor').attr('data-subuniqueclass')) {
+                            $(this).addClass('hover-trigger-add-div-error');
+                        } else {
+                            $(this).addClass('hover-trigger-add-div');
+                        }
+                    } else {
+                        $(this).addClass('hover-trigger-add-div');
+                    }
                 }
             },
             mouseleave: function() {
                 $(this).removeClass('hover-trigger-add-div');
+                $(this).removeClass('hover-trigger-add-div-error');
             }
-        });
+        }, ".opener");
 
         $(document).on('click', '.status-dropdown-toggle-inner', function() {
             var isHidden = $(this).parents(".status-dropdown-inner").children(
@@ -1632,12 +1681,11 @@
                 type += `${getTypes(data.time, data.hour, data.minute)} 
                     </div> 
                         <div class="text-start">
-                            <span class="f-12">
-                                <strong>Change status: </strong>
+                                <strong class="f-12">Change status: </strong>
                                 <span class="status-lbl f-10 trigger-box-label-task-ns" style="background: ${data.bg};color:${data.color};text-transform:uppercase;" title="${data.status}"> 
                                     ${data.status.length > 12 ? data.status.substring(0, 12) + '...' : data.status} 
                                 </span>
-                            </span>
+                                <i class="fa fa-copy copy-task pos-abs-0 f-14" ></i>
                         </div>${input}
                     </div>
                 </div>`;
@@ -1796,7 +1844,8 @@
             event.stopImmediatePropagation();
 
             $('#custom-cursor').css('display', 'block');
-            $('#custom-cursor').html($(this).parent().parent().parent().parent().parent().parent().html());
+            $('#custom-cursor').html($(this).closest('.card-body').parent().html());
+            $('#custom-cursor').attr('data-subuniqueclass', $(this).closest('.card-body').parent().attr('data-uniqueclass'));
         });
 
         let customCursor = document.getElementById('custom-cursor');
@@ -2063,6 +2112,7 @@
                     $('#manage-order-id-for-change-user').val(dt.status_id);
                     $('.change-user-picker').val(dt.user).trigger('change');
                     $('#change-user-name-label').val(dt.username);
+                    $('#delete-btn-change-user').show();
 
                     let dropdownText = 'Execute: ';
                     let timeString = `Immediately`;

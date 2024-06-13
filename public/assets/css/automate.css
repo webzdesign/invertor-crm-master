@@ -396,6 +396,21 @@ input[type="color"]::-webkit-color-swatch-wrapper {
     left: 0;
 }
 
+.hover-trigger-add-div-error:hover {
+    background-color: #bc2a2a1a!important;
+    color: transparent;
+    cursor: no-drop;
+}
+
+.hover-trigger-add-div-error:after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
 .pos-abs-0 {
     position: absolute;
     right: -8px;
