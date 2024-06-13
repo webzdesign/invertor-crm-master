@@ -1856,7 +1856,13 @@
             customCursor.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
         });
 
+        const rightSection = document.querySelector('.rightSection');
+        rightSection.addEventListener('scroll', function(e) {
 
+            const mouseY = rightSection.scrollTop;
+
+            customCursor.style.top = `${mouseY - 78}px`;
+        });
 
         /** User Change **/
         $(document).on('click', '#responsible-user', function () {
