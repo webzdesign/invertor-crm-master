@@ -271,10 +271,24 @@
 {{-- Change Status Modal --}}
 
 <div id="custom-cursor"></div>
+
+
+<div class="custom-scroll-js" id="customScroll">
+    <ul>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+    </ul>
+    <input type="range" class="scrollRangeSlider" id="scrollRange" min="0" max="100" value="0">
+</div>
 @endsection
 
 @section('script')
 <script src="{{ asset('assets/js/toastr.min.js') }}"></script>
+<script src="{{ asset('assets/js/h-scrollmap.js') }}"></script>
 <script>
 
     toastr.options = {
@@ -2618,6 +2632,7 @@
 
             $(toBeAppened).insertAfter($(this).parent().parent());
             $(this).parent().parent().next().find('.title-of-card').focus()
+            checkOverflow();
         });
 
         $(document).on('change', '.color-picker', function () {
@@ -2660,7 +2675,7 @@
                             success: function (response) {
                                 if (response.status) {
                                     $(element).closest('.parent-card').remove();
-                                    Swal.fire('', 'Status deleted successfully.', 'success');
+                                    checkOverflow();
                                 }
                             },
                             complete: function () {
@@ -2684,7 +2699,6 @@
                 }).then((result) => {
                     if (result.value) {
                         $(element).closest('.parent-card').remove();
-                        Swal.fire('', 'Status deleted successfully.', 'success');
                     }
                 });
 

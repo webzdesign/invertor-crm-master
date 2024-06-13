@@ -416,3 +416,77 @@ input[type="color"]::-webkit-color-swatch-wrapper {
     right: -8px;
     bottom: 0px;
 }
+
+
+
+
+
+
+.custom-scroll-js {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 99999;
+}
+
+.custom-scroll-js ul {
+    border: 1px solid #ddd;
+    display: inline-flex;
+    padding: 4px 3px;
+    margin: 0;
+    border-radius: 4px;
+}
+
+.custom-scroll-js ul li {
+    list-style: none;
+    background: #e9e9e9;
+    height: 28px;
+    width: 18px;
+    margin: 0 2px;
+}
+
+.custom-scroll-js .scroll-progress {
+    background: black;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 40px;
+    cursor: grab;
+}
+
+.scrollRangeSlider {
+    position: absolute;
+    top: 14px;
+    left: 5px;
+    width: 93%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 10px;
+    background: transparent;
+    outline: none;
+}
+
+.scrollRangeSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: var(--thumb-width);
+    min-width: 40px;
+    height: 30px;
+    background: #00000026;
+    cursor: grab;
+    border-radius: 4px;
+}
+
+.scrollRangeSlider::-moz-range-thumb {
+    width: var(--thumb-width);
+    min-width: 40px;
+    height: 30px;
+    background: #00000026;
+    cursor: grab;
+    border-radius: 4px;
+}
+
+#sortable {
+    overflow-x: hidden!important;
+}
