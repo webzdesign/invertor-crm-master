@@ -131,6 +131,13 @@
         }
     }
 
+    .bg-success, .bg-success:hover {
+        background: #269e0e!important;
+    }
+
+    .bg-error, .bg-error:hover {
+        background: #dd2d20!important;        
+    }
 </style>
 @endsection
 
@@ -174,6 +181,7 @@
                 <th>STATUS</th>
                 <th>ORDER DATE</th>
                 <th>AMOUNT</th>
+                <th>ACTION</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -378,6 +386,12 @@ var thisWindowId = uuid();
                 },
                 {
                     data: 'amount',
+                    searchable: false,
+                    orderable: false,
+                    width: '260px'
+                },
+                {
+                    data: 'action',
                     searchable: false,
                     orderable: false,
                     width: '260px'
@@ -713,6 +727,36 @@ var thisWindowId = uuid();
                     
                 });                
             }
+        })
+
+        $(document).on('click', '#approve-the-order', function () {
+            let that = this;
+
+            Swal.fire({
+                title: 'Accept this order?',
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+            }).then((result) => {
+                if (result.value) {
+
+                    $.ajax({
+                        url: "{{ route('again-assign-same-driver') }}",
+                        type: 'POST',
+                        data: {
+                            id : $(that).attr('data-oid')
+                        },
+                        success: function(response) {
+                            if (response.status) {
+                                ServerDataTable.ajax.reload();
+                            }
+                        }
+                    });
+
+                }
+            });            
         })
 
     });
