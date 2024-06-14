@@ -1736,6 +1736,11 @@
 
                 if ($this.children().hasClass('trigger-add-task') || $this.children().hasClass('trigger-change-order-status') || $this.children().hasClass('trigger-change-order-user')) {
                     $(ui.sender).sortable('cancel');
+
+                        /** REASSIGN DATA **/
+                        reassignStatuses(ui);
+                        /** REASSIGN DATA **/
+
                     $('.layover-container').removeClass('dragOverlay');
                     if ($(ui.sender).find('.trigger-change-order-status').length > 0 || $(ui.sender).find('.trigger-add-task').length > 0 || $(ui.sender).find('.trigger-change-order-user').length > 0) {
                         if ($(ui.sender).find('.opener').length > 0) {
@@ -1760,6 +1765,11 @@
 
                         if (thisClass != $this.attr('data-uniqueclass')) {
                             $(ui.sender).sortable('cancel');
+
+                            /** REASSIGN DATA **/
+                            reassignStatuses(ui);
+                            /** REASSIGN DATA **/
+
                             $('.layover-container').removeClass('dragOverlay');
                             if ($(ui.sender).find('.trigger-change-order-status').length > 0 || $(ui.sender).find('.trigger-add-task').length > 0 || $(ui.sender).find('.trigger-change-order-user').length > 0) {
                             if ($(ui.sender).find('.opener').length > 0) {
@@ -1845,6 +1855,58 @@
         });
 
         $(".portlet").find(".portlet-header").addClass("ui-corner-all")
+
+        function reassignStatuses (ui) {
+            if ($(ui.item).find('.trigger-saver-input').length > 0) {
+                let thisStatus = $(ui.item).parent().parent().parent().attr('data-mainstatus');
+                let index = $(ui.item).parent().index();
+                let prefix = '';
+                let taskType = $(ui.item).find('.trigger-saver-input').attr('data-type');
+
+                if (taskType == '1') {
+                    prefix = 'task';
+                } else if (taskType == '2') {
+                    prefix = 'statuschange';
+                } else if (taskType == '3') {
+                    prefix = 'userchange';
+                }
+
+                $(ui.item).find('.trigger-saver-input').attr('name', `${prefix}[${thisStatus}][${index}][status]`);
+                $(ui.item).find('.trigger-saver-input').val(thisStatus);
+
+                $(ui.item).find('.trigger-saver-input-maintype').attr('name', `${prefix}[${thisStatus}][${index}][maintype]`);
+                $(ui.item).find('.trigger-saver-input-maintype').val($(ui.item).find('.trigger-saver-input-maintype').val());
+
+                $(ui.item).find('.trigger-saver-input-timetype').attr('name', `${prefix}[${thisStatus}][${index}][timetype]`);
+                $(ui.item).find('.trigger-saver-input-timetype').val($(ui.item).find('.trigger-saver-input-timetype').val());
+
+                $(ui.item).find('.trigger-saver-input-hour').attr('name', `${prefix}[${thisStatus}][${index}][hour]`);
+                $(ui.item).find('.trigger-saver-input-hour').val($(ui.item).find('.trigger-saver-input-hour').val());
+
+                $(ui.item).find('.trigger-saver-input-minute').attr('name', `${prefix}[${thisStatus}][${index}][minute]`);
+                $(ui.item).find('.trigger-saver-input-minute').val($(ui.item).find('.trigger-saver-input-minute').val());
+                
+                $(ui.item).find('.trigger-saver-input-sequence').attr('name', `${prefix}[${thisStatus}][${index}][sequence]`);
+                $(ui.item).find('.trigger-saver-input-sequence').val(index);
+
+                if ($(ui.item).find('.trigger-saver-input-edit_id').length > 0) {
+                    $(ui.item).find('.trigger-saver-input-edit_id').attr('name', `${prefix}[${thisStatus}][${index}][edit_id]`);
+                    $(ui.item).find('.trigger-saver-input-edit_id').val($(ui.item).find('.trigger-saver-input-edit_id').val());
+                }
+
+                if (taskType == '1') {
+                    $(ui.item).find('.trigger-saver-input-desc').attr('name', `${prefix}[${thisStatus}][${index}][desc]`);
+                    $(ui.item).find('.trigger-saver-input-desc').val($(ui.item).find('.trigger-saver-input-desc').val());
+                } else if (taskType == '2') {
+                    $(ui.item).find('.trigger-saver-input-next-status').attr('name', `${prefix}[${thisStatus}][${index}][nextstatus]`);
+                    $(ui.item).find('.trigger-saver-input-next-status').val($(ui.item).find('.trigger-saver-input-next-status').val());
+                } else if (taskType == '3') {
+                    $(ui.item).find('.trigger-saver-input-user').attr('name', `${prefix}[${thisStatus}][${index}][user]`);
+                    $(ui.item).find('.trigger-saver-input-user').val($(ui.item).find('.trigger-saver-input-user').val());
+                }
+                
+            }
+        }
 
         $(document).on("mousedown", ".copy-task", function(event) {
             event.stopImmediatePropagation();
