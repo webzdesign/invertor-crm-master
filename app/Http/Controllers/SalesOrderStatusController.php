@@ -805,6 +805,11 @@ class SalesOrderStatusController extends Controller
         if ($request->has('id') && !empty($request->id)) {
             $updatedStatuses = SalesOrderStatus::select('id', 'sequence')->where('id', $request->id)->first()->sequence ?? 0;
             $updatedStatuses = SalesOrderStatus::select('id', 'name')->where('sequence', '>', $updatedStatuses)->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
+
+            if ($request->id !== '1') {
+                $updatedStatuses['1'] = SalesOrderStatus::where('id', 1)->first()->name ?? '';
+            }
+
         } else {
             $updatedStatuses = SalesOrderStatus::select('id', 'name')->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
         }
