@@ -251,6 +251,10 @@ class SalesOrderStatusController extends Controller
 
         if (SalesOrder::where('id', $request->order)->update(['status' => $request->status]) && isset($oldStatus)) {
 
+            AddTaskToOrderTrigger::where('order_id', $request->order)->where('status_id', '!=',$request->status)->where('executed', 0)->delete();
+            ChangeOrderUser::where('order_id', $request->order)->where('status_id', '!=', $request->status)->where('executed', 0)->delete();
+            ChangeOrderStatusTrigger::where('order_id', $request->order)->where('status_id', '!=', $request->status)->where('executed', 0)->delete();
+
             event(new \App\Events\OrderStatusEvent('order-status-change', [
                 'orderId' => $request->order,
                 'orderStatus' => $request->status,
@@ -548,6 +552,10 @@ class SalesOrderStatusController extends Controller
                     $message = 'Status Updated successfully';
 
                     $oldStatus = SalesOrder::where('id', $request->order)->select('status')->first()->status;
+
+                    AddTaskToOrderTrigger::where('order_id', $request->order)->where('status_id', '!=',$request->status)->where('executed', 0)->delete();
+                    ChangeOrderUser::where('order_id', $request->order)->where('status_id', '!=', $request->status)->where('executed', 0)->delete();
+                    ChangeOrderStatusTrigger::where('order_id', $request->order)->where('status_id', '!=', $request->status)->where('executed', 0)->delete();
 
                     event(new \App\Events\OrderStatusEvent('order-status-change', [
                         'orderId' => $request->order,
