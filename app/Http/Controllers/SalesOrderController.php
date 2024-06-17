@@ -823,7 +823,7 @@ class SalesOrderController extends Controller
             return view('so.delivery-list', compact('moduleName'));
         }
 
-        $d = Deliver::with('order.items')->whereIn('status', [1,2]);
+        $d = Deliver::with(['order.items' => fn ($builder) => $builder->withTrashed()])->whereIn('status', [1,2]);
         $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
 
         if (!in_array('1', $thisUserRoles)) {

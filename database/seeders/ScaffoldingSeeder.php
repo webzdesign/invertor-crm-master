@@ -64,6 +64,8 @@ class ScaffoldingSeeder extends Seeder
             $user->country_id = '167';
             $user->city_id = 'London';
             $user->postal_code = 'W12 7RZ';
+            $user->lat = '51.5138049';
+            $user->long = '-0.2227208';
             $user->added_by = 1;
             $user->save();
 
@@ -82,6 +84,8 @@ class ScaffoldingSeeder extends Seeder
             $user->country_id = '167';
             $user->city_id = 'London';
             $user->postal_code = 'EC2M 3TL';
+            $user->lat = '51.5172332';
+            $user->long = '-0.0831443';
             $user->added_by = 1;
             $user->save();
 
