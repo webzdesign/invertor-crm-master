@@ -154,7 +154,7 @@ class UserController extends Controller
 
             $allPermissions = [];
 
-            if ($request->role == '2') {
+            if ($request->role == '2' || $request->role == '5') {
                 $allPermissions = array_unique(array_merge($request->permission, Permission::whereIn('slug', ['sales-orders.create', 'sales-orders.edit', 'sales-orders.view', 'sales-orders.delete'])->select('id')->pluck('id')->toArray()));
             } else if ($request->role == '3') {
                 $allPermissions = array_unique(array_merge($request->permission, Permission::whereIn('slug', ['sales-orders.view'])->select('id')->pluck('id')->toArray()));

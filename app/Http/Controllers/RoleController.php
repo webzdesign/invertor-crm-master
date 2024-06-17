@@ -32,7 +32,7 @@ class RoleController extends Controller
         }
 
         if (isset($request->order[0]['column']) && $request->order[0]['column'] == 0) {
-            $roles->orderBy('id', 'desc');
+            $roles->orderBy('id', 'asc');
         }
 
         return dataTables()->eloquent($roles)
@@ -53,7 +53,7 @@ class RoleController extends Controller
                 $action = "";
                 $action .= '<div class="whiteSpace">';
 
-                if (!in_array(auth()->user()->roles()->first()->id, [1,2,3])) {
+                if (!in_array($roles->id, [1,2,3])) {
                     if (auth()->user()->hasPermission("roles.edit")) {
                         $url = route("roles.edit", encrypt($variable->id));
                         $action .= view('buttons.edit', compact('variable', 'url'));
