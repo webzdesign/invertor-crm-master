@@ -483,7 +483,10 @@
                 shouldMove = true;
             }
 
-            if (shouldMove && $(`[data-cardchild="${data.orderId}"]`).length > 0 && $(
+            if (shouldMove && 'element' in data) {
+                let toBeMovedAt = $(`[data-cardparent="${data.orderStatus}"]`);
+                $(toBeMovedAt).append(data.element);
+            } else if (shouldMove && $(`[data-cardchild="${data.orderId}"]`).length > 0 && $(
                     `[data-cardparent="${data.orderStatus}"]`).length > 0) {
                 let toBeMoved = $(`[data-cardchild="${data.orderId}"]`).get(0);
                 let toBeMovedAt = $(`[data-cardparent="${data.orderStatus}"]`);

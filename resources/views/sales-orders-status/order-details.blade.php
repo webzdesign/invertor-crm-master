@@ -73,14 +73,18 @@
         @forelse($logs as $key => $l)
             <div class="activity py-1 hist @if(in_array($loop->iteration, [1,2,3])) show-first-history @else d-none @endif">
                 <p class="f-12" style="margin-bottom:0px;">
-                    <strong> {{ date('d-m-Y H:i', strtotime($l->created_at)) }} @if(!empty($l->watcher_id)) {{ $l->watcher->name }} @else Robot @endif </strong> :
+                    <strong> {{ date('d-m-Y H:i', strtotime($l->created_at)) }} @if(!empty($l->watcher_id)) {{ $l->watcher->name }} @else @if(!empty($l->user->name)) {{ $l->user->name }} @else Robot @endif @endif </strong> :
                     @if($l->type == 1)
                         added a task [ <strong>{{ $l->description }}</strong> ]
                     @elseif($l->type == 2)
+                        @if(empty($l->from_status))
+                        created order
+                        @else
                         moved to
                         <span class="status-lbl f-12" style="background: {{ $l->to_status->color }};color:{{ Helper::generateTextColor($l->to_status->color) }};text-transform:uppercase;"> {{ $l->to_status->name }} </span>
                         from
                         <span class="status-lbl f-12" style="background: {{ $l->from_status->color }};color:{{ Helper::generateTextColor($l->from_status->color) }};text-transform:uppercase;"> {{ $l->from_status->name }} </span>
+                        @endif
                     @elseif($l->type == 3)
                         assigned order to it's seller
                     @endif

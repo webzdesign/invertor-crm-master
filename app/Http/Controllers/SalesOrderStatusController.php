@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser, Setting, Trigger};
 use App\Models\{SalesOrderStatus, SalesOrder, DistributionItem, Deliver, Role, ManageStatus, User};
+use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use App\Helpers\{Helper, Distance};
+use Illuminate\Support\Str;
 
 class SalesOrderStatusController extends Controller
 {
@@ -280,6 +281,7 @@ class SalesOrderStatusController extends Controller
                 'minute' => $disOrder->minute,
                 'time' => $disOrder->time,
                 'executed_at' => $disOrder->executed_at,
+                'user_id' => auth()->user()->id,
                 'executed' => 1,
                 'from_status' => [
                    'name' => $fromStatus->name ?? '-',
@@ -443,7 +445,7 @@ class SalesOrderStatusController extends Controller
                     $builder->where('seller_id', auth()->user()->id);
                 });
             } else if (in_array(3, $thisUserRoles)) {
-                $driversOrder = Deliver::where('user_id', auth()->user()->id)->select('so_id')->pluck('so_id')->toArray();
+                $driversOrder = Deliver::where('user_id', auth()->user()->id)->where('status', 0)->select('so_id')->pluck('so_id')->toArray();
                 $orders = $orders->where(function ($builder) use ($driversOrder) {
                     $builder->whereIn('id', $driversOrder);
                 })->whereHas('ostatus', fn ($builder) => $builder->where('id', '!=', '1'));
@@ -1354,13 +1356,13 @@ class SalesOrderStatusController extends Controller
             if ($order->exists()) {
                 Deliver::where('user_id', auth()->user()->id)->where('so_id', $request->id)->where('status', 0)->update(['status' => 1]);
                 SalesOrder::where('id', $request->id)->update(['status' => 3]);
-                $disOrder = SalesOrder::where('id', $request->id)->first();
+                $disOrder = SalesOrder::with('items')->where('id', $request->id)->first();
                 $soId = $disOrder->id;
 
                 \App\Models\TriggerLog::create([
                     'trigger_id' => 0,
                     'order_id' => $soId,
-                    'watcher_id' => auth()->user()->id,
+                    'watcher_id' => null,
                     'next_status_id' => 3,
                     'current_status_id' => 2,
                     'type' => 2,
@@ -1380,6 +1382,28 @@ class SalesOrderStatusController extends Controller
                         'color' => '#a9ebfc'
                      ]
                 ]);
+
+                $htmlElement = '<div class="card card-light card-outline mb-2 draggable-card portlet" data-cardchild="' . $disOrder->id . '" data-otitle="'. $disOrder->order_no .'">
+                    <div class="card-body bg-white border-0 p-2 d-flex justify-content-between portlet-header ui-sortable-handle ui-corner-all">
+                        <div>
+                            <p class="color-blue">'. $disOrder->order_no .'</p>
+                            <p class="no-m font-13">
+                                £'. Helper::currencyFormatter($disOrder->items->sum('amount'), true) .' </p>
+                        </div>
+                        <div class="d-flex align-items-end flex-column">
+                            <div class="card-date f-12 c-7b">
+                                '. \Carbon\Carbon::parse($disOrder->date)->diffForHumans() .'
+                            </div>
+                        </div>
+                    </div>
+                </div>';
+
+                event(new \App\Events\OrderStatusEvent('order-status-change', [
+                    'orderId' => $disOrder->id,
+                    'orderStatus' => 3,
+                    'element' => $htmlElement,
+                    'windowId' => Str::random(30)
+                ]));
 
                 /** TRIGGERS **/
 

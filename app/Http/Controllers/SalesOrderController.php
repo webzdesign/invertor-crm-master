@@ -345,6 +345,28 @@ class SalesOrderController extends Controller
                 $so->added_by = $userId;
                 $so->save();
 
+                \App\Models\TriggerLog::create([
+                    'trigger_id' => 0,
+                    'order_id' => $so->id,
+                    'watcher_id' => null,
+                    'next_status_id' => 1,
+                    'current_status_id' => 1,
+                    'type' => 2,
+                    'time_type' => 1,
+                    'main_type' => 2,
+                    'hour' => 0,
+                    'minute' => 0,
+                    'time' => '+0 seconds',
+                    'executed_at' => date('Y-m-d H:i:s'),
+                    'executed' => 1,
+                    'from_status' => null,
+                    'to_status' => [
+                        'name' => 'NEW',
+                        'color' => '#a9ebfc'
+                     ]
+                ]);
+
+
                 $soId = $so->id;
                 $soItems = $wallet = [];
 

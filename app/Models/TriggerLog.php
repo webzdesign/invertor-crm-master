@@ -16,4 +16,8 @@ class TriggerLog extends Model
     public function watcher() {
         return $this->belongsTo(User::class, 'watcher_id');
     }
+
+    public function user() {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }
