@@ -175,7 +175,9 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('sales-order-responsible-user-save', [SalesOrderStatusController::class, 'salesOrderResponsibleUserSave'])->name('sales-order-responsible-user-save');
         Route::post('get-trigger-tasks', [SalesOrderStatusController::class, 'getTriggerTasks'])->name('get-trigger-tasks');
         Route::delete('delete-status', [SalesOrderStatusController::class, 'deleteStatus'])->name('delete-status');
-        Route::post('again-assign-same-driver', [SalesOrderStatusController::class, 'assignDriverAgain'])->name('again-assign-same-driver');
+        Route::post('accept-the-order-from-driver', [SalesOrderStatusController::class, 'acceptOrder'])->name('accept-the-order-from-driver');
+        Route::post('reject-the-order-from-driver', [SalesOrderStatusController::class, 'rejectOrder'])->name('reject-the-order-from-driver');
+        Route::post('assign-new-driver/{order_id}', [SalesOrderStatusController::class, 'reassignDriverToOrder'])->name('assign-new-driver');
         /** Sales Order Status **/
 
         /** Common **/

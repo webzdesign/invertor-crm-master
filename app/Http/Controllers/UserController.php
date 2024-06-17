@@ -308,38 +308,46 @@ class UserController extends Controller
                 if ((!in_array('3', $user->roles->pluck('id')->toArray()) && $request->role == '3') || $request->role == '3' && $addressChanged) {
                     $key = trim(Setting::first()?->geocode_key);
 
-                    if (!empty($key)) {
-                        $address = trim("{$request->address_line_1} {$request->city} {$request->postal_code} {$request->country}");
-                        $address = str_replace(' ', '+', $address);
-                        $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
-
-                        $data = json_decode(file_get_contents($url), true);
-
-                        if ($data['status'] == "OK") {
-                            $lat = $data['results'][0]['geometry']['location']['lat'];
-                            $long = $data['results'][0]['geometry']['location']['lng'];
-
-                            if (!empty($lat)) {
-                                $u = User::find($user->id);
-                                $u->lat = $lat;
-                                $u->long = $long;
-                                $u->save();
-
-                                $errorWhileSavingLatLong = false;
+                    if (env('GEOLOCATION_API') == 'true') {
+                        if (!empty($key)) {
+                            $address = trim("{$request->address_line_1} {$request->city} {$request->postal_code} {$request->country}");
+                            $address = str_replace(' ', '+', $address);
+                            $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
+    
+                            $data = json_decode(file_get_contents($url), true);
+    
+                            if ($data['status'] == "OK") {
+                                $lat = $data['results'][0]['geometry']['location']['lat'];
+                                $long = $data['results'][0]['geometry']['location']['lng'];
+    
+                                if (!empty($lat)) {
+                                    $u = User::find($user->id);
+                                    $u->lat = $lat;
+                                    $u->long = $long;
+                                    $u->save();
+    
+                                    $errorWhileSavingLatLong = false;
+                                }
+    
+                                AddressLog::create([
+                                    'city' => $user->city_id,
+                                    'country' => Country::where('id', $user->country_id)->first()->name ?? $user->country_id,
+                                    'postal_code' => $user->postal_code,
+                                    'address' => $user->address_line_1,
+                                    'lat' => $lat,
+                                    'long' => $long,
+                                    'user_id' => $user->id,
+                                    'added_by' => auth()->user()->id,
+                                ]);
                             }
-
-                            AddressLog::create([
-                                'city' => $user->city_id,
-                                'country' => Country::where('id', $user->country_id)->first()->name ?? $user->country_id,
-                                'postal_code' => $user->postal_code,
-                                'address' => $user->address_line_1,
-                                'lat' => $lat,
-                                'long' => $long,
-                                'user_id' => $user->id,
-                                'added_by' => auth()->user()->id,
-                            ]);
                         }
+                    } else {
+                        $lat = '22.2735381';
+                        $long = '70.764107';
+    
+                        $errorWhileSavingLatLong = false;
                     }
+
                 } else if ($request->role == '3' && $addressChanged === false) {
                     $errorWhileSavingLatLong = false;
                 }

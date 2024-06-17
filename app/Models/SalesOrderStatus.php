@@ -17,6 +17,16 @@ class SalesOrderStatus extends Model
         return $query->where('status', 1);
     }
 
+    public static function scopeSystem($query)
+    {
+        return $query->where('type', 0);
+    }
+
+    public static function scopeCustom($query)
+    {
+        return $query->where('type', 1);
+    }
+
     public function orders()
     {
         return $this->belongsTo(SalesOrder::class, 'status', 'id');

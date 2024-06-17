@@ -388,13 +388,12 @@ var thisWindowId = uuid();
                     data: 'amount',
                     searchable: false,
                     orderable: false,
-                    width: '260px'
+                    width: '100px'
                 },
                 {
                     data: 'action',
                     searchable: false,
                     orderable: false,
-                    width: '260px'
                 }
             ],
             drawCallback: function (data) {
@@ -424,6 +423,28 @@ var thisWindowId = uuid();
                     }
                 });
                 totalOrders = data.json.totalOrders;
+
+
+                $('.driver-selection').select2({
+                    width: '40%',
+                    allowClear: true,
+                });
+
+                $('#validateDriver').validate({
+                    rules: {
+                        driver : {
+                            required: true
+                        }
+                    },
+                    messages: {
+                        driver : {
+                            required: "Select a driver to assign."
+                        }
+                    },
+                    errorPlacement: function(error, element) {
+                        error.appendTo(element.parent("form"));
+                    }
+                });
             }
         });
 
@@ -729,11 +750,13 @@ var thisWindowId = uuid();
             }
         })
 
-        $(document).on('click', '#approve-the-order', function () {
+
+        $(document).on('click', '#driver-approve-the-order', function () {
             let that = this;
 
             Swal.fire({
-                title: 'Accept this order?',
+                title: 'Accept order?',
+                text: 'This process is irreversible. are you sure?',
                 icon: 'success',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -743,7 +766,7 @@ var thisWindowId = uuid();
                 if (result.value) {
 
                     $.ajax({
-                        url: "{{ route('again-assign-same-driver') }}",
+                        url: "{{ route('accept-the-order-from-driver') }}",
                         type: 'POST',
                         data: {
                             id : $(that).attr('data-oid')
@@ -751,6 +774,39 @@ var thisWindowId = uuid();
                         success: function(response) {
                             if (response.status) {
                                 ServerDataTable.ajax.reload();
+                                Swal.fire('', 'Order accepted successfully.', 'success');
+                            }
+                        }
+                    });
+
+                }
+            });            
+        })
+
+        $(document).on('click', '#driver-reject-the-order', function () {
+            let that = this;
+
+            Swal.fire({
+                title: 'Reject order?',
+                text: 'This process is irreversible. are you sure?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+            }).then((result) => {
+                if (result.value) {
+
+                    $.ajax({
+                        url: "{{ route('reject-the-order-from-driver') }}",
+                        type: 'POST',
+                        data: {
+                            id : $(that).attr('data-oid')
+                        },
+                        success: function(response) {
+                            if (response.status) {
+                                ServerDataTable.ajax.reload();
+                                Swal.fire('', 'Order rejected successfully.', 'success');
                             }
                         }
                     });

@@ -119,7 +119,7 @@ class SalesOrderController extends Controller
         $moduleName = 'Sales Order';
         $moduleLink = route('sales-orders.index');
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
-        $statuses = SalesOrderStatus::active()->select('id', 'name')->pluck('name', 'id')->toArray();
+        $statuses = SalesOrderStatus::custom()->active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $orderNo = Helper::generateSalesOrderNumber();
 
         $items = [];
@@ -177,33 +177,39 @@ class SalesOrderController extends Controller
         ->select('id', 'lat', 'long')->get()->toArray();
 
         try {
+            if (env('GEOLOCATION_API') == 'true') {
+                $key = trim(Setting::first()?->geocode_key);
 
-            $key = trim(Setting::first()?->geocode_key);
-
-            $address = trim("{$request->address_line_1} {$request->postal_code}");
-            $address = str_replace(' ', '+', $address);
-            $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
-
-            $data = json_decode(file_get_contents($url), true);
-
-            if ($data['status'] == "OK") {
-                $lat = $data['results'][0]['geometry']['location']['lat'];
-                $long = $data['results'][0]['geometry']['location']['lng'];
-
-                if (!empty($lat)) {
-                    $latFrom = $lat;
-                    $longFrom = $long;
-
-                    $errorWhileSavingLatLong = false;
+                $address = trim("{$request->address_line_1} {$request->postal_code}");
+                $address = str_replace(' ', '+', $address);
+                $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
+    
+                $data = json_decode(file_get_contents($url), true);
+    
+                if ($data['status'] == "OK") {
+                    $lat = $data['results'][0]['geometry']['location']['lat'];
+                    $long = $data['results'][0]['geometry']['location']['lng'];
+    
+                    if (!empty($lat)) {
+                        $latFrom = $lat;
+                        $longFrom = $long;
+    
+                        $errorWhileSavingLatLong = false;
+                    }
+    
+                    AddressLog::create([
+                        'postal_code' => $request->postal_code,
+                        'address' => $request->address_line_1,
+                        'lat' => $lat,
+                        'long' => $long,
+                        'added_by' => auth()->user()->id,
+                    ]);
                 }
+            } else {
+                $latFrom = '22.3011558';
+                $longFrom = '70.7602854';
 
-                AddressLog::create([
-                    'postal_code' => $request->postal_code,
-                    'address' => $request->address_line_1,
-                    'lat' => $lat,
-                    'long' => $long,
-                    'added_by' => auth()->user()->id,
-                ]);
+                $errorWhileSavingLatLong = false;
             }
 
         } catch (\Exception $e) {
@@ -260,8 +266,9 @@ class SalesOrderController extends Controller
                     $driverDetail = User::findOrFail($getNearbyDriver);
                     $postalcode = $request->postal_code;
                     $addressline = $request->address_line_1;
+                    $enteredPrice = $request->price;
 
-                    return response()->json(['status' => true , 'message' => 'Available', 'html' => view('so.single-product', compact('product', 'minSalesPrice', 'orderNo', 'category', 'longFrom', 'latFrom', 'driverDetail', 'range', 'postalcode', 'addressline'))->render()]);
+                    return response()->json(['status' => true , 'message' => 'Available', 'html' => view('so.single-product', compact('product', 'minSalesPrice', 'orderNo', 'category', 'longFrom', 'latFrom', 'driverDetail', 'range', 'postalcode', 'addressline', 'enteredPrice'))->render()]);
 
                 } else {
                     return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
@@ -334,7 +341,7 @@ class SalesOrderController extends Controller
                 }
 
                 $so->customer_facebook = $request->customerfb;
-                $so->status = 1;
+                $so->status = 2;
                 $so->added_by = $userId;
                 $so->save();
 
@@ -404,12 +411,9 @@ class SalesOrderController extends Controller
                             Wallet::insert($wallet);
                         }
 
-                        $getFirstItemId = SalesOrderItem::where('so_id', $soId)->first();
-
                         Deliver::create([
                             'user_id' => $request->driver_id,
                             'so_id' => $soId,
-                            'soi_id' => $getFirstItemId->id ?? 0,
                             'added_by' => auth()->user()->id,
                             'driver_lat' => $request->driver_lat,
                             'driver_long' => $request->driver_long,
@@ -417,132 +421,6 @@ class SalesOrderController extends Controller
                             'delivery_location_long' => $request->long,
                             'range' => $request->range
                         ]);
-
-
-                        /** TRIGGERS **/
-
-                        $oldStatus = SalesOrder::where('id', $soId)->select('status')->first()->status;
-
-                        $newStatus = Trigger::where('status_id', 1)->where('type', 2)
-                        ->whereIn('action_type', [1, 3])->first()->next_status_id ?? 0;
-            
-                        /** TASKS **/
-                        $currentTime1 = date('Y-m-d H:i:s');
-                        $y = [];
-            
-                        try {
-            
-                            $triggers = Trigger::where('type', 1)->where('status_id', 1)->whereIn('action_type', [2, 3]);
-                            if ($triggers->count() > 0) {
-            
-                                foreach ($triggers->get() as $t) {
-            
-                                    $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
-                                    
-                                    $record = AddTaskToOrderTrigger::create([
-                                        'order_id' => $soId,
-                                        'status_id' => 1,
-                                        'added_by' => auth()->user()->id,
-                                        'time' => $t->time,
-                                        'type' => $t->time_type,
-                                        'main_type' => $t->action_type,
-                                        'description' => $t->task_description,
-                                        'current_status_id' => $oldStatus,
-                                        'executed_at' => $currentTime1,
-                                        'trigger_id' => $t->id
-                                    ]);
-            
-                                    if ($t->time_type == 1) {
-                                        $y[] = $record->id;
-                                    }
-                                }
-                            }
-            
-                            (new \App\Console\Commands\TaskTrigger)->handle($y);
-            
-                        } catch (\Exception $e) {
-                            Helper::logger($e->getMessage());
-                        }
-            
-                        /** TASKS **/
-
-                        /** Change User **/
-                        $currentTime1 = date('Y-m-d H:i:s');
-                        $y = [];
-            
-                        try {
-            
-                            $triggers = Trigger::where('type', 3)->where('status_id', 1)->whereIn('action_type', [2, 3]);
-                            if ($triggers->count() > 0) {
-            
-                                foreach ($triggers->get() as $t) {
-            
-                                    $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
-                                    
-                                    $record = ChangeOrderUser::create([
-                                        'order_id' => $soId,
-                                        'status_id' => 1,
-                                        'added_by' => auth()->user()->id,
-                                        'time' => $t->time,
-                                        'type' => $t->time_type,
-                                        'main_type' => $t->action_type,
-                                        'user_id' => $t->user_id,
-                                        'current_status_id' => $oldStatus,
-                                        'executed_at' => $currentTime1,
-                                        'trigger_id' => $t->id
-                                    ]);
-            
-                                    if ($t->time_type == 1) {
-                                        $y[] = $record->id;
-                                    }
-                                }
-                            }
-            
-                            (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($y);
-            
-                        } catch (\Exception $e) {
-                            Helper::logger($e->getMessage());
-                        }
-            
-                        /** Change User **/
-            
-            
-                        /** Change order status **/
-                        $currentTime = date('Y-m-d H:i:s');
-                        $x = [];
-            
-                        try {
-            
-                            $triggers = Trigger::where('type', 2)->where('status_id', 1)->whereIn('action_type', [2, 3]);
-                            if ($triggers->count() > 0) {
-                                foreach ($triggers->get() as $t) {
-            
-                                    $currentTime = date('Y-m-d H:i:s', strtotime("{$t->time}"));
-            
-                                    $record = ChangeOrderStatusTrigger::create([
-                                        'order_id' => $soId,
-                                        'status_id' => $newStatus,
-                                        'added_by' => auth()->user()->id,
-                                        'time' => $t->time,
-                                        'type' => $t->time_type,
-                                        'main_type' => $t->action_type,
-                                        'current_status_id' => 1,
-                                        'executed_at' => $currentTime,
-                                        'trigger_id' => $t->id
-                                    ]);
-                                    
-                                    if ($t->time_type == 1) {
-                                        $x[] = $record->id;
-                                    }
-                                }
-                            }
-            
-                            (new \App\Console\Commands\StatusTrigger)->handle($x);
-            
-                        } catch (\Exception $e) {
-                            Helper::logger($e->getMessage());
-                        }
-                        /** Change order status **/
 
                         DB::commit();
                         return redirect()->route('sales-orders.index')->with('success', "Sales order added successfully.");
@@ -908,7 +786,7 @@ class SalesOrderController extends Controller
         $moduleLink = route('sales-orders.index');
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $so = SalesOrder::find(decrypt($id));
-        $driver = isset($so->items->first()->driver->user->name) ? ($so->items->first()->driver->user->name . ' - (' . $so->items->first()->driver->user->email . ')') : '-';
+        $driver = isset($so->first()->driver->user->name) ? ($so->first()->driver->user->name . ' - (' . $so->first()->driver->user->email . ')') : '-';
 
         return view('so.view', compact('moduleName', 'categories', 'so', 'driver','moduleLink'));
     }
@@ -945,7 +823,7 @@ class SalesOrderController extends Controller
             return view('so.delivery-list', compact('moduleName'));
         }
 
-        $d = Deliver::with('item.order');
+        $d = Deliver::with('order.items')->whereIn('status', [1,2]);
         $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
 
         if (!in_array('1', $thisUserRoles)) {
@@ -956,13 +834,13 @@ class SalesOrderController extends Controller
 
         return dataTables()->eloquent($d)
             ->addColumn('quantity', function ($row) {
-                return $row?->item?->qty ?? '-';
+                return $row?->order?->items?->first()?->qty ?? '-';
             })
             ->addColumn('order_no', function ($row) {
-                return $row?->item?->order?->order_no ?? '-';
+                return $row?->order?->items?->first()?->order?->order_no ?? '-';
             })
             ->addColumn('item', function ($row) {
-                return $row?->item?->product?->name ?? '-';
+                return $row?->order?->items?->first()?->product?->name ?? '-';
             })
             ->addColumn('distance', function ($row) {
                 if ($row->range < 1) {
@@ -972,9 +850,18 @@ class SalesOrderController extends Controller
                 }
             })
             ->addColumn('location', function ($row) {
-                return ($row?->item?->order?->customer_address_line_1 ?? '-') . ' ' . ($row?->item?->order?->customer_postal_code ?? '');
+                return ($row?->order?->customer_address_line_1 ?? '-') . ' ' . ($row?->order?->customer_postal_code ?? '');
             })
-            ->rawColumns(['distance'])
+            ->addColumn('action', function ($row) {
+
+                if ($row->status == '1') {
+                    return "<p class='text-success'> ACCEPTED </p>";
+                } else {
+                    return "<p class='text-danger'> REJECTED </p>";
+                }
+
+            })
+            ->rawColumns(['distance', 'action'])
             ->addIndexColumn()
             ->make(true);
     }

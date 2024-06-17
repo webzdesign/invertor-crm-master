@@ -129,7 +129,7 @@
                                         <td>
                                             <div style="min-width: 200px;">
                                                 <input type="number" data-indexid="0" id="mprice" name="price[]" id="mprice"
-                                                    class="form-control" min="0">
+                                                    class="form-control" min="0" value="{{ $enteredPrice }}">
                                             </div>
                                         </td>
 

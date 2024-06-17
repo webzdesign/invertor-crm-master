@@ -12,8 +12,8 @@ class Deliver extends Model
 
     public $guarded = [];
 
-    public function item() {
-        return $this->belongsTo(SalesOrderItem::class, 'soi_id');
+    public function order() {
+        return $this->belongsTo(SalesOrder::class, 'so_id');
     }
 
     public function user() {

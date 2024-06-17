@@ -36,11 +36,12 @@ class StatusTrigger extends Command
 
         foreach ($iterable->get() as $order) {
 
-            $thisOrder = ChangeOrderStatusTrigger::findOrFail($order->id);
-            $salesOrder = SalesOrder::findOrFail($thisOrder->order_id ?? null);
-            $newStatus = $thisOrder->status_id;
+            $thisOrder = ChangeOrderStatusTrigger::where('id', $order->id)->first();
 
             if (isset($thisOrder->order_id)) {
+
+            $salesOrder = SalesOrder::findOrFail($thisOrder->order_id ?? null);
+            $newStatus = $thisOrder->status_id;
 
                 AddTaskToOrderTrigger::where('order_id', $thisOrder->order_id)->where('status_id', '!=',$newStatus)->where('executed', 0)->delete();
                 ChangeOrderUser::where('order_id', $thisOrder->order_id)->where('status_id', '!=', $newStatus)->where('executed', 0)->delete();
@@ -53,8 +54,8 @@ class StatusTrigger extends Command
                     'windowId' => \Illuminate\Support\Str::random(30)
                 ]));
 
-                $fromStatus = SalesOrderStatus::withTrashed()->where('id', $salesOrder->status)->first();
-                $toStatus = SalesOrderStatus::withTrashed()->where('id', $newStatus)->first();
+                $fromStatus = SalesOrderStatus::custom()->withTrashed()->where('id', $salesOrder->status)->first();
+                $toStatus = SalesOrderStatus::custom()->withTrashed()->where('id', $newStatus)->first();
 
                 \App\Models\TriggerLog::create([
                     'trigger_id' => $order->trigger_id,

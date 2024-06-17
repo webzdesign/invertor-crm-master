@@ -3,16 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser, Setting, Trigger};
-use App\Models\{SalesOrderStatus, SalesOrder, SalesOrderItem, Deliver, Role, ManageStatus, User};
+use App\Models\{SalesOrderStatus, SalesOrder, DistributionItem, Deliver, Role, ManageStatus, User};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use App\Helpers\Helper;
+use App\Helpers\{Helper, Distance};
 
 class SalesOrderStatusController extends Controller
 {
     public function index() {
         $moduleName = 'Sales Order Status';
-        $statuses = SalesOrderStatus::orderBy('sequence', 'ASC')->get();
+        $statuses = SalesOrderStatus::custom()->orderBy('sequence', 'ASC')->get();
         $colours = ['#99ccff', '#ffcccc', '#ffff99', '#c1c1c1', '#9bffe2', '#f7dd8b', '#c5ffd6'];
         $orders = [];
 
@@ -29,8 +29,8 @@ class SalesOrderStatusController extends Controller
 
     public function edit() {
         $moduleName = 'Sales Order Status';
-        $statuses = SalesOrderStatus::orderBy('sequence', 'ASC')->get();
-        $s = SalesOrderStatus::select('id', 'name')->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
+        $statuses = SalesOrderStatus::custom()->orderBy('sequence', 'ASC')->get();
+        $s = SalesOrderStatus::custom()->select('id', 'name')->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
         $colours = ['#99ccff', '#ffcccc', '#ffff99', '#c1c1c1', '#9bffe2', '#f7dd8b', '#c5ffd6'];
         $roles = Role::active()->select('id', 'name')->whereIn('id', [1, 2, 3])->pluck('name', 'id')->toArray();
         $maxTriggers = Setting::first()->triggers_per_status ?? 10;
@@ -59,7 +59,7 @@ class SalesOrderStatusController extends Controller
         }
 
         $userId = auth()->user()->id;
-        $allStatusList = SalesOrderStatus::select('id', 'name')->pluck('name', 'id')->toArray();
+        $allStatusList = SalesOrderStatus::custom()->select('id', 'name')->pluck('name', 'id')->toArray();
         $toNotBeDeleted = [];
 
         DB::beginTransaction();
@@ -70,14 +70,14 @@ class SalesOrderStatusController extends Controller
                 foreach ($sequences as $key => $value) {
 
                     if (!is_null($value)) {
-                        SalesOrderStatus::where('id', $value)->update([
+                        SalesOrderStatus::custom()->where('id', $value)->update([
                             'name' => strtoupper($names[$key]),
                             'slug' => Helper::slug($names[$key]),
                             'color' => isset($colors[$key]) ? $colors[$key] : '#bfbfbf',
                             'sequence' => $key + 1
                         ]);
                     } else {
-                        SalesOrderStatus::create([
+                        SalesOrderStatus::custom()->create([
                             'name' => strtoupper($names[$key]),
                             'slug' => Helper::slug($names[$key]),
                             'color' => isset($colors[$key]) ? $colors[$key] : '#bfbfbf',
@@ -239,7 +239,7 @@ class SalesOrderStatusController extends Controller
     }
 
     public function sequence(Request $request) {
-        if (SalesOrderStatus::where('id', $request->status)->doesntExist()) {
+        if (SalesOrderStatus::custom()->where('id', $request->status)->doesntExist()) {
             return response()->json(['status' => false, 'container' => true]);
         }
 
@@ -262,8 +262,8 @@ class SalesOrderStatusController extends Controller
                 'windowId' => $request->windowId
             ]));
            
-            $fromStatus = SalesOrderStatus::withTrashed()->where('id', $oldStatus)->first();
-            $toStatus = SalesOrderStatus::withTrashed()->where('id', $request->status)->first();
+            $fromStatus = SalesOrderStatus::custom()->withTrashed()->where('id', $oldStatus)->first();
+            $toStatus = SalesOrderStatus::custom()->withTrashed()->where('id', $request->status)->first();
             $disOrder = SalesOrder::where('id', $request->order)->first();
 
             \App\Models\TriggerLog::create([
@@ -426,7 +426,7 @@ class SalesOrderStatusController extends Controller
             abort(403);
         }
 
-        $statuses = SalesOrderStatus::active()->select('id', 'name', 'color')->get();
+        $statuses = SalesOrderStatus::custom()->active()->select('id', 'name', 'color')->get();
 
         if (!$request->ajax()) {
             $moduleName = 'Sales Order Status';
@@ -446,7 +446,7 @@ class SalesOrderStatusController extends Controller
                 $driversOrder = Deliver::where('user_id', auth()->user()->id)->select('so_id')->pluck('so_id')->toArray();
                 $orders = $orders->where(function ($builder) use ($driversOrder) {
                     $builder->whereIn('id', $driversOrder);
-                });
+                })->whereHas('ostatus', fn ($builder) => $builder->where('id', '!=', '1'));
             }
         }
 
@@ -455,6 +455,11 @@ class SalesOrderStatusController extends Controller
         if (isset($request->order[1]['column']) && $request->order[1]['column'] == 0) {
             $orders = $orders->orderBy('id', 'desc');
         }
+
+        $users = User::whereHas('role', function ($builder) {
+            $builder->where('roles.id', 3);
+        })->whereNotNull('lat')->whereNotNull('long')
+        ->select('id', 'lat', 'long')->get()->toArray();
 
         return dataTables($orders)
                 ->addColumn('checkbox', function ($row) {
@@ -467,7 +472,7 @@ class SalesOrderStatusController extends Controller
                 ->addColumn('status', function ($row) use ($statuses) {
                    
                     $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
-                    $statuses = SalesOrderStatus::active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
+                    $statuses = SalesOrderStatus::custom()->active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
 
                     if (count($statuses) > 0) {
 
@@ -521,12 +526,52 @@ class SalesOrderStatusController extends Controller
                 ->addColumn('amount', function ($row) {
                     return Helper::currencyFormatter($row->items->sum('amount'), true);
                 })
-                ->addColumn('action', function ($row) {
-                    if ($row->responsible_user == auth()->user()->id) {
-                        return '
-                        <button id="approve-the-order" class="btn-primary f-500 f-14 bg-success" data-oid="' . $row->id . '"> Approve </button>
-                        <button id="reject-the-order" class="btn-primary f-500 f-14 bg-error" data-oid="' . $row->id . '"> Reject </button>
-                        ';
+                ->addColumn('action', function ($row) use ($users) {
+                    if (auth()->user()->roles->first()->id == 3 && Deliver::where('user_id', auth()->user()->id)->where('so_id', $row->id)->where('status', 0)->exists()) {
+                        return '<button id="driver-approve-the-order" class="btn-primary f-500 f-14 btn-sm bg-success" data-oid="' . $row->id . '"> Approve </button>
+                        <button id="driver-reject-the-order" class="btn-primary f-500 f-14 btn-sm bg-error" data-oid="' . $row->id . '"> Reject </button>';
+                    } else if (auth()->user()->roles->first()->id == 2 && $row->seller_id == auth()->user()->id) {
+                        $html = '';
+                        if ($row->status == 1) {
+
+                            $html = '<form id="validateDriver" method="POST" action="'. route('assign-new-driver', encrypt($row->id)) .'">';
+                            $html .= csrf_field();
+                            $html .= '<select class="driver-selection" name="driver"><option value="" selected> --- Select a driver --- </option>';
+                            
+                            $thisProduct = $row->items->first()->product_id;
+
+                            $users = collect($users)->map(function ($ele) use ($thisProduct) {
+                                $inStock = DistributionItem::where('to_driver', $ele['id'])
+                                ->where('product_id', $thisProduct)
+                                ->select('qty')
+                                ->sum('qty');
+                    
+                                $outStock = DistributionItem::where('from_driver', $ele['id'])
+                                ->where('product_id', $thisProduct)
+                                ->select('qty')
+                                ->sum('qty');
+                    
+                                $availStock = intval($inStock) - intval($outStock);
+                    
+                                if ($availStock > 0) {
+                                    return $ele;
+                                }
+                    
+                            })->filter()->values()->toArray();
+
+                            if (!empty($users)) {
+                                foreach ($users as $u) {
+                                    $thisUser = User::findOrFail($u['id']);
+                                    $dist = Distance::measure($u['lat'], $u['long'], $thisUser->lat, $thisUser->long);
+                                    $html .= '<option data-distance="'. $dist .'" value="' . $u['id'] . '"> ' . ($thisUser->name ?? '') . ' - (' . ($thisUser->email ?? '') . ') </option>';
+                                }
+            
+                            }
+
+                            $html .= "</select><button type='submit' class='btn-primary btn-sm' style='margin-left:10px;'> Assign </button></form>";
+
+                            return $html;
+                        }
                     }
 
                     return '-';
@@ -542,7 +587,7 @@ class SalesOrderStatusController extends Controller
         $color = $text = '';
 
         if (!empty($request->status) && !empty($request->order)) {
-            $isStatus = SalesOrderStatus::where('id', $request->status);
+            $isStatus = SalesOrderStatus::custom()->where('id', $request->status);
             if ($isStatus->exists()) {
                 $color = $isStatus->first()->color;
                 $text = $isStatus->first()->name;
@@ -564,8 +609,8 @@ class SalesOrderStatusController extends Controller
                         'windowId' => $request->windowId
                     ]));
 
-                    $fromStatus = SalesOrderStatus::withTrashed()->where('id', $oldStatus)->first();
-                    $toStatus = SalesOrderStatus::withTrashed()->where('id', $request->status)->first();
+                    $fromStatus = SalesOrderStatus::custom()->withTrashed()->where('id', $oldStatus)->first();
+                    $toStatus = SalesOrderStatus::custom()->withTrashed()->where('id', $request->status)->first();
                     $disOrder = SalesOrder::where('id', $request->order)->first();
 
                     \App\Models\TriggerLog::create([
@@ -725,7 +770,7 @@ class SalesOrderStatusController extends Controller
     }
 
     public function statusBulkUpdate(Request $request) {
-        if (SalesOrderStatus::where('id', $request->status)->doesntExist()) {
+        if (SalesOrderStatus::custom()->where('id', $request->status)->doesntExist()) {
             return redirect()->back()->with('error', Helper::$errorMessage);
         }
 
@@ -750,7 +795,7 @@ class SalesOrderStatusController extends Controller
 
             if ($driver->exists()) {
 
-                $driver = SalesOrderItem::whereIn('id', $driver->select('soi_id')->pluck('soi_id')->toArray())->select('so_id')->pluck('so_id')->toArray();
+                $driver = $driver->select('so_id')->pluck('so_id')->toArray();
 
                 if ($request->ids == 'all') {
                     $resp = SalesOrder::whereIn('id', $driver)->update(['status' => $request->status]);
@@ -811,15 +856,15 @@ class SalesOrderStatusController extends Controller
     public function getManagedStatus(Request $request) {
 
         if ($request->has('id') && !empty($request->id)) {
-            $updatedStatuses = SalesOrderStatus::select('id', 'sequence')->where('id', $request->id)->first()->sequence ?? 0;
-            $updatedStatuses = SalesOrderStatus::select('id', 'name')->where('sequence', '>', $updatedStatuses)->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
+            $updatedStatuses = SalesOrderStatus::custom()->select('id', 'sequence')->where('id', $request->id)->first()->sequence ?? 0;
+            $updatedStatuses = SalesOrderStatus::custom()->select('id', 'name')->where('sequence', '>', $updatedStatuses)->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
 
-            if ($request->id !== '1') {
-                $updatedStatuses['1'] = SalesOrderStatus::where('id', 1)->first()->name ?? '';
+            if ($request->id !== '3') {
+                $updatedStatuses['3'] = SalesOrderStatus::where('id', 3)->first()->name ?? '';
             }
 
         } else {
-            $updatedStatuses = SalesOrderStatus::select('id', 'name')->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
+            $updatedStatuses = SalesOrderStatus::custom()->select('id', 'name')->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
         }
 
         if (ManageStatus::where('status_id', $request->id)->exists()) {
@@ -831,7 +876,7 @@ class SalesOrderStatusController extends Controller
 
 
     public function nextStatus(Request $request) {
-        $thisStatus = SalesOrderStatus::where('id', $request->id);
+        $thisStatus = SalesOrderStatus::custom()->where('id', $request->id);
         $possibleStatuses = [];
         $view = '-';
         
@@ -848,8 +893,8 @@ class SalesOrderStatusController extends Controller
                 }
             }
 
-            $statuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name', 'color')->get();
-            $possibleStatuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name')->pluck('name', 'id')->toArray();
+            $statuses = SalesOrderStatus::custom()->whereIn('id', $possibleStatuses)->select('id', 'name', 'color')->get();
+            $possibleStatuses = SalesOrderStatus::custom()->whereIn('id', $possibleStatuses)->select('id', 'name')->pluck('name', 'id')->toArray();
             $cs = $thisStatus->first()->name ?? '';
             
             $view = view('sales-orders-status.status', compact('statuses', 'cs'))->render();
@@ -859,7 +904,7 @@ class SalesOrderStatusController extends Controller
     }
 
     public function nextStatusForTask(Request $request) {
-        $thisStatus = SalesOrderStatus::where('id', $request->id);
+        $thisStatus = SalesOrderStatus::custom()->where('id', $request->id);
         $possibleStatuses = [];
         $view = '-';
         
@@ -869,8 +914,8 @@ class SalesOrderStatusController extends Controller
             ->where('possible_status', '!=', '')
             ->first()->ps ?? [];
 
-            $statuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name', 'color')->get();
-            $possibleStatuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name')->pluck('name', 'id')->toArray();
+            $statuses = SalesOrderStatus::custom()->whereIn('id', $possibleStatuses)->select('id', 'name', 'color')->get();
+            $possibleStatuses = SalesOrderStatus::custom()->whereIn('id', $possibleStatuses)->select('id', 'name')->pluck('name', 'id')->toArray();
             $cs = $thisStatus->first()->name ?? '';
             
             $view = view('sales-orders-status.status', compact('statuses', 'cs'))->render();
@@ -1123,7 +1168,7 @@ class SalesOrderStatusController extends Controller
     }
 
     public function deleteStatus(Request $request) {
-        $status = SalesOrderStatus::where('id', $request->id);
+        $status = SalesOrderStatus::custom()->where('id', $request->id);
 
         if ($status->exists()) {
 
@@ -1137,7 +1182,7 @@ class SalesOrderStatusController extends Controller
                 Trigger::where('status_id', $status)->whereIn('type', [1, 3])->delete();
                 Trigger::where('next_status_id', $status)->where('type', [2])->delete();
                 ManageStatus::where('status_id', $status)->delete();
-                SalesOrderStatus::where('id', $status)->delete();
+                SalesOrderStatus::custom()->where('id', $status)->delete();
 
                 foreach (ManageStatus::orWhereRaw('FIND_IN_SET(?, possible_status)', [$status])->get() as $s) {
                     $arr = $s->ps;
@@ -1152,7 +1197,7 @@ class SalesOrderStatusController extends Controller
                 }
 
                 $allSalesOrders = SalesOrder::where('status', $status)->select('id')->pluck('id')->toArray();
-                SalesOrder::where('status', $status)->update(['status' => 1]);
+                SalesOrder::where('status', $status)->update(['status' => 3]);
 
 
                 foreach ($allSalesOrders as $soId) {
@@ -1179,7 +1224,7 @@ class SalesOrderStatusController extends Controller
                                 
                                 $record = AddTaskToOrderTrigger::create([
                                     'order_id' => $soId,
-                                    'status_id' => 1,
+                                    'status_id' => 3,
                                     'added_by' => auth()->user()->id,
                                     'time' => $t->time,
                                     'type' => $t->time_type,
@@ -1219,7 +1264,7 @@ class SalesOrderStatusController extends Controller
                                 
                                 $record = ChangeOrderUser::create([
                                     'order_id' => $soId,
-                                    'status_id' => 1,
+                                    'status_id' => 3,
                                     'added_by' => auth()->user()->id,
                                     'time' => $t->time,
                                     'type' => $t->time_type,
@@ -1264,7 +1309,7 @@ class SalesOrderStatusController extends Controller
                                     'time' => $t->time,
                                     'type' => $t->time_type,
                                     'main_type' => $t->action_type,
-                                    'current_status_id' => 1,
+                                    'current_status_id' => 3,
                                     'executed_at' => $currentTime,
                                     'trigger_id' => $t->id
                                 ]);
@@ -1296,16 +1341,210 @@ class SalesOrderStatusController extends Controller
         return response()->json(['status' => false, 'message' => "Status not found."]);
     }
 
-    public function assignDriverAgain(Request $request) {
+    public function acceptOrder(Request $request) {
         if (!empty($request->id)) {
             $order = SalesOrder::where('id', $request->id);
             if ($order->exists()) {
-                $order->update(['responsible_user' => null]);
+                Deliver::where('user_id', auth()->user()->id)->where('so_id', $request->id)->where('status', 0)->update(['status' => 1]);
+                SalesOrder::where('id', $request->id)->update(['status' => 3]);
+                $disOrder = SalesOrder::where('id', $request->id)->first();
+                $soId = $disOrder->id;
+
+                \App\Models\TriggerLog::create([
+                    'trigger_id' => 0,
+                    'order_id' => $soId,
+                    'watcher_id' => auth()->user()->id,
+                    'next_status_id' => 3,
+                    'current_status_id' => 2,
+                    'type' => 2,
+                    'time_type' => $disOrder->time_type,
+                    'main_type' => $disOrder->main_type,
+                    'hour' => $disOrder->hour,
+                    'minute' => $disOrder->minute,
+                    'time' => $disOrder->time,
+                    'executed_at' => date('Y-m-d H:i:s'),
+                    'executed' => 1,
+                    'from_status' => [
+                       'name' => 'DISTRIBUTION',
+                       'color' => '#c78800'
+                    ],
+                    'to_status' => [
+                        'name' => 'NEW',
+                        'color' => '#a9ebfc'
+                     ]
+                ]);
+
+                /** TRIGGERS **/
+
+                $oldStatus = SalesOrder::where('id', $soId)->select('status')->first()->status;
+
+                $newStatus = Trigger::where('status_id', 1)->where('type', 2)
+                ->whereIn('action_type', [1, 3])->first()->next_status_id ?? 0;
+    
+                /** TASKS **/
+                $currentTime1 = date('Y-m-d H:i:s');
+                $y = [];
+    
+                try {
+    
+                    $triggers = Trigger::where('type', 1)->where('status_id', 1)->whereIn('action_type', [2, 3]);
+                    if ($triggers->count() > 0) {
+    
+                        foreach ($triggers->get() as $t) {
+    
+                            $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
+                            
+                            $record = AddTaskToOrderTrigger::create([
+                                'order_id' => $soId,
+                                'status_id' => 1,
+                                'added_by' => auth()->user()->id,
+                                'time' => $t->time,
+                                'type' => $t->time_type,
+                                'main_type' => $t->action_type,
+                                'description' => $t->task_description,
+                                'current_status_id' => $oldStatus,
+                                'executed_at' => $currentTime1,
+                                'trigger_id' => $t->id
+                            ]);
+    
+                            if ($t->time_type == 1) {
+                                $y[] = $record->id;
+                            }
+                        }
+                    }
+    
+                    (new \App\Console\Commands\TaskTrigger)->handle($y);
+    
+                } catch (\Exception $e) {
+                    Helper::logger($e->getMessage());
+                }
+    
+                /** TASKS **/
+
+                /** Change User **/
+                $currentTime1 = date('Y-m-d H:i:s');
+                $y = [];
+    
+                try {
+    
+                    $triggers = Trigger::where('type', 3)->where('status_id', 1)->whereIn('action_type', [2, 3]);
+                    if ($triggers->count() > 0) {
+    
+                        foreach ($triggers->get() as $t) {
+    
+                            $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
+                            
+                            $record = ChangeOrderUser::create([
+                                'order_id' => $soId,
+                                'status_id' => 1,
+                                'added_by' => auth()->user()->id,
+                                'time' => $t->time,
+                                'type' => $t->time_type,
+                                'main_type' => $t->action_type,
+                                'user_id' => $t->user_id,
+                                'current_status_id' => $oldStatus,
+                                'executed_at' => $currentTime1,
+                                'trigger_id' => $t->id
+                            ]);
+    
+                            if ($t->time_type == 1) {
+                                $y[] = $record->id;
+                            }
+                        }
+                    }
+    
+                    (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($y);
+    
+                } catch (\Exception $e) {
+                    Helper::logger($e->getMessage());
+                }
+    
+                /** Change User **/
+    
+    
+                /** Change order status **/
+                $currentTime = date('Y-m-d H:i:s');
+                $x = [];
+    
+                try {
+    
+                    $triggers = Trigger::where('type', 2)->where('status_id', 1)->whereIn('action_type', [2, 3]);
+                    if ($triggers->count() > 0) {
+                        foreach ($triggers->get() as $t) {
+    
+                            $currentTime = date('Y-m-d H:i:s', strtotime("{$t->time}"));
+    
+                            $record = ChangeOrderStatusTrigger::create([
+                                'order_id' => $soId,
+                                'status_id' => $newStatus,
+                                'added_by' => auth()->user()->id,
+                                'time' => $t->time,
+                                'type' => $t->time_type,
+                                'main_type' => $t->action_type,
+                                'current_status_id' => 1,
+                                'executed_at' => $currentTime,
+                                'trigger_id' => $t->id
+                            ]);
+                            
+                            if ($t->time_type == 1) {
+                                $x[] = $record->id;
+                            }
+                        }
+                    }
+    
+                    (new \App\Console\Commands\StatusTrigger)->handle($x);
+    
+                } catch (\Exception $e) {
+                    Helper::logger($e->getMessage());
+                }
+                /** Change order status **/
                 
-                return response()->json(['status' => true, 'message' => 'Driver assigned to this order successfully.']);
+                return response()->json(['status' => true, 'message' => 'Accepted order successfully.']);
             }
         }
 
         return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+    }
+
+    public function rejectOrder(Request $request) {
+        if (!empty($request->id)) {
+            $order = SalesOrder::where('id', $request->id);
+            if ($order->exists()) {
+                Deliver::where('user_id', auth()->user()->id)->where('so_id', $request->id)->where('status', 0)->update(['status' => 2]);
+                SalesOrder::where('id', $request->id)->update(['status' => 1]);
+                return response()->json(['status' => true, 'message' => 'Rejected order successfully.']);
+            }
+        }
+
+        return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+    }
+
+    public function reassignDriverToOrder(Request $request, $id) {
+        if (!empty($request->driver)) {
+            $soId = decrypt($id);
+            $order = SalesOrder::where('id', $soId)->where('status', 1);
+            $driver = User::where('id', $request->driver);
+            if ($order->exists() && $driver->exists()) {
+                $order = $order->first();
+                $driver = $driver->first();
+
+                Deliver::create([
+                    'user_id' => $request->driver,
+                    'so_id' => $soId,
+                    'added_by' => auth()->user()->id,
+                    'driver_lat' => $driver->lat,
+                    'driver_long' => $driver->long,
+                    'delivery_location_lat' => $order->lat,
+                    'delivery_location_long' => $order->long,
+                    'range' => Distance::measure($driver->lat, $driver->long, $order->lat, $order->long)
+                ]);
+
+                SalesOrder::where('id', $soId)->update(['status' => 2]);
+
+                return redirect()->back()->with('success', 'Driver assigned successfully');
+            }
+        }
+
+        return redirect()->back()->with('error', Helper::$errorMessage);
     }
 }

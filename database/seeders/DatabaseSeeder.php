@@ -17,7 +17,8 @@ class DatabaseSeeder extends Seeder
             CountryStateCitySeeder::class,
             RolePermissionSeeder::class,
             SalesOrderStatusSeeder::class,
-            CommissionSeeder::class
+            CommissionSeeder::class,
+            ScaffoldingSeeder::class
         ]);
     }
 }

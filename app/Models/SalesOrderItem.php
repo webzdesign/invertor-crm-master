@@ -24,8 +24,4 @@ class SalesOrderItem extends Model
     public function order() {
         return $this->belongsTo(SalesOrder::class, 'so_id');
     }
-
-    public function driver() {
-        return $this->hasOne(Deliver::class, 'soi_id');        
-    }
 }

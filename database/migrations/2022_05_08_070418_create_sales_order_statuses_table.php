@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('slug');
+            $table->boolean('type')->default(1)->comment('0 = System defined | 1 = User defined');
             $table->boolean('status')->default(1)->comment('0 = InActive | 1 = Active');
             $table->softDeletes();
             $table->timestamps();

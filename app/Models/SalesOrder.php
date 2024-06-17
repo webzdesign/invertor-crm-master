@@ -53,4 +53,8 @@ class SalesOrder extends Model
     {
         return $this->hasMany(ChangeOrderUser::class, 'order_id')->orderBy('id', 'DESC');
     }
+
+    public function driver() {
+        return $this->hasOne(Deliver::class, 'so_id');
+    }
 }

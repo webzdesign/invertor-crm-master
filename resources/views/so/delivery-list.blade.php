@@ -42,6 +42,7 @@
                 <th>Quantity</th>
                 <th>Distance</th>
                 <th>Location</th>
+                <th>Status</th>
             </tr>
         </thead>
         <tbody>
@@ -101,6 +102,11 @@
                 },
                 {
                     data: 'location',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'action',
                     orderable: false,
                     searchable: false,
                 }
