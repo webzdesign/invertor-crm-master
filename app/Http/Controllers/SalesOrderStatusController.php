@@ -592,6 +592,13 @@ class SalesOrderStatusController extends Controller
                 $color = $isStatus->first()->color;
                 $text = $isStatus->first()->name;
 
+                if (SalesOrder::where('id', $request->order)->first()->status == $request->status) {
+                    $response = true;
+                    $message = 'Status Updated successfully';
+
+                    return response()->json(['status' => $response, 'message' => $message, 'color' => $color, 'text' => $text]);
+                }
+
                 if (SalesOrder::where('id', $request->order)->update(['status' => $request->status])) {
                     $response = true;
                     $message = 'Status Updated successfully';
