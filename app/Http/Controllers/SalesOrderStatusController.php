@@ -424,6 +424,8 @@ class SalesOrderStatusController extends Controller
     }
 
     public function list(Request $request) {
+        return redirect('dashboard');
+
         if(!in_array(auth()->user()->roles->first()->id, [1,2,3])) {
             abort(403);
         }

@@ -405,6 +405,12 @@ $(document).ready(function(){
     $(document).on('change', '#address_line_1', function (event) {
         $('.eaddress_line_1').text('');
     });
+    $(document).on('keyup', '#price', function (event) {
+        if ($('#mprice').is(':visible')) {
+            $('#mprice').val($(this).val());
+            calculateAmount();
+        }
+    });
 
 });
 </script>

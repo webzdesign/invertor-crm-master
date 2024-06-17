@@ -4,7 +4,7 @@ namespace App\Helpers;
 
 class Distance {
 
-    public static function measure($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $unit = 'km', $earthRadius = 6371000)
+    public static function measure($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $unit = 'miles', $earthRadius = 6371000)
     {
         $latFrom = deg2rad($latitudeFrom);
         $lonFrom = deg2rad($longitudeFrom);
@@ -54,7 +54,7 @@ class Distance {
         return $angle * $earthRadius;
     }
 
-    public static function applyHaversine($query, $latitudeFrom, $longitudeFrom, $latitudeColumn = 'latitude', $longitudeColumn = 'longitude', $unit = 'km')
+    public static function applyHaversine($query, $latitudeFrom, $longitudeFrom, $latitudeColumn = 'latitude', $longitudeColumn = 'longitude', $unit = 'miles')
     {
         $distanceExpression = static::haversineRaw(
             $latitudeFrom,

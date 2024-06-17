@@ -2,7 +2,28 @@
     <div class="cardsBody pb-0">
         <div class="row">
 
-            <div class="col-md-4 col-sm-12">
+            <div class="col-md-2 col-sm-12">
+                <div class="form-group">
+                    <label class="c-gr f-500 f-16 w-100 mb-2">Driver Name :</label>
+                    <input class="form-control" type="text" value="{{ $driverDetail->name }}" title="{{ $driverDetail->name }}" readonly style="background:#efefef">
+                </div>
+            </div>
+
+            <div class="col-md-2 col-sm-12">
+                <div class="form-group">
+                    <label class="c-gr f-500 f-16 w-100 mb-2">Driver Email :</label>
+                    <input class="form-control" type="text" value="{{ $driverDetail->email }}" title="{{ $driverDetail->email }}" readonly style="background:#efefef">
+                </div>
+            </div>
+
+            <div class="col-md-2 col-sm-12">
+                <div class="form-group">
+                    <label class="c-gr f-500 f-16 w-100 mb-2">Distance :</label>
+                    <input class="form-control" type="text" value="{{ number_format($range, 2, '.', "") }} miles" readonly style="background:#efefef">
+                </div>
+            </div>
+
+            <div class="col-md-2 col-sm-12">
                 <div class="form-group">
                     <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number :</label>
                     <input class="form-control" id="order_number" type="text" value="{{ $orderNo }}" readonly
@@ -129,7 +150,7 @@
                                         <td>
                                             <div style="min-width: 200px;">
                                                 <input type="number" data-indexid="0" id="mprice" name="price[]" id="mprice"
-                                                    class="form-control" min="0" value="{{ $enteredPrice }}">
+                                                readonly class="form-control" min="0" value="{{ $enteredPrice }}">
                                             </div>
                                         </td>
 
@@ -150,22 +171,14 @@
                                                     maxlength="255" name="remarks[]" id="mremarks"
                                                     class="form-control">
                                             </div>
+
+                                            <input type="hidden" name="driver_id" value="{{ $driverDetail->id }}">
+                                            <input type="hidden" name="driver_lat" value="{{ $driverDetail->lat }}">
+                                            <input type="hidden" name="driver_long" value="{{ $driverDetail->long }}">
                                         </td>
 
                                     </tr>
                                 </tbody>
-
-                                <tfoot>
-                                    <tr>
-                                        <td colspan="5"></td>
-                                        <td>
-                                            <input type="hidden" name="driver_id" value="{{ $driverDetail->id }}">
-                                            <input type="hidden" name="driver_lat" value="{{ $driverDetail->lat }}">
-                                            <input type="hidden" name="driver_long" value="{{ $driverDetail->long }}">
-                                            <p><Strong>Driver</Strong> : {{ $driverDetail->name }} </p>
-                                        </td>
-                                    </tr>
-                                </tfoot>
 
                             </table>
                         </div>

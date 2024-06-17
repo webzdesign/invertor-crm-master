@@ -22,7 +22,7 @@ class SalesOrderController extends Controller
             return view('so.index', compact('moduleName', 'sellers'));
         }
 
-        $po = SalesOrder::with(['items', 'addedby', 'updatedby']);
+        $po = SalesOrder::with(['items.product', 'addedby', 'updatedby']);
         $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
 
         if (!in_array(1, $thisUserRoles)) {
@@ -50,16 +50,6 @@ class SalesOrderController extends Controller
         }
 
         return dataTables()->eloquent($po)
-            ->editColumn('addedby.name', function($user) {
-                return "<span data-mdb-toggle='tooltip' title='".date('d-m-Y h:i:s A', strtotime($user->created_at))."'>".($user->addedby->name ?? '-')."</span>";
-            })
-            ->editColumn('updatedby.name', function($user) {
-                if (($user->updatedby->name ?? '') != '-') {
-                    return "<span data-mdb-toggle='tooltip' title='".date('d-m-Y h:i:s A', strtotime($user->updated_at))."'>".($user->updatedby->name ?? '-')."</span>";
-                } else {
-                    return ($user->updatedby->name ?? '-');
-                }
-            })
             ->addColumn('total', function ($product) {
                 return Helper::currencyFormatter($product->total());
             })
@@ -69,21 +59,31 @@ class SalesOrderController extends Controller
 
                 $action = "";
                 $action .= '<div class="whiteSpace">';
-                // if (auth()->user()->hasPermission("sales-orders.edit")) {
-                //     $url = route("sales-orders.edit", encrypt($variable->id));
-                //     $action .= view('buttons.edit', compact('variable', 'url'));
-                // }
+
                 if (auth()->user()->hasPermission("sales-orders.view")) {
                     $url = route("sales-orders.view", encrypt($variable->id));
                     $action .= view('buttons.view', compact('variable', 'url'));
                 }
-                if (auth()->user()->hasPermission("sales-orders.delete")) {
-                    $url = route("sales-orders.delete", encrypt($variable->id));
-                    $action .= view('buttons.delete', compact('variable', 'url'));
+
+                if ($users->status !== '1') {
+                    if (auth()->user()->hasPermission("sales-orders.delete")) {
+                        $url = route("sales-orders.delete", encrypt($variable->id));
+                        $action .= view('buttons.delete', compact('variable', 'url'));
+                    }
                 }
+
                 $action .= '</div>';
 
                 return $action;
+            })
+            ->addColumn('product', function ($row) {
+                    return $row->items->first()->product->name;
+            })
+            ->addColumn('quantity', function ($row) {
+                    return $row->items->sum('qty');
+            })
+            ->editColumn('addedby.name', function($user) {
+                return "<span data-mdb-toggle='tooltip' title='".date('d-m-Y h:i:s A', strtotime($user->created_at))."'>".($user->addedby->name ?? '-')."</span>";
             })
             ->rawColumns(['action', 'addedby.name', 'updatedby.name'])
             ->addIndexColumn()
@@ -341,7 +341,7 @@ class SalesOrderController extends Controller
                 }
 
                 $so->customer_facebook = $request->customerfb;
-                $so->status = 2;
+                $so->status = 1;
                 $so->added_by = $userId;
                 $so->save();
 

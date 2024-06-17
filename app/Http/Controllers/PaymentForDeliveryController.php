@@ -60,11 +60,19 @@ class PaymentForDeliveryController extends Controller
 
                 PaymentForDelivery::whereNotNull('driver_id')->whereNotIn('id', $toBeEdited)->delete();
 
-                PaymentForDelivery::whereNull('driver_id')->update([
-                    'added_by' => auth()->user()->id,
-                    'distance' => $request->distance,
-                    'payment' => $request->payment
-                ]);
+                if (PaymentForDelivery::whereNull('driver_id')->exists()) {
+                    PaymentForDelivery::whereNull('driver_id')->update([
+                        'added_by' => auth()->user()->id,
+                        'distance' => $request->distance,
+                        'payment' => $request->payment
+                    ]);
+                } else {
+                    PaymentForDelivery::create([
+                        'added_by' => auth()->user()->id,
+                        'distance' => $request->distance,
+                        'payment' => $request->payment
+                    ]);
+                }
 
                 if (is_array($drivers) && count($drivers) > 0) {
                     foreach ($drivers as $k => $driver) {

@@ -36,24 +36,24 @@
 
             <div class="card-title d-flex align-items-center justify-content-between">
 
-                @if($status->id != '1')
+                @if($status->id != '3')
                 <div style="line-height: 0;cursor: move" class="movable">
                     <svg fill="#656565" width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" data-name="Layer 1"><path d="M8.5,10a2,2,0,1,0,2,2A2,2,0,0,0,8.5,10Zm0,7a2,2,0,1,0,2,2A2,2,0,0,0,8.5,17Zm7-10a2,2,0,1,0-2-2A2,2,0,0,0,15.5,7Zm-7-4a2,2,0,1,0,2,2A2,2,0,0,0,8.5,3Zm7,14a2,2,0,1,0,2,2A2,2,0,0,0,15.5,17Zm0-7a2,2,0,1,0,2,2A2,2,0,0,0,15.5,10Z"/></svg>
                 </div>
                 @endif
 
-                <input type="text" name="name[]" class="title-of-card f-14 m-auto" value="{{ $status->name }}" @if($status->id == '1') disabled @endif >
+                <input type="text" name="name[]" class="title-of-card f-14 m-auto" value="{{ $status->name }}" @if($status->id == '3') disabled @endif >
 
                 <div class="d-flex align-items-center card-options">
                     <span class="me-2">
-                        @if($status->id != '1')
+                        @if($status->id != '3')
                         @permission("sales-order-status.delete")
                         <i class="fa fa fa-trash delete-main-status-card" data-sid="{{ $status->id }}" data-name="{{ $status->name }}"></i>
                         @endpermission
                         @endif
                     </span>
 
-                    @if($status->id != '1')
+                    @if($status->id != '3')
                         <input type="color" name="color[]" class="color-picker" value="{{ $tempColor }}" />
                     @endif
                 </div>
@@ -895,7 +895,7 @@
             });
 
             $(selector).attr('data-parenttype', parent);
-        })
+        });
 
         $(document).on('click', '.selectable-inner', function (event) {
             let parent = $(this).parent().parent().attr('data-parenttype');
@@ -967,6 +967,7 @@
                 $('#editing-add-task').val('0');
                 $('#task-desc-error').remove();
                 $('#delete-btn-add-task').show();
+                $('.text-danger-error').text('');
 
                 editingBlock = null;
             }
@@ -981,7 +982,7 @@
                 },
                 add_task_minute: {
                     digits: true,
-                    min: 0,
+                    min: 1,
                     max: 60
                 },
                 task_desc: {
@@ -997,7 +998,7 @@
                 },
                 add_task_minute: {
                     digits: "Only digits allowed.",
-                    min: "Minimum 0 minute allowed.",
+                    min: "Minimum 1 minute allowed.",
                     max: "Maximum 60 minutes allowed."
                 },
                 task_desc: {
@@ -1135,6 +1136,24 @@
                 return false;
             }
         });
+
+        $('#add-task-hour').on('blur', function (e) {
+            if ($(this).val() >= 0 && $(this).val() <= 720) {
+                $('#add-task-hour').css('border-color', '#000');
+                if ($('#add-task-minute').val() >= 1 && $('#add-task-minute').val() <= 60) {
+                    $('#at-type-error').text('');
+                }
+            }
+        });
+
+        $('#add-task-minute').on('blur', function (e) {
+            if ($(this).val() >= 1 && $(this).val() <= 60) {
+                $('#add-task-minute').css('border-color', '#000');
+                if ($('#add-task-hour').val() >= 0 && $('#add-task-hour').val() <= 720) {
+                    $('#at-type-error').text('');
+                }
+            }
+        });
         /** Add Task JS **/
 
 
@@ -1225,6 +1244,7 @@
                 $('.selectable-inner-p-2').css('color', '#000');
                 $('#editing-change-lead-status').val('0');
                 $('#delete-btn-change-status').show();
+                $('.text-danger-error').text('');
 
                 editingBlock = null;
 
@@ -1460,7 +1480,7 @@
                 },
                 change_stage_minute: {
                     digits: true,
-                    min: 0,
+                    min: 1,
                     max: 60
                 },
                 cltime: {
@@ -1478,7 +1498,7 @@
                 },
                 change_stage_minute: {
                     digits: "Only digits allowed.",
-                    min: "Minimum 0 minute allowed.",
+                    min: "Minimum 1 minute allowed.",
                     max: "Maximum 60 minutes allowed."
                 },
                 cltime: {
@@ -1490,10 +1510,10 @@
             },
             errorPlacement: function(error, element) {
                 if ($(element).hasClass('change-stage-minute')) {
-                    $('#at-type-error').text(error.text());
+                    $('#cl-type-error').text(error.text());
                     $('#change-stage-minute').css('border-color', '#ff0000');
                 } else if ($(element).hasClass('change-stage-hour')) {
-                    $('#at-type-error').text(error.text());
+                    $('#cl-type-error').text(error.text());
                     $('#change-stage-hour').css('border-color', '#ff0000');
                 } else {
                     $('#cl-status-error').text('');
@@ -1631,6 +1651,24 @@
                 }
 
                 return false;
+            }
+        });
+
+        $('#change-stage-hour').on('blur', function (e) {
+            if ($(this).val() >= 0 && $(this).val() <= 720) {
+                $('#change-stage-hour').css('border-color', '#000');
+                if ($('#change-stage-minute').val() >= 1 && $('#change-stage-minute').val() <= 60) {
+                    $('#cl-type-error').text('');
+                }
+            }
+        });
+
+        $('#change-stage-minute').on('blur', function (e) {
+            if ($(this).val() >= 1 && $(this).val() <= 60) {
+                $('#change-stage-minute').css('border-color', '#000');
+                if ($('#change-stage-hour').val() >= 0 && $('#change-stage-hour').val() <= 720) {
+                    $('#cl-type-error').text('');
+                }
             }
         });
         /** Change Order Status **/
@@ -2002,6 +2040,7 @@
                 $(`#change-user-picker`).empty();
                 $('#change-user-name-label').val('');
                 $('#change-user-picker-error').remove();
+                $('.text-danger-error').text('');
 
                 editingBlock = null;
 
@@ -2271,7 +2310,7 @@
                 },
                 change_user_minute: {
                     digits: true,
-                    min: 0,
+                    min: 1,
                     max: 60
                 },
                 // user: {
@@ -2286,7 +2325,7 @@
                 },
                 change_user_minute: {
                     digits: "Only digits allowed.",
-                    min: "Minimum 0 minute allowed.",
+                    min: "Minimum 1 minute allowed.",
                     max: "Maximum 60 minutes allowed."
                 },
                 // user: {
@@ -2425,6 +2464,24 @@
             }
         });
 
+        $('#change-user-hour').on('blur', function (e) {
+            if ($(this).val() >= 0 && $(this).val() <= 720) {
+                $('#change-user-hour').css('border-color', '#000');
+                if ($('#change-user-minute').val() >= 1 && $('#change-user-minute').val() <= 60) {
+                    $('#cu-type-error').text('');
+                }
+            }
+        });
+
+        $('#change-user-minute').on('blur', function (e) {
+            if ($(this).val() >= 1 && $(this).val() <= 60) {
+                $('#change-user-minute').css('border-color', '#000');
+                if ($('#change-user-hour').val() >= 0 && $('#change-user-hour').val() <= 720) {
+                    $('#cu-type-error').text('');
+                }
+            }
+        });
+
         $(document).on('click', '#delete-btn-change-user', function (event) {
             if ($(editingBlock).length > 0) {
                 let thisStatus = $(editingBlock).attr('data-sid');
@@ -2475,6 +2532,7 @@
             $('#multiple-row-container').hide();
 
             $('#manage-status-id').val(null);
+            $('.text-danger-error').text('');
         }
 
         $(document).on('change', '.m-status', function (event) {

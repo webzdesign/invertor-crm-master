@@ -127,7 +127,7 @@ class UserController extends Controller
         $userPermission = UserPermission::where('user_id', auth()->user()->id)->select('permission_id')->pluck('permission_id')->toArray();
         $permission = array_unique(array_merge($userPermission, $permission));
 
-        $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
+        $permission = Permission::where('model', '!=', 'SalesOrder')->whereIn('id', $permission)->get()->groupBy('model');
 
         return view('users.create', compact('moduleName', 'roles', 'countries', 'permission','moduleLink'));
     }
@@ -152,8 +152,16 @@ class UserController extends Controller
             $user->added_by = auth()->user()->id;
             $user->save();
 
+            $allPermissions = [];
+
+            if ($request->role == '2') {
+                $allPermissions = array_unique(array_merge($request->permission, Permission::whereIn('slug', ['sales-orders.create', 'sales-orders.edit', 'sales-orders.view', 'sales-orders.delete'])->select('id')->pluck('id')->toArray()));
+            } else if ($request->role == '3') {
+                $allPermissions = array_unique(array_merge($request->permission, Permission::whereIn('slug', ['sales-orders.view'])->select('id')->pluck('id')->toArray()));
+            }
+
             $user->roles()->attach($request->role);
-            $user->userpermission()->attach($request->permission);
+            $user->userpermission()->attach($allPermissions);
 
             $errorWhileSavingLatLong = false;
 
@@ -233,7 +241,7 @@ class UserController extends Controller
         $temp = UserPermission::where('user_id', auth()->user()->id)->select('permission_id')->pluck('permission_id')->toArray();
         $permission = array_unique(array_merge($temp, $permission));
 
-        $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
+        $permission = Permission::where('model', '!=', 'SalesOrder')->whereIn('id', $permission)->get()->groupBy('model');
 
         return view('users.edit', compact('moduleName', 'user', 'roles', 'countries', 'states', 'cities', 'id', 'userPermissions', 'permission','moduleLink'));
     }
@@ -420,7 +428,7 @@ class UserController extends Controller
 
             $user = User::find(decrypt($id));
 
-            if (Deliver::where('user_id', $user->id)->where('status', '1')->exists()) {
+            if (Deliver::where('user_id', $user->id)->whereIn('status', [0, 1])->exists()) {
                 DB::rollBack();
                 return response()->json(['error' => 'Can not delete this driver user.', 'status' => 500]);
             }
@@ -431,7 +439,7 @@ class UserController extends Controller
             $user->delete();
 
             DB::commit();
-            return response()->json(['success' => $this->moduleName.' deleted successfully.', 'status' => 200]);
+            return response()->json(['success' => 'User deleted successfully.', 'status' => 200]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
@@ -443,8 +451,8 @@ class UserController extends Controller
         try {
             $user = User::find(decrypt($id));
 
-            if (Deliver::where('user_id', $user->id)->where('status', '1')->exists()) {
-                return response()->json(['error' => 'Can not deactivate this driver user.', 'status' => 500]);
+            if (Deliver::where('user_id', $user->id)->where('status', [0, 1])->exists()) {
+                return response()->json(['error' => 'Can not inactive this driver user at the moment.', 'status' => 500]);
             }
 
             $user->status = $user->status == 1 ? 0 : 1;

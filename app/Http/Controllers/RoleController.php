@@ -23,7 +23,7 @@ class RoleController extends Controller
             return view('roles.index', compact('moduleName'));
         }
 
-        $roles = Role::with(['addedby', 'updatedby'])->whereNotIn("id", [1, 4]);
+        $roles = Role::with(['addedby', 'updatedby'])->whereNotIn("id", [4]);
 
         if (isset($request->filterStatus)) {
             if ($request->filterStatus != '') {
@@ -53,21 +53,24 @@ class RoleController extends Controller
                 $action = "";
                 $action .= '<div class="whiteSpace">';
 
-                if (auth()->user()->hasPermission("roles.edit")) {
-                    $url = route("roles.edit", encrypt($variable->id));
-                    $action .= view('buttons.edit', compact('variable', 'url'));
+                if (!in_array(auth()->user()->roles()->first()->id, [1,2,3])) {
+                    if (auth()->user()->hasPermission("roles.edit")) {
+                        $url = route("roles.edit", encrypt($variable->id));
+                        $action .= view('buttons.edit', compact('variable', 'url'));
+                    }
+                    if (auth()->user()->hasPermission("roles.activeinactive")) {
+                        $url = route("roles.activeinactive", encrypt($variable->id));
+                        $action .= view('buttons.status', compact('variable', 'url'));
+                    }
+                    if (auth()->user()->hasPermission("roles.delete")) {
+                        $url = route("roles.delete", encrypt($variable->id));
+                        $action .= view('buttons.delete', compact('variable', 'url'));
+                    }
                 }
+
                 if (auth()->user()->hasPermission("roles.view")) {
                     $url = route("roles.view", encrypt($variable->id));
                     $action .= view('buttons.view', compact('variable', 'url'));
-                }
-                if (auth()->user()->hasPermission("roles.activeinactive")) {
-                    $url = route("roles.activeinactive", encrypt($variable->id));
-                    $action .= view('buttons.status', compact('variable', 'url'));
-                }
-                if (auth()->user()->hasPermission("roles.delete")) {
-                    $url = route("roles.delete", encrypt($variable->id));
-                    $action .= view('buttons.delete', compact('variable', 'url'));
                 }
 
                 if (in_array(1, auth()->user()->roles->pluck('id')->toArray()) && $variable->status == 1) {
@@ -99,11 +102,11 @@ class RoleController extends Controller
         $moduleLink = route('roles.index');
 
         if (auth()->user()->roles->where('id', 1)->count()) {
-            $permission = Permission::get()->groupBy('model');
+            $permission = Permission::where('model', '!=', 'SalesOrder')->get()->groupBy('model');
         } else {
             $userRoles = auth()->user()->roles->pluck('id')->toArray() ?? [];
             $permission = PermissionRole::whereIn('role_id', $userRoles)->select('permission_id')->pluck('permission_id')->toArray() ?? [];
-            $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
+            $permission = Permission::where('model', '!=', 'SalesOrder')->whereIn('id', $permission)->get()->groupBy('model');
         }
 
         return view('roles.create', compact('moduleName', 'permission','moduleLink'));
@@ -153,11 +156,11 @@ class RoleController extends Controller
         $moduleName = 'Role';
         $moduleLink = route('roles.index');
         if (auth()->user()->roles->where('id', 1)->count()) {
-            $permission = Permission::get()->groupBy('model');
+            $permission = Permission::where('model', '!=', 'SalesOrder')->get()->groupBy('model');
         } else {
             $userRoles = auth()->user()->roles->pluck('id')->toArray() ?? [];
             $permission = PermissionRole::whereIn('role_id', $userRoles)->select('permission_id')->pluck('permission_id')->toArray() ?? [];
-            $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
+            $permission = Permission::where('model', '!=', 'SalesOrder')->whereIn('id', $permission)->get()->groupBy('model');
         }
 
         $rolePermissions = PermissionRole::where('role_id', $id)->pluck('permission_id')->toArray();

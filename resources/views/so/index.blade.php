@@ -70,9 +70,10 @@
             <tr>
                 <th>Sr No.</th>
                 <th>Order No.</th>
+                <th>Product</th>
+                <th>Quantity</th>
                 <th>Order Amount</th>
                 <th>Added By</th>
-                <th>Updated By</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -143,17 +144,16 @@
                     data: 'order_no',
                 },
                 {
+                    data: 'product',
+                },
+                {
+                    data: 'quantity',
+                },
+                {
                     data: 'total',
                 },
                 {
-                    data: 'addedby.name',
-                    orderable: false,
-                    searchable: false,
-                },
-                {
-                    data: 'updatedby.name',
-                    orderable: false,
-                    searchable: false,
+                    data: 'added_by',
                 },
                 {
                     data: 'action',

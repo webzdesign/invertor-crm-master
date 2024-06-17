@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('delivery_location_lat');
             $table->string('delivery_location_long');
             $table->string('range')->nullable();
-            $table->tinyInteger('status')->default(0)->comment('0 = Pending | 1 = Accepted | 2 = Denied');
+            $table->tinyInteger('status')->default(0)->comment('0 = Pending | 1 = Accepted | 2 = Denied | 3 = Delivered');
             $table->softDeletes();
             $table->timestamps();
 
