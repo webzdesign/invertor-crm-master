@@ -141,7 +141,7 @@ Route::group(["middleware" => "auth"], function () {
         /** Suppliers **/
 
         /** Orders To Deliver (for driver) **/
-        Route::match(['GET', 'POST'], 'orders-to-deliver', [SalesOrderController::class, 'ordersToBeDeliverd'])->name('orders-to-deliver');
+        Route::match(['GET', 'POST'], 'orders-to-deliver', [SalesOrderController::class, 'ordersToBeDeliverd'])->name('orders-to-deliver')->middleware('ModuleAccessor:orders-to-deliver.view');
         /** Orders To Deliver (for driver) **/
 
         /** Report **/

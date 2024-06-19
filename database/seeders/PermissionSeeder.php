@@ -84,6 +84,8 @@ class PermissionSeeder extends Seeder
             ['name' => 'View sales order status', 'slug' => 'sales-order-status.view', 'model' => 'SalesOrderStatus', 'description' => 'Can view sales order status', 'added_by' => 1],
             ['name' => 'Delete sales order status', 'slug' => 'sales-order-status.delete', 'model' => 'SalesOrderStatus', 'description' => 'Can delete sales order status', 'added_by' => 1],
 
+            ['name' => 'View orders to delivery', 'slug' => 'orders-to-deliver.view', 'model' => 'OrdersToDeliver', 'description' => 'Can view to be delivered orders', 'added_by' => 1],
+
             /** Sales & Leads Management **/
 
             /** Reports **/

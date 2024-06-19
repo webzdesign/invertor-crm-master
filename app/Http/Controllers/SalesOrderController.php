@@ -930,7 +930,7 @@ class SalesOrderController extends Controller
 
         $d = Deliver::with(['order' => fn ($builder) => $builder->whereIn('status', $statusToBeShown)])
                 ->whereHas('order', fn ($builder) => ($builder->where('id', '>', '0')))
-                ->whereIn('status', [1,2])
+                ->where('status', 1)
                 ->where('user_id', auth()->user()->id)
                 ->orderBy('id', 'DESC');
 

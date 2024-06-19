@@ -152,11 +152,8 @@ class UserController extends Controller
             $user->added_by = auth()->user()->id;
             $user->save();
 
-            $allPermissions = [];
-
-
             $user->roles()->attach($request->role);
-            $user->userpermission()->attach($allPermissions);
+            $user->userpermission()->attach($request->permission);
 
             $errorWhileSavingLatLong = false;
 

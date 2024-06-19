@@ -42,7 +42,7 @@
                     </div>
                     <ul class="p-0 m-0">
 
-                        @if(in_array(2, auth()->user()->roles->pluck('id')->toArray()))
+                        @if(in_array(2, auth()->user()->roles->pluck('id')->toArray()) || in_array(6, auth()->user()->roles->pluck('id')->toArray()))
                         <li class="dropdown middleContent p-0 userMenu">
                             <button class="btn btn-primary" type="button" style="color: white;background:#ffffff47!important;"> Earned Commission : {{ Helper::getSellerCommission() }} </button>
                         </li>

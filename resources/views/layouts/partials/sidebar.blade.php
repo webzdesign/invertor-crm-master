@@ -218,7 +218,7 @@
         @endif
 
 
-        @if(auth()->user()->hasPermission('sales-orders.view') || auth()->user()->hasPermission('sales-order-status.view') || in_array(3, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(1, User::getUserRoles()))
+        @if(auth()->user()->hasPermission('sales-orders.view') || auth()->user()->hasPermission('sales-order-status.view') || auth()->user()->hasPermission('orders-to-deliver.view'))
         <li>
             <a data-bs-toggle="collapse" data-bs-target="#collapseSLM"
                 aria-expanded="{{ request()->is('sales-orders*') || request()->is('sales-order-status*') || request()->is('orders-to-deliver*') ? 'true' : 'false' }}"
@@ -264,7 +264,7 @@
                         </li>
                     @endif
 
-                    @if (in_array(3, User::getUserRoles()))
+                    @if (auth()->user()->hasPermission('orders-to-deliver.view'))
                     <li>
                         <a href="{{ route('orders-to-deliver') }}"
                             class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('orders-to-deliver*') ? 'active' : '' }}">

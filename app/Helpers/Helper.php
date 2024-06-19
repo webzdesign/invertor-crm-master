@@ -324,6 +324,6 @@ class Helper {
     }
 
     public static function currency($amount) {
-        return "£" . round($amount);
+        return "£" . number_format(round($amount), 0, '.', ',');
     }
 }
