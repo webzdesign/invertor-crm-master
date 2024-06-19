@@ -16,7 +16,7 @@ class RolePermissionSeeder extends Seeder
         $permissions = Permission::select('id')->pluck('id')->toArray();
 
         foreach ($permissions as $permission) {
-            PermissionRole::updateOrCreate(['role_id' => 1, 'permission_id' => $permission]);
+            PermissionRole::firstOrCreate(['role_id' => 1, 'permission_id' => $permission], ['role_id' => 1, 'permission_id' => $permission]);
         }
     }
 }
