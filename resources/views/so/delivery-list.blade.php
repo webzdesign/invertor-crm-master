@@ -1,29 +1,27 @@
 @extends('layouts.master')
 
-@section('create_button')
-<div class="d-flex align-items-center justify-content-between filterPanelbtn my-2 flex-wrap">
-    <h2 class="f-24 f-700 c-36 mb-0">Manage {{ $moduleName }}</h2>
-    @permission("categories.create")
-    <a href="{{ route('categories.create') }}" class="btn-primary f-500 f-14">
-        <svg class="me-1" width="16" height="16" viewBox="0 0 16 16" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8.00008 13.3332V7.99984M8.00008 7.99984V2.6665M8.00008 7.99984H13.3334M8.00008 7.99984H2.66675" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
-            <defs>
-                <linearGradient id="paint0_linear_1524_12120" x1="8.00008" y1="2.6665" x2="8.00008" y2="13.3332" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#ffffff"></stop>
-                    <stop offset="1" stop-color="#ffffff"></stop>
-                </linearGradient>
-            </defs>
-        </svg>
-        Add Category
-    </a>
-    @endpermission
-</div>
-@endsection
 
 @section('content')
 {{ Config::set('app.module', $moduleName) }}
 <div class="cards">
+    @if(in_array(1, User::getUserRoles()))
     <div class="row m-0 filterColumn">
+
+        <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
+            <div class="form-group mb-0 mb-10-500">
+                <label class="c-gr f-500 f-14 w-100 mb-1">Select Driver</label>
+                <select name="filterDriver" id="filterDriver" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Driver ---">
+                    @forelse($drivers as  $driver)
+                    @if($loop->first)
+                    <option value="" selected> --- Select a Driver --- </option>
+                    @endif
+                    <option value="{{ $driver->user_id }}">{{ $driver->user->name ?? 'Driver' }}</option>
+                    @empty
+                    <option value="" selected> --- No Driver Available --- </option>
+                    @endforelse
+                </select>
+            </div>
+        </div>
 
         <div class="col-xl-3 col-sm-4 position-relative">
             <div class="form-group mb-0">
@@ -32,6 +30,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <table class="datatable-users table datatableMain" style="width: 100%!important;">
         <thead>
@@ -42,7 +41,6 @@
                 <th>Quantity</th>
                 <th>Distance</th>
                 <th>Location</th>
-                <th>Status</th>
             </tr>
         </thead>
         <tbody>
@@ -72,7 +70,9 @@
                 "dataType": "json",
                 "type": "POST",
                 "data" : {
-
+                    'driver' : function () {
+                        return $('#filterDriver').val();
+                    }
                 }
             },
             columns: [{
@@ -104,13 +104,7 @@
                     data: 'location',
                     orderable: false,
                     searchable: false,
-                },
-                {
-                    data: 'action',
-                    orderable: false,
-                    searchable: false,
-                }
-            ],
+                }            ],
         });
 
         $('#filterInput').html($('#searchPannel').html());
@@ -124,10 +118,11 @@
         });
 
         /* filter Datatable */
-        $('body').on('change', '#filterStatus', function(e){
+        $('body').on('change', '#filterStatus, #filterDriver', function(e){
             var filterStatus = $('body').find('#filterStatus').val();
+            var filterDriver = $('body').find('#filterDriver').val();
             
-            if (filterStatus != '') {
+            if (filterStatus != '' || filterDriver != '') {
                 $('body').find('.clearData').show();
             } else {
                 $('body').find('.clearData').hide();
@@ -138,6 +133,7 @@
 
         $('body').on('click', '.clearData', function(e){
             $('body').find('#filterStatus').val('').trigger('change');
+            $('body').find('#filterDriver').val('').trigger('change');
             ServerDataTable.ajax.reload();
         });
     });

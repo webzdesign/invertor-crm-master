@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ManageStatus};
-use App\Models\{Category, User, Wallet, Bonus, DistributionItem, Setting, AddressLog, Deliver};
+use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ChangeOrderStatusTrigger};
+use App\Models\{Category, User, Wallet, Bonus, DistributionItem, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -900,6 +900,10 @@ class SalesOrderController extends Controller
             Stock::where('type', '1')->where('form', '2')->where('form_record_id', $soId)->delete();
             Wallet::where('form', 1)->where('form_record_id', $soId)->delete();
             Bonus::where('form', 1)->where('form_record_id', $soId)->delete();
+            Deliver::where('so_id', $soId)->delete();
+            AddTaskToOrderTrigger::where('order_id', $soId)->delete();
+            ChangeOrderUser::where('order_id', $soId)->delete();
+            ChangeOrderStatusTrigger::where('order_id', $soId)->delete();
 
             DB::commit();
             return response()->json(['success' => 'Sales order deleted successfully.', 'status' => 200]);
@@ -910,17 +914,7 @@ class SalesOrderController extends Controller
     }
 
     public function ordersToBeDeliverd(Request $request) {
-
-        if (!in_array('3', User::getUserRoles())) {
-            abort(403);
-        }
-
-        if (!$request->ajax()) {
-            $moduleName = 'Orders to Deliver';
-
-            return view('so.delivery-list', compact('moduleName'));
-        }
-
+        
         $statusToBeShown = [1,2];
         $tempStatus = SalesOrderStatus::whereIn(DB::raw("LOWER(slug)"), ['no-answered-1', 'no-answered-2', 'confirmed-order'])->select('id');
 
@@ -928,11 +922,32 @@ class SalesOrderController extends Controller
             $statusToBeShown = [1, 2, ...$tempStatus->pluck('id')->toArray()];
         }
 
+        if (!$request->ajax()) {
+            $moduleName = 'Orders to Deliver';
+            $drivers = Deliver::with(['order' => fn ($builder) => $builder->whereIn('status', $statusToBeShown)])
+            ->where('status', 1)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+            return view('so.delivery-list', compact('moduleName', 'drivers'));
+        }
+
         $d = Deliver::with(['order' => fn ($builder) => $builder->whereIn('status', $statusToBeShown)])
-                ->whereHas('order', fn ($builder) => ($builder->where('id', '>', '0')))
                 ->where('status', 1)
-                ->where('user_id', auth()->user()->id)
                 ->orderBy('id', 'DESC');
+
+            if (in_array(3, User::getUserRoles())) {
+                $d = $d->where('user_id', auth()->user()->id);
+            } else if (in_array(1, User::getUserRoles())) {
+                $d = $d->where('id', '>', 0);
+            } else {
+                $soids = SalesOrder::where('added_by', auth()->user()->id)->select('id')->pluck('id')->toArray();
+                $d = $d->whereIn('so_id', $soids);
+            }
+
+            if ($request->has('driver') && !empty($request->driver)) {
+                $d = $d->where('user_id', $request->driver);                
+            }
 
         return dataTables()->eloquent($d)
             ->addColumn('quantity', function ($row) {
@@ -949,15 +964,6 @@ class SalesOrderController extends Controller
             })
             ->addColumn('location', function ($row) {
                 return ($row?->order?->customer_address_line_1 ?? '-') . ' ' . ($row?->order?->customer_postal_code ?? '');
-            })
-            ->addColumn('action', function ($row) {
-
-                if ($row->status == '1') {
-                    return "<span class='text-success'> ACCEPTED </span>";
-                } else {
-                    return "<span class='text-danger'> REJECTED </span>";
-                }
-
             })
             ->rawColumns(['distance', 'action'])
             ->addIndexColumn()

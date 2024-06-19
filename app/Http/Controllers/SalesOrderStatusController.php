@@ -1351,7 +1351,7 @@ class SalesOrderStatusController extends Controller
             $order = SalesOrder::where('id', $request->id);
             if ($order->exists()) {
                 Deliver::where('user_id', auth()->user()->id)->where('so_id', $request->id)->where('status', 0)->update(['status' => 1]);
-                SalesOrder::where('id', $request->id)->update(['status' => 3]);
+                SalesOrder::where('id', $request->id)->update(['status' => 2]);
                 $disOrder = SalesOrder::with('items')->where('id', $request->id)->first();
                 $soId = $disOrder->id;
 
