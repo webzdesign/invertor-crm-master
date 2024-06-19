@@ -143,8 +143,8 @@ class SalesOrderController extends Controller
                             if (!empty($users)) {
                                 foreach ($users as $u) {
                                     $thisUser = User::findOrFail($u['id']);
-                                    $dist = Distance::measure($u['lat'], $u['long'], $thisUser->lat, $thisUser->long);
-                                    $html .= '<option data-distance="'. $dist .'" value="' . $u['id'] . '"> ' . ($thisUser->name ?? '') . ' - (' . ($thisUser->email ?? '') . ') </option>';
+                                    $dist = Distance::measure($thisUser->lat, $thisUser->long, $row->lat, $row->long);
+                                    $html .= '<option data-distance="'. $dist .'" value="' . $u['id'] . '"> ' . ($thisUser->name ?? '') . ' - (' . ($thisUser->email ?? '') . ') ' . ($dist) . ' miles </option>';
                                 }
             
                             }
