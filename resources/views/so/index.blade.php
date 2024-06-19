@@ -1,5 +1,17 @@
 @extends('layouts.master')
 
+@section('css')
+<style>
+.bg-success, .bg-success:hover {
+    background: #269e0e!important;
+}
+
+.bg-error, .bg-error:hover {
+    background: #dd2d20!important;        
+}
+</style>
+@endsection
+
 @section('content')
 {{ Config::set('app.module', $moduleName) }}
 @section('create_button')
@@ -24,6 +36,7 @@
 <div class="cards">
     <div class="row m-0 filterColumn">
 
+        @if(in_array(1, User::getUserRoles()))
         <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Seller</label>
@@ -39,6 +52,7 @@
                 </select>
             </div>
         </div>
+        @endif
 
         <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
             <div class="form-group mb-0 mb-10-500">
@@ -73,7 +87,10 @@
                 <th>Product</th>
                 <th>Quantity</th>
                 <th>Order Amount</th>
+                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()))
                 <th>Added By</th>
+                @endif
+                <th>Status</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -145,6 +162,8 @@
                 },
                 {
                     data: 'product',
+                    orderable: false,
+                    searchable: false,
                 },
                 {
                     data: 'quantity',
@@ -152,8 +171,17 @@
                 {
                     data: 'total',
                 },
+                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()))
                 {
-                    data: 'added_by',
+                    data: 'addedby.name',
+                    orderable: false,
+                    searchable: false,
+                },
+                @endif
+                {
+                    data: 'option',
+                    orderable: false,
+                    searchable: false,
                 },
                 {
                     data: 'action',
@@ -161,6 +189,37 @@
                     searchable: false,
                 }
             ],
+            drawCallback: function () {
+                $('#validateDriver').validate({
+                    rules: {
+                        driver : {
+                            required: true
+                        }
+                    },
+                    messages: {
+                        driver : {
+                            required: "Select a driver to assign."
+                        }
+                    },
+                    errorPlacement: function(error, element) {
+                        if ($(element).parent('form').next().hasClass('error')) {
+                            $(element).parent('form').next().remove();
+                        }
+                        error.insertAfter(element.parent('form'));
+                    }
+                });
+
+                $('.driver-selection').select2({
+                    width: '80%',
+                    allowClear: true,
+                });
+
+                $(document).on('change', '.driver-selection', function() {
+                    $('#driver-error').remove();
+                });
+
+                $('[data-toggle="tooltip"]').tooltip();
+            }
         });
 
         $('#filterInput').html($('#searchPannel').html());
@@ -188,6 +247,70 @@
             $('body').find('#filterSeller').val('').trigger('change');
             ServerDataTable.ajax.reload();
         });
+
+        $(document).on('click', '#driver-approve-the-order', function () {
+            let that = this;
+
+            Swal.fire({
+                title: 'Accept order?',
+                text: 'This process is irreversible. are you sure?',
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+            }).then((result) => {
+                if (result.value) {
+
+                    $.ajax({
+                        url: "{{ route('accept-the-order-from-driver') }}",
+                        type: 'POST',
+                        data: {
+                            id : $(that).attr('data-oid')
+                        },
+                        success: function(response) {
+                            if (response.status) {
+                                ServerDataTable.ajax.reload();
+                                Swal.fire('', 'Order accepted successfully.', 'success');
+                            }
+                        }
+                    });
+
+                }
+            });            
+        })
+
+        $(document).on('click', '#driver-reject-the-order', function () {
+            let that = this;
+
+            Swal.fire({
+                title: 'Reject order?',
+                text: 'This process is irreversible. are you sure?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+            }).then((result) => {
+                if (result.value) {
+
+                    $.ajax({
+                        url: "{{ route('reject-the-order-from-driver') }}",
+                        type: 'POST',
+                        data: {
+                            id : $(that).attr('data-oid')
+                        },
+                        success: function(response) {
+                            if (response.status) {
+                                ServerDataTable.ajax.reload();
+                                Swal.fire('', 'Order rejected successfully.', 'success');
+                            }
+                        }
+                    });
+
+                }
+            });            
+        })
 
     });
 </script>

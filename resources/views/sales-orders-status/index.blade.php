@@ -355,25 +355,7 @@
     @section('create_button')
         <div class="d-flex align-items-center justify-content-between filterPanelbtn my-2 flex-wrap">
 
-            {{-- @if (in_array(1, auth()->user()->roles->pluck('id')->toArray()))
-                <div>
-                    <a href="{{ route('sales-order-status') }}" class="btn-primary f-500 f-14 d-inline-block">
-                        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="4" y="2" width="2" height="16" fill="white" />
-                            <rect x="9" y="2" width="2" height="12" fill="white" />
-                            <rect x="14" y="2" width="2" height="6" fill="white" />
-                        </svg>
-                    </a>
-                    <a href="{{ route('sales-order-status-list') }}" class="btn-default f-500 f-14 d-inline-block">
-                        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="2" y="4" width="16" height="2" fill="black" />
-                            <rect x="2" y="9" width="16" height="2" fill="black" />
-                            <rect x="2" y="14" width="16" height="2" fill="black" />
-                        </svg>
-                    </a>
-                </div>
-            @endif --}}
-
+            <div></div>
             @permission('sales-order-status.edit')
                 <a href="{{ route('sales-order-status-edit') }}" class="btn-primary f-500 f-14">
                     <i class="fa fa-flash" style="color: #ffab00;"></i> &nbsp; AUTOMATE
@@ -409,7 +391,7 @@
                                     <div>
                                         <p class="color-blue">{{ $order['order_no'] }}</p>
                                         <p class="no-m font-13">
-                                            {{ Helper::currencyFormatter($order['amount'], true) }} </p>
+                                            {{ Helper::currency($order['amount']) }} </p>
                                     </div>
                                     <div class="d-flex align-items-end flex-column">
                                         <div class="card-date f-12 c-7b">
@@ -477,7 +459,13 @@
 
             if ('windowId' in data) {
                 if (thisWindowId !== data.windowId) {
-                    shouldMove = true;
+                    if ('users' in data) {
+                        if (typeof data.users == 'object' && (data.users.includes({{ auth()->user()->id }}) || "{{ auth()->user()->roles->first()->id }}" == 1)) {
+                            shouldMove = true;
+                        }
+                    } else {
+                        shouldMove = true;
+                    }
                 }
             } else {
                 shouldMove = true;

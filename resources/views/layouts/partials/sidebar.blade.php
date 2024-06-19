@@ -218,7 +218,7 @@
         @endif
 
 
-        @if(request()->is('sales-orders*') || request()->is('sales-order-status*') || in_array(3, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(1, User::getUserRoles()))
+        @if(auth()->user()->hasPermission('sales-orders.view') || auth()->user()->hasPermission('sales-order-status.view') || in_array(3, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(1, User::getUserRoles()))
         <li>
             <a data-bs-toggle="collapse" data-bs-target="#collapseSLM"
                 aria-expanded="{{ request()->is('sales-orders*') || request()->is('sales-order-status*') || request()->is('orders-to-deliver*') ? 'true' : 'false' }}"
@@ -253,32 +253,28 @@
                         </li>
                     @endpermission
 
-
-
-                    @if (in_array(3, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(1, User::getUserRoles()))
+                    @if(auth()->user()->hasPermission('sales-order-status.view'))
                         <li>
-                            <a @if (in_array(1, User::getUserRoles())) href="{{ route('sales-order-status') }}" @else href="{{ route('sales-order-status-list') }}" @endif
-                                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('sales-order-status*') ? 'active' : '' }}">
+                            <a href="{{ route('sales-order-status') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('sales-order-status*') ? 'active' : '' }}">
                                 <div class="icnBx d-flex align-items-center justify-content-center">
                                     <i class="fa fa-plus-square text-white" aria-hidden="true"></i>
                                 </div>
-                                <span class="d-none-add"> Sales Order Status </span>
-                            </a>
-                        </li>
-                    @endpermission
-
-                    @if (in_array(3, User::getUserRoles()))
-                        <li>
-                            <a href="{{ route('orders-to-deliver') }}"
-                                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('orders-to-deliver*') ? 'active' : '' }}">
-                                <div class="icnBx d-flex align-items-center justify-content-center">
-                                    <i class="fa fa-motorcycle	text-white" aria-hidden="true"></i>
-                                </div>
-                                <span class="d-none-add">Orders to Deliver</span>
+                                <span class="d-none-add"> Leads </span>
                             </a>
                         </li>
                     @endif
 
+                    @if (in_array(3, User::getUserRoles()))
+                    <li>
+                        <a href="{{ route('orders-to-deliver') }}"
+                            class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('orders-to-deliver*') ? 'active' : '' }}">
+                            <div class="icnBx d-flex align-items-center justify-content-center">
+                                <i class="fa fa-motorcycle	text-white" aria-hidden="true"></i>
+                            </div>
+                            <span class="d-none-add">Orders to Deliver</span>
+                        </a>
+                    </li>
+                @endif
 
             </ul>
             </div>

@@ -16,4 +16,9 @@ class Distribution extends Model
     {
         return $this->hasMany(DistributionItem::class);
     }
+
+    public function docs()
+    {
+        return $this->hasMany(DistributionAttachment::class, 'distribution_id', 'id');
+    }
 }

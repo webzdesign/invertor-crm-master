@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DistributionAttachment;
 use Illuminate\Support\Facades\DB;
 use App\Models\DistributionItem;
 use App\Models\Distribution;
@@ -56,45 +57,48 @@ class DistributionController extends Controller
         return dataTables()
                 ->eloquent($distribution)
                 ->addColumn('type', function ($row) {
-                    if ($row->type == '1') {
-                        return 'Storage to Driver';
-                    } else if ($row->type == '2') {
-                        return 'Driver to Driver';
-                    } else if ($row->type == '3') {
-                        return 'Driver to Storage';
-                    } else {
-                        return '-';
-                    }
-                })
-                ->addColumn('product', function ($row) {
-                    $html = '<table class="table table-bordered">';
+                    $html = "<strong>";
 
                     if ($row->type == '1') {
-                        $html .= "<thead class='thead-light'> <tr> <td> Product </td> <td> To Driver </td> <td> Quantity </td> </tr>  </thead>";
+                        $html .= 'Storage to Driver';
+                    } else if ($row->type == '2') {
+                        $html .= 'Driver to Driver';
+                    } else if ($row->type == '3') {
+                        $html .= 'Driver to Storage';
+                    }
+
+                    $html .= "</strong>";
+
+                    return $html;
+                })
+                ->addColumn('product', function ($row) {
+                    $html = '<table class="table table-bordered inner-table-of-datatable" style="margin-bottom:0;">';
+
+                    if ($row->type == '1') {
                         foreach ($row->items as $item) {
                             $html .= "<tr>  
+                            <td> - </td>
                             <td> " . $item->product->name . " </td>
                             <td> " . $item->todriver->name . " </td>
-                            <td> " . Helper::currencyFormatter($item->qty) . " </td>
+                            <td> " . round($item->qty) . " </td>
                              </tr>";
                         }
                     } else if ($row->type == '2') {
-                        $html .= "<thead> <tr> <td> From Driver </td> <td> Product </td> <td> To Driver </td> <td> Quantity </td> </tr>  </thead>";
                         foreach ($row->items as $item) {
                             $html .= "<tr>  
                             <td> " . $item->fromdriver->name . " </td>
                             <td> " . $item->product->name . " </td>
                             <td> " . $item->todriver->name . " </td>
-                            <td> " . Helper::currencyFormatter($item->qty) . " </td>
+                            <td> " . round($item->qty) . " </td>
                              </tr>";
                         }
                     } else if ($row->type == '3') {
-                        $html .= "<thead> <tr> <td> From Driver </td> <td> Product </td> <td> Quantity </td> </tr>  </thead>";
                         foreach ($row->items as $item) {
                             $html .= "<tr>  
                             <td> " . $item->fromdriver->name . " </td>
                             <td> " . $item->product->name . " </td>
-                            <td> " . Helper::currencyFormatter($item->qty) . " </td>
+                            <td> - </td>
+                            <td> " . round($item->qty) . " </td>
                              </tr>";
                         }
                     }
@@ -120,8 +124,11 @@ class DistributionController extends Controller
                     return $action;
 
                 })
+                ->editColumn('created_at', function ($users) {
+                    return date('d-m-Y', strtotime($users->created_at));
+                })
                 ->addIndexColumn()
-                ->rawColumns(['action', 'product'])
+                ->rawColumns(['action', 'product', 'type'])
                 ->toJson();
     }
 
@@ -300,6 +307,8 @@ class DistributionController extends Controller
 
         $validations = [
             'type' => 'required',
+            'docs' => 'max:5',
+            'docs.*' => 'file|mimes:png,jpg,jpeg,pdf|max:10240',
             'product.*' => 'required',
             'quantity.*' => 'required|numeric|min:1',
             'driver.*' => 'required'
@@ -307,6 +316,9 @@ class DistributionController extends Controller
 
         $messages = [
             'type.required' => 'Select a Type.',
+            'docs.max' => 'Maximum 5 files can be uploaded at a time.',
+            'docs.*.mimes' => 'Only .png, .jpg, .jpeg and .pdf extensions supported.',
+            'docs.*.max' => 'Maximum 10MB files can be uploaded at a time.',
             'quantity.*.required' => 'Enter quantity.',
             'quantity.*.numeric' => 'Enter valid format.',
             'quantity.*.min' => 'Quantity can\'t be less than 1.',
@@ -320,6 +332,10 @@ class DistributionController extends Controller
         }
         
         $this->validate($request, $validations, $messages);
+
+        if (!file_exists(storage_path('app/public/distribution-docs'))) {
+            mkdir(storage_path('app/public/distribution-docs'), 0777, true);
+        }
 
         DB::beginTransaction();
 
@@ -381,8 +397,20 @@ class DistributionController extends Controller
                 $distrib = new Distribution;
                 $distrib->dis_id = Helper::generateDistributionNumber();
                 $distrib->type = 1;
+                $distrib->comment = $request->comment;
                 $distrib->added_by = $userId;
                 $distrib->save();
+
+                if($request->hasFile('docs')) {
+                    foreach ($request->file('docs') as $file) {
+                        $name = 'DISTRIBUTION-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
+                        $file->move(storage_path('app/public/distribution-docs'), $name);
+        
+                        if (file_exists(storage_path("app/public/distribution-docs/{$name}"))) {
+                            DistributionAttachment::create(['distribution_id' => $distrib->id,'name' => $name]);
+                        }
+                    }                    
+                }
 
                 foreach ($products as $key => $value) {
                     $itemsArray[] = [
@@ -433,8 +461,20 @@ class DistributionController extends Controller
                 $distrib = new Distribution;
                 $distrib->dis_id = Helper::generateDistributionNumber();
                 $distrib->type = 2;
+                $distrib->comment = $request->comment;
                 $distrib->added_by = $userId;
                 $distrib->save();
+
+                if($request->hasFile('docs')) {
+                    foreach ($request->file('docs') as $file) {
+                        $name = 'DISTRIBUTION-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
+                        $file->move(storage_path('app/public/distribution-docs'), $name);
+        
+                        if (file_exists(storage_path("app/public/distribution-docs/{$name}"))) {
+                            DistributionAttachment::create(['distribution_id' => $distrib->id,'name' => $name]);
+                        }
+                    }                    
+                }
 
                 foreach ($products as $key => $value) {
                     $itemsArray[] = [
@@ -487,8 +527,20 @@ class DistributionController extends Controller
                 $distrib = new Distribution;
                 $distrib->dis_id = Helper::generateDistributionNumber();
                 $distrib->type = 3;
+                $distrib->comment = $request->comment;
                 $distrib->added_by = $userId;
                 $distrib->save();
+
+                if($request->hasFile('docs')) {
+                    foreach ($request->file('docs') as $file) {
+                        $name = 'DISTRIBUTION-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
+                        $file->move(storage_path('app/public/distribution-docs'), $name);
+        
+                        if (file_exists(storage_path("app/public/distribution-docs/{$name}"))) {
+                            DistributionAttachment::create(['distribution_id' => $distrib->id,'name' => $name]);
+                        }
+                    }                    
+                }
 
                 foreach ($products as $key => $value) {
                     $itemsArray[] = [
@@ -550,7 +602,7 @@ class DistributionController extends Controller
     {
         $moduleName = 'View Assigned Stock';
 
-        $d = Distribution::where('id', decrypt($id))->with('items')->first();
+        $d = Distribution::with('docs')->where('id', decrypt($id))->with('items')->first();
         $types = self::$types;
 
         return view('distribution.view', compact('moduleName', 'd', 'types'));

@@ -133,6 +133,7 @@ return [
         'Product' => App\Models\Product::class,
         'Category' => App\Models\Category::class,
         'Trigger' => App\Models\Trigger::class,
-        'Str' => Illuminate\Support\Str::class
+        'Str' => Illuminate\Support\Str::class,
+        'Deliver' => App\Models\Deliver::class
     ],
 ];

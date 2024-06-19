@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, SalesOrder, Trigger, ChangeOrderUser, SalesOrderStatus};
+use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, SalesOrder, Trigger, ChangeOrderUser, SalesOrderStatus, Deliver};
 use Illuminate\Console\Command;
 use App\Helpers\Helper;
 
@@ -51,7 +51,8 @@ class StatusTrigger extends Command
                     'orderId' => $thisOrder->order_id,
                     'orderStatus' => $newStatus,
                     'orderOldStatus' => $salesOrder->status,
-                    'windowId' => \Illuminate\Support\Str::random(30)
+                    'windowId' => \Illuminate\Support\Str::random(30),
+                    'users' => [Deliver::where('so_id', $salesOrder->id)->where('status', 1)->first()->user_id ?? null, $salesOrder->added_by]
                 ]));
 
                 $fromStatus = SalesOrderStatus::custom()->withTrashed()->where('id', $salesOrder->status)->first();

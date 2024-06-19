@@ -162,7 +162,7 @@ class ProductController extends Controller
         $product->unique_number = Helper::generateProductNumber();
         $product->name = $request->name;
         $product->category_id = $request->category;
-        $product->sales_price = $request->sprice;
+        $product->description = $request->description;
         $product->added_by = auth()->user()->id;
         $product->save();
 
@@ -186,7 +186,7 @@ class ProductController extends Controller
         $product = Product::find(decrypt($id));
         $product->name = $request->name;
         $product->category_id = $request->category;
-        $product->sales_price = $request->sprice;
+        $product->description = $request->description;
         $product->updated_by = auth()->user()->id;
         $product->save();
 

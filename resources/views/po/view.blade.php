@@ -148,12 +148,12 @@
                                                 </td>
                                                 <td>
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" class="form-control mt-price" style="background:#efefef" value="{{ ($items->sum('price')) }}" readonly>
+                                                        <input type="number" class="form-control mt-price" style="background:#efefef" value="{{ Helper::currencyFormatter($items->sum('price')) }}" readonly>
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" class="form-control mt-amount" style="background:#efefef" value="{{ ($items->sum('amount')) }}" readonly>
+                                                        <input type="number" class="form-control mt-amount" style="background:#efefef" value="{{ Helper::currencyFormatter($items->sum('amount')) }}" readonly>
                                                     </div>
                                                 </td>
                                                 <td></td>

@@ -255,6 +255,14 @@
                 }
             });
 
+            $('#role').on('change', function () {
+                if ($(this).val() == '1') {
+                    $('.container-for-permissions').hide();
+                } else {
+                    $('.container-for-permissions').show();
+                }
+            });
+
             $('#addUser').validate({
                 rules: {
                     'name': {

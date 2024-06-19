@@ -1,5 +1,34 @@
 @extends('layouts.master')
 
+@section('css')
+<style>
+    .inner-table-of-datatable > tbody > tr  > td {
+        padding: 0!important;
+    }
+
+    .inner-table-of-datatable > tbody > tr  > td:nth-child(1) {
+        width: 173px!important;
+    }
+    .inner-table-of-datatable > tbody > tr  > td:nth-child(2) {
+        width: 140px!important;
+    }
+    .inner-table-of-datatable > tbody > tr  > td:nth-child(3) {
+        width: 150px!important;
+    }
+    .inner-table-of-datatable > tbody > tr  > td:nth-child(4) {
+        width: 146px!important;
+    }
+
+    .inner-table-of-datatable > tbody > tr:first-child {
+        border: none!important;
+    }
+    .inner-table-of-datatable > tbody > tr:last-child {
+        border: none!important;
+    }
+
+</style>
+@endsection
+
 @section('content')
 {{ Config::set('app.module', $moduleName) }}
 @section('create_button')
@@ -80,7 +109,18 @@
             <tr>
                 <th>Sr No.</th>
                 <th>Type</th>
-                <th>Product Details</th>
+                <th>Date</th>
+                <th>
+
+                    <table style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <td> From Driver </td> <td> Product </td> <td> To Driver </td> <td> Quantity </td>
+                            </tr>
+                        </thead>
+                    </table>
+
+                </th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -154,9 +194,16 @@
                 },
                 {
                     data: 'type',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'created_at',
                 },
                 {
                     data: 'product',
+                    orderable: false,
+                    searchable: false,
                 },
                 {
                     data: 'action',

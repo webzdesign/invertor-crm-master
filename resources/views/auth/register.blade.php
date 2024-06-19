@@ -37,7 +37,9 @@
         <section class="loginCard d-flex align-items-center justify-content-center">
             <div class="loginCardBody w-100-500">
                 <div class="loginCardHead d-flex align-items-center justify-content-center position-relative">
-                    <h3 class="text-white f-700 f-22 m-0"> {{ Helper::getAppTitle() }} </h3>
+                    <a href="{{ route('login') }}">
+                        <h3 class="text-white f-700 f-22 m-0"> {{ Helper::getAppTitle() }} </h3>
+                    </a>
                 </div>
 
                     <form method="POST" action="{{ $url }}" id="register">

@@ -31,35 +31,56 @@
 
             <div class="row">
 
-                <div class="col-sm-12 col-md-4">
+                <div class="col-sm-12 col-md-2">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Driver Name</label>
+                        <input class="form-control" placeholder="" type="text" value="{{ $so->driver->user->name ?? '-' }}" readonly style="background:#efefef">
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-2">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Driver Email</label>
+                        <input class="form-control" placeholder="" type="text" value="{{ $so->driver->user->email ?? '-' }}" readonly style="background:#efefef">
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-2">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Distance</label>
+                        <input class="form-control"  placeholder="" type="text" value="{{ number_format($so->driver->range, 2, '.', "") ?? '-' }}" readonly style="background:#efefef">
+                    </div>
+                </div>
+
+                <div class="col-sm-12 col-md-2">
                     <div class="form-group">
                         <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number</label>
                         <input class="form-control" id="order_number" placeholder="" type="text" value="{{ $so->order_no }}" readonly style="background:#efefef">
                     </div>
                 </div>
 
-                <div class="col-sm-12 col-md-4">
+                <div class="col-sm-12 col-md-2">
                     <div class="form-group">
                         <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Date</label>
                         <input type="text" readonly placeholder="Order Date" id="order_date" class="form-control" value="{{ date('d-m-Y', strtotime($so->date)) }}" style="background:#efefef">
                     </div>
                 </div>
 
-                <div class="col-sm-12 col-md-4">
+                <div class="col-sm-12 col-md-2">
                     <div class="form-group">
                         <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Delivery Date</label>
                         <input type="text" readonly id="order_del_date" value="{{ date('d-m-Y', strtotime($so->delivery_date)) }}" class="form-control" style="background:#efefef">
                     </div>
                 </div>
 
-                <div class="col-sm-12 col-md-4">
+                <div class="col-sm-12 col-md-2">
                     <div class="form-group">
                         <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Name </label>
                         <input type="text" class="form-control" id="customer-name" readonly value="{{ $so->customer_name }}" style="background:#efefef">
                     </div>
                 </div>
 
-                <div class="col-sm-12 col-md-4">
+                <div class="col-sm-12 col-md-2">
                     <div class="form-group">
                         <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Phone Number</label>
                         <input type="text" class="form-control" id="customer-phone" value="{{ $so->customer_phone }}" readonly style="background: #efefef;">
@@ -82,7 +103,7 @@
                     </div>
                 </div>
 
-                <div class="col-sm-12 col-md-8">
+                <div class="col-sm-12 col-md-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Address Line </label>
                         <textarea id="address_line_1" class="form-control" style="height: 60px;background:#efefef;" readonly>{{ $so->customer_address_line_1 }}</textarea>
@@ -148,13 +169,13 @@
 
                                             <td >
                                                 <div style="min-width: 200px;">
-                                                    <input type="text" class="form-control" style="background:#efefef;" value="{{ Helper::currencyFormatter($item->price) }}" readonly>
+                                                    <input type="text" class="form-control" style="background:#efefef;" value="{{ round($item->price) }}" readonly>
                                                 </div>
                                             </td>
 
                                             <td >
                                                 <div style="min-width: 200px;">
-                                                    <input type="text" class="form-control" style="background:#efefef;" value="{{ Helper::currencyFormatter($item->amount) }}" readonly>
+                                                    <input type="text" class="form-control" style="background:#efefef;" value="{{ round($item->amount) }}" readonly>
                                                 </div>
                                             </td>
 
@@ -194,7 +215,6 @@
                                                     <input type="text" class="form-control mt-amount" style="background:#efefef" value="{{ Helper::currencyFormatter($so->items->sum('amount')) }}" readonly>
                                                 </div>
                                             </td>
-                                            <td> <strong>Driver</strong> : <!--email_off--> {{ $driver }} <!--/email_off--> </td> </td>
                                         </tr>
                                     </tfoot>
                                 </table>

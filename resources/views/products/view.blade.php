@@ -66,6 +66,13 @@
                 </div>
             </div>
 
+            <div class="col-12">
+                <div class="form-group">
+                    <label class="c-gr f-500 f-16 w-100 mb-2">Product Description : </label>
+                    <textarea name="description" class="form-control" readonly id="description" cols="30" rows="10">{{ $product->description }}</textarea>
+                </div>
+            </div>
+
         </div>
     </div>
     

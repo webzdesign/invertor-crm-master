@@ -102,11 +102,11 @@ class RoleController extends Controller
         $moduleLink = route('roles.index');
 
         if (auth()->user()->roles->where('id', 1)->count()) {
-            $permission = Permission::where('model', '!=', 'SalesOrder')->get()->groupBy('model');
+            $permission = Permission::get()->groupBy('model');
         } else {
             $userRoles = auth()->user()->roles->pluck('id')->toArray() ?? [];
             $permission = PermissionRole::whereIn('role_id', $userRoles)->select('permission_id')->pluck('permission_id')->toArray() ?? [];
-            $permission = Permission::where('model', '!=', 'SalesOrder')->whereIn('id', $permission)->get()->groupBy('model');
+            $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
         }
 
         return view('roles.create', compact('moduleName', 'permission','moduleLink'));
@@ -156,11 +156,11 @@ class RoleController extends Controller
         $moduleName = 'Role';
         $moduleLink = route('roles.index');
         if (auth()->user()->roles->where('id', 1)->count()) {
-            $permission = Permission::where('model', '!=', 'SalesOrder')->get()->groupBy('model');
+            $permission = Permission::get()->groupBy('model');
         } else {
             $userRoles = auth()->user()->roles->pluck('id')->toArray() ?? [];
             $permission = PermissionRole::whereIn('role_id', $userRoles)->select('permission_id')->pluck('permission_id')->toArray() ?? [];
-            $permission = Permission::where('model', '!=', 'SalesOrder')->whereIn('id', $permission)->get()->groupBy('model');
+            $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
         }
 
         $rolePermissions = PermissionRole::where('role_id', $id)->pluck('permission_id')->toArray();

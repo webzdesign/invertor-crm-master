@@ -110,12 +110,8 @@ class Helper {
     public static function generatePurchaseOrderNumber () {
         $orderNo = 0;
 
-        if (PurchaseOrder::withTrashed()->latest()->first() === null) {
-            if (PurchaseOrder::withTrashed()->latest()->first() !== null) {
-                $orderNo = PurchaseOrder::withTrashed()->latest()->first()->id ?? 0;
-            }
-        } else {
-            $orderNo = PurchaseOrder::withTrashed()->latest()->first()->id;
+        if (PurchaseOrder::withTrashed()->orderBy('id', 'DESC')->first() !== null) {
+            $orderNo = PurchaseOrder::withTrashed()->orderBy('id', 'DESC')->first()->id;
         }
 
         $orderNo += 1;
@@ -128,13 +124,9 @@ class Helper {
 
     public static function generateSalesOrderNumber () {
         $orderNo = 0;
-
-        if (SalesOrder::withTrashed()->latest()->first() === null) {
-            if (SalesOrder::withTrashed()->latest()->first() !== null) {
-                $orderNo = SalesOrder::withTrashed()->latest()->first()->id ?? 0;
-            }
-        } else {
-            $orderNo = SalesOrder::withTrashed()->latest()->first()->id;
+        
+        if (SalesOrder::withTrashed()->orderBy('id', 'DESC')->first() !== null) {
+            $orderNo = SalesOrder::withTrashed()->orderBy('id', 'DESC')->first()->id;
         }
 
         $orderNo += 1;
@@ -148,12 +140,8 @@ class Helper {
     public static function generateProductNumber () {
         $proNo = 0;
 
-        if (Product::withTrashed()->latest()->first() === null) {
-            if (Product::withTrashed()->latest()->first() !== null) {
-                $proNo = Product::withTrashed()->latest()->first()->id ?? 0;
-            }
-        } else {
-            $proNo = Product::withTrashed()->latest()->first()->id;
+        if (Product::withTrashed()->orderBy('id', 'DESC')->first() !== null) {
+            $proNo = Product::withTrashed()->orderBy('id', 'DESC')->first()->id;
         }
 
         $proNo += 1;
@@ -166,12 +154,8 @@ class Helper {
     public static function generateDistributionNumber () {
         $orderNo = 0;
 
-        if (Distribution::withTrashed()->latest()->first() === null) {
-            if (Distribution::withTrashed()->latest()->first() !== null) {
-                $orderNo = Distribution::withTrashed()->latest()->first()->id ?? 0;
-            }
-        } else {
-            $orderNo = Distribution::withTrashed()->latest()->first()->id;
+        if (Distribution::withTrashed()->orderBy('id', 'DESC')->first() !== null) {
+            $orderNo = Distribution::withTrashed()->orderBy('id', 'DESC')->first()->id;
         }
 
         $orderNo += 1;
@@ -187,7 +171,7 @@ class Helper {
     }
 
     public static function getSellerCommission() {
-        return self::currencyFormatter(Wallet::where('seller_id', auth()->user()->id)->where('form', 1)->sum('commission_amount'));
+        return self::currency(Wallet::where('seller_id', auth()->user()->id)->where('form', 1)->sum('commission_amount'));
     }
 
     public static function currencyFormatter($amount, $showSign = false, $in = 'GBP') {
@@ -337,5 +321,9 @@ class Helper {
         }
 
         return $diffString;
+    }
+
+    public static function currency($amount) {
+        return "£" . round($amount);
     }
 }

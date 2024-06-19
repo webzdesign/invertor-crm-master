@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock};
+use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ManageStatus};
 use App\Models\{Category, User, Wallet, Bonus, DistributionItem, Setting, AddressLog, Deliver};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
@@ -21,16 +21,20 @@ class SalesOrderController extends Controller
             return view('so.index', compact('moduleName', 'sellers'));
         }
 
-        $po = SalesOrder::with(['items.product', 'addedby', 'updatedby']);
+        $users = User::whereHas('role', function ($builder) {
+            $builder->where('roles.id', 3);
+        })->whereNotNull('lat')->whereNotNull('long')
+        ->select('id', 'lat', 'long')->get()->toArray();
+
         $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
 
-        if (!in_array(1, $thisUserRoles)) {
-            if (in_array(2, $thisUserRoles)) { //seller orders
-                $po = $po->where('seller_id', auth()->user()->id);
-            } else {
-                $po = $po->where('id', '0');
+        $po = SalesOrder::with(['items.product', 'addedby', 'updatedby', 'ostatus'])->where(function ($builder) use ($thisUserRoles) {
+            if (!in_array(1, $thisUserRoles)) {
+                $builder->where('added_by', auth()->user()->id)
+                ->orWhereHas('driver', fn ($innerBuilder) => $innerBuilder->where('user_id', auth()->user()->id)->where('status', 0));
             }
-        }
+        });
+
 
         if ($request->has('filterSeller') && !empty(trim($request->filterSeller))) {
             $po = $po->where('seller_id', $request->filterSeller);
@@ -50,7 +54,7 @@ class SalesOrderController extends Controller
 
         return dataTables()->eloquent($po)
             ->addColumn('total', function ($product) {
-                return Helper::currencyFormatter($product->total());
+                return Helper::currency($product->total());
             })
             ->addColumn('action', function ($users) {
 
@@ -63,8 +67,7 @@ class SalesOrderController extends Controller
                     $url = route("sales-orders.view", encrypt($variable->id));
                     $action .= view('buttons.view', compact('variable', 'url'));
                 }
-
-                if ($users->status !== '1') {
+                if ($users->status == '1' && (in_array(1, User::getUserRoles()) || auth()->user()->id == $users->added_by)) {
                     if (auth()->user()->hasPermission("sales-orders.delete")) {
                         $url = route("sales-orders.delete", encrypt($variable->id));
                         $action .= view('buttons.delete', compact('variable', 'url'));
@@ -84,7 +87,80 @@ class SalesOrderController extends Controller
             ->editColumn('addedby.name', function($user) {
                 return "<span data-mdb-toggle='tooltip' title='".date('d-m-Y h:i:s A', strtotime($user->created_at))."'>".($user->addedby->name ?? '-')."</span>";
             })
-            ->rawColumns(['action', 'addedby.name', 'updatedby.name'])
+            ->editColumn('order_no', function($row) {
+                return '<a target="_blank" href="' . route('sales-orders.view', encrypt($row->id)) . '"> ' . ($row->order_no) . '</a>';
+            })
+            ->addColumn('option', function ($row) use ($users) {
+                $html = "";
+
+                if ($row->status != '1') {
+                    return '<span class="status-lbl f-12" style="background: ' . (($row->ostatus->color ?? '#000')) . ';color:' . (Helper::generateTextColor(($row->ostatus->color ?? '#000'))) . ';text-transform:uppercase;"> ' . ($row->ostatus->name ?? '-') . ' </span>';
+                } else {
+                    if (in_array(1, User::getUserRoles())) {
+                        return '<span class="status-lbl f-12" style="background: ' . (($row->ostatus->color ?? '#000')) . ';color:' . (Helper::generateTextColor(($row->ostatus->color ?? '#000'))) . ';text-transform:uppercase;"> ' . ($row->ostatus->name ?? '-') . ' </span>';
+                    } else if (in_array(2, User::getUserRoles())) {
+                        $driver = Deliver::with('user')->where('status', 0)->where('so_id', $row->id);
+                        if ($driver->exists()) {
+                            return "<strong> Order assigned to : " . ($driver->first()->user->name ?? '-') . " </strong>";
+                        } else {
+
+                            $html .= '<form id="validateDriver" method="POST" class="" action="'. route('assign-new-driver', encrypt($row->id)) .'">';
+                            $html .= csrf_field();
+
+                            $isRejected = Deliver::with('user')->where('so_id', $row->id)->where('status', 2)->first();
+
+                            if ($isRejected != null) {
+                                if (Deliver::with('user')->where('so_id', $row->id)->whereIn('status', [0,1,3])->doesntExist()) {
+                                    $html .=  '<a data-toggle="tooltip" class="deleteBtn" title=" Order was rejected by ' . (($isRejected->user->name ?? 'Driver')) . '">
+                                        <i class="fa fa-warning" aria-hidden="true" style="color: #dd2d20;font-size:16px;"></i>
+                                    </a>';
+                                }
+                            }
+
+                            $html .= '<select class="driver-selection" name="driver"><option value="" selected> --- Select a driver --- </option>';
+                            
+                            $thisProduct = $row->items->first()->product_id;
+
+                            $users = collect($users)->map(function ($ele) use ($thisProduct) {
+                                $inStock = DistributionItem::where('to_driver', $ele['id'])
+                                ->where('product_id', $thisProduct)
+                                ->select('qty')
+                                ->sum('qty');
+                    
+                                $outStock = DistributionItem::where('from_driver', $ele['id'])
+                                ->where('product_id', $thisProduct)
+                                ->select('qty')
+                                ->sum('qty');
+                    
+                                $availStock = intval($inStock) - intval($outStock);
+                    
+                                if ($availStock > 0) {
+                                    return $ele;
+                                }
+                    
+                            })->filter()->values()->toArray();
+
+                            if (!empty($users)) {
+                                foreach ($users as $u) {
+                                    $thisUser = User::findOrFail($u['id']);
+                                    $dist = Distance::measure($u['lat'], $u['long'], $thisUser->lat, $thisUser->long);
+                                    $html .= '<option data-distance="'. $dist .'" value="' . $u['id'] . '"> ' . ($thisUser->name ?? '') . ' - (' . ($thisUser->email ?? '') . ') </option>';
+                                }
+            
+                            }
+
+                            $html .= "</select><button type='submit' class='btn-primary btn-sm' style='margin-left:10px;'> ASSIGN </button></form>";
+                        }
+                    } else if (in_array(3, User::getUserRoles())) {
+                        $html .= '<button id="driver-approve-the-order" class="btn-primary f-500 f-14 btn-sm bg-success" data-oid="' . $row->id . '"> ACCEPT </button>
+                        <button id="driver-reject-the-order" class="btn-primary f-500 f-14 btn-sm bg-error" data-oid="' . $row->id . '"> REJECT </button>';
+                    }
+                }
+
+                return $html;
+
+            })
+            ->rawColumns(['action', 'addedby.name', 'updatedby.name', 'option', 'order_no'])
             ->addIndexColumn()
             ->make(true);
     }
@@ -334,7 +410,8 @@ class SalesOrderController extends Controller
                 $so->lat = $request->lat;
                 $so->long = $request->long;
 
-                if (in_array(2, auth()->user()->roles->pluck('id')->toArray())) {
+                //seller or seller manager
+                if (in_array(2, auth()->user()->roles->pluck('id')->toArray()) || in_array(6, auth()->user()->roles->pluck('id')->toArray())) {
                     $so->seller_id = $userId;
                     $isSeller = $userId;
                 }
@@ -347,7 +424,7 @@ class SalesOrderController extends Controller
                 \App\Models\TriggerLog::create([
                     'trigger_id' => 0,
                     'order_id' => $so->id,
-                    'watcher_id' => null,
+                    'watcher_id' => $userId,
                     'next_status_id' => 1,
                     'current_status_id' => 1,
                     'type' => 2,
@@ -381,7 +458,7 @@ class SalesOrderController extends Controller
                         'product_id' => $product,
                         'price' => $itemBaseAmt,
                         'qty' => $qty,
-                        'amount' => $itemAmt,
+                        'amount' => round($itemAmt),
                         'remarks' => $request->remarks[$key] ?? '',
                         'added_by' => $userId,
                         'created_at' => now()
@@ -718,7 +795,7 @@ class SalesOrderController extends Controller
                         'product_id' => $product,
                         'price' => $itemBaseAmt,
                         'qty' => $qty,
-                        'amount' => $itemAmt,
+                        'amount' => round($itemAmt),
                         'remarks' => $request->remarks[$key] ?? '',
                         'added_by' => $userId,
                         'created_at' => now()
@@ -807,9 +884,8 @@ class SalesOrderController extends Controller
         $moduleLink = route('sales-orders.index');
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $so = SalesOrder::find(decrypt($id));
-        $driver = isset($so->first()->driver->user->name) ? ($so->first()->driver->user->name . ' - (' . $so->first()->driver->user->email . ')') : '-';
 
-        return view('so.view', compact('moduleName', 'categories', 'so', 'driver','moduleLink'));
+        return view('so.view', compact('moduleName', 'categories', 'so', 'moduleLink'));
     }
 
     public function destroy(Request $request, $id)
@@ -834,6 +910,7 @@ class SalesOrderController extends Controller
     }
 
     public function ordersToBeDeliverd(Request $request) {
+
         if (!in_array('3', User::getUserRoles())) {
             abort(403);
         }
@@ -844,14 +921,18 @@ class SalesOrderController extends Controller
             return view('so.delivery-list', compact('moduleName'));
         }
 
-        $d = Deliver::with(['order.items' => fn ($builder) => $builder->withTrashed()])->whereIn('status', [1,2]);
-        $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
+        $statusToBeShown = [1,2];
+        $tempStatus = SalesOrderStatus::whereIn(DB::raw("LOWER(slug)"), ['no-answered-1', 'no-answered-2', 'confirmed-order'])->select('id');
 
-        if (!in_array('1', $thisUserRoles)) {
-            if (in_array('3', $thisUserRoles)) {
-                $d = $d->where('user_id', auth()->user()->id);
-            }
+        if ($tempStatus->exists()) {
+            $statusToBeShown = [1, 2, ...$tempStatus->pluck('id')->toArray()];
         }
+
+        $d = Deliver::with(['order' => fn ($builder) => $builder->whereIn('status', $statusToBeShown)])
+                ->whereHas('order', fn ($builder) => ($builder->where('id', '>', '0')))
+                ->whereIn('status', [1,2])
+                ->where('user_id', auth()->user()->id)
+                ->orderBy('id', 'DESC');
 
         return dataTables()->eloquent($d)
             ->addColumn('quantity', function ($row) {
@@ -864,11 +945,7 @@ class SalesOrderController extends Controller
                 return $row?->order?->items?->first()?->product?->name ?? '-';
             })
             ->addColumn('distance', function ($row) {
-                if ($row->range < 1) {
-                    return '<span title="' . number_format($row->range, 2) . ' meter">' . number_format($row->range, 2) . ' m </span>';
-                } else {
-                    return '<span title="' . number_format($row->range, 2) . ' kilometer">' . number_format($row->range, 2) . ' km </span>';
-                }
+                return '<span title="' . number_format($row->range, 2, '.', "") . ' miles">' . number_format($row->range, 2, '.', "") . ' miles </span>';
             })
             ->addColumn('location', function ($row) {
                 return ($row?->order?->customer_address_line_1 ?? '-') . ' ' . ($row?->order?->customer_postal_code ?? '');
@@ -876,9 +953,9 @@ class SalesOrderController extends Controller
             ->addColumn('action', function ($row) {
 
                 if ($row->status == '1') {
-                    return "<p class='text-success'> ACCEPTED </p>";
+                    return "<span class='text-success'> ACCEPTED </span>";
                 } else {
-                    return "<p class='text-danger'> REJECTED </p>";
+                    return "<span class='text-danger'> REJECTED </span>";
                 }
 
             })

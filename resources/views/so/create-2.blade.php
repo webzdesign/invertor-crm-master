@@ -407,8 +407,8 @@ $(document).ready(function(){
     });
     $(document).on('keyup', '#price', function (event) {
         if ($('#mprice').is(':visible')) {
-            $('#mprice').val($(this).val());
-            calculateAmount();
+            //$('#mprice').val($(this).val());
+            //calculateAmount();
         }
     });
 

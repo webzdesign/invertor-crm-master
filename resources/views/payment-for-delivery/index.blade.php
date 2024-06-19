@@ -83,8 +83,8 @@
                 
                                         <td style="width:100px;">
                                             <div style="min-width: 100px;">
-                                                <button type="button" class="btn btn-primary btn-sm addNewRow">+</button>
-                                                <button type="button" class="btn btn-danger btn-sm removeRow" tabindex="-1">-</button>
+                                                <button type="button" class="btn btn-primary addNewRow">+</button>
+                                                <button type="button" class="btn btn-danger removeRow" tabindex="-1">-</button>
                                             </div>
                                         </td>
                                     </tr>
@@ -176,7 +176,7 @@ for (key in drivers) {
     driversHtml += `<option value="${key}"> ${drivers[key]} </option>`;
 }
 
-var content = '<tr><td class="block-a"><div style="min-width: 200px;width: 100%" class="removable-driver"><select name="mdriver[0]" data-indexid="0" id="m-driver-0" class="select2 select2-hidden-accessible m-driver" style="width:100%" data-placeholder="Select a Driver"><option value="" selected> --- Select a Driver --- </option></select></div></td><td class="block-b"><div style="min-width: 200px;width: 100%" class="removable-distance"><input type="text" data-indexid="0" placeholder="Enter distance from customer to driver" name="mdistance[0]" id="m-distance-0" class="form-control m-distance" style="background:#ffffff"></div></td><td class="block-c"><div style="min-width: 200px;"><input type="text" data-indexid="0" name="mpayment[0]" placeholder="Enter payment for distance" id="m-payment-0" class="form-control m-payment" style="background:#ffffff"></div></td><td style="width:100px;"><div style="min-width: 100px;"><button type="button" class="btn btn-primary btn-sm addNewRow">+</button> <button type="button" class="btn btn-danger btn-sm removeRow" tabindex="-1">-</button></div></td></tr>';
+var content = '<tr><td class="block-a"><div style="min-width: 200px;width: 100%" class="removable-driver"><select name="mdriver[0]" data-indexid="0" id="m-driver-0" class="select2 select2-hidden-accessible m-driver" style="width:100%" data-placeholder="Select a Driver"><option value="" selected> --- Select a Driver --- </option></select></div></td><td class="block-b"><div style="min-width: 200px;width: 100%" class="removable-distance"><input type="text" data-indexid="0" placeholder="Enter distance from customer to driver" name="mdistance[0]" id="m-distance-0" class="form-control m-distance" style="background:#ffffff"></div></td><td class="block-c"><div style="min-width: 200px;"><input type="text" data-indexid="0" name="mpayment[0]" placeholder="Enter payment for distance" id="m-payment-0" class="form-control m-payment" style="background:#ffffff"></div></td><td style="width:100px;"><div style="min-width: 100px;"><button type="button" class="btn btn-primary addNewRow">+</button> <button type="button" class="btn btn-danger btn-sm removeRow" tabindex="-1">-</button></div></td></tr>';
 
 $(document).ready(function() {
 

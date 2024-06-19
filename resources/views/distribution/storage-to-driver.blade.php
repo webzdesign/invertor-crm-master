@@ -1,3 +1,20 @@
+<div class="col-12">
+    <div class="row">
+        <div class="form-group">
+            <label for="docs" class="c-gr f-500 f-16 w-100 mb-2">Upload files :
+                <a data-toggle="tooltip" class="deleteBtn" title="Only image and pdf file allowed to upload.">
+                    <i class='fa fa-info-circle' aria-hidden='true' style="color: #15283c;"></i>
+                </a>
+            </label>
+            <input class="form-control" name="docs[]" id="docs" type="file" readonly style="background:#efefef" multiple>
+        </div>
+
+        <div class="form-group">
+            <label for="comment" class="c-gr f-500 f-16 w-100 mb-2"> Comment :</label>
+            <textarea name="comment" id="comment" cols="30" rows="10" class="form-control" placeholder="Add comment"></textarea>
+        </div>
+    </div>
+</div>
 <div class="col-md-12">
     <div
         class="cardsHeader f-20 f-600 c-36 f-700 border-0 ps-0 tableHeading position-relative my-4">
@@ -57,8 +74,8 @@
 
                         <td style="width:100px;">
                             <div style="min-width: 100px;">
-                                <button type="button" class="btn btn-primary btn-sm addNewRow">+</button>
-                                <button type="button" class="btn btn-danger btn-sm removeRow" tabindex="-1">-</button>
+                                <button type="button" class="btn btn-primary addNewRow">+</button>
+                                <button type="button" class="btn btn-danger removeRow" tabindex="-1">-</button>
                             </div>
                         </td>
                     </tr>

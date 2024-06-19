@@ -155,7 +155,7 @@
             </div>
         </div>
 
-        <div class="cardsBody py-0">
+        <div class="cardsBody py-0 container-for-permissions">
             <label class="c-gr f-500 f-16 w-100 mb-2">Permissions : </label>
             <div class="form-group">
                 <div class="row">
@@ -230,6 +230,18 @@ $(document).ready(function(){
             $(this).closest('.permission-listing').find('.permission').prop('checked', true);
         } else {
             $(this).closest('.permission-listing').find('.permission').prop('checked', false);
+        }
+    });
+
+    @if(in_array(1, ($user->roles->pluck('id')->toArray() ?? [])))
+        $('.container-for-permissions').hide();
+    @endif
+
+    $('#role').on('change', function () {
+        if ($(this).val() == '1') {
+            $('.container-for-permissions').hide();
+        } else {
+            $('.container-for-permissions').show();
         }
     });
 

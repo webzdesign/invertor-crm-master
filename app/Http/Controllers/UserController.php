@@ -127,7 +127,7 @@ class UserController extends Controller
         $userPermission = UserPermission::where('user_id', auth()->user()->id)->select('permission_id')->pluck('permission_id')->toArray();
         $permission = array_unique(array_merge($userPermission, $permission));
 
-        $permission = Permission::where('model', '!=', 'SalesOrder')->whereIn('id', $permission)->get()->groupBy('model');
+        $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
         return view('users.create', compact('moduleName', 'roles', 'countries', 'permission','moduleLink'));
     }
@@ -154,11 +154,6 @@ class UserController extends Controller
 
             $allPermissions = [];
 
-            if ($request->role == '2' || $request->role == '5') {
-                $allPermissions = array_unique(array_merge($request->permission, Permission::whereIn('slug', ['sales-orders.create', 'sales-orders.edit', 'sales-orders.view', 'sales-orders.delete'])->select('id')->pluck('id')->toArray()));
-            } else if ($request->role == '3') {
-                $allPermissions = array_unique(array_merge($request->permission, Permission::whereIn('slug', ['sales-orders.view'])->select('id')->pluck('id')->toArray()));
-            }
 
             $user->roles()->attach($request->role);
             $user->userpermission()->attach($allPermissions);
@@ -170,37 +165,47 @@ class UserController extends Controller
 
                 $key = trim(Setting::first()?->geocode_key);
 
-                if (!empty($key)) {
-                    $address = trim("{$user->address_line_1} {$user->city_id} {$user->postal_code} {$user->country_id}");
-                    $address = str_replace(' ', '+', $address);
-                    $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
+                if (env('GEOLOCATION_API') == 'true') {
+                    if (!empty($key)) {
+                        $address = trim("{$user->address_line_1} {$user->city_id} {$user->postal_code} {$user->country_id}");
+                        $address = str_replace(' ', '+', $address);
+                        $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
 
-                    $data = json_decode(file_get_contents($url), true);
+                        $data = json_decode(file_get_contents($url), true);
 
-                    if ($data['status'] == "OK") {
-                        $lat = $data['results'][0]['geometry']['location']['lat'];
-                        $long = $data['results'][0]['geometry']['location']['lng'];
+                        if ($data['status'] == "OK") {
+                            $lat = $data['results'][0]['geometry']['location']['lat'];
+                            $long = $data['results'][0]['geometry']['location']['lng'];
 
-                        if (!empty($lat)) {
-                            $u = User::find($user->id);
-                            $u->lat = $lat;
-                            $u->long = $long;
-                            $u->save();
+                            if (!empty($lat)) {
+                                $u = User::find($user->id);
+                                $u->lat = $lat;
+                                $u->long = $long;
+                                $u->save();
 
-                            $errorWhileSavingLatLong = false;
+                                $errorWhileSavingLatLong = false;
+                            }
+
+                            AddressLog::create([
+                                'city' => $user->city_id,
+                                'country' => Country::where('id', $user->country_id)->first()->name ?? $user->country_id,
+                                'postal_code' => $user->postal_code,
+                                'address' => $user->address_line_1,
+                                'lat' => $lat,
+                                'long' => $long,
+                                'user_id' => $user->id,
+                                'added_by' => auth()->user()->id,
+                            ]);
                         }
-
-                        AddressLog::create([
-                            'city' => $user->city_id,
-                            'country' => Country::where('id', $user->country_id)->first()->name ?? $user->country_id,
-                            'postal_code' => $user->postal_code,
-                            'address' => $user->address_line_1,
-                            'lat' => $lat,
-                            'long' => $long,
-                            'user_id' => $user->id,
-                            'added_by' => auth()->user()->id,
-                        ]);
                     }
+                } else {
+
+                    $u = User::find($user->id);
+                    $u->lat = '22.2735381';
+                    $u->long = '70.764107';
+                    $u->save();
+
+                    $errorWhileSavingLatLong = false;
                 }
             }
 
@@ -241,7 +246,7 @@ class UserController extends Controller
         $temp = UserPermission::where('user_id', auth()->user()->id)->select('permission_id')->pluck('permission_id')->toArray();
         $permission = array_unique(array_merge($temp, $permission));
 
-        $permission = Permission::where('model', '!=', 'SalesOrder')->whereIn('id', $permission)->get()->groupBy('model');
+        $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
         return view('users.edit', compact('moduleName', 'user', 'roles', 'countries', 'states', 'cities', 'id', 'userPermissions', 'permission','moduleLink'));
     }

@@ -37,7 +37,7 @@
         <div class="form-group f-12">
             <div class="col-12">
                 <label for="c-gr f-500 f-16 w-100 mb-2"><strong>Order Amount</strong></label> :
-                <span> {{ Helper::currencyFormatter($order->items->sum('amount'), true) }} </span>
+                <span> {{ Helper::currency($order->items->sum('amount')) }} </span>
             </div>
             <div class="col-12">
                 <label for="c-gr f-500 f-16 w-100 mb-2"><strong>Date</strong></label> :
@@ -45,11 +45,16 @@
             </div>
             <div class="col-12">
                 <label for="c-gr f-500 f-16 w-100 mb-2"><strong>Delivery Date</strong></label> :
-                <span> {{ date('d-m-Y H:i', strtotime($order->delivery_date)) }} </span>
+                <span> {{ date('d-m-Y', strtotime($order->delivery_date)) }} </span>
             </div>
             
             @php
-                $driver = isset($order->items->first()->driver->user->name) ? ($order->items->first()->driver->user->name . ' - (' . $order->items->first()->driver->user->email . ')') : 'Not Assigned yet.';
+                $driver = Deliver::with('user')->where('status', 1)->where('so_id', $order->id)->first();
+                if ($driver !== null) {
+                    $driver = $driver->user->name ?? '-';
+                } else {
+                    $driver = "Not Assigned yet";
+                }
             @endphp
 
             <div class="col-12">

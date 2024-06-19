@@ -147,8 +147,8 @@
 
                                                 <td style="width:100px;">
                                                     <div style="min-width: 100px;">
-                                                        <button type="button" class="btn btn-primary btn-sm addNewRow">+</button>
-                                                        <button type="button" class="btn btn-danger btn-sm removeRow" tabindex="-1">-</button>
+                                                        <button type="button" class="btn btn-primary addNewRow">+</button>
+                                                        <button type="button" class="btn btn-danger removeRow" tabindex="-1">-</button>
                                                     </div>
                                                 </td>
                                             </tr>

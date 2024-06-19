@@ -16,7 +16,7 @@
 @section('content')
     {{ Config::set('app.module', $moduleName) }}
     <h2 class="f-24 f-700 c-36 my-2"> {{ $moduleName }}</h2>
-    <form action="{{ route('distribution.store') }}" method="POST" id="assignStock"> @csrf
+    <form action="{{ route('distribution.store') }}" method="POST" id="assignStock" enctype="multipart/form-data"> @csrf
         <div class="cards">
             <div class="cardsBody pb-0">
 
@@ -121,6 +121,7 @@ $(document).ready(function() {
                     }
                 },
                 complete: function (response) {
+                    $('[data-toggle="tooltip"]').tooltip();
                     $('body').find('.LoaderSec').addClass('d-none');
                     if (response.responseJSON.status) {
                         $('.select2').each(function() {
@@ -184,10 +185,40 @@ $(document).ready(function() {
         return "Select a product.";
     });
 
+    $.validator.addMethod("fileType", function(value, element, param) {
+        var fileTypes = param.split('|');
+        var files = element.files;
+        for (var i = 0; i < files.length; i++) {
+            var extension = files[i].name.split('.').pop().toLowerCase();
+            if ($.inArray(extension, fileTypes) === -1) {
+                return false;
+            }
+        }
+        return true;
+    }, "Only .png, .jpg, .jpeg and .pdf extensions supported");
+
+    $.validator.addMethod("maxFiles", function(value, element, param) {
+        return element.files.length <= param;
+    }, "Maximum 5 files can be uploaded at a time.");
+
+    $.validator.addMethod("fileSizeLimit", function(value, element, param) {
+        var totalSize = 0;
+        var files = element.files;
+        for (var i = 0; i < files.length; i++) {
+            totalSize += files[i].size;
+        }
+        return totalSize <= param;
+    }, "Total file size must not exceed 10 MB.");
+
     $('#assignStock').validate({
         rules: {
             'type': {
                 required: true
+            },
+            'docs[]': {
+                fileType: "png|jpg|jpeg|pdf",
+                maxFiles: 5,
+                fileSizeLimit: 10 * 1024 * 1024
             },
             'product[0]': {
                 required: true
