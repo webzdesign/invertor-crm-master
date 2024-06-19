@@ -199,7 +199,7 @@ $(document).ready(function() {
 
     $.validator.addMethod("maxFiles", function(value, element, param) {
         return element.files.length <= param;
-    }, "Maximum 5 files can be uploaded at a time.");
+    }, "Maximum 10 files can be uploaded at a time.");
 
     $.validator.addMethod("fileSizeLimit", function(value, element, param) {
         var totalSize = 0;
@@ -208,7 +208,7 @@ $(document).ready(function() {
             totalSize += files[i].size;
         }
         return totalSize <= param;
-    }, "Total file size must not exceed 10 MB.");
+    }, "Total file size must not exceed 20 MB.");
 
     $('#assignStock').validate({
         rules: {
@@ -217,8 +217,8 @@ $(document).ready(function() {
             },
             'docs[]': {
                 fileType: "png|jpg|jpeg|pdf",
-                maxFiles: 5,
-                fileSizeLimit: 10 * 1024 * 1024
+                maxFiles: 10,
+                fileSizeLimit: (10 * 1024 * 1024) * 2
             },
             'product[0]': {
                 required: true

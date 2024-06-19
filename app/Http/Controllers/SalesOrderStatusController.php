@@ -469,6 +469,8 @@ class SalesOrderStatusController extends Controller
                     $builder->where('responsible_user', '')
                 ->orWhereNull('responsible_user');
             });
+        } else if (!in_array(1, User::getUserRoles())) {
+            $orders = $orders->where('added_by', auth()->user()->id);
         }
 
         $tempCount = $orders->count();
