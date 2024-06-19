@@ -57,4 +57,8 @@ class SalesOrder extends Model
     public function driver() {
         return $this->hasOne(Deliver::class, 'so_id');
     }
+
+    public function responsible() {
+        return $this->belongsTo(User::class, 'responsible_user');
+    }
 }

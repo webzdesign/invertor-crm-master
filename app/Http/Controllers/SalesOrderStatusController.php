@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser, Setting, Trigger};
-use App\Models\{SalesOrderStatus, SalesOrder, DistributionItem, Deliver, Role, ManageStatus, User};
+use App\Models\{SalesOrderStatus, SalesOrder, Deliver, Role, ManageStatus, User};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -12,6 +12,10 @@ use Illuminate\Support\Str;
 class SalesOrderStatusController extends Controller
 {
     public function index() {
+        if(in_array(3, User::getUserRoles())) {
+            return redirect('sales-order-status-list');
+        }
+
         $moduleName = 'Sales Order Status';
         $statuses = SalesOrderStatus::custom()->orderBy('sequence', 'ASC')->get();
         $colours = ['#99ccff', '#ffcccc', '#ffff99', '#c1c1c1', '#9bffe2', '#f7dd8b', '#c5ffd6'];
@@ -21,7 +25,26 @@ class SalesOrderStatusController extends Controller
             $tempOrder = SalesOrder::join('sales_order_items', 'sales_order_items.so_id', '=', 'sales_orders.id')->selectRaw("sales_orders.id, sales_orders.order_no, sales_orders.date, SUM(sales_order_items.amount) as amount, sales_orders.status as status")->where('sales_orders.status', $status->id)->groupBy('sales_order_items.so_id');
 
             if ($tempOrder->exists()) {
-                $orders[$status->id] = $tempOrder->get()->toArray();
+                $toBeShown = [];
+                $orderIds = $tempOrder->pluck('id')->toArray();
+
+                foreach ($orderIds as $soid) {
+                    if (Deliver::where('so_id', $soid)->where('status', 0)->where('user_id', auth()->user()->id)->exists()) {
+                        $toBeShown[] = $soid;
+                    } else if (SalesOrder::where('id', $soid)->where(function($builder) {
+                        $builder->where('added_by', auth()->user()->id)->orWhere('responsible_user', auth()->user()->id);
+                    })->exists()) {
+                        $toBeShown[] = $soid;
+                    } else if (in_array(1, User::getUserRoles())) {
+                        $toBeShown[] = $soid;
+                    }
+                }
+
+                $orders[$status->id] = SalesOrder::join('sales_order_items', 'sales_order_items.so_id', '=', 'sales_orders.id')
+                ->selectRaw("sales_orders.id, sales_orders.order_no, sales_orders.date, SUM(sales_order_items.amount) as amount, sales_orders.status as status")
+                ->where('sales_orders.status', $status->id)
+                ->whereIn('sales_orders.id', $toBeShown)
+                ->groupBy('sales_order_items.so_id')->get()->toArray();
             }
         }
 
@@ -426,11 +449,6 @@ class SalesOrderStatusController extends Controller
     }
 
     public function list(Request $request) {
-        return redirect('dashboard');
-
-        if(!in_array(auth()->user()->roles->first()->id, [1,2,3])) {
-            abort(403);
-        }
 
         $statuses = SalesOrderStatus::custom()->active()->select('id', 'name', 'color')->get();
 
@@ -441,19 +459,16 @@ class SalesOrderStatusController extends Controller
         }
 
         $orders = SalesOrder::with(['items', 'ostatus']);
-        $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
 
-        if (!in_array(1, $thisUserRoles)) {
-            if (in_array(2, $thisUserRoles)) {
-                $orders = $orders->where(function ($builder) {
-                    $builder->where('seller_id', auth()->user()->id);
-                });
-            } else if (in_array(3, $thisUserRoles)) {
-                $driversOrder = Deliver::where('user_id', auth()->user()->id)->where('status', 0)->select('so_id')->pluck('so_id')->toArray();
-                $orders = $orders->where(function ($builder) use ($driversOrder) {
-                    $builder->whereIn('id', $driversOrder);
-                })->whereHas('ostatus', fn ($builder) => $builder->where('id', '!=', '1'));
-            }
+        if (in_array(3, User::getUserRoles())) {
+            $driversOrder = Deliver::where('user_id', auth()->user()->id)->select('so_id')->pluck('so_id')->toArray();
+            $orders = $orders->where(function ($builder) use ($driversOrder) {
+                $builder->whereIn('id', $driversOrder);
+            })
+            ->where(function ($builder) {
+                    $builder->where('responsible_user', '')
+                ->orWhereNull('responsible_user');
+            });
         }
 
         $tempCount = $orders->count();
@@ -461,11 +476,6 @@ class SalesOrderStatusController extends Controller
         if (isset($request->order[1]['column']) && $request->order[1]['column'] == 0) {
             $orders = $orders->orderBy('id', 'desc');
         }
-
-        $users = User::whereHas('role', function ($builder) {
-            $builder->where('roles.id', 3);
-        })->whereNotNull('lat')->whereNotNull('long')
-        ->select('id', 'lat', 'long')->get()->toArray();
 
         return dataTables($orders)
                 ->addColumn('checkbox', function ($row) {
@@ -530,57 +540,7 @@ class SalesOrderStatusController extends Controller
                     return date('d-m-Y', strtotime($row->date));
                 })
                 ->addColumn('amount', function ($row) {
-                    return Helper::currency($row->items->sum('amount'), true);
-                })
-                ->addColumn('action', function ($row) use ($users) {
-                    if (auth()->user()->roles->first()->id == 3 && Deliver::where('user_id', auth()->user()->id)->where('so_id', $row->id)->where('status', 0)->exists()) {
-                        return '<button id="driver-approve-the-order" class="btn-primary f-500 f-14 btn-sm bg-success" data-oid="' . $row->id . '"> Approve </button>
-                        <button id="driver-reject-the-order" class="btn-primary f-500 f-14 btn-sm bg-error" data-oid="' . $row->id . '"> Reject </button>';
-                    } else if (auth()->user()->roles->first()->id == 2 && $row->seller_id == auth()->user()->id) {
-                        $html = '';
-                        if ($row->status == 1) {
-
-                            $html = '<form id="validateDriver" method="POST" action="'. route('assign-new-driver', encrypt($row->id)) .'">';
-                            $html .= csrf_field();
-                            $html .= '<select class="driver-selection" name="driver"><option value="" selected> --- Select a driver --- </option>';
-                            
-                            $thisProduct = $row->items->first()->product_id;
-
-                            $users = collect($users)->map(function ($ele) use ($thisProduct) {
-                                $inStock = DistributionItem::where('to_driver', $ele['id'])
-                                ->where('product_id', $thisProduct)
-                                ->select('qty')
-                                ->sum('qty');
-                    
-                                $outStock = DistributionItem::where('from_driver', $ele['id'])
-                                ->where('product_id', $thisProduct)
-                                ->select('qty')
-                                ->sum('qty');
-                    
-                                $availStock = intval($inStock) - intval($outStock);
-                    
-                                if ($availStock > 0) {
-                                    return $ele;
-                                }
-                    
-                            })->filter()->values()->toArray();
-
-                            if (!empty($users)) {
-                                foreach ($users as $u) {
-                                    $thisUser = User::findOrFail($u['id']);
-                                    $dist = Distance::measure($u['lat'], $u['long'], $thisUser->lat, $thisUser->long);
-                                    $html .= '<option data-distance="'. $dist .'" value="' . $u['id'] . '"> ' . ($thisUser->name ?? '') . ' - (' . ($thisUser->email ?? '') . ') </option>';
-                                }
-            
-                            }
-
-                            $html .= "</select><button type='submit' class='btn-primary btn-sm' style='margin-left:10px;'> Assign </button></form>";
-
-                            return $html;
-                        }
-                    }
-
-                    return '-';
+                    return Helper::currency($row->items->sum('amount'));
                 })
                 ->rawColumns(['order_no', 'checkbox', 'status', 'action'])
                 ->with(['totalOrders' => $tempCount])
@@ -1202,7 +1162,7 @@ class SalesOrderStatusController extends Controller
                 }
 
                 $allSalesOrders = SalesOrder::where('status', $status)->select('id')->pluck('id')->toArray();
-                SalesOrder::where('status', $status)->update(['status' => 3]);
+                SalesOrder::where('status', $status)->update(['status' => 2]);
 
 
                 foreach ($allSalesOrders as $soId) {
@@ -1229,7 +1189,7 @@ class SalesOrderStatusController extends Controller
                                 
                                 $record = AddTaskToOrderTrigger::create([
                                     'order_id' => $soId,
-                                    'status_id' => 3,
+                                    'status_id' => 2,
                                     'added_by' => auth()->user()->id,
                                     'time' => $t->time,
                                     'type' => $t->time_type,
@@ -1269,7 +1229,7 @@ class SalesOrderStatusController extends Controller
                                 
                                 $record = ChangeOrderUser::create([
                                     'order_id' => $soId,
-                                    'status_id' => 3,
+                                    'status_id' => 2,
                                     'added_by' => auth()->user()->id,
                                     'time' => $t->time,
                                     'type' => $t->time_type,
@@ -1314,7 +1274,7 @@ class SalesOrderStatusController extends Controller
                                     'time' => $t->time,
                                     'type' => $t->time_type,
                                     'main_type' => $t->action_type,
-                                    'current_status_id' => 3,
+                                    'current_status_id' => 2,
                                     'executed_at' => $currentTime,
                                     'trigger_id' => $t->id
                                 ]);
@@ -1407,7 +1367,7 @@ class SalesOrderStatusController extends Controller
                 $oldStatus = SalesOrder::where('id', $soId)->select('status')->first()->status;
 
                 $newStatus = Trigger::where('status_id', 2)->where('type', 2)
-                ->whereIn('action_type', [1, 3])->first()->next_status_id ?? 0;
+                ->whereIn('action_type', [1, 2, 3])->first()->next_status_id ?? 0;
     
                 /** TASKS **/
                 $currentTime1 = date('Y-m-d H:i:s');

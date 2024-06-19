@@ -181,7 +181,6 @@
                 <th>STATUS</th>
                 <th>ORDER DATE</th>
                 <th>AMOUNT</th>
-                <th>ACTION</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -389,11 +388,6 @@ var thisWindowId = uuid();
                     searchable: false,
                     orderable: false,
                     width: '100px'
-                },
-                {
-                    data: 'action',
-                    searchable: false,
-                    orderable: false,
                 }
             ],
             drawCallback: function (data) {

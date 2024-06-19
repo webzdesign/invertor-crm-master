@@ -91,7 +91,9 @@
                         <span class="status-lbl f-12" style="background: {{ $l->from_status->color }};color:{{ Helper::generateTextColor($l->from_status->color) }};text-transform:uppercase;"> {{ $l->from_status->name }} </span>
                         @endif
                     @elseif($l->type == 3)
-                        assigned order to it's seller
+                        assigned order to <strong>
+                            @if(isset($l->order->responsible->name)) {{ $l->order->responsible->name }} @else  it's seller @endif
+                        </strong>
                     @endif
                 </p>
             </div>
