@@ -567,11 +567,11 @@ class SalesOrderStatusController extends Controller
                     return response()->json(['status' => $response, 'message' => $message, 'color' => $color, 'text' => $text]);
                 }
 
+                $oldStatus = SalesOrder::where('id', $request->order)->select('status')->first()->status ?? 1;
+
                 if (SalesOrder::where('id', $request->order)->update(['status' => $request->status])) {
                     $response = true;
                     $message = 'Status Updated successfully';
-
-                    $oldStatus = SalesOrder::where('id', $request->order)->select('status')->first()->status;
 
                     AddTaskToOrderTrigger::where('order_id', $request->order)->where('status_id', '!=',$request->status)->where('executed', 0)->delete();
                     ChangeOrderUser::where('order_id', $request->order)->where('status_id', '!=', $request->status)->where('executed', 0)->delete();

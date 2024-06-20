@@ -87,7 +87,7 @@
                 <th>Product</th>
                 <th>Quantity</th>
                 <th>Order Amount</th>
-                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()))
+                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 <th>Added By</th>
                 @endif
                 <th>Status</th>
@@ -174,7 +174,7 @@
                 {
                     data: 'total',
                 },
-                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()))
+                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 {
                     data: 'addedby.name',
                     orderable: false,
