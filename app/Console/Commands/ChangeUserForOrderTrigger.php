@@ -28,7 +28,7 @@ class ChangeUserForOrderTrigger extends Command
     {
         $iterable = ChangeOrderUser::whereHas('trigger', function ($builder) {
             $builder->where('id', '>', 0);
-        })->where('executed', 0)->where('executed_at', '<=', date('Y-m-d H:i:s')); 
+        })->where('executed', 0)->where(\Illuminate\Support\Facades\DB::raw("DATE_FORMAT(executed_at, '%Y-%m-%d %H:%i')"), '<=', date('Y-m-d H:i:s')); 
 
         if (!empty($triggers)) {
             $iterable = $iterable->whereIn('id', $triggers);
