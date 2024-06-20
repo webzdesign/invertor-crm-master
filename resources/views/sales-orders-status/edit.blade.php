@@ -22,9 +22,9 @@
     @php $iteration = 0;  @endphp
     @forelse($statuses as $key => $status)
     @php $uniqueClass = "class-" . str()->random(9);  @endphp
-    <div class="card border-0 card-row card-secondary parent-card border-left-1p-solid-grey @if($status->id == '2') disable-sorting @endif " data-mainstatus="{{ $status->id }}">
+    <div class="card border-0 card-row card-secondary parent-card border-left-1p-solid-grey @if($status->is_static) disable-sorting @endif " data-mainstatus="{{ $status->id }}">
         @php $tempColor = !empty($status->color) ? $status->color : (isset($colours[$key]) ? $colours[$key] : (isset($colours[$iteration]) ? $colours[$iteration] : ($iteration = 0 and $colours[0] ? $colours[$iteration] : '#99ccff' )));  @endphp
-        <input type="hidden" name="sequence[]" value="{{ $status->id }}" @if($status->id == '2') disabled @endif>
+        <input type="hidden" name="sequence[]" value="{{ $status->id }}" @if($status->is_static) disabled @endif>
         <div class="card-header px-2" style="border-bottom: 4px solid {{ $tempColor }};">
             @if(count($statuses) == 1 || !$loop->last)
             @permission("sales-order-status.create")
@@ -36,24 +36,24 @@
 
             <div class="card-title d-flex align-items-center justify-content-between">
 
-                @if($status->id != '2')
+                @if(!$status->is_static)
                 <div style="line-height: 0;cursor: move" class="movable">
                     <svg fill="#656565" width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" data-name="Layer 1"><path d="M8.5,10a2,2,0,1,0,2,2A2,2,0,0,0,8.5,10Zm0,7a2,2,0,1,0,2,2A2,2,0,0,0,8.5,17Zm7-10a2,2,0,1,0-2-2A2,2,0,0,0,15.5,7Zm-7-4a2,2,0,1,0,2,2A2,2,0,0,0,8.5,3Zm7,14a2,2,0,1,0,2,2A2,2,0,0,0,15.5,17Zm0-7a2,2,0,1,0,2,2A2,2,0,0,0,15.5,10Z"/></svg>
                 </div>
                 @endif
 
-                <input type="text" name="name[]" class="title-of-card f-14 m-auto" value="{{ $status->name }}" @if($status->id == '2') disabled @endif >
+                <input type="text" name="name[]" class="title-of-card f-14 m-auto" value="{{ $status->name }}" @if($status->is_static) disabled @endif >
 
                 <div class="d-flex align-items-center card-options">
                     <span class="me-2">
-                        @if($status->id != '2')
+                        @if(!$status->is_static)
                         @permission("sales-order-status.delete")
                         <i class="fa fa fa-trash delete-main-status-card" data-sid="{{ $status->id }}" data-name="{{ $status->name }}"></i>
                         @endpermission
                         @endif
                     </span>
 
-                    @if($status->id != '2')
+                    @if(!$status->is_static)
                         <input type="color" name="color[]" class="color-picker" value="{{ $tempColor }}" />
                     @endif
                 </div>

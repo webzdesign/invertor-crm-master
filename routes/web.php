@@ -127,6 +127,8 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('get-products-on-category-so', [SalesOrderController::class, 'productsOnCategory'])->name('get-products-on-category-so');
         Route::post('get-available-item', [SalesOrderController::class, 'getAvailableItem'])->name('get-available-item');
         Route::post('save-so', [SalesOrderController::class, 'saveSo'])->name('save-so');
+        Route::post('check-so-price', [SalesOrderController::class, 'checkPrice'])->name('check-so-price');
+        Route::post('price-unmatched', [SalesOrderController::class, 'priceUnmatched'])->name('price-unmatched');
         /** Sales Order **/
 
         /** Suppliers **/

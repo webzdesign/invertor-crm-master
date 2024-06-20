@@ -351,6 +351,8 @@
                     mtAmount += parseFloat(tempAmount);
                 });
 
+                mtAmount = Math.round(mtAmount);
+
                 $('.mt-quantity').val(mtQuantity);
                 $('.mt-price').val(mtPrice.toFixed(2));
                 $('.mt-amount').val(mtAmount.toFixed(2));

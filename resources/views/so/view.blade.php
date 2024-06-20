@@ -207,12 +207,12 @@
                                             </td>
                                             <td>
                                                 <div style="min-width: 200px;">
-                                                    <input type="text" class="form-control mt-price" style="background:#efefef" value="{{ Helper::currencyFormatter($so->items->sum('price')) }}" readonly>
+                                                    <input type="text" class="form-control mt-price" style="background:#efefef" value="{{ ($so->items->sum('price')) }}" readonly>
                                                 </div>
                                             </td>
                                             <td>
                                                 <div style="min-width: 200px;">
-                                                    <input type="text" class="form-control mt-amount" style="background:#efefef" value="{{ Helper::currencyFormatter($so->items->sum('amount')) }}" readonly>
+                                                    <input type="text" class="form-control mt-amount" style="background:#efefef" value="{{ round($so->items->sum('amount')) }}" readonly>
                                                 </div>
                                             </td>
                                         </tr>
@@ -221,6 +221,51 @@
                             </div>
                         </div>
                     </div>
+
+                    @if($so->price_matched && $so->sold_amount != round($so->items->sum('amount')))
+
+                    <div class="col-md-12">
+                        <div
+                            class="cardsHeader f-20 f-600 c-36 f-700 border-0 ps-0 tableHeading position-relative my-4">
+                            <span>Different Price Agreement Proof</span>
+                        </div>
+
+                        <table class="table table-bordered customLayout">
+                            <thead>
+                               <tr>
+                                  <th> Amount </th>
+                               </tr>
+                            </thead>
+                            <tbody>
+                               <tr>
+                                  <td>
+                                     <div style="min-width: 200px;width: 100%" class="removable-category">
+                                        <input type="text" readonly="" class="form-control" value="{{ $so->sold_amount }}" style="background:#efefef">
+                                     </div>
+                                  </td>
+                               </tr>
+                            </tbody>
+                         </table>
+
+                    </div>
+
+                    <div class="row">
+                        @forelse($so->proofimages as $key => $img)
+                            <div class="col-md-2 d-flex align-items-center justify-content-center">
+                                <a href="{{ $img->doc }}" target="_blank">
+                                        <img src="{{ $img->doc }}" class="w-100 shadow-1-strong rounded" style="object-fit:cover;height:100px;width:100%;margin:5px 0px;border:1px solid black;">
+                                </a>
+                            </div>
+                        @empty
+                            <center>
+                                <p><strong>No agreemnt for proof uploaded for this order.</strong></p>
+                            </center>
+                        @endforelse
+                    </div>
+
+                    @endif
+
+
                 </div>
             </div>
 

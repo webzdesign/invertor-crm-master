@@ -232,7 +232,7 @@ class PurchaseOrderController extends Controller
                         'product_id' => $product,
                         'price' => floatval($request->price[$key]) ?? 0,
                         'qty' => intval($request->quantity[$key]) ?? 0,
-                        'amount' => round(floatval($request->amount[$key])) ?? 0,
+                        'amount' => (floatval($request->amount[$key])) ?? 0,
                         'remarks' => $request->remarks[$key] ?? '',
                         'added_by' => $userId,
                         'created_at' => now()
@@ -335,7 +335,7 @@ class PurchaseOrderController extends Controller
                             'product_id' => $product,
                             'price' => floatval($request->price[$key]) ?? 0,
                             'qty' => intval($request->quantity[$key]) ?? 0,
-                            'amount' => round(floatval($request->amount[$key])) ?? 0,
+                            'amount' => (floatval($request->amount[$key])) ?? 0,
                             'remarks' => $request->remarks[$key] ?? '',
                             'updated_by' => $userId,
                         ]);
@@ -358,7 +358,7 @@ class PurchaseOrderController extends Controller
                             'product_id' => $product,
                             'price' => floatval($request->price[$key]) ?? 0,
                             'qty' => intval($request->quantity[$key]) ?? 0,
-                            'amount' => round(floatval($request->amount[$key])) ?? 0,
+                            'amount' => (floatval($request->amount[$key])) ?? 0,
                             'remarks' => $request->remarks[$key] ?? '',
                             'added_by' => $userId,
                             'created_at' => now()

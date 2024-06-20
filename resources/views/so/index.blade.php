@@ -98,6 +98,9 @@
         </tbody>
     </table>
 </div>
+
+@include('so.modal.confirm-order')
+
 @endsection
 
 @section('script')
@@ -311,6 +314,148 @@
                 }
             });            
         })
+
+        $(document).on('click', '.close-order', function () {
+            let oId = $(this).attr('data-oid');
+            let title = $(this).attr('data-title');
+
+            if (isNumeric(oId)) {
+                $('#close-order').find('#modal-title').text(title);
+                $('#closing-order-id').val(oId);
+                $('#close-order').modal('show');
+            }
+        });
+
+        $(document).on('hidden.bs.modal', '#close-order', function (event) {
+            if (event.namespace == 'bs.modal') {
+                $('.document-field').hide();
+                $('.amount-field').show();
+                $('#closing-order-amount-form')[0].reset();
+                $('#close-order-sbmt-btn').text('Next');
+                $('#order-closing-amount-error').remove();
+            }
+        })
+
+        $.validator.addMethod("fileType", function(value, element, param) {
+            var fileTypes = param.split('|');
+            var files = element.files;
+            for (var i = 0; i < files.length; i++) {
+                var extension = files[i].name.split('.').pop().toLowerCase();
+                if ($.inArray(extension, fileTypes) === -1) {
+                    return false;
+                }
+            }
+            return true;
+        }, "Only .png, .jpg, and .jpeg extensions supported");
+
+        $.validator.addMethod("maxFiles", function(value, element, param) {
+            return element.files.length <= param;
+        }, "Maximum 10 files can be uploaded at a time.");
+
+        $.validator.addMethod("fileSizeLimit", function(value, element, param) {
+            var totalSize = 0;
+            var files = element.files;
+            for (var i = 0; i < files.length; i++) {
+                totalSize += files[i].size;
+            }
+            return totalSize <= param;
+        }, "Total file size must not exceed 20 MB");
+
+        $('#closing-order-amount-form').validate({
+            ignore: ":hidden",
+            rules: {
+                amount: {
+                    required: true,
+                    number: true,
+                    min: 1
+                },
+                'file[]': {
+                    required: true,
+                    fileType: 'jpeg|png|jpg',
+                    maxFiles: 10,
+                    fileSizeLimit: (10 * 1024 * 1024) * 2
+                }
+            },
+            messages: {
+                amount: {
+                    required: "Enter the amount",
+                    number: "Enter valid amount",
+                    min: "Enter valid amount."
+                },
+                'file[]': {
+                    required: "Upload atleast an image proof"
+                }
+            }
+        });
+
+        $(document).on('submit', '#closing-order-amount-form', function (e) {
+            e.preventDefault();
+
+            if ($(this).find('.amount-field').is(':visible')) {
+                $.ajax({
+                    url: "{{ route('check-so-price') }}",
+                    type: "POST",
+                    data: $(this).serializeArray(),
+                    beforeSend: function () {
+                        $('button[type="submit"]').attr('disabled', true);
+                        $('body').find('.LoaderSec').removeClass('d-none');
+                    },
+                    success: function (response) {
+                        if (response.status) {
+                            if (response.next) {
+                                $('#close-order-sbmt-btn').text('Save');
+                                $('.document-field').show();
+                                $('.amount-field').hide();
+                            } else {
+                                Swal.fire('', 'Price added for order successfully.', 'success');
+                                $('#close-order').modal('hide');
+                                ServerDataTable.ajax.reload();
+                            }
+                        }
+                    },
+                    complete: function () {
+                        $('button[type="submit"]').attr('disabled', false);
+                        $('body').find('.LoaderSec').addClass('d-none');
+                    }
+                });
+            } else {
+
+                let formData = new FormData(this);
+
+                $.ajax({
+                    url: "{{ route('price-unmatched') }}",
+                    type: "POST",
+                    contentType: false,
+                    processData: false,
+                    dataType: 'json',
+                    data: formData,
+                    beforeSend: function () {
+                        $('button[type="submit"]').attr('disabled', true);
+                        $('body').find('.LoaderSec').removeClass('d-none');
+                    },
+                    success: function (response) {
+                        if (response.status) {
+                            Swal.fire('', 'Proof for price change uploaded successfully.', 'success');
+                            $('#close-order').modal('hide');
+                            ServerDataTable.ajax.reload();
+                        } else {
+                            Swal.fire('', response.messages, 'error');
+                            $('#close-order').modal('hide');
+                            ServerDataTable.ajax.reload();
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('', 'Something went wrong. please try again later.', 'error');
+                        $('#close-order').modal('hide');
+                        ServerDataTable.ajax.reload();
+                    },
+                    complete: function () {
+                        $('button[type="submit"]').attr('disabled', false);
+                        $('body').find('.LoaderSec').addClass('d-none');
+                    }
+                });                                             
+            }
+        });
 
     });
 </script>

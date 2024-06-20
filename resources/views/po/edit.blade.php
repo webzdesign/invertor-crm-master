@@ -244,7 +244,7 @@
                                                 </td>
                                                 <td>
                                                     <div style="min-width: 200px;">
-                                                        <input type="number" class="form-control mt-amount" style="background:#efefef" value="{{ $items->sum('amount') }}" readonly>
+                                                        <input type="number" class="form-control mt-amount" style="background:#efefef" value="{{ number_format(round($items->sum('amount')), 2) }}" readonly>
                                                     </div>
                                                 </td>
                                                 <td></td>

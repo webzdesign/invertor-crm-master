@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ChangeOrderStatusTrigger};
+use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ChangeOrderStatusTrigger, SalesOrderProofImages};
 use App\Models\{Category, User, Wallet, Bonus, DistributionItem, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
@@ -27,10 +27,19 @@ class SalesOrderController extends Controller
         ->select('id', 'lat', 'long')->get()->toArray();
 
         $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
+        $orderClosedWinStatus = SalesOrderStatus::where('slug', 'closed-win')->first()->id ?? 0;
 
-        $po = SalesOrder::with(['items.product', 'addedby', 'updatedby', 'ostatus'])->where(function ($builder) use ($thisUserRoles) {
+        $po = SalesOrder::with(['items.product', 'addedby', 'updatedby', 'ostatus'])->where(function ($builder) use ($thisUserRoles, $orderClosedWinStatus) {
             if (!in_array(1, $thisUserRoles)) {
                 $builder->where('added_by', auth()->user()->id)
+                ->orWhere(function ($innerBuilder) use ($orderClosedWinStatus) {
+                    $innerBuilder->where(function ($innerBuilder2) use ($orderClosedWinStatus) {
+                        $innerBuilder2->where('status', $orderClosedWinStatus)
+                        ->where('price_matched', 0)
+                        ->whereHas('driver', fn ($innerBuilder3) => $innerBuilder3
+                        ->where('user_id', auth()->user()->id)->where('status', 1));
+                    });
+                })
                 ->orWhereHas('driver', fn ($innerBuilder) => $innerBuilder->where('user_id', auth()->user()->id)->where('status', 0));
             }
         });
@@ -52,11 +61,13 @@ class SalesOrderController extends Controller
             $po = $po->orderBy('id', 'desc');
         }
 
+        $orderClosedWinStatus = SalesOrderStatus::where('slug', 'closed-win')->first()->id ?? 0;
+
         return dataTables()->eloquent($po)
             ->addColumn('total', function ($product) {
                 return Helper::currency($product->total());
             })
-            ->addColumn('action', function ($users) {
+            ->addColumn('action', function ($users) use ($orderClosedWinStatus) {
 
                 $variable = $users;
 
@@ -72,6 +83,18 @@ class SalesOrderController extends Controller
                         $url = route("sales-orders.delete", encrypt($variable->id));
                         $action .= view('buttons.delete', compact('variable', 'url'));
                     }
+                }
+
+                $delvieryPartner = Deliver::where('so_id', $users->id)->where('status', 1)->first();
+
+                if ($users->status == $orderClosedWinStatus && !$users->price_matched && isset($delvieryPartner) && $delvieryPartner->user_id == auth()->user()->id) {
+                    $action .= '
+                    <div class="tableCards d-inline-block me-1 pb-0">
+                        <div class="editDlbtn">
+                            <button class="btn btn-sm btn-success close-order" data-oid="' . $users->id . '" data-title="' . $users->order_no . '"> FINAL SALES PRICE </button>
+                        </div>
+                    </div>
+                    ';
                 }
 
                 $action .= '</div>';
@@ -901,6 +924,7 @@ class SalesOrderController extends Controller
             Wallet::where('form', 1)->where('form_record_id', $soId)->delete();
             Bonus::where('form', 1)->where('form_record_id', $soId)->delete();
             Deliver::where('so_id', $soId)->delete();
+            SalesOrderProofImages::where('so_id', $soId)->delete();
             AddTaskToOrderTrigger::where('order_id', $soId)->delete();
             ChangeOrderUser::where('order_id', $soId)->delete();
             ChangeOrderStatusTrigger::where('order_id', $soId)->delete();
@@ -924,7 +948,8 @@ class SalesOrderController extends Controller
 
         if (!$request->ajax()) {
             $moduleName = 'Orders to Deliver';
-            $drivers = Deliver::with(['order' => fn ($builder) => $builder->whereIn('status', $statusToBeShown)])
+            $drivers = Deliver::with('order')
+            ->whereHas('order', fn ($builder) => $builder->whereIn('status', $statusToBeShown))
             ->where('status', 1)
             ->orderBy('id', 'DESC')
             ->get();
@@ -932,7 +957,8 @@ class SalesOrderController extends Controller
             return view('so.delivery-list', compact('moduleName', 'drivers'));
         }
 
-        $d = Deliver::with(['order' => fn ($builder) => $builder->whereIn('status', $statusToBeShown)])
+        $d = Deliver::with('order')
+                ->whereHas('order', fn ($builder) => $builder->whereIn('status', $statusToBeShown))
                 ->where('status', 1)
                 ->orderBy('id', 'DESC');
 
@@ -968,5 +994,120 @@ class SalesOrderController extends Controller
             ->rawColumns(['distance', 'action'])
             ->addIndexColumn()
             ->make(true);
+    }
+
+    public function checkPrice (Request $request) {
+        if (!empty($request->order_id) && !empty($request->amount) && is_numeric($request->amount)) {
+            $order = SalesOrder::with('items')->where('id', $request->order_id);
+            if ($order->exists()) {
+                $order = $order->first();
+                if (round($order->items->sum('amount')) == round($request->amount)) {
+                    SalesOrder::where('id', $request->order_id)->update(['price_matched' => 1, 'sold_amount' => round($request->amount)]);
+                    return response()->json(['status' => true, 'next' => false]);
+                } else {
+                    return response()->json(['status' => true, 'next' => true]);
+                }
+            }
+        }
+
+        return response()->json(['status' => false, 'message' => Helper::$notFound]);
+    }
+
+    public function priceUnmatched(Request $request) {
+
+        if (!$request->hasFile('file')) {
+            return response()->json(['status' => false, 'message' => 'Upload atleast a file.']);
+        }
+
+        $toBeDeleted = [];
+
+        if (!file_exists(storage_path('app/public/so-price-change-agreement'))) {
+            mkdir(storage_path('app/public/so-price-change-agreement'), 0777, true);
+        }
+
+        if (!empty($request->order_id) && !empty($request->amount) && is_numeric($request->amount)) {
+            $order = SalesOrder::with('items')->where('id', $request->order_id);
+            if ($order->exists()) {
+                $order = $order->first();
+
+                DB::beginTransaction();
+
+                try {
+
+                    if($request->hasFile('file')) {
+                        foreach ($request->file('file') as $file) {
+                            $name = 'SO-PRICE-PROOF-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
+                            $file->move(storage_path('app/public/so-price-change-agreement'), $name);
+    
+                            if (file_exists(storage_path("app/public/so-price-change-agreement/{$name}"))) {
+                                $toBeDeleted[] = storage_path("app/public/so-price-change-agreement/{$name}");
+                                SalesOrderProofImages::create(['so_id' => $order->id,'name' => $name]);
+                            }
+                        }                    
+                    }
+    
+                    $procurementCost = ProcurementCost::where('role_id', 2)->where('product_id', $order->items->first()->id ?? 0);
+                    $newTotal = is_numeric($request->amount) ? round($request->amount) : round(floatval($request->amount));
+                    $orderTotal = round($order->items->sum('amount'));
+    
+                    $prodQty = $order->items->first()->qty ?? 1;
+                    $newProductTotal = $newTotal / $prodQty;
+    
+
+                    if ($procurementCost->exists()) {
+                        $procurementCost = $procurementCost->first();
+                        if ($newTotal != $orderTotal) {
+    
+                            if (Wallet::where('form_record_id', $request->order_id)->where('form', 1)->exists()) {
+                                Wallet::where('form_record_id', $request->order_id)->where('form', 1)->delete();
+                            }
+
+                            Helper::logger("SINGLE : $newProductTotal AND MIN SALE : $procurementCost->min_sales_price AND BASE : $procurementCost->base_price");
+                            
+                            if ($newProductTotal > $procurementCost->base_price) {
+                                $comPrice = $newProductTotal - $procurementCost->base_price;
+                            } else {
+                                $comPrice = $procurementCost->default_commission_price;
+                            }
+                            Helper::logger("COMM:" . ($comPrice * $prodQty));
+                            Wallet::create([
+                                'seller_id' => $order->seller_id,
+                                'added_by' => auth()->user()->id,
+                                'form' => 1,
+                                'form_record_id' => $order->id,
+                                'item_id' => $order->items->first()->id ?? null,
+                                'commission_amount' => $comPrice * $prodQty,
+                                'item_amount' => $newProductTotal,
+                                'commission_actual_amount' => $comPrice,
+                                'item_qty' => $prodQty,
+                                'created_at' => now()
+                            ]);
+    
+                        }
+                    }
+    
+                    SalesOrder::where('id', $request->order_id)->update(['price_matched' => 1, 'sold_amount' => round($request->amount)]);
+
+                    DB::commit();
+                    return response()->json(['status' => true, 'message' => 'Sales price changes proof uploaded successfully.']);
+
+                } catch (\Exception $e) {
+                    Helper::logger($e->getMessage());
+                    DB::rollBack();
+
+                    if (!empty($toBeDeleted)) {
+                        foreach ($toBeDeleted as $eachImage) {
+                            if (file_exists($eachImage)) {
+                                unlink($eachImage);
+                            }
+                        }
+                    }
+
+                    return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+                }
+            }
+        }
+
+        return response()->json(['status' => false, 'message' => Helper::$notFound]);
     }
 }

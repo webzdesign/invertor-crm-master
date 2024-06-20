@@ -61,4 +61,8 @@ class SalesOrder extends Model
     public function responsible() {
         return $this->belongsTo(User::class, 'responsible_user');
     }
+
+    public function proofimages() {
+        return $this->hasMany(SalesOrderProofImages::class, 'so_id');
+    }
 }

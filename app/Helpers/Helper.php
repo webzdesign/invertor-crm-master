@@ -26,6 +26,7 @@ class Helper {
     public static $appLogo = 'assets/images/logo.png';
     public static $favIcon = 'assets/images/favicon.ico';
     public static $errorMessage = 'Oops! Something went wrong.';
+    public static $notFound = 'Not found.';
 
     public static function getAppTitle()
     {
