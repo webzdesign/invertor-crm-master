@@ -980,7 +980,7 @@ class SalesOrderController extends Controller
                 return $row?->order?->items?->first()?->qty ?? '-';
             })
             ->addColumn('order_no', function ($row) {
-                return $row?->order?->items?->first()?->order?->order_no ?? '-';
+                return '<a target="_blank" href="' . route('sales-orders.view', isset($row?->order?->items?->first()?->order?->id) ? encrypt($row?->order?->items?->first()?->order?->id) : '1') . '"> ' . (isset($row?->order?->items?->first()?->order?->order_no) ? $row?->order?->items?->first()?->order?->order_no : '-') . '</a>';
             })
             ->addColumn('item', function ($row) {
                 return $row?->order?->items?->first()?->product?->name ?? '-';
@@ -991,7 +991,10 @@ class SalesOrderController extends Controller
             ->addColumn('location', function ($row) {
                 return ($row?->order?->customer_address_line_1 ?? '-') . ' ' . ($row?->order?->customer_postal_code ?? '');
             })
-            ->rawColumns(['distance', 'action'])
+            ->addColumn('added_by', function ($row) {
+                return $row?->order?->addedby->name ?? '-';
+            })
+            ->rawColumns(['distance', 'action', 'order_no'])
             ->addIndexColumn()
             ->make(true);
     }

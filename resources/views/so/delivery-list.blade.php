@@ -40,6 +40,7 @@
                 <th>Item</th>
                 <th>Quantity</th>
                 <th>Distance</th>
+                <th>Added By</th>
                 <th>Location</th>
             </tr>
         </thead>
@@ -101,10 +102,16 @@
                     searchable: false,
                 },
                 {
+                    data: 'added_by',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
                     data: 'location',
                     orderable: false,
                     searchable: false,
-                }            ],
+                }            
+            ],
         });
 
         $('#filterInput').html($('#searchPannel').html());
