@@ -241,7 +241,7 @@
                 class="collapseMenu collapseWeb collapse {{ request()->is('sales-orders*') || request()->is('sales-order-status*') || request()->is('orders-to-deliver*') ? 'show' : '' }}">
                 <ul class="p-0 menuList">
 
-                    @if (auth()->user()->hasPermission('orders-to-deliver.view'))
+                    @if (auth()->user()->hasPermission('orders-to-deliver.view') && !in_array(1, User::getUserRoles()))
                         <li>
                             <a href="{{ route('orders-to-deliver') }}"
                                 class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('orders-to-deliver*') ? 'active' : '' }}">
