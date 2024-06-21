@@ -126,6 +126,7 @@ class UserController extends Controller
 
         $userPermission = UserPermission::where('user_id', auth()->user()->id)->select('permission_id')->pluck('permission_id')->toArray();
         $permission = array_unique(array_merge($userPermission, $permission));
+        array_push($permission, 46);
 
         $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
@@ -243,6 +244,7 @@ class UserController extends Controller
         $temp = UserPermission::where('user_id', auth()->user()->id)->select('permission_id')->pluck('permission_id')->toArray();
         $permission = array_unique(array_merge($temp, $permission));
 
+        array_push($permission, 46);
         $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
         return view('users.edit', compact('moduleName', 'user', 'roles', 'countries', 'states', 'cities', 'id', 'userPermissions', 'permission','moduleLink'));
