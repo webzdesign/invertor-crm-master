@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\{Category, User, Wallet, Bonus, DistributionItem, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger, ManageStatus};
 use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ChangeOrderStatusTrigger, SalesOrderProofImages};
-use App\Models\{Category, User, Wallet, Bonus, DistributionItem, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -62,6 +62,7 @@ class SalesOrderController extends Controller
         }
 
         $orderClosedWinStatus = SalesOrderStatus::where('slug', 'closed-win')->first()->id ?? 0;
+        $allStatuses = SalesOrderStatus::custom()->active()->select('id', 'name', 'color')->get();
 
         return dataTables()->eloquent($po)
             ->addColumn('total', function ($product) {
@@ -113,15 +114,62 @@ class SalesOrderController extends Controller
             ->editColumn('order_no', function($row) {
                 return '<a target="_blank" href="' . route('sales-orders.view', encrypt($row->id)) . '"> ' . ($row->order_no) . '</a>';
             })
-            ->addColumn('option', function ($row) use ($users) {
+            ->addColumn('option', function ($row) use ($users, $allStatuses) {
                 $html = "";
 
                 if ($row->status != '1') {
-                    return '<span class="status-lbl f-12" style="background: ' . (($row->ostatus->color ?? '#000')) . ';color:' . (Helper::generateTextColor(($row->ostatus->color ?? '#000'))) . ';text-transform:uppercase;"> ' . ($row->ostatus->name ?? '-') . ' </span>';
+
+
+                    $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
+                    $allStatuses = SalesOrderStatus::custom()->active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
+
+                    if (count($allStatuses) > 0) {
+
+                        $html = 
+                        '<div class="status-main button-dropdown position-relative">
+                            <label class="status-label" style="background:' . ($row->ostatus->color ?? '') . ';color:' . (Helper::generateTextColor($row->ostatus->color ?? '')) . ';"> ' . ($row->ostatus->name ?? '') . ' </label>
+                            <button class="dropdown-toggle status-opener ms-2 d-inline-flex align-items-center justify-content-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 20 19" fill="none">
+                                <path d="M0.998047 14.613V18.456H4.84105L16.175 7.12403L12.332 3.28103L0.998047 14.613ZM19.147 4.15203C19.242 4.05721 19.3174 3.94458 19.3688 3.82061C19.4202 3.69664 19.4466 3.56374 19.4466 3.42953C19.4466 3.29533 19.4202 3.16243 19.3688 3.03846C19.3174 2.91449 19.242 2.80186 19.147 2.70703L16.747 0.307035C16.6522 0.212063 16.5396 0.136719 16.4156 0.0853128C16.2916 0.0339065 16.1588 0.00744629 16.0245 0.00744629C15.8903 0.00744629 15.7574 0.0339065 15.6335 0.0853128C15.5095 0.136719 15.3969 0.212063 15.302 0.307035L13.428 2.18403L17.271 6.02703L19.147 4.15203Z" fill="#3C3E42"/>
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu status-modal">
+                                <div class="status-dropdown">';
+
+                                foreach ($allStatuses as $k => $status) {
+                                    if ($k == 0) {
+                                    $html .= '<button type="button" data-sid="' . $status->id . '" data-oid="' . $row->id . '" style="background:' . $status->color . ';color:' . Helper::generateTextColor($status->color) . ';" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
+                                        <span>' . $status->name . '</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
+                                            <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
+                                        </svg>
+                                    </button>';
+                                    }
+                                }
+    
+                                    $html .= '<div class="status-dropdown-menu">';
+    
+                                    foreach ($allStatuses as $status) {
+                                        $html .= '<li class="f-14" data-isajax="true" style="background: '. $status->color .';color:' . Helper::generateTextColor($status->color) . ';" data-sid="' . $status->id . '" data-oid="' . $row->id . '" > '. $status->name .' </li>';
+                                    }
+    
+                                    $html .= '</div>
+                                </div>
+                                <div class="status-action-btn mt-2 position-relative -z-1">
+                                    <button class="status-save-btn btn-primary f-500 f-14 d-inline-block" disabled>Save</button>
+                                    <button class="refresh-dt hide-dropdown btn-default f-500 f-14 d-inline-block ms-1">Cancel</button>
+                                </div>
+                            </div>
+                        </div>';
+                    } else {
+                        $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
+                    }
+
+
                 } else {
                     if (in_array(1, User::getUserRoles())) {
                         return '<span class="status-lbl f-12" style="background: ' . (($row->ostatus->color ?? '#000')) . ';color:' . (Helper::generateTextColor(($row->ostatus->color ?? '#000'))) . ';text-transform:uppercase;"> ' . ($row->ostatus->name ?? '-') . ' </span>';
-                    } else if (in_array(2, User::getUserRoles())) {
+                    } else if (in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles())) {
                         $driver = Deliver::with('user')->where('status', 0)->where('so_id', $row->id);
                         if ($driver->exists()) {
                             return "<strong> Order assigned to : " . ($driver->first()->user->name ?? '-') . " </strong>";
@@ -134,7 +182,7 @@ class SalesOrderController extends Controller
 
                             if ($isRejected != null) {
                                 if (Deliver::with('user')->where('so_id', $row->id)->whereIn('status', [0,1,3])->doesntExist()) {
-                                    $html .=  '<a data-toggle="tooltip" class="deleteBtn" title=" Order was rejected by ' . (($isRejected->user->name ?? 'Driver')) . '">
+                                    $html .=  '<a data-toggle="tooltip" style="margin-right:10px;" class="deleteBtn" title=" Order was rejected by ' . (($isRejected->user->name ?? 'Driver')) . '">
                                         <i class="fa fa-warning" aria-hidden="true" style="color: #dd2d20;font-size:16px;"></i>
                                     </a>';
                                 }
@@ -909,8 +957,9 @@ class SalesOrderController extends Controller
         $moduleLink = route('sales-orders.index');
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $so = SalesOrder::find(decrypt($id));
+        $driverDetails = Deliver::with('user')->where('so_id', decrypt($id))->whereIn('status', [0,1,3])->first();
 
-        return view('so.view', compact('moduleName', 'categories', 'so', 'moduleLink'));
+        return view('so.view', compact('moduleName', 'categories', 'so', 'moduleLink', 'driverDetails'));
     }
 
     public function destroy(Request $request, $id)

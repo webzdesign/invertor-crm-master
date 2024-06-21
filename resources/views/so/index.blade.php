@@ -2,13 +2,137 @@
 
 @section('css')
 <style>
-.bg-success, .bg-success:hover {
-    background: #269e0e!important;
-}
+    .color-blue {
+        color: #0057a9;
+        cursor: pointer;
+    }      
+    .select2-selection__clear {
+        display: none!important;
+    }  
+    .filterColumn, .select2-selection__arrow {
+        display: none;
+    }
+    .no-border {
+        border: none;
+    }
+    .modal-padding {
+        padding: 10px 14px;
+    }
+    .status-opener {
+        background: #fff;
+        border: 1px solid #ccc;
+        height: 20px;
+        width: 20px;
+        font-size: 13px;
+        border-radius: 2px;
+    }
+    .status-label{
+        padding: 0 6px;
+        border-radius: 4px;
+    }
+    .status-opener i{
+        position: relative;
+        top: 1px;
+        left: 1px;
+    }
+    .status-opener:hover{
+        background: #f0f0f0;
+    }
+    .status-main:hover .status-opener{
+        visibility: visible;
+    }
+    .overflowTable .odd td:nth-child(3){
+        width: 260px;
+        min-width: 260px;
+    }
+    .overflowTable .odd td:nth-child(4){
+        width: 150px;
+        min-width: 150px;
+    }
+    .overflowTable .odd td:nth-child(2){
+        width: 150px;
+        min-width: 150px;
+    }
+    .status-modal{
+        position: absolute;
+        top: 0;
+        left: 0;
+        box-shadow: 0 5px 10px 0 rgba(0,0,0, .1);
+        box-sizing: border-box;
+        padding: 12px;
+        border: 1px solid #e8eaeb;
+        width: 100%;
+        background: #fff;
+        z-index: 9;
+    }
+    .status-dropdown-toggle{
+        border: 1px solid rgba(146, 152, 155, 0.4);
+        width: 100%;
+        text-align: left;
+        border-radius: 3px;
+        padding: 4px 6px;
+        background: white;
+    }
+    .status-dropdown-menu{
+        border: 1px solid rgba(146, 152, 155, 0.4);
+        width: 100%;
+        text-align: left;
+        border-radius: 3px;
+        background: white;
+        position: absolute;
+        top: 0;
+        z-index: 1;
+        max-height: 185px;
+        overflow: auto;
+    }
+    .status-dropdown-menu::-webkit-scrollbar-track{
+        background-color: #ffffff;
+    }
 
-.bg-error, .bg-error:hover {
-    background: #dd2d20!important;        
-}
+    .status-dropdown-menu::-webkit-scrollbar{
+        width: 6px;
+        background-color: #ffffff;
+    }
+
+    .status-dropdown-menu::-webkit-scrollbar-thumb{
+        background-color: #c7c7c7;
+    }
+    .status-dropdown-menu li{
+        padding: 3px 6px;
+        cursor: pointer;
+    }
+    .dataTables_wrapper .col-sm-12{
+        overflow: inherit;
+    }
+    .btn-primary:disabled:hover{
+        background: #E9EAED !important;
+    }
+    .-z-1{
+        z-index: -1;
+    }
+
+    div.dt-processing > div:last-child{
+        display:none;
+    }
+    div.dt-processing {
+        margin-left: 0;
+        margin-top: 0;
+        border: 0;
+        background: transparent;
+    }
+    @media (min-width:992px) {
+        .status-opener {
+            visibility: hidden;
+        }
+    }
+
+    .bg-success, .bg-success:hover {
+        background: #269e0e!important;
+    }
+
+    .bg-error, .bg-error:hover {
+        background: #dd2d20!important;        
+    }
 </style>
 @endsection
 
@@ -85,12 +209,12 @@
                 <th>Sr No.</th>
                 <th>Order No.</th>
                 <th>Product</th>
-                <th>Quantity</th>
-                <th>Order Amount</th>
+                <th style="width: 10%!important;">Quantity</th>
+                <th style="width: 10%!important;">Order Amount</th>
                 @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 <th>Added By</th>
                 @endif
-                <th>Status</th>
+                <th style="width: 30%!important;">Status</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -138,6 +262,7 @@
                 search: "_INPUT_",
                 searchPlaceholder: "Search here"
             },
+            oLanguage: {sProcessing: "<div id='dataTableLoader'></div>"},
             "dom":"<'filterHeader d-block-500 cardsHeader'l<'#filterInput'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
             ajax: {
                 "url": "{{ route('sales-orders.index') }}",
@@ -213,7 +338,7 @@
                 });
 
                 $('.driver-selection').select2({
-                    width: '80%',
+                    width: '60%',
                     allowClear: true,
                 });
 
@@ -456,6 +581,123 @@
                 });                                             
             }
         });
+
+        $(document).on('click', '.refresh-dt', function () {
+            ServerDataTable.ajax.reload();
+        })
+
+        function bindClickToHide(selector) {
+            $(selector).on("click", function (event) {
+                event.preventDefault();
+                $(this).parent().fadeOut();
+            });
+        }
+    
+        $(document).on('click', '.dropdown-toggle', function() {
+            var isHidden = $(this).parents(".button-dropdown").children(".dropdown-menu").is(":hidden");
+            $(".button-dropdown .dropdown-menu").hide();
+            $(".button-dropdown .dropdown-toggle").removeClass("active");
+            
+            if (isHidden) {
+                $(this).parents(".button-dropdown").children(".dropdown-menu").toggle()
+                    .parents(".button-dropdown")
+                    .children(".dropdown-toggle").addClass("active");
+            }
+        });
+    
+        $(document).on('click', function() {
+            var target = $(event.target);
+            
+            if (!target.parents().hasClass("button-dropdown")) {
+                $(".button-dropdown .dropdown-menu").hide();
+                $(".button-dropdown .dropdown-toggle").removeClass("active");
+                //hide
+            }
+
+            if (!target.parents().hasClass("status-dropdown")) {
+                $(".status-dropdown .status-dropdown-menu").hide();
+                $(".status-dropdown .status-dropdown-toggle").removeClass("active");
+            }
+        });
+
+        function bindClickToHideModal(selector) {
+            $(selector).on("click", function (event) {
+                event.preventDefault();
+                $(this).parent().fadeOut();
+            });
+        }
+    
+        $(document).on('click', '.status-dropdown-toggle', function() {
+            var isHidden = $(this).parents(".status-dropdown").children(".status-dropdown-menu").is(":hidden");
+            $(".status-dropdown .status-dropdown-menu").hide();
+            $(".status-dropdown .status-dropdown-toggle").removeClass("active");
+            
+            if (isHidden) {
+                $(this).parents(".status-dropdown").children(".status-dropdown-menu").toggle()
+                    .parents(".status-dropdown")
+                    .children(".status-dropdown-toggle").addClass("active");
+            }
+        });
+    
+        $(document).on('click', '.status-dropdown-menu li', function() {
+            var bgColor = rgbToHex($(this).css("background-color"));
+            var text = $(this).text();
+            var thisSid = $(this).data('sid');
+            var thisOid = $(this).data('oid');
+
+            var dropdownToggle = $(this).closest(".status-dropdown").find(".status-dropdown-toggle");
+            var dropdownToggleText = $(this).closest(".status-dropdown").find(".status-dropdown-toggle").find("span");
+            dropdownToggleText.text(text);
+            
+            dropdownToggle.css("background-color", bgColor);
+            dropdownToggle.css("color", generateTextColor(bgColor));
+            
+            // Hide the dropdown menu and remove the active class
+            $(this).parent().hide();
+            dropdownToggle.removeClass("active");
+            
+            $(this).parent().parent().parent().find('.status-action-btn').find('.status-save-btn').removeAttr("disabled");
+
+            if ($(this).data('isajax') === undefined) {
+                $(this).parent().parent().parent().next().find('#save-status').attr('data-sid', thisSid)
+                $(this).parent().prev().attr('data-sid', thisSid);
+            } else if ($(this).data('isajax') == true) {
+                $(this).parent().prev().attr('data-sid', thisSid);
+                $(this).parent().prev().attr('data-oid', thisOid);
+            }
+
+        });
+
+        $(document).on('click', '.hide-dropdown', function() {
+            $('.dropdown-menu').hide();
+        });
+        
+        $(document).on('click', '.status-save-btn', function () {
+            let el = $(this).parent().prev().find('.status-dropdown-toggle');
+            let thisSid = $(el).attr('data-sid');
+            let thisOrder = $(el).attr('data-oid');
+            let lbl = $(this).parent().parent().prev().prev();
+
+            if (thisSid !== '' && thisOrder !== '') {
+                $.ajax({
+                    url: "{{ route('sales-order-status-update-status') }}",
+                    type: "POST",
+                    data: {
+                        status : thisSid,
+                        order : thisOrder
+                    },
+                    success: function (response) {
+                        if (response.status) {
+                            Swal.fire('', response.message, 'success');
+                            ServerDataTable.ajax.reload();
+                        } else {
+                            Swal.fire('', response.message, 'error');
+                        }
+                    },
+                    
+                });                
+            }
+        })
 
     });
 </script>

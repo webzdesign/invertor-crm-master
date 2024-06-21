@@ -34,21 +34,21 @@
                 <div class="col-sm-12 col-md-2">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Driver Name</label>
-                        <input class="form-control" placeholder="" type="text" value="{{ $so->driver->user->name ?? '-' }}" readonly style="background:#efefef">
+                        <input class="form-control" placeholder="" type="text" value="{{ isset($driverDetails->user->name) ? $driverDetails->user->name : '-' }}" readonly style="background:#efefef">
                     </div>
                 </div>
 
                 <div class="col-sm-12 col-md-2">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Driver Email</label>
-                        <input class="form-control" placeholder="" type="text" value="{{ $so->driver->user->email ?? '-' }}" readonly style="background:#efefef">
+                        <input class="form-control" placeholder="" type="text" value="{{ isset($driverDetails->user->email) ? $driverDetails->user->email : '-' }}" readonly style="background:#efefef">
                     </div>
                 </div>
 
                 <div class="col-sm-12 col-md-2">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Distance</label>
-                        <input class="form-control"  placeholder="" type="text" value="{{ number_format($so->driver->range, 2, '.', "") ?? '-' }}" readonly style="background:#efefef">
+                        <input class="form-control"  placeholder="" type="text" value="{{ isset($driverDetails->range) ? number_format($driverDetails->range, 2, '.', "") : '0' }}" readonly style="background:#efefef">
                     </div>
                 </div>
 
