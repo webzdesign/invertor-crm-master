@@ -144,7 +144,6 @@
 @section('create_button')
 <div class="d-flex align-items-center justify-content-between filterPanelbtn my-2 flex-wrap">
 
-    @if(in_array(1, auth()->user()->roles->pluck('id')->toArray()))
     <div>
         <a href="{{ route('sales-order-status') }}" class="btn-default f-500 f-14 d-inline-block"> 
             <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
@@ -161,7 +160,6 @@
             </svg>                           
         </a>
     </div>
-    @endif
 
 </div>
 @endsection

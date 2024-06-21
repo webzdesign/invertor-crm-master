@@ -177,6 +177,8 @@ class SalesOrderController extends Controller
                     } else if (in_array(3, User::getUserRoles())) {
                         $html .= '<button id="driver-approve-the-order" class="btn-primary f-500 f-14 btn-sm bg-success" data-oid="' . $row->id . '"> ACCEPT </button>
                         <button id="driver-reject-the-order" class="btn-primary f-500 f-14 btn-sm bg-error" data-oid="' . $row->id . '"> REJECT </button>';
+                    } else {
+                        return '<span class="status-lbl f-12" style="background: ' . (($row->ostatus->color ?? '#000')) . ';color:' . (Helper::generateTextColor(($row->ostatus->color ?? '#000'))) . ';text-transform:uppercase;"> ' . ($row->ostatus->name ?? '-') . ' </span>';
                     }
                 }
 
