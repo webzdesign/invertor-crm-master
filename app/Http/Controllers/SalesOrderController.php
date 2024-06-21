@@ -168,7 +168,7 @@ class SalesOrderController extends Controller
 
                 } else {
                     if (in_array(1, User::getUserRoles())) {
-                        return '<span class="status-lbl f-12" style="background: ' . (($row->ostatus->color ?? '#000')) . ';color:' . (Helper::generateTextColor(($row->ostatus->color ?? '#000'))) . ';text-transform:uppercase;"> ' . ($row->ostatus->name ?? '-') . ' </span>';
+                        $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
                     } else if (in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles())) {
                         $driver = Deliver::with('user')->where('status', 0)->where('so_id', $row->id);
                         if ($driver->exists()) {
