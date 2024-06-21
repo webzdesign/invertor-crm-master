@@ -418,7 +418,8 @@ class UserController extends Controller
 
         $temp = UserPermission::where('user_id', auth()->user()->id)->select('permission_id')->pluck('permission_id')->toArray();
         $permission = array_unique(array_merge($temp, $permission));
-
+        array_push($permission, 46);
+        
         $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
         return view('users.view', compact('moduleName', 'user', 'roles', 'userPermissions', 'permission','moduleLink'));
