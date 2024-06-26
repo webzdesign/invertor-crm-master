@@ -102,7 +102,7 @@ class SalesOrderController extends Controller
                     }
                 }
                 
-                if ($users->status == $orderClosedWinStatus && (in_array(1, User::getUserRoles()) || (auth()->user()->id == $users->added_by && (in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))))) {
+                if ($users->status != $orderClosedWinStatus && (in_array(1, User::getUserRoles()) || (auth()->user()->id == $users->added_by && (in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))))) {
                     $deliveryUser = Deliver::where('so_id', $users->id)->whereIn('status', [0,1])->first()->user_id ?? null;
 
                     $action .= '
