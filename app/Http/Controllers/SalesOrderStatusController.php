@@ -449,6 +449,7 @@ class SalesOrderStatusController extends Controller
     }
 
     public function list(Request $request) {
+        return abort(404);
 
         $statuses = SalesOrderStatus::custom()->active()->select('id', 'name', 'color')->get();
 
@@ -598,6 +599,7 @@ class SalesOrderStatusController extends Controller
                         'next_status_id' => $request->status,
                         'current_status_id' => $oldStatus,
                         'type' => 2,
+                        'description' => $request->comment,
                         'time_type' => $disOrder->time_type,
                         'main_type' => $disOrder->main_type,
                         'hour' => $disOrder->hour,
@@ -1082,29 +1084,16 @@ class SalesOrderStatusController extends Controller
         $selectedUser = null;
         $addedData = ['user' => null, 'type' => null];
 
-        $usersList = User::with('role')->whereHas('role', function ($builder) {
-            $builder->whereIn('roles.id', [2, 3]);
-        });
         $users = "<option value='' selected> Select a user </option>";
 
         if ($request->has('trigger') && !empty($request->trigger)) {
             $selectedUser = Trigger::where('id', $request->trigger)->first()->user_id ?? null;
         }
 
-        foreach ($usersList->get() as $user) {
-            $selected = '';
+        $users .= "<option value='1' " . ($selectedUser == 1 ? 'selected' : '') . " data-name='DRIVER' data-label='DRIVER' > DRIVER </option>
+        <option value='2' " . ($selectedUser == 2 ? 'selected' : '') . " data-name='SELLER' data-label='SELLER' > SELLER </option>";
 
-            if ($user->id == $selectedUser) {
-                $selected = ' selected ';
-            }
-
-            $label = "{$user->name} - {$user->email} [{$user->roles->first()->name}]";
-
-            $users .= "<option value='{$user->id}' data-name='{$user->name}' {$selected} data-label='{$label}' > {$label} </option>";
-        }
-        
-
-        return response()->json(['status' => true, 'users' => $users, 'current' => $selectedUser, 'total' => $usersList->count(), 'addedData' => $addedData]);
+        return response()->json(['status' => true, 'users' => $users, 'current' => $selectedUser, 'total' => 2, 'addedData' => $addedData]);
     }
 
     public function salesOrderResponsibleUserSave(Request $request) {

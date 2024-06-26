@@ -1,6 +1,8 @@
 @extends('layouts.master')
 
 @section('css')
+<link href="{{ asset('assets/css/dataTables.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ asset('assets/css/responsive.bootstrap5.css') }}" rel="stylesheet">
 <style>
     .color-blue {
         color: #0057a9;
@@ -9,9 +11,6 @@
     .select2-selection__clear {
         display: none!important;
     }  
-    .filterColumn, .select2-selection__arrow {
-        display: none;
-    }
     .no-border {
         border: none;
     }
@@ -97,7 +96,7 @@
     .status-dropdown-menu::-webkit-scrollbar-thumb{
         background-color: #c7c7c7;
     }
-    .status-dropdown-menu li{
+    .status-dropdown-menu div.cursor-pointer{
         padding: 3px 6px;
         cursor: pointer;
     }
@@ -178,9 +177,59 @@
         </div>
         @endif
 
+        @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))
         <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
             <div class="form-group mb-0 mb-10-500">
-                <label class="c-gr f-500 f-14 w-100 mb-1">From Date</label>
+                <label class="c-gr f-500 f-14 w-100 mb-1">Select Driver</label>
+                <select name="filterDriver" id="filterDriver" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Driver ---">
+                    @forelse($drivers as $did => $dname)
+                    @if($loop->first)
+                    <option value="" selected> --- Select a Driver --- </option>
+                    @endif
+                    <option value="{{ $did }}">{{ $dname }}</option>
+                    @empty
+                    <option value="" selected> --- No Driver Available --- </option>
+                    @endforelse
+                </select>
+            </div>
+        </div>
+        @endif
+
+        <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
+            <div class="form-group mb-0 mb-10-500">
+                <label class="c-gr f-500 f-14 w-100 mb-1">Select Status</label>
+                <select name="filterStatus" id="filterStatus" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Status ---">
+                    @forelse($statuses as $sid => $sname)
+                    @if($loop->first)
+                    <option value="" selected> --- Select a Status --- </option>
+                    @endif
+                    <option value="{{ $sid }}">{{ $sname }}</option>
+                    @empty
+                    <option value="" selected> --- No Status Available --- </option>
+                    @endforelse
+                </select>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
+            <div class="form-group mb-0 mb-10-500">
+                <label class="c-gr f-500 f-14 w-100 mb-1">Select Product</label>
+                <select name="filterProduct" id="filterProduct" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Product ---">
+                    @forelse($products as $pid => $pname)
+                    @if($loop->first)
+                    <option value="" selected> --- Select a Product --- </option>
+                    @endif
+                    <option value="{{ $pid }}">{{ $pname }}</option>
+                    @empty
+                    <option value="" selected> --- No Product Available --- </option>
+                    @endforelse
+                </select>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
+            <div class="form-group mb-0 mb-10-500">
+                <label class="c-gr f-500 f-14 w-100 mb-1">From Delivery Date</label>
                 <input readonly type="text" id="filterFrom" name="filterFrom"
                      class="form-control"
                     placeholder="From date">
@@ -189,7 +238,7 @@
 
         <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
             <div class="form-group mb-0 mb-10-500">
-                <label class="c-gr f-500 f-14 w-100 mb-1">To Date</label>
+                <label class="c-gr f-500 f-14 w-100 mb-1">To Delivery Date</label>
                 <input readonly type="text" id="filterTo" name="filterTo"
                      class="form-control"
                     placeholder="To date">
@@ -211,6 +260,7 @@
                 <th>Product</th>
                 <th style="width: 10%!important;">Quantity</th>
                 <th style="width: 10%!important;">Order Amount</th>
+                <th style="width: 10%!important;">Postal Code</th>
                 @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 <th>Added By</th>
                 @endif
@@ -225,9 +275,15 @@
 
 @include('so.modal.confirm-order')
 
+@include('so.modal.change-driver')
+
 @endsection
 
 @section('script')
+<script src="{{ asset('assets/js/dataTables.js') }}"></script>
+<script src="{{ asset('assets/js/dataTables.bootstrap5.js') }}"></script>
+<script src="{{ asset('assets/js/dataTables.responsive.js') }}"></script>
+<script src="{{ asset('assets/js/responsive.bootstrap5.js') }}"></script>
 <script>
     $(document).ready(function() {
 
@@ -258,12 +314,26 @@
             },
             processing: true,
             serverSide: true,
+            responsive: true,
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here"
             },
             oLanguage: {sProcessing: "<div id='dataTableLoader'></div>"},
-            "dom":"<'filterHeader d-block-500 cardsHeader'l<'#filterInput'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
+            "dom":"<'filterHeader d-block-500 cardsHeader'l>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'<'float-end' p>>",
+            pagingType: "simple_numbers",
+            language: {
+                paginate: {
+                    previous: 'Previous',
+                    next:     'Next'
+                },
+                aria: {
+                    paginate: {
+                        previous: 'Previous',
+                        next:     'Next'
+                    }
+                }
+            },
             ajax: {
                 "url": "{{ route('sales-orders.index') }}",
                 "dataType": "json",
@@ -271,6 +341,15 @@
                 "data" : {
                     filterSeller:function() {
                         return $("#filterSeller").val();
+                    },
+                    filterProduct:function() {
+                        return $("#filterProduct").val();
+                    },
+                    filterDriver:function() {
+                        return $("#filterDriver").val();
+                    },
+                    filterStatus:function() {
+                        return $("#filterStatus").val();
                     },
                     filterFrom: function () {
                         return $('#filterFrom').val();
@@ -298,6 +377,11 @@
                 },
                 {
                     data: 'total',
+                },
+                {
+                    data: 'postalcode',
+                    orderable: false,
+                    searchable: false,
                 },
                 @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 {
@@ -356,12 +440,10 @@
         });
 
         /* filter Datatable */
-        $('body').on('change', '#filterSeller, #filterFrom, #filterTo', function(e){
-            var filterSeller = $(this).val();
-            var filterFrom = $(this).val();
-            var filterTo = $(this).val();
+        $('body').on('change', '#filterSeller, #filterFrom, #filterTo, #filterProduct, #filterStatus, #filterDriver', function(e){
+            var thisValue = $(this).val();
 
-            if (filterSeller != '' || filterFrom != '' || filterTo != '') {
+            if (thisValue != '') {
                 $('body').find('.clearData').show();
             } else {
                 $('body').find('.clearData').hide();
@@ -373,6 +455,9 @@
             $('body').find('#filterFrom').val('').trigger('change');
             $('body').find('#filterTo').val('').trigger('change');
             $('body').find('#filterSeller').val('').trigger('change');
+            $('body').find('#filterProduct').val('').trigger('change');
+            $('body').find('#filterStatus').val('').trigger('change');
+            $('body').find('#filterDriver').val('').trigger('change');
             ServerDataTable.ajax.reload();
         });
 
@@ -639,7 +724,7 @@
             }
         });
     
-        $(document).on('click', '.status-dropdown-menu li', function() {
+        $(document).on('click', '.status-dropdown-menu div', function() {
             var bgColor = rgbToHex($(this).css("background-color"));
             var text = $(this).text();
             var thisSid = $(this).data('sid');
@@ -673,18 +758,33 @@
         });
         
         $(document).on('click', '.status-save-btn', function () {
-            let el = $(this).parent().prev().find('.status-dropdown-toggle');
+            let el = $(this).parent().parent().find('.status-dropdown-toggle');
             let thisSid = $(el).attr('data-sid');
             let thisOrder = $(el).attr('data-oid');
             let lbl = $(this).parent().parent().prev().prev();
+            let commentEle = $(this).parent().parent().find('textarea');
+            let comment = $(this).parent().parent().find('textarea').val().trim();
+            let errEle = $(this).parent().parent().find('.cmnt-er-lbl'); 
 
-            if (thisSid !== '' && thisOrder !== '') {
+            if (comment == '' || comment == null) {
+                $(errEle).removeClass('d-none');
+                return false;
+            } else {
+                $(errEle).addClass('d-none');
+            }
+
+            if (isNumeric(thisSid) && isNumeric(thisOrder) && comment !== '') {
                 $.ajax({
                     url: "{{ route('sales-order-status-update-status') }}",
                     type: "POST",
                     data: {
                         status : thisSid,
-                        order : thisOrder
+                        order : thisOrder,
+                        comment : comment
+                    },
+                    beforeSend: function() {
+                        $('button[type="submit"]').attr('disabled', true);
+                        $('body').find('.LoaderSec').removeClass('d-none');
                     },
                     success: function (response) {
                         if (response.status) {
@@ -693,11 +793,89 @@
                         } else {
                             Swal.fire('', response.message, 'error');
                         }
+
+                        if (!$('.cmnt-er-lbl').hasClass('d-none')) {
+                            $('.cmnt-er-lbl').addClass('d-none');
+                        }
+
+                        $(commentEle).val(null);
                     },
+                    complete: function() {
+                        $('button[type="submit"]').attr('disabled', false);
+                        $('body').find('.LoaderSec').addClass('d-none');
+                    }
                     
                 });                
             }
         })
+
+        $('.change-driver-select2').select2({
+            width: '100%',
+            allowClear: true,
+            dropdownParent: $('#change-driver').get(0)
+        });
+
+        $('#changeDriver').validate({
+            rules: {
+                driver_id: {
+                    required: true
+                }
+            },
+            messages: {
+                driver_id: {
+                    required: "Select a driver"
+                }
+            },
+            errorPlacement: function(error, element) {
+                error.appendTo(element.parent("div"));
+            },
+            submitHandler: function (form, event) {
+                event.preventDefault();
+
+                $.ajax({
+                    url: "{{ url('change-driver') }}",
+                    type: 'POST',
+                    data: $(form).serializeArray(),
+                    beforeSend: function () {
+                        $('button[type="submit"]').attr('disabled', true);
+                        $('body').find('.LoaderSec').removeClass('d-none');
+                    },
+                    success: function (response) {
+                        if (response.status) {
+                            Swal.fire('', response.message, 'success');
+                        } else {
+                            Swal.fire('', response.message, 'error');
+                        }
+
+                        $('#change-driver').modal('hide');
+                        ServerDataTable.ajax.reload();
+                    },
+                    complete: function () {
+                        $('button[type="submit"]').attr('disabled', false);
+                        $('body').find('.LoaderSec').addClass('d-none');
+                    }
+                });
+            }
+        });
+
+        $(document).on('hidden.bs.modal', '#change-driver', function (e) {
+            if (e.namespace == 'bs.modal') {
+                $('#change-driver-picker-error').remove();
+                $('#change-driver-picker').val(null).trigger('change');
+            }
+        });
+
+        $(document).on('click', '.driver-change-modal-opener', function (event) {
+            let title = $(this).attr('data-title');
+            let deliveryBoy = $(this).attr('data-deliveryboy');
+            let oId = $(this).attr('data-oid');
+
+            $('#change-driver').modal('show');
+            $('#modal-title-change-driver').text(title);
+            $('#change-driver-picker').val(deliveryBoy).trigger('change');
+            $('#change-driver-order-id').val(oId);
+
+        });
 
     });
 </script>

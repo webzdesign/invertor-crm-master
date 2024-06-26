@@ -160,7 +160,7 @@
             <div class="form-group">
                 <div class="row">
                     @foreach($permission as $key => $value)
-                        <div class="col-xl-3 col-lg-4 col-md-6 mb-3 permission-listing">
+                        <div class="col-xl-3 col-lg-4 col-md-6 mb-3 permission-listing" data-permissionlabel="{{ $key }}" @if($user->roles->first()->id == '3' && $key == 'SalesOrderStatus') style="display:none;"  @endif >
                             <div class="PlBox">
                                 @foreach($value as $k => $v)
                                     @if($loop->first)
@@ -242,6 +242,12 @@ $(document).ready(function(){
             $('.container-for-permissions').hide();
         } else {
             $('.container-for-permissions').show();
+        }
+
+        if ($(this).val() == '3') {
+            $('[data-permissionlabel="SalesOrderStatus"]').hide();
+        } else {
+            $('[data-permissionlabel="SalesOrderStatus"]').show();
         }
     });
 

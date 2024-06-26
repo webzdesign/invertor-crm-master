@@ -82,13 +82,20 @@
                     @if($l->type == 1)
                         added a task [ <strong>{{ $l->description }}</strong> ]
                     @elseif($l->type == 2)
-                        @if(empty($l->from_status))
-                        created order
+                        @if(!empty(trim($l->description)))
+                            moved order to
+                            <span class="status-lbl f-12" style="background: {{ $l->to_status->color }};color:{{ Helper::generateTextColor($l->to_status->color) }};text-transform:uppercase;"> {{ $l->to_status->name }} </span> from
+                            <span class="status-lbl f-12" style="background: {{ $l->from_status->color }};color:{{ Helper::generateTextColor($l->from_status->color) }};text-transform:uppercase;"> {{ $l->from_status->name }} </span>
+                            <br> <strong>Comment</strong> : {{ $l->description }}
                         @else
-                        moved to
-                        <span class="status-lbl f-12" style="background: {{ $l->to_status->color }};color:{{ Helper::generateTextColor($l->to_status->color) }};text-transform:uppercase;"> {{ $l->to_status->name }} </span>
-                        from
-                        <span class="status-lbl f-12" style="background: {{ $l->from_status->color }};color:{{ Helper::generateTextColor($l->from_status->color) }};text-transform:uppercase;"> {{ $l->from_status->name }} </span>
+                            @if(empty($l->from_status))
+                            created order
+                            @else
+                            moved to
+                            <span class="status-lbl f-12" style="background: {{ $l->to_status->color }};color:{{ Helper::generateTextColor($l->to_status->color) }};text-transform:uppercase;"> {{ $l->to_status->name }} </span>
+                            from
+                            <span class="status-lbl f-12" style="background: {{ $l->from_status->color }};color:{{ Helper::generateTextColor($l->from_status->color) }};text-transform:uppercase;"> {{ $l->from_status->name }} </span>
+                            @endif
                         @endif
                     @elseif($l->type == 3)
                         assigned order to <strong>

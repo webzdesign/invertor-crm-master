@@ -63,7 +63,7 @@
 
                 <div class="col-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Address Line : <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">House number : <span class="text-danger">*</span></label>
                         <textarea name="address_line_1" id="address_line_1" class="form-control" style="height: 60px;">{{ old('address_line_1') }}</textarea>
                         <span class="text-danger error-div d-block eaddress_line_1">{{ $errors->first('address_line_1') }}</span>
                     </div>
@@ -212,7 +212,7 @@ $(document).ready(function(){
                 required: "Select a product."
             },
             address_line_1: {
-                required: "Address line is required."
+                required: "House number is required."
             },
             postal_code: {
                 required: "Enter a postal code.",
@@ -405,11 +405,36 @@ $(document).ready(function(){
     $(document).on('change', '#address_line_1', function (event) {
         $('.eaddress_line_1').text('');
     });
-    $(document).on('keyup', '#price', function (event) {
-        if ($('#mprice').is(':visible')) {
-            //$('#mprice').val($(this).val());
-            //calculateAmount();
-        }
+
+    $(document).on('blur', '#mquantity', function (event) {
+        $.ajax({
+            url: "{{ route('get-real-time-commission') }}",
+            type: "POST",
+            data: {
+                product: function () {
+                    return $('#mproduct').val()
+                },
+                price: function () {
+                    return $('#mprice').val();
+                },
+                qty: function () {
+                    return $('#mquantity').val();
+                }
+            },
+            beforeSend: function () {
+                $('body').find('.LoaderSec').removeClass('d-none');
+                $('button[type="submit"]').attr('disabled', true);
+            },
+            success: function (response) {
+                if ('com' in response && !isNaN(response.com)) {
+                    $('#seller-com').text(response.com);
+                }
+            },
+            complete: function () {
+                $('body').find('.LoaderSec').addClass('d-none');
+                $('button[type="submit"]').attr('disabled', false);
+            }
+        });
     });
 
 });

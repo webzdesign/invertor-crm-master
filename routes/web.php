@@ -129,6 +129,8 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('save-so', [SalesOrderController::class, 'saveSo'])->name('save-so');
         Route::post('check-so-price', [SalesOrderController::class, 'checkPrice'])->name('check-so-price');
         Route::post('price-unmatched', [SalesOrderController::class, 'priceUnmatched'])->name('price-unmatched');
+        Route::post('change-driver', [SalesOrderController::class, 'changeDriver'])->name('change-driver');
+        Route::post('get-real-time-commission', [SalesOrderController::class, 'getRealTimeCommission'])->name('get-real-time-commission');
         /** Sales Order **/
 
         /** Suppliers **/

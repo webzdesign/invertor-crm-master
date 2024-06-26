@@ -36,6 +36,20 @@
                 </select>
             </div>
         </div>
+
+        <div class="col-md-4 col-sm-12 position-relative">
+            <div class="form-group mb-0 mb-10-500">
+                <label class="c-gr f-500 f-14 w-100 mb-1">Select Product</label>
+                <select name="filterProduct" id="filterProduct" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Product ---">
+                    <option value="" selected> --- Select a Product --- </option>
+                    @forelse($products as $product)
+                        <option value="{{ $product->product->id ?? 0 }}"> {{ $product->product->name ?? '-' }} </option>
+                    @empty
+                    @endforelse
+                </select>
+            </div>
+        </div>
+
         <div class="col-md-4 col-sm-12 position-relative">
             <div class="form-group mb-0">
                 <label class="c-gr f-500 f-14 w-100 mb-1 d-none-500">&nbsp;</label>
@@ -45,6 +59,10 @@
     </div>
     <table class="datatables-po table datatableMain" style="width: 100%!important;">
         <thead>
+            <tr>
+                <td colspan="2" > <strong class="float-end">Total</strong> </td>
+                <td id="q-total" style="background: #e583a47d;font-weight:600;">0</td>
+            </tr>
             <tr>
                 <th width="10%">Type</th>
                 <th>Product</th>
@@ -85,6 +103,9 @@
                     },
                     filterDriver:function() {
                         return $("#filterDriver").val();
+                    },
+                    filterProduct:function() {
+                        return $("#filterProduct").val();
                     }
                 }
             },
@@ -99,6 +120,9 @@
                     data: 'qty'
                 }
             ],
+            drawCallback: function (data) {
+                $('#q-total').text(data.json.total);
+            }
         });
 
         $('#filterInput').html($('#searchPannel').html());
@@ -107,9 +131,10 @@
         });
 
         /* filter Datatable */
-        $('body').on('change', '#filterDriver, #filterType', function(e) {
+        $('body').on('change', '#filterDriver, #filterType, #filterProduct', function(e) {
             var filterType = $('#filterType').val();
             var filterDriver = $('#filterDriver').val();
+            var filterProduct = $('#filterProduct').val();
 
             if (filterDriver != '') {
                 if (filterType == '1') {
@@ -117,7 +142,7 @@
                 }
             }
 
-            if (filterType != '' || filterDriver != '') {
+            if (filterType != '' || filterDriver != '' || filterProduct != '') {
                 $('body').find('.clearData').show();
             } else {
                 $('body').find('.clearData').hide();
@@ -128,6 +153,7 @@
         $('body').on('click', '.clearData', function(e){
             $('body').find('#filterType').val('').trigger('change');
             $('body').find('#filterDriver').val('').trigger('change');
+            $('body').find('#filterProduct').val('').trigger('change');
             ServerDataTable.ajax.reload();
         });
 

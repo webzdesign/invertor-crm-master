@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Category, User, Wallet, Bonus, DistributionItem, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger, ManageStatus};
 use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ChangeOrderStatusTrigger, SalesOrderProofImages};
+use App\Models\{Category, User, Wallet, Bonus, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger, ManageStatus};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -16,9 +16,12 @@ class SalesOrderController extends Controller
     {
         if (!$request->ajax()) {
             $moduleName = $this->moduleName;
-            $sellers = User::whereHas('role', fn ($builder) => ($builder->where('roles.id', '2')))->select('name', 'id')->pluck('name', 'id')->toArray();
+            $sellers = User::whereHas('role', fn ($builder) => ($builder->whereIn('roles.id', [2, 6])))->select('name', 'id')->pluck('name', 'id')->toArray();
+            $drivers = User::whereHas('role', fn ($builder) => ($builder->where('roles.id', [3])))->selectRaw("CONCAT(name, ' - (', email, ')') as name, id")->pluck('name', 'id')->toArray();
+            $statuses = DB::table('sales_order_statuses')->select('name', 'id')->pluck('name', 'id')->toArray();
+            $products = Product::select('name', 'id')->pluck('name', 'id')->toArray();
 
-            return view('so.index', compact('moduleName', 'sellers'));
+            return view('so.index', compact('moduleName', 'sellers', 'drivers', 'statuses', 'products'));
         }
 
         $users = User::whereHas('role', function ($builder) {
@@ -40,7 +43,8 @@ class SalesOrderController extends Controller
                         ->where('user_id', auth()->user()->id)->where('status', 1));
                     });
                 })
-                ->orWhereHas('driver', fn ($innerBuilder) => $innerBuilder->where('user_id', auth()->user()->id)->where('status', 0));
+                ->orWhereHas('driver', fn ($innerBuilder) => $innerBuilder->where('user_id', auth()->user()->id)->where('status', 0))
+                ->orWhere('responsible_user', auth()->user()->id);
             }
         });
 
@@ -49,16 +53,34 @@ class SalesOrderController extends Controller
             $po = $po->where('seller_id', $request->filterSeller);
         }
 
+        if ($request->has('filterStatus') && !empty(trim($request->filterStatus))) {
+            $po = $po->where('status', $request->filterStatus);
+        }
+
         if ($request->has('filterFrom') && !empty(trim($request->filterFrom))) {
-            $po = $po->where('date', '>=', date('Y-m-d H:i:s', strtotime($request->filterFrom)));
+            $po = $po->where('delivery_date', '>=', date('Y-m-d H:i:s', strtotime($request->filterFrom)));
         }
 
         if ($request->has('filterTo') && !empty(trim($request->filterTo))) {
-            $po = $po->where('date', '<=', date('Y-m-d H:i:s', strtotime($request->filterTo)));
+            $po = $po->where('delivery_date', '<=', date('Y-m-d H:i:s', strtotime($request->filterTo)));
         }
 
         if (isset($request->order[0]['column']) && $request->order[0]['column'] == 0) {
             $po = $po->orderBy('id', 'desc');
+        }
+
+        if ($request->has('filterDriver') && !empty(trim($request->filterDriver))) {
+            $dri = $request->filterDriver;
+            $po = $po->whereHas('driver', function ($builder) use ($dri) {
+                $builder->where('user_id', $dri)->whereIn('status', [0, 1, 3]);
+            });
+        }
+
+        if ($request->has('filterProduct') && !empty(trim($request->filterProduct))) {
+            $pro = $request->filterProduct;
+            $po = $po->whereHas('items', function ($builder) use ($pro) {
+                $builder->where('product_id', $pro);
+            });
         }
 
         $orderClosedWinStatus = SalesOrderStatus::where('slug', 'closed-win')->first()->id ?? 0;
@@ -79,11 +101,27 @@ class SalesOrderController extends Controller
                     $url = route("sales-orders.view", encrypt($variable->id));
                     $action .= view('buttons.view', compact('variable', 'url'));
                 }
-                if ($users->status == '1' && (in_array(1, User::getUserRoles()) || auth()->user()->id == $users->added_by)) {
+
+                //if status is 1 and user is admin or user is seller or seller manager who added order can delete order
+                if ($users->status == '1' && (in_array(1, User::getUserRoles()) || (auth()->user()->id == $users->added_by && (in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))))) {
                     if (auth()->user()->hasPermission("sales-orders.delete")) {
                         $url = route("sales-orders.delete", encrypt($variable->id));
                         $action .= view('buttons.delete', compact('variable', 'url'));
                     }
+                }
+                
+                if ($users->status != $orderClosedWinStatus && (in_array(1, User::getUserRoles()) || (auth()->user()->id == $users->added_by && (in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))))) {
+                    $deliveryUser = Deliver::where('so_id', $users->id)->whereIn('status', [0,1])->first()->user_id ?? null;
+
+                    $action .= '
+                    <div class="tableCards d-inline-block pb-0">
+                        <div class="editDlbtn">
+                            <button style="margin-left:0px!important;" class="btn btn-sm btn-success driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $users->id . '" data-title="' . $users->order_no . '" title="Change ">
+                                <i class="fa fa-exchange"></i>
+                            </button>
+                        </div>
+                    </div>
+                    ';
                 }
 
                 $delvieryPartner = Deliver::where('so_id', $users->id)->where('status', 1)->first();
@@ -114,57 +152,68 @@ class SalesOrderController extends Controller
             ->editColumn('order_no', function($row) {
                 return '<a target="_blank" href="' . route('sales-orders.view', encrypt($row->id)) . '"> ' . ($row->order_no) . '</a>';
             })
+            ->addColumn('postalcode', function ($row) {
+                return '<a target="_blank" href="https://www.google.com/maps/place/' . ($row->customer_postal_code) . '"> ' . $row->customer_postal_code . ' </a>';
+            })
             ->addColumn('option', function ($row) use ($users, $allStatuses) {
                 $html = "";
 
                 if ($row->status != '1') {
 
-
-                    $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
-                    $allStatuses = SalesOrderStatus::custom()->active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
-
-                    if (count($allStatuses) > 0) {
-
-                        $html = 
-                        '<div class="status-main button-dropdown position-relative">
-                            <label class="status-label" style="background:' . ($row->ostatus->color ?? '') . ';color:' . (Helper::generateTextColor($row->ostatus->color ?? '')) . ';"> ' . ($row->ostatus->name ?? '') . ' </label>
-                            <button class="dropdown-toggle status-opener ms-2 d-inline-flex align-items-center justify-content-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 20 19" fill="none">
-                                <path d="M0.998047 14.613V18.456H4.84105L16.175 7.12403L12.332 3.28103L0.998047 14.613ZM19.147 4.15203C19.242 4.05721 19.3174 3.94458 19.3688 3.82061C19.4202 3.69664 19.4466 3.56374 19.4466 3.42953C19.4466 3.29533 19.4202 3.16243 19.3688 3.03846C19.3174 2.91449 19.242 2.80186 19.147 2.70703L16.747 0.307035C16.6522 0.212063 16.5396 0.136719 16.4156 0.0853128C16.2916 0.0339065 16.1588 0.00744629 16.0245 0.00744629C15.8903 0.00744629 15.7574 0.0339065 15.6335 0.0853128C15.5095 0.136719 15.3969 0.212063 15.302 0.307035L13.428 2.18403L17.271 6.02703L19.147 4.15203Z" fill="#3C3E42"/>
-                                </svg>
-                            </button>
-                            <div class="dropdown-menu status-modal">
-                                <div class="status-dropdown">';
-
-                                foreach ($allStatuses as $k => $status) {
-                                    if ($k == 0) {
-                                    $html .= '<button type="button" data-sid="' . $status->id . '" data-oid="' . $row->id . '" style="background:' . $status->color . ';color:' . Helper::generateTextColor($status->color) . ';" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
-                                        <span>' . $status->name . '</span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
-                                            <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
-                                        </svg>
-                                    </button>';
+                    if (in_array(1, User::getUserRoles()) || $row->responsible_user == auth()->user()->id) {
+                        $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
+                        $allStatuses = SalesOrderStatus::custom()->active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
+    
+                        if (count($allStatuses) > 0) {
+    
+                            $html = 
+                            '<div class="status-main button-dropdown position-relative">
+                                <label class="status-label" style="background:' . ($row->ostatus->color ?? '') . ';color:' . (Helper::generateTextColor($row->ostatus->color ?? '')) . ';"> ' . ($row->ostatus->name ?? '') . ' </label>
+                                <button type="button" class="dropdown-toggle status-opener ms-2 d-inline-flex align-items-center justify-content-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 20 19" fill="none">
+                                    <path d="M0.998047 14.613V18.456H4.84105L16.175 7.12403L12.332 3.28103L0.998047 14.613ZM19.147 4.15203C19.242 4.05721 19.3174 3.94458 19.3688 3.82061C19.4202 3.69664 19.4466 3.56374 19.4466 3.42953C19.4466 3.29533 19.4202 3.16243 19.3688 3.03846C19.3174 2.91449 19.242 2.80186 19.147 2.70703L16.747 0.307035C16.6522 0.212063 16.5396 0.136719 16.4156 0.0853128C16.2916 0.0339065 16.1588 0.00744629 16.0245 0.00744629C15.8903 0.00744629 15.7574 0.0339065 15.6335 0.0853128C15.5095 0.136719 15.3969 0.212063 15.302 0.307035L13.428 2.18403L17.271 6.02703L19.147 4.15203Z" fill="#3C3E42"/>
+                                    </svg>
+                                </button>
+                                <div class="dropdown-menu status-modal">
+                                    <label class="c-gr f-500 f-14 w-100 mb-2"> STATUS : <span class="text-danger">*</span></label>
+                                    <div class="status-dropdown">';
+    
+                                    foreach ($allStatuses as $k => $status) {
+                                        if ($k == 0) {
+                                        $html .= '<button type="button" data-sid="' . $status->id . '" data-oid="' . $row->id . '" style="background:' . $status->color . ';color:' . Helper::generateTextColor($status->color) . ';" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
+                                            <span>' . $status->name . '</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
+                                                <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
+                                            </svg>
+                                        </button>';
+                                        }
                                     }
-                                }
+        
+                                        $html .= '<div class="status-dropdown-menu">';
+        
+                                        foreach ($allStatuses as $status) {
+                                            $html .= '<div class="f-14 cursor-pointer" data-isajax="true" style="background: '. $status->color .';color:' . Helper::generateTextColor($status->color) . ';" data-sid="' . $status->id . '" data-oid="' . $row->id . '" > '. $status->name .' </div>';
+                                        }
+        
+                                        $html .= '</div>
+                                    </div>
     
-                                    $html .= '<div class="status-dropdown-menu">';
+                                    <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> COMMENT : <span class="text-danger">*</span></label>
+                                    <textarea placeholder="Add a comment" class="form-control" style="height:60px;"> </textarea>
+                                    <label class="cmnt-er-lbl f-12 d-none text-danger"> Add comment to change status </label>
     
-                                    foreach ($allStatuses as $status) {
-                                        $html .= '<li class="f-14" data-isajax="true" style="background: '. $status->color .';color:' . Helper::generateTextColor($status->color) . ';" data-sid="' . $status->id . '" data-oid="' . $row->id . '" > '. $status->name .' </li>';
-                                    }
-    
-                                    $html .= '</div>
+                                    <div class="status-action-btn mt-2 position-relative -z-1">
+                                        <button class="status-save-btn btn-primary f-500 f-14 d-inline-block" disabled type="button"> Save </button>
+                                        <button class="refresh-dt hide-dropdown btn-default f-500 f-14 d-inline-block ms-1" type="button"> Cancel </button>
+                                    </div>
                                 </div>
-                                <div class="status-action-btn mt-2 position-relative -z-1">
-                                    <button class="status-save-btn btn-primary f-500 f-14 d-inline-block" disabled>Save</button>
-                                    <button class="refresh-dt hide-dropdown btn-default f-500 f-14 d-inline-block ms-1">Cancel</button>
-                                </div>
-                            </div>
-                        </div>';
+                            </div>';
+                        } else {
+                            $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
+                        }
                     } else {
-                        $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
+                        $html .= '<span class="status-lbl f-10 trigger-box-label-task-ns" style="background:' . ($row->ostatus->color ?? '#000') . ';color:' . Helper::generateTextColor($row->ostatus->color ?? '#fff') . ';"> ' . ($row->ostatus->name ?? 'STATUS') .' </span> ';
                     }
-
 
                 } else {
                     if (in_array(1, User::getUserRoles())) {
@@ -192,25 +241,6 @@ class SalesOrderController extends Controller
                             
                             $thisProduct = $row->items->first()->product_id;
 
-                            $users = collect($users)->map(function ($ele) use ($thisProduct) {
-                                $inStock = DistributionItem::where('to_driver', $ele['id'])
-                                ->where('product_id', $thisProduct)
-                                ->select('qty')
-                                ->sum('qty');
-                    
-                                $outStock = DistributionItem::where('from_driver', $ele['id'])
-                                ->where('product_id', $thisProduct)
-                                ->select('qty')
-                                ->sum('qty');
-                    
-                                $availStock = intval($inStock) - intval($outStock);
-                    
-                                if ($availStock > 0) {
-                                    return $ele;
-                                }
-                    
-                            })->filter()->values()->toArray();
-
                             if (!empty($users)) {
                                 foreach ($users as $u) {
                                     $thisUser = User::findOrFail($u['id']);
@@ -233,7 +263,7 @@ class SalesOrderController extends Controller
                 return $html;
 
             })
-            ->rawColumns(['action', 'addedby.name', 'updatedby.name', 'option', 'order_no'])
+            ->rawColumns(['action', 'postalcode', 'addedby.name', 'updatedby.name', 'option', 'order_no'])
             ->addIndexColumn()
             ->make(true);
     }
@@ -373,24 +403,24 @@ class SalesOrderController extends Controller
             $neededStock = null;
         }
 
-        $users = collect($users)->map(function ($ele) use ($thisProduct, $neededStock) {
-            $inStock = DistributionItem::where('to_driver', $ele['id'])
-            ->where('product_id', $thisProduct)
-            ->select('qty')
-            ->sum('qty');
+        // $users = collect($users)->map(function ($ele) use ($thisProduct, $neededStock) {
+        //     $inStock = DistributionItem::where('to_driver', $ele['id'])
+        //     ->where('product_id', $thisProduct)
+        //     ->select('qty')
+        //     ->sum('qty');
 
-            $outStock = DistributionItem::where('from_driver', $ele['id'])
-            ->where('product_id', $thisProduct)
-            ->select('qty')
-            ->sum('qty');
+        //     $outStock = DistributionItem::where('from_driver', $ele['id'])
+        //     ->where('product_id', $thisProduct)
+        //     ->select('qty')
+        //     ->sum('qty');
 
-            $availStock = intval($inStock) - intval($outStock);
+        //     $availStock = intval($inStock) - intval($outStock);
 
-            if ($availStock > 0) {
-                return $ele;
-            }
+        //     if ($availStock > 0) {
+        //         return $ele;
+        //     }
 
-        })->filter()->values()->toArray();
+        // })->filter()->values()->toArray();
 
         if ($errorWhileSavingLatLong === false) {
 
@@ -448,7 +478,7 @@ class SalesOrderController extends Controller
             'customerphone.required' => 'Enter customer phone number.',
             'postal_code.required' => 'Enter a postal code.',
             'postal_code.max' => 'Maximum 8 characters allowed for postal code.',
-            'address_line_1.required' => 'Enter address line 1.',
+            'address_line_1.required' => 'House number is required.',
             'category.*' => 'Select a category.',
             'product.*' => 'Select a product.',
             'quantity.*.required' => 'Enter quantity.',
@@ -1163,5 +1193,72 @@ class SalesOrderController extends Controller
         }
 
         return response()->json(['status' => false, 'message' => Helper::$notFound]);
+    }
+
+    public function changeDriver(Request $request) {
+        if (!empty($request->driver_id) && !empty($request->order_id)) {
+
+            if (Deliver::where('so_id', $request->order_id)->whereIn('status', [0, 1])->exists()) {
+                $driver = Deliver::where('so_id', $request->order_id)->whereIn('status', [0, 1])->first();
+                Deliver::create([
+                    'user_id' => $request->driver_id,
+                    'so_id' => $request->order_id,
+                    'added_by' => auth()->user()->id,
+                    'driver_lat' => $driver->driver_lat,
+                    'driver_long' => $driver->driver_long,
+                    'delivery_location_lat' => $driver->delivery_location_lat,
+                    'delivery_location_long' => $driver->delivery_location_long,
+                    'range' => $driver->range,
+                    'status' => 0
+                ]);
+    
+                Deliver::where('id', $driver->id)->update(['status' => 4]);
+
+                return response()->json(['status' => true, 'message' => 'Driver added successfully.']);
+            } else if (Deliver::where('so_id', $request->order_id)->where('status', 2)->exists()) {
+                $driver = Deliver::where('so_id', $request->order_id)->where('status', 2)->first();
+                Deliver::create([
+                    'user_id' => $request->driver_id,
+                    'so_id' => $request->order_id,
+                    'added_by' => auth()->user()->id,
+                    'driver_lat' => $driver->driver_lat,
+                    'driver_long' => $driver->driver_long,
+                    'delivery_location_lat' => $driver->delivery_location_lat,
+                    'delivery_location_long' => $driver->delivery_location_long,
+                    'range' => $driver->range,
+                    'status' => 0
+                ]);
+
+                Deliver::where('id', $driver->id)->update(['status' => 4]);
+
+                return response()->json(['status' => true, 'message' => 'Driver added successfully.']);
+            }
+
+        }
+
+        return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+    }
+
+    public function getRealTimeCommission(Request $request) {
+        
+        $total = 0;
+        $salesPriceSet = ProcurementCost::with('product')->active()->whereIn('role_id', User::getUserRoles())->where('product_id', $request->product);
+
+        if ($salesPriceSet->exists()) {
+            $salesPriceSet = $salesPriceSet->first();
+            if (floatval($request->price) >= $salesPriceSet->min_sales_price) {
+
+                if (floatval($request->price) > $salesPriceSet->base_price) {
+                    $comPrice = floatval($request->price) - $salesPriceSet->base_price;
+                } else {
+                    $comPrice = $salesPriceSet->default_commission_price;
+                }
+
+                $total = $comPrice * $request->qty;
+            }
+        }
+
+
+        return response()->json(['com' => $total]);
     }
 }

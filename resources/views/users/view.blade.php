@@ -85,13 +85,13 @@
             </div>
         </div>
 
-        @if(!in_array(1, ($user->roles->pluck('id')->toArray() ?? [])))
+        @if($user->roles->first()->id != 1)
         <div class="cardsBody py-0">
             <label class="c-gr f-500 f-16 w-100 mb-2">Permissions</label>
             <div class="form-group">
                 <div class="row">
                     @foreach($permission as $key => $value)
-                        <div class="col-xl-3 col-lg-4 col-md-6 mb-3 permission-listing">
+                        <div class="col-xl-3 col-lg-4 col-md-6 mb-3 permission-listing" @if($key == 'SalesOrderStatus' && $user->roles->first()->id == '3') style="display:none;" @endif >
                             <div class="PlBox">
                                 @foreach($value as $k => $v)
                                     @if($loop->first)

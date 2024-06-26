@@ -265,7 +265,7 @@
                         </li>
                     @endpermission
 
-                    @if(auth()->user()->hasPermission('sales-order-status.view'))
+                    @if(auth()->user()->hasPermission('sales-order-status.view') && !in_array(3, User::getUserRoles()))
                         <li>
                             <a href="{{ route('sales-order-status') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('sales-order-status*') ? 'active' : '' }}">
                                 <div class="icnBx d-flex align-items-center justify-content-center">

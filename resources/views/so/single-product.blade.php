@@ -178,6 +178,12 @@
                                         </td>
 
                                     </tr>
+
+                                    <tr>
+                                        <td colspan="5"> <strong class="float-end">Seller commission</strong> </td>
+                                        <td class="fw-bold" id="seller-com">0</td>
+                                    </tr>
+
                                 </tbody>
 
                             </table>

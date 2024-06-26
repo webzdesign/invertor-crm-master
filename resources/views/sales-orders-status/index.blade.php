@@ -355,10 +355,9 @@
     @section('create_button')
         <div class="d-flex align-items-center justify-content-between filterPanelbtn my-2 flex-wrap">
 
-            @if(!in_array(3, User::getUserRoles()))
-            <div>
-                <a href="{{ route('sales-order-status') }}" class="btn-primary f-500 f-14 d-inline-block">
-                    <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+            {{-- @if(!in_array(3, User::getUserRoles()))
+            <a href="{{ route('sales-order-status') }}" class="btn-primary f-500 f-14 d-inline-block">
+                <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
                         <rect x="4" y="2" width="2" height="16" fill="white" />
                         <rect x="9" y="2" width="2" height="12" fill="white" />
                         <rect x="14" y="2" width="2" height="6" fill="white" />
@@ -371,8 +370,9 @@
                         <rect x="2" y="14" width="16" height="2" fill="black" />
                     </svg>
                 </a>
+            @endif --}}
+            <div>
             </div>
-            @endif
 
             @permission('sales-order-status.edit')
                 <a href="{{ route('sales-order-status-edit') }}" class="btn-primary f-500 f-14">

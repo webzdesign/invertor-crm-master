@@ -153,8 +153,14 @@ class UserController extends Controller
             $user->added_by = auth()->user()->id;
             $user->save();
 
+            $perm = $request->permission;
+
+            if ($request->role == '3') {
+                $perm = array_diff($perm, Permission::select('id')->where('model', 'SalesOrderStatus')->pluck('id')->toArray());
+            }
+
             $user->roles()->attach($request->role);
-            $user->userpermission()->attach($request->permission);
+            $user->userpermission()->attach($perm);
 
             $errorWhileSavingLatLong = false;
 
@@ -377,8 +383,14 @@ class UserController extends Controller
                 $user->updated_by = auth()->user()->id;
                 $user->save();
 
+                $perm = $request->permission;
+
+                if ($request->role == '3') {
+                    $perm = array_diff($perm, Permission::select('id')->where('model', 'SalesOrderStatus')->pluck('id')->toArray());
+                }
+
                 $user->roles()->sync($request->role);
-                $user->userpermission()->sync($request->permission);
+                $user->userpermission()->sync($perm);
 
                 DB::commit();
 

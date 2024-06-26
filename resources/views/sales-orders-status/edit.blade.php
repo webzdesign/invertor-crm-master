@@ -214,7 +214,7 @@
                                 </div>
                                 <div class="text-start">
                                     <span class="f-12 d-flex align-items-center"> 
-                                        <strong> SELLER IS RESPONSIBLE </strong>
+                                        <strong class="lbl-for-show-selected-resp-user"> @if($trigger[$i]['user_id'] == '1') DRIVER @else SELLER @endif IS RESPONSIBLE </strong>
                                     <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy"></i>
                                     </span>
                                 </div>
@@ -1751,7 +1751,7 @@
                 </div>
                     <div class="text-start"> 
                         <span class="f-12 d-flex align-items-center"> 
-                            <strong> SELLER IS RESPONSIBLE </strong> 
+                            <strong class="lbl-for-show-selected-resp-user"> ${data.user == 1 ? 'DRIVER' : 'SELLER'} IS RESPONSIBLE </strong> 
                             <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy"></i>
                         </span> 
                         </div>${input}
@@ -2288,7 +2288,7 @@
                         $('.hideable-user-change-sbmt-btn').hide();
                     }
 
-                    $('.change-user-picker').val(isNumeric($(editingBlock).attr('data-cu-user')) ? $(editingBlock).attr('data-cu-user') : (isNotEmpty(response.addedData.status) ? response.addedData.user : ''));
+                    $('#change-user-picker').val(isNumeric($(editingBlock).attr('data-cu-user')) ? $(editingBlock).attr('data-cu-user') : (isNotEmpty(response.addedData.status) ? response.addedData.user : '')).trigger('change');
                     $('#manage-order-time-for-change-user').val(isNumeric($(editingBlock).attr('data-cu-timetype')) ? $(editingBlock).attr('data-cu-timetype') : (isNotEmpty(response.addedData.timetype) ? response.addedData.timetype : '1'));
                     $('#manage-order-type-for-change-user').val(isNumeric($(editingBlock).attr('data-cu-actiontype')) ? $(editingBlock).attr('data-cu-actiontype') : (isNotEmpty(response.addedData.type) ? response.addedData.type : '1'));
 
@@ -2313,9 +2313,9 @@
                     min: 1,
                     max: 60
                 },
-                // user: {
-                //     required: true
-                // }
+                user: {
+                    required: true
+                }
             },
             messages: {
                 change_user_hour: {
@@ -2328,9 +2328,9 @@
                     min: "Minimum 1 minute allowed.",
                     max: "Maximum 60 minutes allowed."
                 },
-                // user: {
-                //     required: "Select a user."
-                // }
+                user: {
+                    required: "Select a user."
+                }
             },
             errorPlacement: function(error, element) {
                 if ($(element).hasClass('change-user-minute')) {
@@ -2417,6 +2417,8 @@
                         $(editingBlock).find('.trigger-box-label-timetype').html(dropdownText);
                         $(editingBlock).find('.change-user-trigger-user-label').text(statusDispName.length > 10 ? statusDispName.substring(0, 10) + '...' : statusDispName);
                         $(editingBlock).find('.change-user-trigger-user-label').attr('title', statusDispName);
+                        $(editingBlock).find('.lbl-for-show-selected-resp-user').text(`${statusDispName} IS RESPONSIBLE`);
+                        $(editingBlock).find('.lbl-for-show-selected-resp-user').text(`${statusDispName} IS RESPONSIBLE`);
 
                         $('#change-user').modal('hide');
 

@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\{ChangeOrderUser, SalesOrder};
+use App\Models\{ChangeOrderUser, SalesOrder, Deliver};
 use Illuminate\Console\Command;
 
 class ChangeUserForOrderTrigger extends Command
@@ -41,9 +41,21 @@ class ChangeUserForOrderTrigger extends Command
 
             if (isset($thisOrder->order_id)) {
 
+                $respUser = 1;
+
+                if ($thisOrder->user_id == 1) {
+                    $respUser = Deliver::where('so_id', $salesOrder->id)->whereIn('status', [0, 1])->first()->user_id ?? null;
+                } else if ($thisOrder->user_id == 2) {
+                    $respUser = $salesOrder->added_by;
+                }
+
+                if (!is_numeric($respUser)) {
+                    $respUser = 1;
+                }
+
                 event(new \App\Events\OrderStatusEvent('change-user-for-order', [
                     'orderId' => $salesOrder->order_no,
-                    'userId' => $salesOrder->responsible_user
+                    'userId' => $respUser
                 ]));
 
                 \App\Models\TriggerLog::create([
@@ -53,7 +65,7 @@ class ChangeUserForOrderTrigger extends Command
                     'watcher_id' => $executor,
                     'next_status_id' => $order->status_id,
                     'current_status_id' => $order->current_status_id,
-                    'user_id' => $salesOrder->responsible_user,
+                    'user_id' => $respUser,
                     'type' => 3,
                     'time_type' => $order->time_type,
                     'main_type' => $order->main_type,
@@ -67,11 +79,7 @@ class ChangeUserForOrderTrigger extends Command
                 $thisOrder->executed = true;
                 $thisOrder->save();
 
-                $respUsers = explode(',', $salesOrder->responsible_user);
-                array_push($respUsers, $salesOrder->seller_id);
-                $respUsers = array_filter(array_unique($respUsers));
-
-                $salesOrder->responsible_user = implode(',', $respUsers);
+                $salesOrder->responsible_user = $respUser;
                 $salesOrder->save();
             }
         }

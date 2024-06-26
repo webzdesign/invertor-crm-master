@@ -11,16 +11,19 @@ use App\Models\User;
 class ReportController extends Controller
 {
     public function stockReport(Request $request) {
+        $total = 0;
+
         $drivers = User::whereHas('role', function ($builder) {
             $builder->where('roles.id', 3);
-        })->select('users.id as id', 'users.name as name');
+        })->selectRaw("CONCAT(users.name, ' - (', users.email, ')') as name, users.id as id");
 
         if (!$request->ajax()) {
             $moduleName = 'Stock Report';
             $drivers = $drivers->pluck('name', 'id')->toArray();
+            $products = Stock::with('product')->whereNotNull('product_id')->where('product_id', '!=', '')->groupBy('product_id')->get();
             $types = [ '1' => 'Storage', '2' => 'Driver'];
 
-            return view('reports.stock', compact('moduleName', 'drivers', 'types'));
+            return view('reports.stock', compact('moduleName', 'drivers', 'types', 'products'));
         }
 
         $stock = Helper::getAvailableStockFromStorage();
@@ -55,6 +58,14 @@ class ReportController extends Controller
             $stock = collect($storageStock)->merge($driverStock);
         }
 
+        if ($request->has('filterProduct') && !empty(trim($request->filterProduct))) {
+            $stock = $stock->where('product_id', $request->filterProduct);
+        }
+
+        foreach ($stock as $qty) {
+            $total += $qty['qty'];
+        }
+
         return dataTables()->of($stock)
         ->editColumn('product_id', function ($row) {
             return Helper::productName($row['product_id']);
@@ -62,6 +73,7 @@ class ReportController extends Controller
         ->editColumn('qty', function ($row) {
             return round($row['qty']);
         })
+        ->with(['total' => $total])
         ->toJson();
     }
 }
