@@ -102,7 +102,7 @@ class SalesOrderController extends Controller
                     }
                 }
                 
-                if (false) {
+                if ($users->status == $orderClosedWinStatus && (in_array(1, User::getUserRoles()) || (auth()->user()->id == $users->added_by && (in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))))) {
                     $deliveryUser = Deliver::where('so_id', $users->id)->whereIn('status', [0,1])->first()->user_id ?? null;
 
                     $action .= '
@@ -215,7 +215,9 @@ class SalesOrderController extends Controller
                     }
 
                 } else {
-                    if ((in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(1, User::getUserRoles())) && (Deliver::where('so_id', $row->id)->where('status', 0)->exists() || (Deliver::where('so_id', $row->id)->where('status', 2)->exists() && Deliver::where('so_id', $row->id)->where('status', 0)->doesntExist()))) {
+                    if (in_array(1, User::getUserRoles())) {
+                        $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
+                    } else if ((in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))) {
                         $driver = Deliver::with('user')->where('status', 0)->where('so_id', $row->id);
                         if ($driver->exists()) {
                             return "<strong> Order assigned to : " . ($driver->first()->user->name ?? '-') . " </strong>";
@@ -249,8 +251,6 @@ class SalesOrderController extends Controller
 
                             $html .= "</select><button type='submit' class='btn-primary btn-sm' style='margin-left:10px;'> ASSIGN </button></form>";
                         }
-                    } else if (in_array(1, User::getUserRoles())) {
-                        $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
                     } else if (in_array(3, User::getUserRoles())) {
                         $html .= '<button id="driver-approve-the-order" class="btn-primary f-500 f-14 btn-sm bg-success" data-oid="' . $row->id . '"> ACCEPT </button>
                         <button id="driver-reject-the-order" class="btn-primary f-500 f-14 btn-sm bg-error" data-oid="' . $row->id . '"> REJECT </button>';
