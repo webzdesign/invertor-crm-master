@@ -152,9 +152,10 @@ class SalesOrderController extends Controller
 
                 if ($row->status != '1') {
 
+                    $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
+                    $allStatuses = SalesOrderStatus::custom()->active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
+
                     if (in_array(1, User::getUserRoles()) || (!empty($row->responsible_user) && is_numeric($row->responsible_user) && $row->responsible_user == auth()->user()->id)) {
-                        $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
-                        $allStatuses = SalesOrderStatus::custom()->active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
     
                         if (count($allStatuses) > 0) {
     
@@ -204,7 +205,13 @@ class SalesOrderController extends Controller
                             $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
                         }
                     } else {
-                        $html .= '<span class="status-lbl f-10 trigger-box-label-task-ns" style="background:' . ($row->ostatus->color ?? '#000') . ';color:' . Helper::generateTextColor($row->ostatus->color ?? '#fff') . ';"> ' . ($row->ostatus->name ?? 'STATUS') .' </span> ';
+
+                        if (count($allStatuses) > 0) {
+                            $html .= '<span class="status-lbl f-10 trigger-box-label-task-ns" style="background:' . ($row->ostatus->color ?? '#000') . ';color:' . Helper::generateTextColor($row->ostatus->color ?? '#fff') . ';"> ' . ($row->ostatus->name ?? '-') .' </span> ';
+                        } else {
+                            $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
+                        }
+
                     }
 
                 } else {
