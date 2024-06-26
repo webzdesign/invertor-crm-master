@@ -860,7 +860,7 @@
 
         $(document).on('hidden.bs.modal', '#change-driver', function (e) {
             if (e.namespace == 'bs.modal') {
-                $('#change-driver-picker-error').remove();
+                $('.cmnt-er-lbl').addClass('d-none');
                 $('#change-driver-picker').val(null).trigger('change');
             }
         });
