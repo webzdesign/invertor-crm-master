@@ -102,20 +102,6 @@ class SalesOrderController extends Controller
                     }
                 }
                 
-                if ($users->status != $orderClosedWinStatus && (in_array(1, User::getUserRoles()) || (auth()->user()->id == $users->added_by && (in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))))) {
-                    $deliveryUser = Deliver::where('so_id', $users->id)->whereIn('status', [0,1])->first()->user_id ?? null;
-
-                    $action .= '
-                    <div class="tableCards d-inline-block pb-0">
-                        <div class="editDlbtn">
-                            <button style="margin-left:0px!important;" class="btn btn-sm btn-success driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $users->id . '" data-title="' . $users->order_no . '" title="Change ">
-                                <i class="fa fa-exchange"></i>
-                            </button>
-                        </div>
-                    </div>
-                    ';
-                }
-
                 $delvieryPartner = Deliver::where('so_id', $users->id)->where('status', 1)->first();
 
                 if ($users->status == $orderClosedWinStatus && !$users->price_matched && isset($delvieryPartner) && $delvieryPartner->user_id == auth()->user()->id) {
@@ -147,7 +133,7 @@ class SalesOrderController extends Controller
             ->addColumn('postalcode', function ($row) {
                 return '<a target="_blank" href="https://www.google.com/maps/place/' . ($row->customer_postal_code) . '"> ' . $row->customer_postal_code . ' </a>';
             })
-            ->addColumn('option', function ($row) use ($users, $allStatuses) {
+            ->addColumn('option', function ($row) use ($allStatuses) {
                 $html = "";
 
                 if ($row->status != '1') {
@@ -204,7 +190,7 @@ class SalesOrderController extends Controller
                         } else {
                             $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
                         }
-                    } else {
+                    } else  {
 
                         if (count($allStatuses) > 0) {
                             $html .= '<span class="status-lbl f-10 trigger-box-label-task-ns" style="background:' . ($row->ostatus->color ?? '#000') . ';color:' . Helper::generateTextColor($row->ostatus->color ?? '#fff') . ';"> ' . ($row->ostatus->name ?? '-') .' </span> ';
@@ -215,47 +201,32 @@ class SalesOrderController extends Controller
                     }
 
                 } else {
-                    if (in_array(1, User::getUserRoles())) {
-                        $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
-                    } else if ((in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))) {
-                        $driver = Deliver::with('user')->where('status', 0)->where('so_id', $row->id);
-                        if ($driver->exists()) {
-                            return "<strong> Order assigned to : " . ($driver->first()->user->name ?? '-') . " </strong>";
-                        } else {
-
-                            $html .= '<form id="validateDriver" method="POST" class="" action="'. route('assign-new-driver', encrypt($row->id)) .'">';
-                            $html .= csrf_field();
-
+                    if (Deliver::where('so_id', $row->id)->where('status', 0)->doesntExist() && Deliver::where('so_id', $row->id)->where('status', 2)->exists()) {
+                        if (in_array(auth()->user()->roles->first()->id, [1,2,6])) {
                             $isRejected = Deliver::with('user')->where('so_id', $row->id)->where('status', 2)->first();
 
                             if ($isRejected != null) {
                                 if (Deliver::with('user')->where('so_id', $row->id)->whereIn('status', [0,1,3])->doesntExist()) {
-                                    $html .=  '<a data-toggle="tooltip" style="margin-right:10px;" class="deleteBtn" title=" Order was rejected by ' . (($isRejected->user->name ?? 'Driver')) . '">
-                                        <i class="fa fa-warning" aria-hidden="true" style="color: #dd2d20;font-size:16px;"></i>
-                                    </a>';
+    
+                                    $deliveryUser = Deliver::where('so_id', $row->id)->whereIn('status', [0,1])->first()->user_id ?? null;
+    
+                                    $html =  '
+                                    <i class="fa fa-warning" aria-hidden="true" style="color: #dd2d20;font-size:16px;"></i>
+                                    <strong class="text-danger f-12"> Order was rejected by ' . (isset($isRejected->user->name) ? $isRejected->user->name : 'driver') . ' </strong>
+                                    <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
+                                    ';
                                 }
                             }
-
-                            $html .= '<select class="driver-selection" name="driver"><option value="" selected> --- Select a driver --- </option>';
-                            
-                            $thisProduct = $row->items->first()->product_id;
-
-                            if (!empty($users)) {
-                                foreach ($users as $u) {
-                                    $thisUser = User::findOrFail($u['id']);
-                                    $dist = Distance::measure($thisUser->lat, $thisUser->long, $row->lat, $row->long);
-                                    $html .= '<option data-distance="'. $dist .'" value="' . $u['id'] . '"> ' . ($thisUser->name ?? '') . ' - (' . ($thisUser->email ?? '') . ') ' . (number_format($dist, 2)) . ' miles </option>';
-                                }
-            
-                            }
-
-                            $html .= "</select><button type='submit' class='btn-primary btn-sm' style='margin-left:10px;'> ASSIGN </button></form>";
+                        } else {
+                            $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
                         }
-                    } else if (in_array(3, User::getUserRoles())) {
-                        $html .= '<button id="driver-approve-the-order" class="btn-primary f-500 f-14 btn-sm bg-success" data-oid="' . $row->id . '"> ACCEPT </button>
-                        <button id="driver-reject-the-order" class="btn-primary f-500 f-14 btn-sm bg-error" data-oid="' . $row->id . '"> REJECT </button>';
                     } else {
-                        $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
+                        if (in_array(auth()->user()->roles->first()->id, [3]) && Deliver::where('so_id', $row->id)->where('user_id', auth()->user()->id)->where('status', 0)->exists()) {
+                            $html .= '<button id="driver-approve-the-order" class="btn-primary f-500 f-14 btn-sm bg-success" data-oid="' . $row->id . '"> ACCEPT </button>
+                            <button id="driver-reject-the-order" class="btn-primary f-500 f-14 btn-sm bg-error" data-oid="' . $row->id . '"> REJECT </button>';
+                        } else {
+                            $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
+                        }
                     }
                 }
 
@@ -1212,6 +1183,7 @@ class SalesOrderController extends Controller
                 ]);
     
                 Deliver::where('id', $driver->id)->update(['status' => 4]);
+                SalesOrder::where('id', $request->order_id)->update(['responsible_user' => $request->driver_id]);
 
                 return response()->json(['status' => true, 'message' => 'Driver added successfully.']);
             } else if (Deliver::where('so_id', $request->order_id)->where('status', 2)->exists()) {
@@ -1229,6 +1201,7 @@ class SalesOrderController extends Controller
                 ]);
 
                 Deliver::where('id', $driver->id)->update(['status' => 4]);
+                SalesOrder::where('id', $request->order_id)->update(['responsible_user' => $request->driver_id]);
 
                 return response()->json(['status' => true, 'message' => 'Driver added successfully.']);
             }
