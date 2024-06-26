@@ -32,18 +32,10 @@ class SalesOrderController extends Controller
         $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
         $orderClosedWinStatus = SalesOrderStatus::where('slug', 'closed-win')->first()->id ?? 0;
 
-        $po = SalesOrder::with(['items.product', 'addedby', 'updatedby', 'ostatus'])->where(function ($builder) use ($thisUserRoles, $orderClosedWinStatus) {
+        $po = SalesOrder::with(['items.product', 'addedby', 'updatedby', 'ostatus'])->where(function ($builder) use ($thisUserRoles) {
             if (!in_array(1, $thisUserRoles)) {
                 $builder->where('added_by', auth()->user()->id)
-                ->orWhere(function ($innerBuilder) use ($orderClosedWinStatus) {
-                    $innerBuilder->where(function ($innerBuilder2) use ($orderClosedWinStatus) {
-                        $innerBuilder2->where('status', $orderClosedWinStatus)
-                        ->where('price_matched', 0)
-                        ->whereHas('driver', fn ($innerBuilder3) => $innerBuilder3
-                        ->where('user_id', auth()->user()->id)->where('status', 1));
-                    });
-                })
-                ->orWhereHas('driver', fn ($innerBuilder) => $innerBuilder->where('user_id', auth()->user()->id)->where('status', 0))
+                ->orWhereHas('driver', fn ($innerBuilder) => $innerBuilder->where('user_id', auth()->user()->id)->whereIn('status', [0, 1]))
                 ->orWhere('responsible_user', auth()->user()->id);
             }
         });
@@ -160,7 +152,7 @@ class SalesOrderController extends Controller
 
                 if ($row->status != '1') {
 
-                    if (in_array(1, User::getUserRoles()) || $row->responsible_user == auth()->user()->id) {
+                    if (in_array(1, User::getUserRoles()) || (!empty($row->responsible_user) && is_numeric($row->responsible_user) && $row->responsible_user == auth()->user()->id)) {
                         $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
                         $allStatuses = SalesOrderStatus::custom()->active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
     
