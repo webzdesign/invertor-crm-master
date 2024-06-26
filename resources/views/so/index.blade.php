@@ -688,6 +688,8 @@
                     .parents(".button-dropdown")
                     .children(".dropdown-toggle").addClass("active");
             }
+
+            $('.cmnt-er-lbl').addClass('d-none');
         });
     
         $(document).on('click', function() {
@@ -860,7 +862,7 @@
 
         $(document).on('hidden.bs.modal', '#change-driver', function (e) {
             if (e.namespace == 'bs.modal') {
-                $('.cmnt-er-lbl').addClass('d-none');
+                $('#change-driver-picker-error').remove();
                 $('#change-driver-picker').val(null).trigger('change');
             }
         });
