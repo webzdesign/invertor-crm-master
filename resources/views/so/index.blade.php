@@ -263,6 +263,7 @@
                 <th style="width: 10%!important;">Postal Code</th>
                 @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 <th>Added By</th>
+                <th>Last Comment</th>
                 @endif
                 <th style="width: 30%!important;">Status</th>
                 <th>Action</th>
@@ -389,6 +390,11 @@
                     orderable: false,
                     searchable: false,
                 },
+                {
+                    data: 'note',
+                    orderable: false,
+                    searchable: false,
+                },
                 @endif
                 {
                     data: 'option',
@@ -430,7 +436,7 @@
                     $('#driver-error').remove();
                 });
 
-                $('[data-toggle="tooltip"]').tooltip();
+                $('[data-bs-toggle="tooltip"]').tooltip();
             }
         });
 

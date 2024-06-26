@@ -7,6 +7,7 @@ use App\Models\{Category, User, Wallet, Bonus, Setting, AddressLog, Deliver, Cha
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class SalesOrderController extends Controller
 {
@@ -121,6 +122,17 @@ class SalesOrderController extends Controller
             ->addColumn('product', function ($row) {
                     return $row->items->first()->product->name;
             })
+            ->addColumn('note', function ($row) {
+                $note = \App\Models\TriggerLog::where('order_id', $row->id)->where('type', 2)->whereNotNull('description')->where('description', '!=', '')->orderBy('id', 'DESC')->first()->description ?? '-';
+                $shortNote = Str::of(strip_tags($note))->limit(20);
+
+                if (strlen($note) > 20) {
+                    return '<a data-bs-toggle="tooltip" data-bs-placement="top" style="margin-right:10px;" title="' . $note . '"> ' . $shortNote . ' <a>';
+                } else {
+                    return '<a data-bs-toggle="tooltip" data-bs-placement="right" style="margin-right:10px;"> ' . $shortNote . ' <a>';
+                }
+
+            })
             ->addColumn('quantity', function ($row) {
                     return $row->items->sum('qty');
             })
@@ -233,7 +245,7 @@ class SalesOrderController extends Controller
                 return $html;
 
             })
-            ->rawColumns(['action', 'postalcode', 'addedby.name', 'updatedby.name', 'option', 'order_no'])
+            ->rawColumns(['action', 'postalcode', 'addedby.name', 'updatedby.name', 'option', 'order_no', 'note'])
             ->addIndexColumn()
             ->make(true);
     }
