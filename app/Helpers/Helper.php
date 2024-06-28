@@ -206,7 +206,7 @@ class Helper {
 
             $outStock = Stock::where('type', '1')
             ->where('product_id', $item)
-            ->whereIn('form', ['3'])
+            ->whereIn('form', ['1', '3'])
             ->whereNull('driver_id')
             ->select('qty')
             ->sum('qty');
@@ -242,7 +242,7 @@ class Helper {
 
             $outStock = Stock::where('type', '1')
             ->where('product_id', $item)
-            ->whereIn('form', ['3'])
+            ->whereIn('form', ['2', '3'])
             ->where('driver_id', $driver)
             ->select('qty')
             ->sum('qty');

@@ -155,7 +155,7 @@ class UserController extends Controller
 
             $perm = $request->permission;
 
-            if ($request->role == '3') {
+            if ($request->role == '3' && !empty($perm)) {
                 $perm = array_diff($perm, Permission::select('id')->where('model', 'SalesOrderStatus')->pluck('id')->toArray());
             }
 
@@ -385,7 +385,7 @@ class UserController extends Controller
 
                 $perm = $request->permission;
 
-                if ($request->role == '3') {
+                if ($request->role == '3' && !empty($perm)) {
                     $perm = array_diff($perm, Permission::select('id')->where('model', 'SalesOrderStatus')->pluck('id')->toArray());
                 }
 

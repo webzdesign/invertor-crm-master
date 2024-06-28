@@ -96,98 +96,68 @@
                 <div class="col-md-12">
                     <div class="row">
 
-                        <div class="table-responsive">
-                            <input type="hidden">
-                            <table class="table table-bordered customLayout">
-                                <thead>
-                                    <tr>
-
-                                        <th>Category <span class="text-danger">*</span> </th>
-
-                                        <th>Product <span class="text-danger">*</span> </th>
-
-                                        <th>Quantity <span class="text-danger">*</span> </th>
-
-                                        <th>Price <span class="text-danger">*</span> </th>
-
-                                        <th>Amount </th>
-
-                                        <th>Remarks </th>
-                                    </tr>
-                                </thead>
-
-                                <tbody class="upsertable">
-                                    <tr>
-
-                                        <td>
-                                            <div style="min-width: 200px;width: 100%">
-                                                <input type="text" readonly class="form-control"
-                                                    value="{{ $category->name }}">
-                                                <input type="hidden" name="category[]" id="mcategory"
-                                                    value="{{ $category->id }}">
-                                            </div>
-                                        </td>
-
-                                        <td>
-                                            <div style="min-width: 200px;width: 100%">
-                                                <input type="hidden" name="lat" value="{{ $latFrom }}">
-                                                <input type="hidden" name="long" value="{{ $longFrom }}">
-                                                <input type="hidden" name="range" value="{{ $range }}">
-                                                <input type="text" readonly class="form-control"
-                                                    value="{{ $product->name }}">
-                                                <input type="hidden" name="product[]" data-minprice="{{ $minSalesPrice }}" id="mproduct"
-                                                    value="{{ $product->id }}">
-                                            </div>
-                                        </td>
-
-                                        <td>
-                                            <div style="min-width: 200px;">
-                                                <input type="number" data-indexid="0" name="quantity[]"
-                                                    id="mquantity" class="form-control" min="1">
-                                            </div>
-                                        </td>
-
-                                        <td>
-                                            <div style="min-width: 200px;">
-                                                <input type="number" data-indexid="0" id="mprice" name="price[]" id="mprice"
-                                                readonly class="form-control" min="0" value="{{ $enteredPrice }}">
-                                            </div>
-                                        </td>
-
-                                        <td>
-                                            <div style="min-width: 200px;">
-                                                <input type="number" data-indexid="0" id="mamount" name="amount[]" id="maount"
-                                                    class="form-control" readonly>
-                                            </div>
-                                        </td>
-
-
-                                        <td>
-                                            <div style="min-width: 200px;">
-                                                <input type="hidden" name="postal_code" value="{{ $postalcode }}">
-                                                <input type="hidden" name="address_line_1" value="{{ $addressline }}">
-
-                                                <input type="text" data-indexid="0" tabindex="0"
-                                                    maxlength="255" name="remarks[]" id="mremarks"
-                                                    class="form-control">
-                                            </div>
-
-                                            <input type="hidden" name="driver_id" value="{{ $driverDetail->id }}">
-                                            <input type="hidden" name="driver_lat" value="{{ $driverDetail->lat }}">
-                                            <input type="hidden" name="driver_long" value="{{ $driverDetail->long }}">
-                                        </td>
-
-                                    </tr>
-
-                                    <tr>
-                                        <td colspan="5"> <strong class="float-end">Seller commission</strong> </td>
-                                        <td class="fw-bold" id="seller-com">0</td>
-                                    </tr>
-
-                                </tbody>
-
-                            </table>
+                        <div class="col-md-2 col-sm-12">
+                            <div class="form-group">
+                                <label class="c-gr f-500 f-16 w-100 mb-2">Category :</label>
+                                <input type="text" readonly class="form-control" value="{{ $category->name }}">
+                                <input type="hidden" name="category[]" id="mcategory" value="{{ $category->id }}">
+                            </div>
                         </div>
+
+                        <div class="col-md-2 col-sm-12">
+                            <div class="form-group">
+                                <label class="c-gr f-500 f-16 w-100 mb-2">Product :</label>
+                                <input type="hidden" name="lat" value="{{ $latFrom }}">
+                                <input type="hidden" name="long" value="{{ $longFrom }}">
+                                <input type="hidden" name="range" value="{{ $range }}">
+                                <input type="text" readonly class="form-control" value="{{ $product->name }}">
+                                <input type="hidden" name="product[]" data-minprice="{{ $minSalesPrice }}" id="mproduct" value="{{ $product->id }}">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-2 col-sm-12">
+                            <div class="form-group">
+                                <label class="c-gr f-500 f-16 w-100 mb-2">Quantity :</label>
+                                <input type="number" data-indexid="0" name="quantity[]" id="mquantity" class="form-control" min="1">
+                            </div>
+                        </div>
+
+                        <div class="col-md-2 col-sm-12">
+                            <div class="form-group">
+                                <label class="c-gr f-500 f-16 w-100 mb-2"> Price :</label>
+                                <input type="number" data-indexid="0" id="mprice" name="price[]" id="mprice" readonly class="form-control" min="0" value="{{ $enteredPrice }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-2 col-sm-12">
+                            <div class="form-group">
+                                <label class="c-gr f-500 f-16 w-100 mb-2"> Amount :</label>
+                                <input type="number" data-indexid="0" id="mamount" name="amount[]" id="maount" class="form-control" readonly>
+                            </div>
+                        </div>
+
+                        <div class="col-md-2 col-sm-12">
+                            <div class="form-group">
+                                <label class="c-gr f-500 f-16 w-100 mb-2">Remarks :</label>
+                                <input type="hidden" name="postal_code" value="{{ $postalcode }}">
+                                <input type="hidden" name="address_line_1" value="{{ $addressline }}">
+                                <input type="text" data-indexid="0" tabindex="0" maxlength="255" name="remarks[]" id="mremarks" class="form-control">
+                                <input type="hidden" name="driver_id" value="{{ $driverDetail->id }}">
+                                <input type="hidden" name="driver_lat" value="{{ $driverDetail->lat }}">
+                                <input type="hidden" name="driver_long" value="{{ $driverDetail->long }}">
+                            </div>
+                        </div>
+
+                        <div class="col-md-10">
+                        </div>
+
+                        <div class="col-md-2 col-sm-12">
+                            <div class="form-group">
+                                <label class="c-gr f-500 f-16 w-100 mb-2"> Seller commission : </label>
+                                <input type="text" class="fw-bold form-control mb-4" readonly id="seller-com" value="0" />
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>

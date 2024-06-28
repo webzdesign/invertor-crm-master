@@ -13,8 +13,8 @@
                         <label class="c-gr f-500 f-14 w-100 mb-2"> Driver : <span class="text-danger">*</span> </label>
                         <select class="change-driver-select2 select2-hidden-accessible" name="driver_id" id="change-driver-picker">
                             <option value="" selected> --- Select a driver --- </option>
-                            @foreach ($drivers as $did => $dname)
-                                <option value="{{ $did }}"> {{ $dname }} </option>
+                            @foreach ($drivers as $dname)
+                                <option value="{{ $dname['id'] }}"> {{ $dname['name'] }} </option>
                             @endforeach
                         </select>
 

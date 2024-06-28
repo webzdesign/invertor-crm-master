@@ -283,10 +283,10 @@
 
 
 
-    @if(auth()->user()->hasPermission('stock-report.view'))
+    @if(auth()->user()->hasPermission('stock-report.view') || auth()->user()->hasPermission('ledger-report.view'))
     <li>
         <a data-bs-toggle="collapse" data-bs-target="#collapseR"
-            aria-expanded="{{ request()->is('stock-report*') ? 'true' : 'false' }}"
+            aria-expanded="{{ request()->is('stock-report*') || request()->is('ledger-report*') ? 'true' : 'false' }}"
             aria-controls="collapseR"
             class="f-400 f-14 text-white cursor-pointer d-flex align-items-center justify-content-between"
             href="javascript:;">
@@ -303,7 +303,7 @@
             </svg>
         </a>
         <div id="collapseR" data-bs-parent="#accordionExample"
-            class="collapseMenu collapseWeb collapse {{ request()->is('stock-report*') ? 'show' : '' }}">
+            class="collapseMenu collapseWeb collapse {{ request()->is('stock-report*') || request()->is('ledger-report*') ? 'show' : '' }}">
             <ul class="p-0 menuList">
 
                 @permission('stock-report.view')
@@ -311,9 +311,21 @@
                         <a href="{{ route('stock-report') }}"
                             class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('stock-report*') ? 'active' : '' }}">
                             <div class="icnBx d-flex align-items-center justify-content-center">
-                                <i class="fa fa-file text-white" aria-hidden="true"></i>
+                                <i class="fa fa-product-hunt text-white" aria-hidden="true"></i>
                             </div>
                             <span class="d-none-add">Stock Report</span>
+                        </a>
+                    </li>
+                @endpermission
+
+                @permission('ledger-report.view')
+                    <li>
+                        <a href="{{ route('ledger-report') }}"
+                            class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('ledger-report*') ? 'active' : '' }}">
+                            <div class="icnBx d-flex align-items-center justify-content-center">
+                                <i class="fa fa-gbp text-white" aria-hidden="true"></i>
+                            </div>
+                            <span class="d-none-add">Ledger Report</span>
                         </a>
                     </li>
                 @endpermission

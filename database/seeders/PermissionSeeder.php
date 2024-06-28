@@ -91,6 +91,7 @@ class PermissionSeeder extends Seeder
             /** Reports **/
 
             ['name' => 'View stock report', 'slug' => 'stock-report.view', 'model' => 'Report', 'description' => 'Can view stock report', 'added_by' => 1],
+            ['name' => 'View ledger report', 'slug' => 'ledger-report.view', 'model' => 'Report', 'description' => 'Can view ledger report', 'added_by' => 1],
 
             /** Reports **/
 

@@ -428,7 +428,7 @@ class DistributionController extends Controller
                         'date' => now(),
                         'qty' => $quantities[$key] ?? 0,
                         'added_by' => $userId,
-                        'form' => 3,
+                        'form' => 1,
                         'form_record_id' => $distrib->id,
                         'created_at' => now()
                     ];
@@ -572,7 +572,7 @@ class DistributionController extends Controller
                         'date' => now(),
                         'qty' => $quantities[$key] ?? 0,
                         'added_by' => $userId,
-                        'form' => 3,
+                        'form' => 1,
                         'form_record_id' => $distrib->id,
                         'created_at' => now()
                     ];

@@ -427,7 +427,7 @@ $(document).ready(function(){
             },
             success: function (response) {
                 if ('com' in response && !isNaN(response.com)) {
-                    $('#seller-com').text(response.com);
+                    $('#seller-com').val(response.com);
                 }
             },
             complete: function () {

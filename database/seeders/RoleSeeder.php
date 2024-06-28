@@ -11,6 +11,7 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
+        /** change in user model if slug is changed for admin, seller driver and seller manager **/
         $roles = [
             [
                 'name' => 'Admin',
@@ -34,6 +35,18 @@ class RoleSeeder extends Seeder
                 'name' => 'Supplier',
                 'slug' => 'supplier',
                 'description' => 'Supplier',
+                'added_by'  => 1
+            ],
+            [
+                'name' => 'Operative Director',
+                'slug' => 'operative-director',
+                'description' => 'operative director',
+                'added_by'  => 1
+            ],
+            [
+                'name' => 'Seller Manager',
+                'slug' => 'seller-manager',
+                'description' => 'seller manager',
                 'added_by'  => 1
             ]
         ];

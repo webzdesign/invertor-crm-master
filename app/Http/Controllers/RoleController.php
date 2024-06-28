@@ -174,7 +174,9 @@ class RoleController extends Controller
 
         $role = Role::find($id);
         $role->name = $request->name;
-        $role->slug = Str::slug($request->name,"-");
+        if ($id != '6') {
+            $role->slug = Str::slug($request->name,"-");
+        }
         $role->description = $request->description;
         $role->updated_by = auth()->User()->id;
         $role->save();

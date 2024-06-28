@@ -105,7 +105,7 @@
 
                 <div class="col-sm-12 col-md-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Address Line </label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">House Number </label>
                         <textarea id="address_line_1" class="form-control" style="height: 60px;background:#efefef;" readonly>{{ $so->customer_address_line_1 }}</textarea>
                     </div>
                 </div>

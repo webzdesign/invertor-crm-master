@@ -121,7 +121,7 @@
     }
     @media (min-width:992px) {
         .status-opener {
-            visibility: hidden;
+            /* visibility: hidden; */
         }
     }
 
@@ -182,11 +182,11 @@
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Driver</label>
                 <select name="filterDriver" id="filterDriver" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Driver ---">
-                    @forelse($drivers as $did => $dname)
+                    @forelse($drivers as $dname)
                     @if($loop->first)
                     <option value="" selected> --- Select a Driver --- </option>
                     @endif
-                    <option value="{{ $did }}">{{ $dname }}</option>
+                    <option value="{{ $dname['id'] }}">{{ $dname['name'] }}</option>
                     @empty
                     <option value="" selected> --- No Driver Available --- </option>
                     @endforelse
@@ -277,6 +277,8 @@
 @include('so.modal.confirm-order')
 
 @include('so.modal.change-driver')
+
+@include('sales-orders-status.modal.order-details')
 
 @endsection
 
@@ -444,6 +446,194 @@
         $('#filterInput > input').keyup(function() {
             ServerDataTable.search($(this).val()).draw();
         });
+
+
+        /** Order History **/
+
+        $(document).on('click', '.show-order-details', function(event) {
+
+            let thisOrderId = $(this).attr('data-oid');
+            let thisOrderTitle = $(this).attr('data-title');
+
+            if (thisOrderId != '' && thisOrderId != null) {
+                $.ajax({
+                    url: "{{ route('order-detail-in-board') }}",
+                    type: "POST",
+                    data: {
+                        id: thisOrderId
+                    },
+                    success: function(response) {
+                        if (response.status) {
+                            $('#modal-title-1').text(thisOrderTitle);
+                            $('#orderDetails').empty().html(response.view);
+                            $('#order-details').modal('show');
+                        }
+                    }
+
+                });
+            }
+        });
+
+
+        $(document).on('click', '#toggle-status-trigger-list', function (event) {
+            if ($('.actvt').hasClass('d-none')) {
+                $('.actvt').removeClass('d-none')
+                $(this).text('Show less');
+            } else {
+                $('.actvt').not('.show-first').addClass('d-none');
+                $(this).text('Show All');
+            }
+        })
+
+        $(document).on('click', '#toggle-task-trigger-list', function (event) {
+            if ($('.actvt-at').hasClass('d-none')) {
+                $('.actvt-at').removeClass('d-none')
+                $(this).text('Show less');
+            } else {
+                $('.actvt-at').not('.show-first-at').addClass('d-none');
+                $(this).text('Show All');
+            }
+        })
+
+        $(document).on('click', '#toggle-change-user-trigger-list', function (event) {
+            if ($('.actvt-cu').hasClass('d-none')) {
+                $('.actvt-cu').removeClass('d-none')
+                $(this).text('Show less');
+            } else {
+                $('.actvt-cu').not('.show-first-cu').addClass('d-none');
+                $(this).text('Show All');
+            }
+        })
+
+        $(document).on('click', '#toggle-history', function (event) {
+            if ($('.hist').hasClass('d-none')) {
+                $('.hist').removeClass('d-none')
+                $(this).text('Show less');
+            } else {
+                $('.hist').not('.show-first-history').addClass('d-none');
+                $(this).text('Show All');
+            }
+        })
+
+        $(document).on('click', '.remove-task', function () {
+            let id = $(this).attr('data-tid');
+            let order = $(this).attr('data-oid');
+            let element = $(this).parent().parent().parent();
+
+            if (id !== '' && order !== '') {
+                Swal.fire({
+                    title: 'Are you sure want to delete task?',
+                    text: "As that can be undone by doing reverse.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes'
+                }).then((result) => {
+                    if (result.value) {
+                        $.ajax({
+                            url: "{{ route('remove-task') }}",
+                            type: "POST",
+                            data: {
+                                id: id,
+                                order: order
+                            },
+                            beforeSend: function () {
+                                $('body').find('.LoaderSec').removeClass('d-none');
+                            },
+                            success: function (response) {
+                                if (response.status) {
+                                    Swal.fire('', response.message, 'success');
+                                    $(element).remove();
+
+                                    if (response.count > 0) {
+                                        if (response.count <= 3) {
+                                            $('#toggle-task-trigger-list').text('Show All');
+                                        }
+
+                                        if (!($('.actvt-at:eq(0)').hasClass('show-first-at') && $('.actvt-at:eq(1)').hasClass('show-first-at') && $('.actvt-at:eq(2)').hasClass('show-first-at'))) {
+                                            if ($('.actvt-at').not('.show-first-at').first().hasClass('d-none')) {
+                                                $('.actvt-at').not('.show-first-at').first().removeClass('d-none').addClass('show-first-at');
+                                            } else if ($('.actvt-at').not('.show-first-at').first().length > 0) {
+                                                $('.actvt-at').not('.show-first-at').first().addClass('show-first-at');
+                                            }
+                                        }
+                                    } else {
+                                        $('.task-trigger-activity-row').html(`<div class="activity py-2 f-13 border-bottom">No Activity to Show</div>`);
+                                        $('#toggle-task-trigger-list').remove();
+                                    }
+                                } else {
+                                    Swal.fire('', response.message, 'error');
+                                }
+                            },
+                            complete: function () {
+                                $('body').find('.LoaderSec').addClass('d-none');
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        $(document).on('click', '.edit-task', function () {
+            $(this).addClass('d-none');
+            $(this).parent().prev().find('.completion-content').attr('contenteditable', true)
+            $(this).parent().prev().find('.completion-content').focus();
+            $(this).parent().parent().next().removeClass('d-none');
+        })
+
+        $(document).on('click', '.hide-complete-task-textarea', function () {
+            $(this).parent().addClass('d-none')
+            $(this).parent().prev().find('.edit-task').removeClass('d-none');
+            $(this).parent().prev().find('.completion-content').attr('contenteditable', false);
+        })
+
+        $(document).on('click', '.save-complete-task-textarea', function () {
+            let description = $(this).parent().prev().find('.completion-content').text();
+            let task = $(this).attr('data-taskid');
+            let errorElement = $(this).parent().prev().find('.completion-content').next();
+            let that = this;
+
+            if (description.trim().length > 0 && task !== '') {
+                if ($(this).parent().prev().find('.completion-content').next().hasClass('this-error')) {
+                    $(this).parent().prev().find('.completion-content').next().text('');
+                }
+
+                $.ajax({
+                    url: "{{ route('save-completion-description-for-task') }}",
+                    type: "POST",
+                    data: {
+                        id: task,
+                        text: description
+                    },
+                    beforeSend: function() {
+                        $('body').find('.LoaderSec').removeClass('d-none');
+                    },
+                    success: function(response) {
+
+                        if (response.status) {
+                            $(that).parent().addClass('d-none')
+                            $(that).parent().prev().find('.edit-task').removeClass('d-none');
+                            $(that).parent().prev().find('.completion-content').attr('contenteditable', false);
+                        } else {
+                            errorElement.text(response.message);
+                        }
+
+                    },
+                    complete: function() {
+                        $('body').find('.LoaderSec').addClass('d-none');
+                    }
+                });
+
+            } else {
+                if ($(this).parent().prev().find('.completion-content').next().hasClass('this-error')) {
+                    $(this).parent().prev().find('.completion-content').next().text(`Description field can't be saved empty.`);
+                }
+            }
+
+        })
+
+        /** Order History **/
 
         /* filter Datatable */
         $('body').on('change', '#filterSeller, #filterFrom, #filterTo, #filterProduct, #filterStatus, #filterDriver', function(e){

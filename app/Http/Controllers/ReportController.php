@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\PurchaseOrder;
+use App\Models\Wallet as SellerWallet;
+use App\Models\DriverWallet;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
 use App\Models\Stock;
@@ -75,5 +76,52 @@ class ReportController extends Controller
         })
         ->with(['total' => $total])
         ->toJson();
+    }
+
+    public function ledgerReport(Request $request) {
+
+        if (!$request->ajax()) {
+            $moduleName = 'Ledger Report';
+            $users = User::selectRaw("CONCAT(roles.name, ' - ', users.name, ' (',  users.email, ')' ) as name, users.id as id")
+            ->join('user_roles', 'user_roles.user_id', '=', 'users.id')
+            ->join('roles', 'user_roles.role_id', '=', 'roles.id')
+            ->whereIn('roles.id', [2,3,6])
+            ->pluck('name', 'id')
+            ->toArray();
+
+            return view('reports.ledger', compact('moduleName', 'users'));
+        }
+
+        $driverWallet = DriverWallet::selectRaw('driver_wallets.driver_id as user_id, driver_wallets.amount, driver_wallets.created_at as date, sales_orders.id as orderid, sales_orders.order_no as order_id')->join('sales_orders', 'sales_orders.id', '=', 'driver_wallets.so_id')->get()->toArray();
+        $sellerWallet = SellerWallet::selectRaw('wallets.seller_id as user_id, wallets.commission_amount as amount, wallets.created_at as date, sales_orders.id as orderid, sales_orders.order_no as order_id')->join('sales_orders', 'sales_orders.id', '=', 'wallets.form_record_id')->where('form', 1)->get()->toArray();
+
+        $wallet = collect($driverWallet)->merge($sellerWallet);
+        $total = 0;
+
+        if (!empty($request->user) && is_numeric($request->user)) {
+            $wallet = $wallet->where('user_id', $request->user);
+        }
+
+        foreach ($wallet as $amount) {
+            $total += $amount['amount'];            
+        }
+
+        return dataTables()->collection($wallet)
+        ->addColumn('user', function ($row) {
+            return Helper::userName($row['user_id']);
+        })
+        ->addColumn('order', function ($row) {
+            return '<a target="_blank" href="' . route('sales-orders.view', encrypt($row['orderid'])) . '"> ' . $row['order_id'] . '</a>';
+        })
+        ->addColumn('date', function ($row) {
+            return date($row['date'], strtotime('d-m-Y H:i'));
+        })
+        ->addColumn('credit', function ($row) {
+            return Helper::currency($row['amount']);
+        })
+        ->rawColumns(['order'])
+        ->with(['total' => Helper::currency($total)])
+        ->toJson();
+
     }
 }

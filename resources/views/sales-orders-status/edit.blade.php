@@ -2771,7 +2771,11 @@
         $(document).on('click', '.delete-main-status-card', function () {
             let element = this;
             let thisStatus = $(this).attr('data-sid');
-            let statusName = $(this).attr('data-name').toUpperCase();
+            let statusName = '';
+
+            if ($(this).attr('data-name') != undefined) {
+                statusName = $(this).attr('data-name').toUpperCase();
+            }
 
             if (isNumeric(thisStatus)) {
 

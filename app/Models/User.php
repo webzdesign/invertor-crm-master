@@ -143,4 +143,20 @@ class User extends Authenticatable
     {
         return encrypt($this->id);
     }
+
+    public static function isAdmin() {
+        return in_array(1, auth()->user()->roles->pluck('id')->toArray());
+    }
+
+    public static function isSeller() {
+        return in_array(Role::where('slug', 'seller')->first()->id ?? 0, auth()->user()->roles->pluck('id')->toArray());
+    }
+
+    public static function isDriver() {
+        return in_array(Role::where('slug', 'driver')->first()->id ?? 0, auth()->user()->roles->pluck('id')->toArray());
+    }
+
+    public static function isSellerManager() {
+        return in_array(Role::where('slug', 'seller-manager')->first()->id ?? 0, auth()->user()->roles->pluck('id')->toArray());
+    }
 }

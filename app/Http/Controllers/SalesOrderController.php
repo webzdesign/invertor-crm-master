@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\{Category, User, Wallet, Bonus, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger, ManageStatus, DriverWallet};
 use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ChangeOrderStatusTrigger, SalesOrderProofImages};
-use App\Models\{Category, User, Wallet, Bonus, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger, ManageStatus};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -18,17 +18,12 @@ class SalesOrderController extends Controller
         if (!$request->ajax()) {
             $moduleName = $this->moduleName;
             $sellers = User::whereHas('role', fn ($builder) => ($builder->whereIn('roles.id', [2, 6])))->select('name', 'id')->pluck('name', 'id')->toArray();
-            $drivers = User::whereHas('role', fn ($builder) => ($builder->where('roles.id', [3])))->selectRaw("CONCAT(name, ' - (', email, ')') as name, id")->pluck('name', 'id')->toArray();
+            $drivers = User::whereHas('role', fn ($builder) => ($builder->where('roles.id', [3])))->selectRaw("CONCAT(name, ' - (', email, ')') as name, users.id, users.lat, users.long")->get()->toArray();
             $statuses = DB::table('sales_order_statuses')->select('name', 'id')->pluck('name', 'id')->toArray();
             $products = Product::select('name', 'id')->pluck('name', 'id')->toArray();
 
             return view('so.index', compact('moduleName', 'sellers', 'drivers', 'statuses', 'products'));
         }
-
-        $users = User::whereHas('role', function ($builder) {
-            $builder->where('roles.id', 3);
-        })->whereNotNull('lat')->whereNotNull('long')
-        ->select('id', 'lat', 'long')->get()->toArray();
 
         $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
         $orderClosedWinStatus = SalesOrderStatus::where('slug', 'closed-win')->first()->id ?? 0;
@@ -96,11 +91,21 @@ class SalesOrderController extends Controller
                 }
 
                 //if status is 1 and user is admin or user is seller or seller manager who added order can delete order
-                if ($users->status == '1' && (in_array(1, User::getUserRoles()) || (auth()->user()->id == $users->added_by && (in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))))) {
+                if ($users->status == '1' && (User::isAdmin() || (auth()->user()->id == $users->added_by && (User::isSeller() || User::isSellerManager())))) {
                     if (auth()->user()->hasPermission("sales-orders.delete")) {
                         $url = route("sales-orders.delete", encrypt($variable->id));
                         $action .= view('buttons.delete', compact('variable', 'url'));
                     }
+                }
+
+                if (User::isAdmin() || (auth()->user()->id == $users->added_by && (User::isSeller() || User::isSellerManager())) || Deliver::where('so_id', $users->id)->where('user_id', auth()->user()->id)->whereIn('status', [0, 1])->exists()) {
+                    $action .= '
+                        <div class="tableCards d-inline-block pb-0">
+                            <div class="editDlbtn">
+                                <button style="margin-left:0px!important;" data-bs-toggle="tooltip" title="Order History" class="btn btn-sm btn-success show-order-details" data-oid="' . $users->id . '" data-title="' . $users->order_no . '"> <i class="fa fa-history"></i> </button>
+                            </div>
+                        </div>
+                        ';
                 }
                 
                 $delvieryPartner = Deliver::where('so_id', $users->id)->where('status', 1)->first();
@@ -109,7 +114,7 @@ class SalesOrderController extends Controller
                     $action .= '
                     <div class="tableCards d-inline-block me-1 pb-0">
                         <div class="editDlbtn">
-                            <button class="btn btn-sm btn-success close-order" data-oid="' . $users->id . '" data-title="' . $users->order_no . '"> FINAL SALES PRICE </button>
+                            <button class="btn btn-sm btn-warning close-order" style="width: 30px;margin-left: 2px;" data-bs-toggle="tooltip" title="Final sale price" data-oid="' . $users->id . '" data-title="' . $users->order_no . '"> <i class="fa fa-gbp"> </i> </button>
                         </div>
                     </div>
                     ';
@@ -153,8 +158,7 @@ class SalesOrderController extends Controller
                     $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
                     $allStatuses = SalesOrderStatus::custom()->active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
 
-                    if (in_array(1, User::getUserRoles()) || (!empty($row->responsible_user) && is_numeric($row->responsible_user) && $row->responsible_user == auth()->user()->id)) {
-    
+                    if (User::isAdmin() || (!empty($row->responsible_user) && is_numeric($row->responsible_user) && $row->responsible_user == auth()->user()->id)) {
                         if (count($allStatuses) > 0) {
     
                             $html = 
@@ -199,17 +203,23 @@ class SalesOrderController extends Controller
                                     </div>
                                 </div>
                             </div>';
+
                         } else {
                             $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
                         }
                     } else  {
-
                         if (count($allStatuses) > 0) {
-                            $html .= '<span class="status-lbl f-10 trigger-box-label-task-ns" style="background:' . ($row->ostatus->color ?? '#000') . ';color:' . Helper::generateTextColor($row->ostatus->color ?? '#fff') . ';"> ' . ($row->ostatus->name ?? '-') .' </span> ';
+                            $html .= '<label class="status-lbl trigger-box-label-task-ns" style="background:' . ($row->ostatus->color ?? '#000') . ';color:' . Helper::generateTextColor($row->ostatus->color ?? '#fff') . ';"> ' . ($row->ostatus->name ?? '-') .' </label> ';
                         } else {
                             $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
                         }
+                    }
 
+                    $lastChangedDate = \App\Models\TriggerLog::where('order_id', $row->id)->where('type', 2)->orderBy('id', 'DESC')->first();
+                    if (isset($lastChangedDate->created_at)) {
+                        $html .= " <div class='f-12'> Last changed on : <strong> " . date('d-m-Y H:i', strtotime($lastChangedDate->created_at)) . " </strong> </div>" ;
+                    } else {
+                        $html .= "-";
                     }
 
                 } else {
@@ -233,9 +243,21 @@ class SalesOrderController extends Controller
                             $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
                         }
                     } else {
-                        if (in_array(auth()->user()->roles->first()->id, [3]) && Deliver::where('so_id', $row->id)->where('user_id', auth()->user()->id)->where('status', 0)->exists()) {
+                        if (User::isDriver() && Deliver::where('so_id', $row->id)->where('user_id', auth()->user()->id)->where('status', 0)->exists()) {
                             $html .= '<button id="driver-approve-the-order" class="btn-primary f-500 f-14 btn-sm bg-success" data-oid="' . $row->id . '"> ACCEPT </button>
                             <button id="driver-reject-the-order" class="btn-primary f-500 f-14 btn-sm bg-error" data-oid="' . $row->id . '"> REJECT </button>';
+                        } else if (User::isSeller() || User::isSellerManager() || User::isAdmin()) {
+                            $driver = Deliver::with('user')->where('status', 0)->where('so_id', $row->id);
+                            if ($driver->exists()) {
+                                $deliveryUser = Deliver::where('so_id', $row->id)->whereIn('status', [0,1])->first()->user_id ?? null;
+
+                                return '<strong> Order assigned to : ' . ($driver->first()->user->name ?? '-') . ' </strong>
+                                <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
+                                ';
+                            } else {
+                                $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
+                            }
+
                         } else {
                             $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
                         }
@@ -474,7 +496,6 @@ class SalesOrderController extends Controller
         $salesPriceErrors = [];
         $orderNo = Helper::generateSalesOrderNumber();
         $userId = auth()->user()->id;
-        $isSeller = null;
 
         DB::beginTransaction();
 
@@ -496,9 +517,8 @@ class SalesOrderController extends Controller
                 $so->long = $request->long;
 
                 //seller or seller manager
-                if (in_array(2, auth()->user()->roles->pluck('id')->toArray()) || in_array(6, auth()->user()->roles->pluck('id')->toArray())) {
+                if (User::isSeller() || User::isSellerManager()) {
                     $so->seller_id = $userId;
-                    $isSeller = $userId;
                 }
 
                 $so->customer_facebook = $request->customerfb;
@@ -529,7 +549,7 @@ class SalesOrderController extends Controller
 
 
                 $soId = $so->id;
-                $soItems = $wallet = [];
+                $soItems = [];
 
                 foreach ($request->product as $key => $product) {
 
@@ -537,7 +557,7 @@ class SalesOrderController extends Controller
                     $itemBaseAmt = floatval($request->price[$key]) ?? 0;
                     $itemAmt = floatval($request->amount[$key]) ?? 0;
 
-                    $tempArr = [
+                    $soItems[] = [
                         'so_id' => $soId,
                         'category_id' => $request->category[$key] ?? '',
                         'product_id' => $product,
@@ -549,38 +569,6 @@ class SalesOrderController extends Controller
                         'created_at' => now()
                     ];
 
-                    $salesPriceSet = ProcurementCost::with('product')->active()->whereIn('role_id', User::getUserRoles())->where('product_id', $product);
-
-                    if ($salesPriceSet->exists()) {
-                        $salesPriceSet = $salesPriceSet->first();
-                        if (floatval($itemBaseAmt) < $salesPriceSet->min_sales_price) {
-                            $salesPriceErrors[] = isset($salesPriceSet->product->name) ? "{$salesPriceSet->product->name} : Sales price must be atleast {$salesPriceSet->min_sales_price} and you gave {$itemBaseAmt}." : '';
-                        } else {
-
-                            if ($itemBaseAmt > $salesPriceSet->base_price) {
-                                $comPrice = $itemBaseAmt - $salesPriceSet->base_price;
-                            } else {
-                                $comPrice = $salesPriceSet->default_commission_price;
-                            }
-
-                            $wallet[] = [
-                                'seller_id' => $isSeller,
-                                'added_by' => $userId,
-                                'form' => 1,
-                                'form_record_id' => $soId,
-                                'item_id' => $product,
-                                'commission_amount' => $comPrice * $qty,
-                                'item_amount' => $itemBaseAmt,
-                                'commission_actual_amount' => $comPrice,
-                                'item_qty' => $qty,
-                                'created_at' => now()
-                            ];
-
-                            $soItems[] = $tempArr;
-                        }
-                    } else {
-                        $soItems[] = $tempArr;
-                    }
                 }
 
                 if (count($soItems) > 0) {
@@ -589,10 +577,6 @@ class SalesOrderController extends Controller
                         return redirect()->back()->with('error', implode(' <br/> ', $salesPriceErrors));
                     } else {
                         SalesOrderItem::insert($soItems);
-
-                        if (count($wallet) > 0) {
-                            Wallet::insert($wallet);
-                        }
 
                         Deliver::create([
                             'user_id' => $request->driver_id,
@@ -1025,9 +1009,9 @@ class SalesOrderController extends Controller
                 ->where('status', 1)
                 ->orderBy('id', 'DESC');
 
-            if (in_array(3, User::getUserRoles())) {
+            if (User::isDriver()) {
                 $d = $d->where('user_id', auth()->user()->id);
-            } else if (in_array(1, User::getUserRoles())) {
+            } else if (User::isAdmin()) {
                 $d = $d->where('id', '>', 0);
             } else {
                 $soids = SalesOrder::where('added_by', auth()->user()->id)->select('id')->pluck('id')->toArray();
@@ -1082,7 +1066,7 @@ class SalesOrderController extends Controller
     public function priceUnmatched(Request $request) {
 
         if (!$request->hasFile('file')) {
-            return response()->json(['status' => false, 'message' => 'Upload atleast a file.']);
+            return response()->json(['status' => false, 'messages' => 'Upload atleast a file.']);
         }
 
         $toBeDeleted = [];
@@ -1092,9 +1076,15 @@ class SalesOrderController extends Controller
         }
 
         if (!empty($request->order_id) && !empty($request->amount) && is_numeric($request->amount)) {
-            $order = SalesOrder::with('items')->where('id', $request->order_id);
+            $order = SalesOrder::with(['items', 'seller.roles'])->where('id', $request->order_id);
             if ($order->exists()) {
                 $order = $order->first();
+                $thisProductId = $order->items->first()->product_id ?? 0;
+                $thisDriverId = auth()->user()->id;
+
+                if (empty(Helper::getAvailableStockFromDriver($thisDriverId))) {
+                    return response()->json(['status' => false, 'messages' => 'You do\'t have stock for this product.']);
+                }
 
                 DB::beginTransaction();
 
@@ -1112,7 +1102,7 @@ class SalesOrderController extends Controller
                         }                    
                     }
     
-                    $procurementCost = ProcurementCost::where('role_id', 2)->where('product_id', $order->items->first()->id ?? 0);
+                    $procurementCost = ProcurementCost::where('role_id', $order->seller->roles->first()->id ?? 2)->where('product_id', $thisProductId);
                     $newTotal = is_numeric($request->amount) ? round($request->amount) : round(floatval($request->amount));
                     $orderTotal = round($order->items->sum('amount'));
     
@@ -1124,21 +1114,15 @@ class SalesOrderController extends Controller
                         $procurementCost = $procurementCost->first();
                         if ($newTotal != $orderTotal) {
     
-                            if (Wallet::where('form_record_id', $request->order_id)->where('form', 1)->exists()) {
-                                Wallet::where('form_record_id', $request->order_id)->where('form', 1)->delete();
-                            }
-
-                            Helper::logger("SINGLE : $newProductTotal AND MIN SALE : $procurementCost->min_sales_price AND BASE : $procurementCost->base_price");
-                            
                             if ($newProductTotal > $procurementCost->base_price) {
                                 $comPrice = $newProductTotal - $procurementCost->base_price;
                             } else {
                                 $comPrice = $procurementCost->default_commission_price;
                             }
-                            Helper::logger("COMM:" . ($comPrice * $prodQty));
+
                             Wallet::create([
                                 'seller_id' => $order->seller_id,
-                                'added_by' => auth()->user()->id,
+                                'added_by' => $thisDriverId,
                                 'form' => 1,
                                 'form_record_id' => $order->id,
                                 'item_id' => $order->items->first()->id ?? null,
@@ -1148,14 +1132,39 @@ class SalesOrderController extends Controller
                                 'item_qty' => $prodQty,
                                 'created_at' => now()
                             ]);
-    
                         }
+                    }
+
+                    DriverWallet::create([
+                        'so_id' => $order->id,
+                        'driver_id' => $thisDriverId,
+                        'amount' => $newTotal
+                    ]);
+
+                    $si = Stock::where('product_id', $thisProductId)->where('type', 1)->whereIn('form', [1, 3])->sum('qty');
+                    $so = Stock::where('product_id', $thisProductId)->where('form', 3)->where('type', 0)->where('driver_id', $thisDriverId)->sum('qty');
+                    $stotal = ($si - $so) - $prodQty;
+
+                    Helper::logger("IN $si OUT $so TOTAL $stotal");
+
+                    if ($stotal > 0) {
+                        Stock::create([
+                            'product_id' => $thisProductId,
+                            'driver_id' => $thisDriverId,
+                            'type' => 1,
+                            'date' => now(),
+                            'qty' => $prodQty,
+                            'added_by' => $thisDriverId,
+                            'form' => 2,
+                            'form_record_id' => $order->id
+                        ]);
                     }
     
                     SalesOrder::where('id', $request->order_id)->update(['price_matched' => 1, 'sold_amount' => round($request->amount)]);
+                    SalesOrderItem::where('so_id', $request->order_id)->update(['sold_item_amount' => $newProductTotal]);
 
                     DB::commit();
-                    return response()->json(['status' => true, 'message' => 'Sales price changes proof uploaded successfully.']);
+                    return response()->json(['status' => true, 'messages' => 'Sales price changes proof uploaded successfully.']);
 
                 } catch (\Exception $e) {
                     Helper::logger($e->getMessage());
@@ -1169,12 +1178,12 @@ class SalesOrderController extends Controller
                         }
                     }
 
-                    return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+                    return response()->json(['status' => false, 'messages' => Helper::$errorMessage]);
                 }
             }
         }
 
-        return response()->json(['status' => false, 'message' => Helper::$notFound]);
+        return response()->json(['status' => false, 'messages' => Helper::$notFound]);
     }
 
     public function changeDriver(Request $request) {

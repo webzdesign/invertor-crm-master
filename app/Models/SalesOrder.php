@@ -58,6 +58,10 @@ class SalesOrder extends Model
         return $this->hasOne(Deliver::class, 'so_id');
     }
 
+    public function seller() {
+        return $this->belongsTo(User::class, 'seller_id');
+    }
+
     public function responsible() {
         return $this->belongsTo(User::class, 'responsible_user');
     }
