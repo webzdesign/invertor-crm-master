@@ -1138,14 +1138,12 @@ class SalesOrderController extends Controller
                     DriverWallet::create([
                         'so_id' => $order->id,
                         'driver_id' => $thisDriverId,
-                        'amount' => $newTotal
+                        'amount' => $newTotal - ($comPrice * $prodQty)
                     ]);
 
                     $si = Stock::where('product_id', $thisProductId)->where('type', 1)->whereIn('form', [1, 3])->sum('qty');
                     $so = Stock::where('product_id', $thisProductId)->where('form', 3)->where('type', 0)->where('driver_id', $thisDriverId)->sum('qty');
                     $stotal = ($si - $so) - $prodQty;
-
-                    Helper::logger("IN $si OUT $so TOTAL $stotal");
 
                     if ($stotal > 0) {
                         Stock::create([

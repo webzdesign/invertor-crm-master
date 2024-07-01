@@ -95,7 +95,7 @@ class ReportController extends Controller
         $driverWallet = DriverWallet::selectRaw('driver_wallets.driver_id as user_id, driver_wallets.amount, driver_wallets.created_at as date, sales_orders.id as orderid, sales_orders.order_no as order_id')->join('sales_orders', 'sales_orders.id', '=', 'driver_wallets.so_id')->get()->toArray();
         $sellerWallet = SellerWallet::selectRaw('wallets.seller_id as user_id, wallets.commission_amount as amount, wallets.created_at as date, sales_orders.id as orderid, sales_orders.order_no as order_id')->join('sales_orders', 'sales_orders.id', '=', 'wallets.form_record_id')->where('form', 1)->get()->toArray();
 
-        $wallet = collect($driverWallet)->merge($sellerWallet);
+        $wallet = collect($driverWallet)->merge($sellerWallet)->sortBy('order_id');
         $total = 0;
 
         if (!empty($request->user) && is_numeric($request->user)) {

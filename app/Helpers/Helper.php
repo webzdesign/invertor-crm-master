@@ -3,16 +3,14 @@
 namespace App\Helpers;
 
 
-use App\Models\ChangeOrderStatusTrigger;
-use App\Models\AddTaskToOrderTrigger;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Number;
 use App\Models\PurchaseOrder;
+use App\Models\DriverWallet;
 use App\Models\Distribution;
 use Illuminate\Http\Request;
 use App\Models\SalesOrder;
 use App\Models\Setting;
-use App\Models\Trigger;
 use App\Models\Product;
 use App\Models\Country;
 use App\Models\Wallet;
@@ -173,6 +171,10 @@ class Helper {
 
     public static function getSellerCommission() {
         return self::currency(Wallet::where('seller_id', auth()->user()->id)->where('form', 1)->sum('commission_amount'));
+    }
+
+    public static function getDriverBalance() {
+        return self::currency(DriverWallet::where('driver_id', auth()->user()->id)->sum('amount'));
     }
 
     public static function currencyFormatter($amount, $showSign = false, $in = 'GBP') {

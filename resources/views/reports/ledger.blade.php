@@ -65,10 +65,7 @@
             },
             processing: true,
             serverSide: true,
-            language: {
-                search: "_INPUT_",
-                searchPlaceholder: "Search here"
-            },
+            searching: false,
             "dom":"<'filterHeader d-block-500 cardsHeader'l<'#filterInput'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
             ajax: {
                 "url": "{{ route('ledger-report') }}",
