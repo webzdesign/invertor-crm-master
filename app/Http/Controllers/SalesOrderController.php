@@ -1070,6 +1070,7 @@ class SalesOrderController extends Controller
         }
 
         $toBeDeleted = [];
+        $comPrice = $prodQty = 0;
 
         if (!file_exists(storage_path('app/public/so-price-change-agreement'))) {
             mkdir(storage_path('app/public/so-price-change-agreement'), 0777, true);
