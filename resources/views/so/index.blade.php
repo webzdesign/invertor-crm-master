@@ -756,7 +756,7 @@
 
         $.validator.addMethod("maxFiles", function(value, element, param) {
             return element.files.length <= param;
-        }, "Maximum 10 files can be uploaded at a time.");
+        }, "Maximum 10 files can be uploaded.");
 
         $.validator.addMethod("fileSizeLimit", function(value, element, param) {
             var totalSize = 0;

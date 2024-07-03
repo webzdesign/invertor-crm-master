@@ -329,4 +329,8 @@ class Helper {
     public static function currency($amount) {
         return "£" . number_format(round($amount), 0, '.', ',');
     }
+
+    public static function hash() {
+        return sha1(md5(time()));
+    }
 }

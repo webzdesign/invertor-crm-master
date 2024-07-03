@@ -16,10 +16,10 @@
             <tr>
                 @if(User::isAdmin())
                     <th>Seller Name</th>
-                    <th width="20%">Amount Payable</th>
+                    <th width="20%">Commission Payable</th>
                 @else
                     <th>Order Number</th>
-                    <th width="20%">Amount Receivable</th>
+                    <th width="20%">Commission Receivable</th>
                 @endif
             </tr>
         </thead>

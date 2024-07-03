@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Wallet as SellerWallet;
-use App\Models\DriverWallet;
+use App\Models\{DriverWallet, Stock, User, Wallet as SellerWallet, Transaction};
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
-use App\Models\Stock;
-use App\Models\User;
 
 class ReportController extends Controller
 {
@@ -219,5 +217,81 @@ class ReportController extends Controller
         ->with(['total' => Helper::currency($total)])
         ->rawColumns(['seller_info'])
         ->toJson();
+    }
+
+    public function payAmountToAdmin(Request $request) {
+
+        $credit = Transaction::where('form_id', 1)->where('user_id', auth()->user()->id)->credit()->sum('amount');
+        $debit = Transaction::where('form_id', 1)->where('user_id', auth()->user()->id)->debit()->sum('amount');
+
+        $remaining = $credit - $debit;
+
+        if ($remaining == 0 || (is_numeric($request->amount) && $remaining < $request->amount)) {
+            return back()->with('error', 'You have insufficient balance in your account.');
+        }
+
+        if (!file_exists(storage_path('app/public/payment-receipt'))) {
+            mkdir(storage_path('app/public/payment-receipt'), 0777, true);
+        }
+
+        if (is_numeric($request->amount)) {
+
+            $attachmentJson = [];
+            
+            DB::beginTransaction();
+
+            try {
+
+                if ($request->hasFile('file')) {
+                    foreach ($request->file('file') as $file) {
+                        $name = 'PAY-RECEIPT-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
+                        $file->move(storage_path('app/public/payment-receipt'), $name);
+
+                        if (file_exists(storage_path("app/public/payment-receipt/{$name}"))) {
+                            $attachmentJson[] = $name;
+                        }
+                    }
+                }
+
+                if (empty($attachmentJson)) {
+                    $attachmentJson = null;
+                } else {
+                    $attachmentJson = json_encode($attachmentJson);
+                }
+
+                Transaction::create([
+                    'form_id' => 1, //Sales Order
+                    'transaction_id' => Helper::hash(),
+                    'user_id' => 0,
+                    'attachments' => $attachmentJson,
+                    'voucher' => '',
+                    'amount' => $request->amount,
+                    'year' => '2024-25',
+                    'added_by' => auth()->user()->id
+                ]);
+
+                DB::commit();
+                return back()->with('success', Helper::currency($request->amount) . " paid to admin successfully.");
+            } catch (\Exception $e) {
+
+
+                if (is_array($attachmentJson) && !empty($attachmentJson)) {
+                    foreach ($attachmentJson as $eachImage) {
+                        if (file_exists(storage_path("app/public/payment-receipt/{$eachImage}"))) {
+                            unlink(storage_path("app/public/payment-receipt/{$eachImage}"));
+                        }
+                    }
+                }
+
+                DB::rollback();
+
+                Helper::logger($e->getMessage());
+
+                return back()->with('error', Helper::$errorMessage);
+            }
+
+        } else {
+            return back()->with('error', 'Please enter valid amount.');
+        }
     }
 }

@@ -316,9 +316,9 @@ class DistributionController extends Controller
 
         $messages = [
             'type.required' => 'Select a Type.',
-            'docs.max' => 'Maximum 10 files can be uploaded at a time.',
+            'docs.max' => 'Maximum 10 files can be uploaded.',
             'docs.*.mimes' => 'Only .png, .jpg, .jpeg and .pdf extensions supported.',
-            'docs.*.max' => 'Maximum 20MB files can be uploaded at a time.',
+            'docs.*.max' => 'Maximum 20MB files can be uploaded.',
             'quantity.*.required' => 'Enter quantity.',
             'quantity.*.numeric' => 'Enter valid format.',
             'quantity.*.min' => 'Quantity can\'t be less than 1.',

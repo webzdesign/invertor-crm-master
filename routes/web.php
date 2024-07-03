@@ -156,6 +156,7 @@ Route::group(["middleware" => "auth"], function () {
         /** Financial report **/
         Route::match(['GET', 'POST'], 'financial-report/driver', [ReportController::class, 'driverCommission'])->name('driver-commission');
         Route::match(['GET', 'POST'], 'financial-report/seller', [ReportController::class, 'sellerCommission'])->name('seller-commission')->middleware('ModuleAccessor:financial-seller-report.view');
+        Route::post('pay-amount-to-admin', [ReportController::class, 'payAmountToAdmin'])->name('pay-amount-to-admin');
         /** Financial report **/
 
         /** Payment for deliveyr **/

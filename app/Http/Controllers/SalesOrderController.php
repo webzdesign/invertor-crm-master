@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{Category, User, Wallet, Bonus, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger, ManageStatus, DriverWallet};
 use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ChangeOrderStatusTrigger, SalesOrderProofImages};
-use App\Models\{AdminWallet, PaymentForDelivery};
+use App\Models\{AdminWallet, PaymentForDelivery, Transaction};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -1113,6 +1113,17 @@ class SalesOrderController extends Controller
                         'driver_id' => $thisDriverId,
                         'amount' => ($newTotal - $driverRecevies),
                         'driver_receives' => $driverRecevies
+                    ]);
+
+                    Transaction::create([
+                        'form_id' => 1, //Sales Order
+                        'form_record_id' => $order->id,
+                        'transaction_id' => Helper::hash(),
+                        'user_id' => auth()->user()->id,
+                        'voucher' => $order->order_no,
+                        'amount' => $newTotal,
+                        'year' => '2024-25',
+                        'added_by' => auth()->user()->id
                     ]);
                     //driver amount
 
