@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{Category, User, Wallet, Bonus, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger, ManageStatus, DriverWallet};
 use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ChangeOrderStatusTrigger, SalesOrderProofImages};
+use App\Models\{AdminWallet, PaymentForDelivery};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -406,25 +407,6 @@ class SalesOrderController extends Controller
         } else {
             $neededStock = null;
         }
-
-        // $users = collect($users)->map(function ($ele) use ($thisProduct, $neededStock) {
-        //     $inStock = DistributionItem::where('to_driver', $ele['id'])
-        //     ->where('product_id', $thisProduct)
-        //     ->select('qty')
-        //     ->sum('qty');
-
-        //     $outStock = DistributionItem::where('from_driver', $ele['id'])
-        //     ->where('product_id', $thisProduct)
-        //     ->select('qty')
-        //     ->sum('qty');
-
-        //     $availStock = intval($inStock) - intval($outStock);
-
-        //     if ($availStock > 0) {
-        //         return $ele;
-        //     }
-
-        // })->filter()->values()->toArray();
 
         if ($errorWhileSavingLatLong === false) {
 
@@ -1070,7 +1052,7 @@ class SalesOrderController extends Controller
         }
 
         $toBeDeleted = [];
-        $comPrice = $prodQty = 0;
+        $comPrice = $prodQty = $driverRecevies = 0;
 
         if (!file_exists(storage_path('app/public/so-price-change-agreement'))) {
             mkdir(storage_path('app/public/so-price-change-agreement'), 0777, true);
@@ -1110,6 +1092,29 @@ class SalesOrderController extends Controller
                     $prodQty = $order->items->first()->qty ?? 1;
                     $newProductTotal = $newTotal / $prodQty;
     
+                    //driver amount
+                    $p4dDriver = PaymentForDelivery::where('driver_id', $thisDriverId);
+                    $assignedDriver = Deliver::where('user_id', $thisDriverId)->where('status', 1)->first();
+
+                    if ($p4dDriver->exists() && $assignedDriver != null) {
+                        $thisRange = sprintf('%.2f', $assignedDriver->range);
+                        $p4dDriver = $p4dDriver->where('distance', '>=', $thisRange)->orderBy('distance', 'ASC')->first();
+
+                        if ($p4dDriver != null) {
+                            $driverRecevies = $p4dDriver->payment;
+                        }
+
+                    } else if (PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first() != null) {
+                        $driverRecevies = PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first()->payment;
+                    }
+
+                    DriverWallet::create([
+                        'so_id' => $order->id,
+                        'driver_id' => $thisDriverId,
+                        'amount' => ($newTotal - $driverRecevies),
+                        'driver_receives' => $driverRecevies
+                    ]);
+                    //driver amount
 
                     if ($procurementCost->exists()) {
                         $procurementCost = $procurementCost->first();
@@ -1136,12 +1141,6 @@ class SalesOrderController extends Controller
                         }
                     }
 
-                    DriverWallet::create([
-                        'so_id' => $order->id,
-                        'driver_id' => $thisDriverId,
-                        'amount' => $newTotal - ($comPrice * $prodQty)
-                    ]);
-
                     $si = Stock::where('product_id', $thisProductId)->where('type', 1)->whereIn('form', [1, 3])->sum('qty');
                     $so = Stock::where('product_id', $thisProductId)->where('form', 3)->where('type', 0)->where('driver_id', $thisDriverId)->sum('qty');
                     $stotal = ($si - $so) - $prodQty;
@@ -1158,9 +1157,17 @@ class SalesOrderController extends Controller
                             'form_record_id' => $order->id
                         ]);
                     }
+
+                    $newestTotal = ($newTotal - $driverRecevies);
+
+                    if ($newestTotal == 0) {
+                        $newestTotalQty = 0;
+                    } else {
+                        $newestTotalQty = $newestTotal / $prodQty;
+                    }
     
-                    SalesOrder::where('id', $request->order_id)->update(['price_matched' => 1, 'sold_amount' => round($request->amount)]);
-                    SalesOrderItem::where('so_id', $request->order_id)->update(['sold_item_amount' => $newProductTotal]);
+                    SalesOrder::where('id', $request->order_id)->update(['price_matched' => 1, 'sold_amount' => round($newestTotal)]);
+                    SalesOrderItem::where('so_id', $request->order_id)->update(['sold_item_amount' => $newestTotalQty]);
 
                     DB::commit();
                     return response()->json(['status' => true, 'messages' => 'Sales price changes proof uploaded successfully.']);

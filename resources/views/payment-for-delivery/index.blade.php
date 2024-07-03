@@ -88,42 +88,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    @empty
-                                    {{-- <tr>
-                                        <td class="block-a">
-                                            <div style="min-width: 200px;width: 100%" class="removable-driver">
-                                                <select name="mdriver[0]" data-indexid="0" id="m-driver-0" class="select2 select2-hidden-accessible m-driver" style="width:100%" data-placeholder="Select a Driver">
-                                                    @forelse($drivers as $did => $dname)
-                                                        @if($loop->first)
-                                                        <option value="" selected> --- Select a Driver --- </option>
-                                                        @endif
-                                                        <option value="{{ $did }}">{{ $dname }}</option>
-                                                        @empty
-                                                        <option value="" selected> --- No Driver Available --- </option>
-                                                    @endforelse
-                                                </select>
-                                            </div>
-                                        </td>
-                
-                                        <td class="block-b">
-                                            <div style="min-width: 200px;width: 100%" class="removable-product">
-                                                <input type="text" data-indexid="0" name="mdistance[0]" id="m-distance-0" class="form-control m-distance" style="background:#ffffff">
-                                            </div>
-                                        </td>
-                
-                                        <td class="block-c">
-                                            <div style="min-width: 200px;">
-                                                <input type="text" data-indexid="0" name="mpayment[0]" id="m-payment-0" class="form-control m-payment" style="background:#ffffff">
-                                            </div>
-                                        </td>
-                
-                                        <td style="width:100px;">
-                                            <div style="min-width: 100px;">
-                                                <button type="button" class="btn btn-primary btn-sm addNewRow">+</button>
-                                                <button type="button" class="btn btn-danger btn-sm removeRow" tabindex="-1">-</button>
-                                            </div>
-                                        </td>
-                                    </tr> --}}
+                                    @empty                                    
                                     @endforelse
                                 </tbody>
                                 <tfoot>
@@ -262,21 +227,6 @@ $(document).ready(function() {
             }
         }); 
 
-    });
-
-    $(document).on('change', '.m-driver', function (event) {
-        let indexId = $(this).data('indexid');
-        let thisId = $(this).val();
-        
-        let that = $(this);
-
-        $('.m-driver').not(this).each(function (index, element) {
-            if ($(element).val() !== null && thisId == $(element).val()) {
-                $(that).val(null).trigger('change');
-                Swal.fire('Warning', 'Driver is already selected.', 'warning');
-                return false;
-            }
-        });
     });
 
     $('#delivery4Payment').validate({

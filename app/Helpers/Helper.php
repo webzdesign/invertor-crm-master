@@ -174,7 +174,7 @@ class Helper {
     }
 
     public static function getDriverBalance() {
-        return self::currency(DriverWallet::where('driver_id', auth()->user()->id)->sum('amount'));
+        return self::currency(DriverWallet::where('driver_id', auth()->user()->id)->sum('driver_receives'));
     }
 
     public static function currencyFormatter($amount, $showSign = false, $in = 'GBP') {

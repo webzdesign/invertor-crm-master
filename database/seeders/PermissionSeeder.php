@@ -91,14 +91,30 @@ class PermissionSeeder extends Seeder
             /** Reports **/
 
             ['name' => 'View stock report', 'slug' => 'stock-report.view', 'model' => 'Report', 'description' => 'Can view stock report', 'added_by' => 1],
-            ['name' => 'View ledger report', 'slug' => 'ledger-report.view', 'model' => 'Report', 'description' => 'Can view ledger report', 'added_by' => 1],
+            // ['name' => 'View ledger report', 'slug' => 'ledger-report.view', 'model' => 'Report', 'description' => 'Can view ledger report', 'added_by' => 1],
+
+            ['name' => 'View seller report', 'slug' => 'financial-seller-report.view', 'model' => 'FinancialReport', 'description' => 'Can view financial seller report', 'added_by' => 1]
 
             /** Reports **/
 
         ];
 
+        $toBeDeleted = $toBeRestored = [];
+
         foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['slug' => $permission['slug']], $permission);
+            if ($exists = Permission::where('slug', $permission['slug'])->onlyTrashed()->exists()) {
+                $toBeRestored[] = $exists;
+            }
+
+            $toBeDeleted[] = Permission::firstOrCreate(['slug' => $permission['slug']], $permission)->id;
+        }
+        
+        if (!empty($toBeDeleted)) {
+            Permission::whereNotIn('id', $toBeDeleted)->delete();
+        }
+
+        if (!empty($toBeRestored)) {
+            Permission::whereIn('id', $toBeRestored)->restore();
         }
     }
 }

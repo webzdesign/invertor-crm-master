@@ -79,7 +79,7 @@ class ReportController extends Controller
     }
 
     public function ledgerReport(Request $request) {
-
+        return abort(404);
         if (!$request->ajax()) {
             $moduleName = 'Ledger Report';
             $users = User::selectRaw("CONCAT(roles.name, ' - ', users.name, ' (',  users.email, ')' ) as name, users.id as id")
@@ -123,5 +123,101 @@ class ReportController extends Controller
         ->with(['total' => Helper::currency($total)])
         ->toJson();
 
+    }
+
+    public function driverCommission(Request $request) {
+        if (!(User::isAdmin() || User::isDriver())) {
+            abort(403);
+        }
+
+        $total = 0;
+
+        if (!$request->ajax()) {
+            $moduleName = 'Driver';
+            return view('reports.driver-commission', compact('moduleName'));
+        }
+
+        if (User::isAdmin()) {
+            $driverWallet = DriverWallet::join('users', 'users.id', '=', 'driver_wallets.driver_id')
+            ->join('sales_orders', 'sales_orders.id', '=', 'driver_wallets.so_id')
+            ->selectRaw("SUM(driver_wallets.amount) as driver_amount, users.name as driver_info, SUM(driver_wallets.driver_receives) as driver_receives")
+            ->groupBy('driver_wallets.driver_id');
+
+            if (isset($request->search['value']) && !empty($request->search['value'])) {
+                $driverWallet = $driverWallet->where('users.name', 'LIKE', '%' . trim($request->search['value']) . '%');
+            }
+
+        } else {
+            $driverWallet = DriverWallet::join('sales_orders', 'sales_orders.id', '=', 'driver_wallets.so_id')
+            ->selectRaw("driver_wallets.amount as driver_amount, sales_orders.order_no as driver_info, sales_orders.id as orderid")
+            ->where('driver_wallets.driver_id', auth()->user()->id);
+        }
+
+        foreach ($driverWallet->get() as $dw) {
+            $total += $dw['driver_amount'];
+        }
+
+        return dataTables()->of($driverWallet)
+
+        ->editColumn('driver_info', function ($row) {
+            if (User::isAdmin()) {
+                return $row['driver_info'];
+            } else {
+                return '<a target="_blank" href="' . route('sales-orders.view', encrypt($row['orderid'])) . '"> ' . ($row['driver_info']) . '</a>';
+            }
+        })
+        ->editColumn('driver_amount', fn ($row) => Helper::currency($row['driver_amount']))
+        ->with(['total' => Helper::currency($total)])
+        ->rawColumns(['driver_info'])
+        ->toJson();
+    }
+
+    public function sellerCommission(Request $request) {
+        $total = 0;
+
+        if (!$request->ajax()) {
+            $moduleName = 'Seller';
+            return view('reports.seller-commission', compact('moduleName'));
+        }
+
+        if (User::isAdmin()) {
+            $sellerWallet = SellerWallet::join('users', 'users.id', '=', 'wallets.seller_id')
+            ->join('sales_orders', 'sales_orders.id', '=', 'wallets.form_record_id')
+            ->selectRaw("SUM(wallets.commission_amount) as seller_amount, users.name as seller_info")
+            ->where('wallets.form', 1)
+            ->whereNotNull('wallets.seller_id')
+            ->where('wallets.seller_id', '!=', '')
+            ->groupBy('wallets.seller_id');
+
+            if (isset($request->search['value']) && !empty($request->search['value'])) {
+                $sellerWallet = $sellerWallet->where('users.name', 'LIKE', '%' . trim($request->search['value']) . '%');
+            }
+
+        } else {
+            $sellerWallet = SellerWallet::join('sales_orders', 'sales_orders.id', '=', 'wallets.form_record_id')
+            ->selectRaw("wallets.commission_amount as seller_amount, sales_orders.order_no as seller_info, sales_orders.id as orderid")
+            ->where('wallets.form', 1)
+            ->whereNotNull('wallets.seller_id')
+            ->where('wallets.seller_id', auth()->user()->id)
+            ->where('wallets.seller_id', '!=', '');
+        }
+
+        foreach ($sellerWallet->get() as $sw) {
+            $total += $sw['seller_amount'];
+        }
+
+        return dataTables()->of($sellerWallet)
+
+        ->editColumn('seller_info', function ($row) {
+            if (User::isAdmin()) {
+                return $row['seller_info'];
+            } else {
+                return '<a target="_blank" href="' . route('sales-orders.view', encrypt($row['orderid'])) . '"> ' . ($row['seller_info']) . '</a>';
+            }
+        })
+        ->editColumn('seller_amount', fn ($row) => Helper::currency($row['seller_amount']))
+        ->with(['total' => Helper::currency($total)])
+        ->rawColumns(['seller_info'])
+        ->toJson();
     }
 }

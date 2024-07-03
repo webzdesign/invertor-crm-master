@@ -60,10 +60,6 @@
     <table class="datatables-po table datatableMain" style="width: 100%!important;">
         <thead>
             <tr>
-                <td colspan="2" > <strong class="float-end">Total</strong> </td>
-                <td id="q-total" style="background: #e583a47d;font-weight:600;">0</td>
-            </tr>
-            <tr>
                 <th width="10%">Type</th>
                 <th>Product</th>
                 <th width="10%">Quantity</th>
@@ -71,6 +67,12 @@
         </thead>
         <tbody>
         </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2">  </td>
+                <td id="q-total" style="background: #e583a47d;font-weight:600;">0</td>
+            </tr>
+        </tfoot>
     </table>
 </div>
 @endsection

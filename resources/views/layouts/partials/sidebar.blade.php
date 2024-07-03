@@ -318,7 +318,7 @@
                     </li>
                 @endpermission
 
-                @permission('ledger-report.view')
+                {{-- @permission('ledger-report.view')
                     <li>
                         <a href="{{ route('ledger-report') }}"
                             class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('ledger-report*') ? 'active' : '' }}">
@@ -328,7 +328,7 @@
                             <span class="d-none-add">Ledger Report</span>
                         </a>
                     </li>
-                @endpermission
+                @endpermission --}}
 
             </ul>
         </div>
@@ -337,7 +337,57 @@
 
 
 
+    @if(User::isAdmin() || User::isDriver() || auth()->user()->hasPermission('financial-seller-report.view'))
+    <li>
+        <a data-bs-toggle="collapse" data-bs-target="#collapseCom"
+            aria-expanded="{{ request()->is('financial-report*') ? 'true' : 'false' }}"
+            aria-controls="collapseCom"
+            class="f-400 f-14 text-white cursor-pointer d-flex align-items-center justify-content-between"
+            href="javascript:;">
+            <div class="d-flex align-items-center">
+                <div class="icnBx d-flex align-items-center justify-content-center">
+                    <i class="fa fa-file text-white" aria-hidden="true"></i>
+                </div>
+                <span class="d-none-add">Financial Reports</span>
+            </div>
 
+            <svg class="arrowDown d-none-add me-0" width="10" height="8" viewBox="0 0 10 8"
+                fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0.612793 1.58594L4.85543 5.82858L9.09807 1.58594" stroke="white"></path>
+            </svg>
+        </a>
+        <div id="collapseCom" data-bs-parent="#accordionExample"
+            class="collapseMenu collapseWeb collapse {{ request()->is('financial-report*') ? 'show' : '' }}">
+            <ul class="p-0 menuList">
+
+                @if(User::isAdmin() || User::isDriver())
+                    <li>
+                        <a href="{{ route('driver-commission') }}"
+                            class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('financial-report/driver') ? 'active' : '' }}">
+                            <div class="icnBx d-flex align-items-center justify-content-center">
+                                <i class="fa fa-car text-white" aria-hidden="true"></i>
+                            </div>
+                            <span class="d-none-add">Driver</span>
+                        </a>
+                    </li>
+                @endif
+
+                @if(auth()->user()->hasPermission('financial-seller-report.view'))
+                <li>
+                    <a href="{{ route('seller-commission') }}"
+                        class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('financial-report/seller*') ? 'active' : '' }}">
+                        <div class="icnBx d-flex align-items-center justify-content-center">
+                            <i class="fa fa-user text-white" aria-hidden="true"></i>
+                        </div>
+                        <span class="d-none-add">Seller</span>
+                    </a>
+                </li>
+                @endif
+
+            </ul>
+        </div>
+    </li>
+    @endif
 
 
 </ul>

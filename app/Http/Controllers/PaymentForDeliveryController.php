@@ -49,13 +49,6 @@ class PaymentForDeliveryController extends Controller
 
                 $drivers = $request->mdriver;
 
-                if (is_array($drivers)) {
-                    if (count($drivers) !== count(array_unique($drivers))) {
-                        DB::rollBack();
-                        return redirect()->back()->with('error', 'Can\'t add for same driver multiple times.');
-                    }
-                }
-
                 $toBeEdited = is_array($request->edit_id) && !empty($request->edit_id) ? array_values($request->edit_id) : [];
 
                 PaymentForDelivery::whereNotNull('driver_id')->whereNotIn('id', $toBeEdited)->delete();

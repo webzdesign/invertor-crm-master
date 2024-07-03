@@ -52,10 +52,10 @@ class ScaffoldingSeeder extends Seeder
             $user->roles()->attach([4]);
         }
 
-        if (User::where('email', 'driver@ebike.com')->doesntExist()) {
+        if (User::where('email', 'driver1@gmail.com')->doesntExist()) {
             $user = new User();
             $user->name = 'Driver A';
-            $user->email = 'driver@ebike.com';
+            $user->email = 'driver1@gmail.com';
             $user->password = Hash::make('Dpd7Eeq{]Q&c^uLE');
             $user->address_line_1 = 'Scale Space White City, 58 Wood Ln, London W12 7RZ, United Kingdom';
             $user->phone = '7818 446728';
@@ -72,10 +72,10 @@ class ScaffoldingSeeder extends Seeder
             $user->roles()->attach([3]);
         }
 
-        if (User::where('email', 'driver@gmail.com')->doesntExist()) {
+        if (User::where('email', 'driver2@gmail.com')->doesntExist()) {
             $user = new User();
             $user->name = 'Driver B';
-            $user->email = 'driver@gmail.com';
+            $user->email = 'driver2@gmail.com';
             $user->password = Hash::make('EYQA()~-IZ}7cK}Y');
             $user->address_line_1 = '94 Old Broad St, London EC2M 1JB, UK';
             $user->phone = '7818 886728';
@@ -91,8 +91,6 @@ class ScaffoldingSeeder extends Seeder
 
             $user->roles()->attach([3]);
         }
-
-
 
         foreach (['Scooter', 'Bike', 'Disable car'] as $category) {
             if (Category::where('slug', Helper::slug($category))->doesntExist()) {

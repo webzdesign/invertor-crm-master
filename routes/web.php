@@ -153,6 +153,11 @@ Route::group(["middleware" => "auth"], function () {
         Route::match(['GET', 'POST'], 'ledger-report', [ReportController::class, 'ledgerReport'])->name('ledger-report')->middleware('ModuleAccessor:ledger-report.view');
         /** Report **/
 
+        /** Financial report **/
+        Route::match(['GET', 'POST'], 'financial-report/driver', [ReportController::class, 'driverCommission'])->name('driver-commission');
+        Route::match(['GET', 'POST'], 'financial-report/seller', [ReportController::class, 'sellerCommission'])->name('seller-commission')->middleware('ModuleAccessor:financial-seller-report.view');
+        /** Financial report **/
+
         /** Payment for deliveyr **/
         Route::match(['GET', 'POST'], 'payment-for-delivery', [PaymentForDeliveryController::class, 'index'])->name('payment-for-delivery')->middleware('ModuleAccessor:payment-for-delivery.view');        
         /** Payment for deliveyr **/
