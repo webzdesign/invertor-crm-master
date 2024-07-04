@@ -136,7 +136,8 @@ class ReportController extends Controller
     
             $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
             ->selectRaw("voucher, users.name as user, amount, transaction_type")
-            ->where('form_id', 1)
+            ->where('transactions.form_id', 1)
+            ->whereIn('transactions.ledger_type', [0, 1])
             ->where('transactions.user_id', '=', auth()->user()->id);
     
             foreach ($ledger->get() as $data) {
@@ -198,6 +199,7 @@ class ReportController extends Controller
             $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
             ->selectRaw("users.name as driver_info, users.id as userid")
             ->where('transactions.user_id', '!=', 1)
+            ->whereIn('transactions.ledger_type', [0, 1])
             ->groupBy('transactions.user_id');
 
             return dataTables()->of($ledger)
@@ -226,17 +228,19 @@ class ReportController extends Controller
     }
 
     public function sellerCommission(Request $request) {
-        $total = 0;
-
-        if (!$request->ajax()) {
-            $moduleName = 'Seller';
-            return view('reports.seller-commission', compact('moduleName'));
-        }
 
         if (User::isAdmin()) {
+         
+            if (!$request->ajax()) {
+                $moduleName = 'Seller Report';
+                $sellers = SellerWallet::join('users','users.id', '=', 'wallets.seller_id')->selectRaw('wallets.seller_id as id, users.name as name, users.email as email')->groupBy('wallets.seller_id')->get()->toArray();
+
+                return view('reports.seller-commission', compact('moduleName', 'sellers'));
+            }
+
             $sellerWallet = SellerWallet::join('users', 'users.id', '=', 'wallets.seller_id')
             ->join('sales_orders', 'sales_orders.id', '=', 'wallets.form_record_id')
-            ->selectRaw("SUM(wallets.commission_amount) as seller_amount, users.name as seller_info")
+            ->selectRaw("SUM(wallets.commission_amount) as seller_amount, users.name as seller_info, users.id as uid")
             ->where('wallets.form', 1)
             ->whereNotNull('wallets.seller_id')
             ->where('wallets.seller_id', '!=', '')
@@ -246,32 +250,84 @@ class ReportController extends Controller
                 $sellerWallet = $sellerWallet->where('users.name', 'LIKE', '%' . trim($request->search['value']) . '%');
             }
 
-        } else {
-            $sellerWallet = SellerWallet::join('sales_orders', 'sales_orders.id', '=', 'wallets.form_record_id')
-            ->selectRaw("wallets.commission_amount as seller_amount, sales_orders.order_no as seller_info, sales_orders.id as orderid")
-            ->where('wallets.form', 1)
-            ->whereNotNull('wallets.seller_id')
-            ->where('wallets.seller_id', auth()->user()->id)
-            ->where('wallets.seller_id', '!=', '');
-        }
+            return dataTables()->of($sellerWallet)
+            ->editColumn('seller_amount', function ($row) {
+                $remaining = $row->seller_amount;
 
-        foreach ($sellerWallet->get() as $sw) {
-            $total += $sw['seller_amount'];
-        }
+                $cr = Transaction::where('form_id', 1)->credit()->where('user_id', $row->uid)->sum('amount');
+                $dr = Transaction::where('form_id', 1)->debit()->where('user_id', $row->uid)->sum('amount');
 
-        return dataTables()->of($sellerWallet)
+                return $remaining - ($cr - $dr);
+            })
+            ->toJson();
 
-        ->editColumn('seller_info', function ($row) {
-            if (User::isAdmin()) {
-                return $row['seller_info'];
-            } else {
-                return '<a target="_blank" href="' . route('sales-orders.view', encrypt($row['orderid'])) . '"> ' . ($row['seller_info']) . '</a>';
+        } else if (auth()->user()->hasPermission('sales-orders.view')) {
+
+            if (!$request->ajax()) {
+                $moduleName = 'Seller Report';
+                return view('reports.seller-ledger', compact('moduleName'));
             }
-        })
-        ->editColumn('seller_amount', fn ($row) => Helper::currency($row['seller_amount']))
-        ->with(['total' => Helper::currency($total)])
-        ->rawColumns(['seller_info'])
-        ->toJson();
+
+            $total = $credit = $debit = $temp = 0;
+
+            $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
+            ->selectRaw("voucher, users.name as user, amount, transaction_type")
+            ->where('transactions.form_id', 1)
+            ->where('transactions.ledger_type', 2)
+            ->where('transactions.user_id', '=', auth()->user()->id);
+
+            foreach ($ledger->get() as $data) {
+    
+                if ($data->transaction_type) {
+                    $debit += $data->amount;
+                    $total += $data->amount;
+                } else {
+                    $credit += $data->amount;
+                    $total -= $data->amount;
+                }
+            }
+
+            return dataTables()->eloquent($ledger)
+            ->addColumn('voucher', function ($row) {
+                if (str_contains($row->voucher, 'SO-')) {
+                    $order = SalesOrder::where('order_no', $row->voucher)->first();
+                    if ($order != null) {
+                        return '<a target="_blank" href="' . route('sales-orders.view', encrypt($order->id)) . '"> ' . ($order->order_no) . '</a>';
+                    }
+                }
+    
+                return $row->voucher;
+            })
+            ->addColumn('cr', function ($row) {
+                if ($row->transaction_type) {
+                    return '-';
+                } else {
+                    return $row->amount;
+                }
+            })
+            ->addColumn('dr', function ($row) {
+                if ($row->transaction_type) {
+                    return $row->amount;
+                } else {
+                    return '-';
+                }
+            })
+            ->editColumn('amount', function ($row) use (&$temp){
+                if ($row->transaction_type) {
+                    $temp += $row->amount;
+                } else {
+                    $temp -= $row->amount;
+                }
+    
+                return abs($temp);
+            })
+            ->with(['cr' => abs($credit), 'dr' => abs($debit), 'bl' => abs($total)])
+            ->rawColumns(['voucher'])
+            ->toJson();
+
+        } else {
+            abort(404);
+        }
     }
 
     public function payAmountToAdmin(Request $request) {
@@ -319,7 +375,7 @@ class ReportController extends Controller
                     'transaction_id' => Helper::hash(),
                     'transaction_type' => 1,
                     'user_id' => auth()->user()->id,
-                    'driver_id' => auth()->user()->id,
+                    'ledger_type' => 1,
                     'voucher' => 'DRIVER TO ADMIN',
                     'amount' => $request->amount,
                     'year' => '2024-25',
@@ -331,7 +387,7 @@ class ReportController extends Controller
                     'transaction_id' => Helper::hash(),
                     'transaction_type' => 0,
                     'user_id' => 1,
-                    'driver_id' => auth()->user()->id,
+                    'ledger_type' => 1,
                     'attachments' => $attachmentJson,
                     'voucher' => 'DRIVER TO ADMIN',
                     'amount' => $request->amount,
@@ -354,6 +410,61 @@ class ReportController extends Controller
                 DB::rollback();
 
                 Helper::logger($e->getMessage());
+
+                return back()->with('error', Helper::$errorMessage);
+            }
+
+        } else {
+            return back()->with('error', 'Please enter valid amount.');
+        }
+    }
+
+    public function payAmountToSeller(Request $request) {
+
+        $credit = Transaction::where('form_id', 1)->where('user_id', 1)->credit()->sum('amount');
+        $debit = Transaction::where('form_id', 1)->where('user_id', 1)->debit()->sum('amount');
+
+        $remaining = $credit - $debit;
+
+        if ($remaining == 0 || (is_numeric($request->amount) && $remaining < $request->amount)) {
+            return back()->with('error', 'You have insufficient balance in your account.');
+        }
+
+        if (is_numeric($request->amount)) {
+            
+            DB::beginTransaction();
+
+            try {
+
+                Transaction::create([
+                    'form_id' => 1, //Sales Order
+                    'transaction_id' => Helper::hash(),
+                    'transaction_type' => 1,
+                    'user_id' => 1,
+                    'ledger_type' => 2,
+                    'voucher' => 'ADMIN TO SELLER',
+                    'amount' => $request->amount,
+                    'year' => '2024-25',
+                    'added_by' => auth()->user()->id
+                ]);
+
+                Transaction::create([
+                    'form_id' => 1, //Sales Order
+                    'transaction_id' => Helper::hash(),
+                    'transaction_type' => 0,
+                    'user_id' => $request->seller,
+                    'ledger_type' => 2,
+                    'voucher' => 'ADMIN TO SELLER',
+                    'amount' => $request->amount,
+                    'year' => '2024-25',
+                    'added_by' => auth()->user()->id
+                ]);
+
+                DB::commit();
+                return back()->with('success', Helper::currency($request->amount) . " paid to seller successfully.");
+            } catch (\Exception $e) {
+
+                DB::rollback();
 
                 return back()->with('error', Helper::$errorMessage);
             }

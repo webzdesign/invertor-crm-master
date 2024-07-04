@@ -42,9 +42,13 @@
                     </div>
                     <ul class="p-0 m-0">
 
-                        @if(User::isSellerManager() || User::isSeller())
+                        @if(auth()->user()->id == 1)
                         <li class="dropdown middleContent p-0 userMenu">
-                            <div class="commission-btn text-white f-700"> Earned Commission : {{ Helper::getSellerCommission() }} </div>
+                            <div class="commission-btn text-white f-700"> Balance : {{ Helper::getAdminBalance() }} </div>
+                        </li>
+                        @elseif(User::isSellerManager() || User::isSeller())
+                        <li class="dropdown middleContent p-0 userMenu">
+                            <div class="commission-btn text-white f-700"> Commission : {{ Helper::getSellerCommission() }} </div>
                         </li>
                         @elseif(User::isDriver())
                         <li class="dropdown middleContent p-0 userMenu">

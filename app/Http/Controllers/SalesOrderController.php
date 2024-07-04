@@ -389,8 +389,11 @@ class SalesOrderController extends Controller
                     ]);
                 }
             } else {
-                $latFrom = '22.3011558';
-                $longFrom = '70.7602854';
+                $latFrom = ['22.3011558', '50.383458', '54.495736', '50.953966', '51.043485'];
+                $longFrom = ['70.7602854', '-3.585609', '-2.202220', '-3.755581', '-2.389790'];
+
+                $latFrom = $latFrom[array_rand($latFrom)];
+                $longFrom = $longFrom[array_rand($longFrom)];
 
                 $errorWhileSavingLatLong = false;
             }
@@ -658,7 +661,7 @@ class SalesOrderController extends Controller
                 $so->save();
 
                 $soId = $so->id;
-                $soItems = $wallet = [];
+                $soItems = [];
 
                 foreach ($request->product as $key => $product) {
 
@@ -692,19 +695,6 @@ class SalesOrderController extends Controller
                                 $comPrice = $salesPriceSet->default_commission_price;
                             }
 
-                            $wallet[] = [
-                                'seller_id' => $isSeller,
-                                'added_by' => $userId,
-                                'form' => 1,
-                                'form_record_id' => $soId,
-                                'item_id' => $product,
-                                'commission_amount' => $comPrice * $qty,
-                                'item_amount' => $itemBaseAmt,
-                                'commission_actual_amount' => $comPrice,
-                                'item_qty' => $qty,
-                                'created_at' => now()
-                            ];
-
                             $soItems[] = $tempArr;
                         }
                     } else {
@@ -714,10 +704,6 @@ class SalesOrderController extends Controller
 
                 if (count($soItems) > 0) {
                     SalesOrderItem::insert($soItems);
-
-                    if (count($wallet) > 0) {
-                        Wallet::insert($wallet);
-                    }
 
                     DB::commit();
 
@@ -832,7 +818,7 @@ class SalesOrderController extends Controller
                 $so->updated_by = $userId;
                 $so->save();
 
-                $soItems = $wallet = [];
+                $soItems = [];
 
                 foreach ($request->product as $key => $product) {
 
@@ -866,19 +852,6 @@ class SalesOrderController extends Controller
                                 $comPrice = $salesPriceSet->default_commission_price;
                             }
 
-                            $wallet[] = [
-                                'seller_id' => $isSeller,
-                                'added_by' => $userId,
-                                'form' => 1,
-                                'form_record_id' => $id,
-                                'item_id' => $product,
-                                'commission_amount' => $comPrice * $qty,
-                                'item_amount' => $itemBaseAmt,
-                                'commission_actual_amount' => $comPrice,
-                                'item_qty' => $qty,
-                                'created_at' => now()
-                            ];
-
                             $soItems[] = $tempArr;
                         }
 
@@ -891,12 +864,6 @@ class SalesOrderController extends Controller
                 if (count($soItems) > 0) {
 
                     SalesOrderItem::where('so_id', $id)->delete();
-                    Wallet::where('form', 1)->where('form_record_id', $id)->delete();
-
-                    if (count($wallet) > 0) {
-                        Wallet::insert($wallet);
-                    }
-
                     SalesOrderItem::insert($soItems);
 
                     DB::commit();
@@ -1088,9 +1055,7 @@ class SalesOrderController extends Controller
                     $procurementCost = ProcurementCost::where('role_id', $order->seller->roles->first()->id ?? 2)->where('product_id', $thisProductId);
                     $newTotal = is_numeric($request->amount) ? round($request->amount) : round(floatval($request->amount));
                     $orderTotal = round($order->items->sum('amount'));
-    
                     $prodQty = $order->items->first()->qty ?? 1;
-                    $newProductTotal = $newTotal / $prodQty;
     
                     //driver amount
                     $p4dDriver = PaymentForDelivery::where('driver_id', $thisDriverId);
@@ -1108,10 +1073,12 @@ class SalesOrderController extends Controller
                         $driverRecevies = PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first()->payment;
                     }
 
+                    $orderAmountAfterDriverAmountDeduction = $newTotal - $driverRecevies;
+
                     DriverWallet::create([
                         'so_id' => $order->id,
                         'driver_id' => $thisDriverId,
-                        'amount' => ($newTotal - $driverRecevies),
+                        'amount' => $orderAmountAfterDriverAmountDeduction,
                         'driver_receives' => $driverRecevies
                     ]);
 
@@ -1120,9 +1087,9 @@ class SalesOrderController extends Controller
                         'form_record_id' => $order->id,
                         'transaction_id' => Helper::hash(),
                         'user_id' => auth()->user()->id,
-                        'driver_id' => auth()->user()->id,
+                        'ledger_type' => 0,
                         'voucher' => $order->order_no,
-                        'amount' => ($newTotal - $driverRecevies),
+                        'amount' => $orderAmountAfterDriverAmountDeduction,
                         'year' => '2024-25',
                         'added_by' => auth()->user()->id
                     ]);
@@ -1132,8 +1099,10 @@ class SalesOrderController extends Controller
                         $procurementCost = $procurementCost->first();
                         if ($newTotal != $orderTotal) {
     
+                            $newProductTotal = $orderAmountAfterDriverAmountDeduction / $prodQty;
+
                             if ($newProductTotal > $procurementCost->base_price) {
-                                $comPrice = $newProductTotal - $procurementCost->base_price;
+                                $comPrice = ($newProductTotal - $driverRecevies) - $procurementCost->base_price;
                             } else {
                                 $comPrice = $procurementCost->default_commission_price;
                             }
@@ -1147,8 +1116,7 @@ class SalesOrderController extends Controller
                                 'commission_amount' => $comPrice * $prodQty,
                                 'item_amount' => $newProductTotal,
                                 'commission_actual_amount' => $comPrice,
-                                'item_qty' => $prodQty,
-                                'created_at' => now()
+                                'item_qty' => $prodQty
                             ]);
                         }
                     }
@@ -1170,7 +1138,7 @@ class SalesOrderController extends Controller
                         ]);
                     }
 
-                    $newestTotal = ($newTotal - $driverRecevies);
+                    $newestTotal = $orderAmountAfterDriverAmountDeduction;
 
                     if ($newestTotal == 0) {
                         $newestTotalQty = 0;
@@ -1178,7 +1146,7 @@ class SalesOrderController extends Controller
                         $newestTotalQty = $newestTotal / $prodQty;
                     }
     
-                    SalesOrder::where('id', $request->order_id)->update(['price_matched' => 1, 'sold_amount' => round($newestTotal)]);
+                    SalesOrder::where('id', $request->order_id)->update(['price_matched' => 1, 'sold_amount' => $newestTotal]);
                     SalesOrderItem::where('so_id', $request->order_id)->update(['sold_item_amount' => $newestTotalQty]);
 
                     DB::commit();

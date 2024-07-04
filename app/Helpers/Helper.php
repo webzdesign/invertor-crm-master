@@ -3,21 +3,12 @@
 namespace App\Helpers;
 
 
+use App\Models\{PurchaseOrder, Transaction, DriverWallet, Distribution};
+use App\Models\{SalesOrder, Setting, Product, Country, Wallet};
+use App\Models\{State, Stock, City, User};
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Number;
-use App\Models\PurchaseOrder;
-use App\Models\DriverWallet;
-use App\Models\Distribution;
 use Illuminate\Http\Request;
-use App\Models\SalesOrder;
-use App\Models\Setting;
-use App\Models\Product;
-use App\Models\Country;
-use App\Models\Wallet;
-use App\Models\State;
-use App\Models\Stock;
-use App\Models\City;
-use App\Models\User;
 
 class Helper {
 
@@ -170,7 +161,17 @@ class Helper {
     }
 
     public static function getSellerCommission() {
-        return self::currency(Wallet::where('seller_id', auth()->user()->id)->where('form', 1)->sum('commission_amount'));
+        $cr = Transaction::where('form_id', 1)->credit()->where('user_id', auth()->user()->id)->sum('amount');
+        $dr = Transaction::where('form_id', 1)->debit()->where('user_id', auth()->user()->id)->sum('amount');
+
+        return Helper::currency($cr - $dr);
+    }
+
+    public static function getAdminBalance() {
+        $cr = Transaction::where('form_id', 1)->credit()->where('user_id', 1)->sum('amount');
+        $dr = Transaction::where('form_id', 1)->debit()->where('user_id', 1)->sum('amount');
+
+        return Helper::currency($cr - $dr);
     }
 
     public static function getDriverBalance() {

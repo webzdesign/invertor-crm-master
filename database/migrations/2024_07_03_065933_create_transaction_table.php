@@ -18,10 +18,9 @@ return new class extends Migration
             $table->string('transaction_id')->nullable();
             $table->json('attachments')->nullable();
             $table->integer('user_id')->nullable();
-            $table->integer('driver_id')->nullable();
-            $table->integer('seller_id')->nullable();
             $table->string('voucher')->nullable();
             $table->boolean('transaction_type')->default(0)->comment('0 = Credit | 1 = Debit');
+            $table->tinyInteger('ledger_type')->nullable()->comment('0 = CUSTOMER2DRIVER | 1 = DRIVER2ADMIN | 2 = ADMIN2SELLER');
             $table->double('amount')->default(0);
             $table->string('year')->nullable();
             $table->unsignedBigInteger('added_by')->nullable();
