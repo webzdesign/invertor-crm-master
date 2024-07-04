@@ -1146,7 +1146,7 @@ class SalesOrderController extends Controller
                         $newestTotalQty = $newestTotal / $prodQty;
                     }
     
-                    SalesOrder::where('id', $request->order_id)->update(['price_matched' => 1, 'sold_amount' => $newestTotal]);
+                    SalesOrder::where('id', $request->order_id)->update(['price_matched' => 1, 'sold_amount' => $newestTotal, 'driver_amount' => $driverRecevies]);
                     SalesOrderItem::where('so_id', $request->order_id)->update(['sold_item_amount' => $newestTotalQty]);
 
                     DB::commit();

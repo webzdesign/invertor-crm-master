@@ -120,134 +120,104 @@
                     <div class="col-md-12">
                         <div class="row">
 
-                            <div class="table-responsive">
-                                <input type="hidden">
-                                <table class="table table-bordered customLayout">
-                                    <thead>
-                                        <tr>
+                            @forelse($so->items as $key => $item)
 
-                                            <th >Category </th>
-
-                                            <th >Product  </th>
-
-                                            <th >Quantity </th>
-
-                                            <th >Price  </th>
-
-                                            <th >Amount </th>
-
-                                            <th >Remarks </th>
-
-                                        </tr>
-                                    </thead>
-
-                                    <tbody class="upsertable">
-
-                                        @forelse($so->items as $key => $item)
-                                        <tr>
-
-                                            <td>
-                                                <div style="min-width: 200px;width: 100%" class="removable-category">
-                                                    <input type="text" readonly class="form-control" value="{{ $item->category->status == 1 ? $item->category->name : '' }}" style="background:#efefef">
-                                                </div>
-                                            </td>
-
-
-                                            <td>
-                                                <div style="min-width: 200px;width: 100%" class="removable-product">
-                                                    <input type="text" readonly class="form-control" value="{{ $item->category->status == 1 ? $item->product->name : '' }}" style="background:#efefef">
-                                                </div>
-                                            </td>
-
-
-                                            <td >
-                                                <div style="min-width: 200px;">
-                                                    <input type="number" class="form-control" style="background:#efefef;" value="{{ $item->qty }}" readonly>
-                                                </div>
-                                            </td>
-
-
-                                            <td >
-                                                <div style="min-width: 200px;">
-                                                    <input type="text" class="form-control" style="background:#efefef;" value="{{ round($item->price) }}" readonly>
-                                                </div>
-                                            </td>
-
-                                            <td >
-                                                <div style="min-width: 200px;">
-                                                    <input type="text" class="form-control" style="background:#efefef;" value="{{ round($item->amount) }}" readonly>
-                                                </div>
-                                            </td>
-
-
-                                            <td >
-                                                <div style="min-width: 200px;">
-                                                    <input type="text" class="form-control" style="background:#efefef;" value="{{ $item->remarks }}" readonly>
-                                                </div>
-                                            </td>
-
-                                        </tr>
-                                        @empty
-                                        <tr>
-                                            <td colspan="6">
-                                                <h4>This sales order has no products.</h4>
-                                            </td>
-                                           </tr>
-                                        @endforelse
-
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td></td>
-                                            <td></td>
-                                            <td>
-                                                <div style="min-width: 200px;">
-                                                    <input type="number" class="form-control mt-quantity" style="background:#efefef" value="{{ $so->items->sum('qty') }}" readonly>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div style="min-width: 200px;">
-                                                    <input type="text" class="form-control mt-price" style="background:#efefef" value="{{ ($so->items->sum('price')) }}" readonly>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div style="min-width: 200px;">
-                                                    <input type="text" class="form-control mt-amount" style="background:#efefef" value="{{ round($so->items->sum('amount')) }}" readonly>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                            <div class="col-md-12">
+                                <div class="row">
+            
+                                    <div class="col-md-2 col-sm-12">
+                                        <div class="form-group">
+                                            <label class="c-gr f-500 f-16 w-100 mb-2">Category :</label>
+                                            <input type="text" readonly class="form-control" value="{{ $item->category->status == 1 ? $item->category->name : '' }}" readonly>
+                                        </div>
+                                    </div>
+            
+                                    <div class="col-md-2 col-sm-12">
+                                        <div class="form-group">
+                                            <label class="c-gr f-500 f-16 w-100 mb-2">Product :</label>
+                                            <input type="text" readonly class="form-control" value="{{ $item->category->status == 1 ? $item->product->name : '' }}" readonly>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-2 col-sm-12">
+                                        <div class="form-group">
+                                            <label class="c-gr f-500 f-16 w-100 mb-2">Quantity :</label>
+                                            <input type="number" data-indexid="0" name="quantity[]" id="mquantity" class="form-control" min="1" readonly value="{{$item->qty}}">
+                                        </div>
+                                    </div>
+            
+                                    <div class="col-md-2 col-sm-12">
+                                        <div class="form-group">
+                                            <label class="c-gr f-500 f-16 w-100 mb-2"> Price :</label>
+                                            <input type="number" data-indexid="0" id="mprice" name="price[]" id="mprice" readonly class="form-control" min="0" value="{{ round($item->price) }}">
+                                        </div>
+                                    </div>
+            
+                                    <div class="col-md-2 col-sm-12">
+                                        <div class="form-group">
+                                            <label class="c-gr f-500 f-16 w-100 mb-2"> Amount :</label>
+                                            <input type="number" data-indexid="0" id="mamount" name="amount[]" id="maount" class="form-control" readonly value="{{ round($item->amount) }}">
+                                        </div>
+                                    </div>
+            
+                                    <div class="col-md-2 col-sm-12">
+                                        <div class="form-group">
+                                            <label class="c-gr f-500 f-16 w-100 mb-2">Remarks :</label>
+                                            <input type="text" data-indexid="0" tabindex="0" maxlength="255" name="remarks[]" id="mremarks" class="form-control" readonly value="{{$item->remarks}}">
+                                        </div>
+                                    </div>
+            
+                                </div>
                             </div>
+
+                            @empty
+                            @endforelse
+
                         </div>
                     </div>
 
                     @if($so->price_matched && $so->sold_amount != round($so->items->sum('amount')))
-
+                    
                     <div class="col-md-12">
                         <div
                             class="cardsHeader f-20 f-600 c-36 f-700 border-0 ps-0 tableHeading position-relative my-4">
-                            <span>Different Price Agreement Proof</span>
+                            <span>Order price breakdown</span>
                         </div>
 
-                        <table class="table table-bordered customLayout">
-                            <thead>
-                               <tr>
-                                  <th> Amount </th>
-                               </tr>
-                            </thead>
-                            <tbody>
-                               <tr>
-                                  <td>
-                                     <div style="min-width: 200px;width: 100%" class="removable-category">
-                                        <input type="text" readonly="" class="form-control" value="{{ $so->sold_amount }}" style="background:#efefef">
-                                     </div>
-                                  </td>
-                               </tr>
-                            </tbody>
-                         </table>
+                        <div class="col-md-12">
+                            <div class="row">
+        
+                                <div class="col-md-4 col-sm-12">
+                                    <div class="form-group">
+                                        <label class="c-gr f-500 f-16 w-100 mb-2">Amount received by driver :</label>
+                                        <input type="text" class="form-control" value="{{ $so->sold_amount }}" readonly>
+                                    </div>
+                                </div>
+        
+                                <div class="col-md-4 col-sm-12">
+                                    <div class="form-group">
+                                        <label class="c-gr f-500 f-16 w-100 mb-2">Driver amount :</label>
+                                        <input type="text" class="form-control" value="{{ $so->driver_amount }}" readonly>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4 col-sm-12">
+                                    <div class="form-group">
+                                        <label class="c-gr f-500 f-16 w-100 mb-2">New order amount :</label>
+                                        <input type="text" class="form-control" readonly value="{{ $so->sold_amount + $so->driver_amount }}">
+                                    </div>
+                                </div>
+        
+                            </div>
+                        </div>
 
                     </div>
+
+
+                    <div
+                    class="cardsHeader f-20 f-600 c-36 f-700 border-0 ps-0 tableHeading position-relative my-4">
+                    <span>Different price agreement proof</span>
+                </div>
 
                     <div class="row">
                         @forelse($so->proofimages as $key => $img)
