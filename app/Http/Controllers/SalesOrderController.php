@@ -1102,7 +1102,7 @@ class SalesOrderController extends Controller
                             $newProductTotal = $orderAmountAfterDriverAmountDeduction / $prodQty;
 
                             if ($newProductTotal > $procurementCost->base_price) {
-                                $comPrice = ($newProductTotal - $driverRecevies) - $procurementCost->base_price;
+                                $comPrice = $newProductTotal - $procurementCost->base_price;
                             } else {
                                 $comPrice = $procurementCost->default_commission_price;
                             }
