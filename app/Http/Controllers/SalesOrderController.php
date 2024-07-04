@@ -1175,6 +1175,12 @@ class SalesOrderController extends Controller
     public function changeDriver(Request $request) {
         if (!empty($request->driver_id) && !empty($request->order_id)) {
 
+            $thisUser = User::where('id', $request->driver_id)->first();
+
+            if ($thisUser == null) {
+                return response()->json(['status' => false, 'message' => 'Driver not found.']);
+            }
+
             if (Deliver::where('so_id', $request->order_id)->whereIn('status', [0, 1])->exists()) {
                 $driver = Deliver::where('so_id', $request->order_id)->whereIn('status', [0, 1])->first();
                 Deliver::create([
@@ -1185,7 +1191,7 @@ class SalesOrderController extends Controller
                     'driver_long' => $driver->driver_long,
                     'delivery_location_lat' => $driver->delivery_location_lat,
                     'delivery_location_long' => $driver->delivery_location_long,
-                    'range' => $driver->range,
+                    'range' => Distance::measure($thisUser->lat, $thisUser->long, $driver->delivery_location_lat, $driver->delivery_location_long),
                     'status' => 0
                 ]);
     
@@ -1203,7 +1209,7 @@ class SalesOrderController extends Controller
                     'driver_long' => $driver->driver_long,
                     'delivery_location_lat' => $driver->delivery_location_lat,
                     'delivery_location_long' => $driver->delivery_location_long,
-                    'range' => $driver->range,
+                    'range' => Distance::measure($thisUser->lat, $thisUser->long, $driver->delivery_location_lat, $driver->delivery_location_long),
                     'status' => 0
                 ]);
 
