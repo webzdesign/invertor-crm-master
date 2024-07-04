@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{DriverWallet, Stock, User, Wallet as SellerWallet, Transaction};
+use App\Models\{DriverWallet, Stock, User, Wallet as SellerWallet, Transaction, SalesOrder};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
@@ -124,50 +124,105 @@ class ReportController extends Controller
     }
 
     public function driverCommission(Request $request) {
-        if (!(User::isAdmin() || User::isDriver())) {
-            abort(403);
-        }
 
-        $total = 0;
+        if (User::isDriver()) {
 
-        if (!$request->ajax()) {
-            $moduleName = 'Driver';
-            return view('reports.driver-commission', compact('moduleName'));
-        }
-
-        if (User::isAdmin()) {
-            $driverWallet = DriverWallet::join('users', 'users.id', '=', 'driver_wallets.driver_id')
-            ->join('sales_orders', 'sales_orders.id', '=', 'driver_wallets.so_id')
-            ->selectRaw("SUM(driver_wallets.amount) as driver_amount, users.name as driver_info, SUM(driver_wallets.driver_receives) as driver_receives")
-            ->groupBy('driver_wallets.driver_id');
-
-            if (isset($request->search['value']) && !empty($request->search['value'])) {
-                $driverWallet = $driverWallet->where('users.name', 'LIKE', '%' . trim($request->search['value']) . '%');
+            if (!$request->ajax()) {
+                $moduleName = 'Driver Report';
+                return view('reports.driver-ledger', compact('moduleName'));
             }
+    
+            $total = $credit = $debit = $temp = 0;
+    
+            $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
+            ->selectRaw("voucher, users.name as user, amount, transaction_type")
+            ->where('form_id', 1)
+            ->where('transactions.user_id', '=', auth()->user()->id);
+    
+            foreach ($ledger->get() as $data) {
+    
+                if ($data->transaction_type) {
+                    $debit += $data->amount;
+                    $total += $data->amount;
+                } else {
+                    $credit += $data->amount;
+                    $total -= $data->amount;
+                }
+            }
+    
+            return dataTables()->eloquent($ledger)
+            ->addColumn('voucher', function ($row) {
+                if (str_contains($row->voucher, 'SO-')) {
+                    $order = SalesOrder::where('order_no', $row->voucher)->first();
+                    if ($order != null) {
+                        return '<a target="_blank" href="' . route('sales-orders.view', encrypt($order->id)) . '"> ' . ($order->order_no) . '</a>';
+                    }
+                }
+    
+                return $row->voucher;
+            })
+            ->addColumn('cr', function ($row) {
+                if ($row->transaction_type) {
+                    return '-';
+                } else {
+                    return $row->amount;
+                }
+            })
+            ->addColumn('dr', function ($row) {
+                if ($row->transaction_type) {
+                    return $row->amount;
+                } else {
+                    return '-';
+                }
+            })
+            ->editColumn('amount', function ($row) use (&$temp){
+                if ($row->transaction_type) {
+                    $temp += $row->amount;
+                } else {
+                    $temp -= $row->amount;
+                }
+    
+                return abs($temp);
+            })
+            ->with(['cr' => abs($credit), 'dr' => abs($debit), 'bl' => abs($total)])
+            ->rawColumns(['voucher'])
+            ->toJson();
 
+        } else if (User::isAdmin()) {
+
+            if (!$request->ajax()) {
+                $moduleName = 'Driver Report';
+                return view('reports.driver-commission', compact('moduleName'));
+            }
+    
+            $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
+            ->selectRaw("users.name as driver_info, users.id as userid")
+            ->where('transactions.user_id', '!=', 1)
+            ->groupBy('transactions.user_id');
+
+            return dataTables()->of($ledger)
+            ->addColumn('driver_amount', function ($row) {
+                $transaction = Transaction::where('user_id', $row->userid)->where('form_id', 1)
+                ->select('transaction_type', 'amount')
+                ->get()->toArray();
+
+                $rem = 0;
+
+                foreach ($transaction as $transact) {
+                    if ($transact['transaction_type']) {
+                        $rem += $transact['amount'];
+                    } else {
+                        $rem -= $transact['amount'];
+                    }
+                }
+
+                return abs($rem);
+
+            })
+            ->toJson();
         } else {
-            $driverWallet = DriverWallet::join('sales_orders', 'sales_orders.id', '=', 'driver_wallets.so_id')
-            ->selectRaw("driver_wallets.amount as driver_amount, sales_orders.order_no as driver_info, sales_orders.id as orderid")
-            ->where('driver_wallets.driver_id', auth()->user()->id);
+            abort(404);
         }
-
-        foreach ($driverWallet->get() as $dw) {
-            $total += $dw['driver_amount'];
-        }
-
-        return dataTables()->of($driverWallet)
-
-        ->editColumn('driver_info', function ($row) {
-            if (User::isAdmin()) {
-                return $row['driver_info'];
-            } else {
-                return '<a target="_blank" href="' . route('sales-orders.view', encrypt($row['orderid'])) . '"> ' . ($row['driver_info']) . '</a>';
-            }
-        })
-        ->editColumn('driver_amount', fn ($row) => Helper::currency($row['driver_amount']))
-        ->with(['total' => Helper::currency($total)])
-        ->rawColumns(['driver_info'])
-        ->toJson();
     }
 
     public function sellerCommission(Request $request) {
@@ -262,9 +317,23 @@ class ReportController extends Controller
                 Transaction::create([
                     'form_id' => 1, //Sales Order
                     'transaction_id' => Helper::hash(),
-                    'user_id' => 0,
+                    'transaction_type' => 1,
+                    'user_id' => auth()->user()->id,
+                    'driver_id' => auth()->user()->id,
+                    'voucher' => 'DRIVER TO ADMIN',
+                    'amount' => $request->amount,
+                    'year' => '2024-25',
+                    'added_by' => auth()->user()->id
+                ]);
+
+                Transaction::create([
+                    'form_id' => 1, //Sales Order
+                    'transaction_id' => Helper::hash(),
+                    'transaction_type' => 0,
+                    'user_id' => 1,
+                    'driver_id' => auth()->user()->id,
                     'attachments' => $attachmentJson,
-                    'voucher' => '',
+                    'voucher' => 'DRIVER TO ADMIN',
                     'amount' => $request->amount,
                     'year' => '2024-25',
                     'added_by' => auth()->user()->id
@@ -273,7 +342,6 @@ class ReportController extends Controller
                 DB::commit();
                 return back()->with('success', Helper::currency($request->amount) . " paid to admin successfully.");
             } catch (\Exception $e) {
-
 
                 if (is_array($attachmentJson) && !empty($attachmentJson)) {
                     foreach ($attachmentJson as $eachImage) {

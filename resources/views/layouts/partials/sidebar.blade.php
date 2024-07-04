@@ -367,7 +367,7 @@
                             <div class="icnBx d-flex align-items-center justify-content-center">
                                 <i class="fa fa-car text-white" aria-hidden="true"></i>
                             </div>
-                            <span class="d-none-add">Driver</span>
+                            <span class="d-none-add">Driver Report</span>
                         </a>
                     </li>
                 @endif
@@ -379,7 +379,7 @@
                         <div class="icnBx d-flex align-items-center justify-content-center">
                             <i class="fa fa-user text-white" aria-hidden="true"></i>
                         </div>
-                        <span class="d-none-add">Seller</span>
+                        <span class="d-none-add">Seller Report</span>
                     </a>
                 </li>
                 @endif

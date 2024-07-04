@@ -15,9 +15,11 @@ return new class extends Migration
             $table->id();
             $table->tinyInteger('form_id')->nullable()->comment('1 = Sales Order')->default(1);
             $table->integer('form_record_id')->nullable();
-            $table->integer('transaction_id')->nullable();
+            $table->string('transaction_id')->nullable();
             $table->json('attachments')->nullable();
-            $table->integer('user_id')->nullable()->comment('0 = Super Admin');
+            $table->integer('user_id')->nullable();
+            $table->integer('driver_id')->nullable();
+            $table->integer('seller_id')->nullable();
             $table->string('voucher')->nullable();
             $table->boolean('transaction_type')->default(0)->comment('0 = Credit | 1 = Debit');
             $table->double('amount')->default(0);

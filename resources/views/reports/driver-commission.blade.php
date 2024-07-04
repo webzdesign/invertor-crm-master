@@ -12,55 +12,13 @@
     <table class="datatables-po table datatableMain" style="width: 100%!important;">
         <thead>
             <tr>
-                @if(User::isAdmin())
-                    <th>Driver Name</th>
-                    <th width="20%">Amount Receivable</th>
-                @else
-                    <th>Order Number</th>
-                    <th width="20%">Amount Payable</th>
-                @endif
+                <th>Driver Name</th>
+                <th width="20%">Amount Receivable</th>
             </tr>
         </thead>
         <tbody>
         </tbody>
-        <tfoot>
-            <tr>
-                <td > @if(User::isDriver()) <button data-bs-toggle="modal" data-bs-target="#payamount" class="btn btn-sm btn-success" id="pay-amount" style="width: 60px;float:right;"> Pay </button> @endif </td>
-                <td id="a-total" style="background: #e583a47d;font-weight:600;">0</td>
-            </tr>
-        </tfoot>
     </table>
-</div>
-
-<div class="modal fade" id="payamount" tabindex="-1" aria-labelledby="exampleModalLabelA" aria-hidden="true">
-    <div class="modal-dialog modal-xs modal-dialog-centered">
-        <div class="modal-content">
-            <form action="{{ url('pay-amount-to-admin') }}" method="POST" id="payamount-form" enctype="multipart/form-data"> @csrf
-                <div class="modal-header py-2">
-                    <h6 class="modal-title" id="exampleModalLongTitle"> Pay amount to admin </h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-
-                        <div class="col-12 mb-2 amount-field">
-                            <label class="c-gr f-500 f-12 w-100 mb-2"> ENTER AMOUNT : <span class="text-danger">*</span> </label>
-                            <input type="text" id="order-closing-amount" name="amount" class="form-control" placeholder="Enter amount" />
-                        </div>
-
-                        <div class="col-12 mb-2 document-field">
-                            <label class="c-gr f-500 f-12 w-100 mb-2"> UPLOAD PROOF IMAGE : <span class="text-danger">*</span> </label>
-                            <input type="file" id="order-closing-document" name="file[]" class="form-control" multiple />
-                        </div>
-
-                    </div>
-                </div>
-                <div class="modal-footer no-border">
-                    <button type="submit" class="btn-success f-500 f-14 btn"> Pay </button>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
 
 @endsection
@@ -99,79 +57,12 @@
                 }
             ],
             drawCallback: function (data) {
-                $('#a-total').text(data.json.total);
             }
         });
 
         $('#filterInput').html($('#searchPannel').html());
         $('#filterInput > input').keyup(function() {
             ServerDataTable.search($(this).val()).draw();
-        });
-
-        $('#payamount').on('show.bs.modal', function (e) {
-            if (e.namespace == 'bs.modal') {
-
-            }
-        });
-
-        $.validator.addMethod("fileType", function(value, element, param) {
-            var fileTypes = param.split('|');
-            var files = element.files;
-            for (var i = 0; i < files.length; i++) {
-                var extension = files[i].name.split('.').pop().toLowerCase();
-                if ($.inArray(extension, fileTypes) === -1) {
-                    return false;
-                }
-            }
-            return true;
-        }, "Only .png, .jpg, and .jpeg extensions supported");
-
-        $.validator.addMethod("maxFiles", function(value, element, param) {
-            return element.files.length <= param;
-        }, "Maximum 10 files can be uploaded.");
-
-        $.validator.addMethod("fileSizeLimit", function(value, element, param) {
-            var totalSize = 0;
-            var files = element.files;
-            for (var i = 0; i < files.length; i++) {
-                totalSize += files[i].size;
-            }
-            return totalSize <= param;
-        }, "Total file size must not exceed 20 MB");
-
-        $('#payamount-form').validate({
-            rules: {
-                amount: {
-                    required: true,
-                    number: true,
-                    min: 1
-                },
-                'file[]': {
-                    required: true,
-                    fileType: 'jpeg|png|jpg',
-                    maxFiles: 10,
-                    fileSizeLimit: (10 * 1024 * 1024) * 2
-                }
-            },
-            messages: {
-                amount: {
-                    required: "Enter the amount",
-                    number: "Enter valid amount",
-                    min: "Enter valid amount."
-                },
-                'file[]': {
-                    required: "Upload atleast an image proof"
-                }
-            },
-            submitHandler: function(form, event) {
-                if ($('#payamount-form').valid()) {
-                    $('body').find('.LoaderSec').addClass('d-none');
-                    $('button[type="submit"]').attr('disabled', false);
-                    return true;
-                } else {
-                    return false;
-                }
-            }
         });
 
     });

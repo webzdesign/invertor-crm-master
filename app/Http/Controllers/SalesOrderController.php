@@ -1066,7 +1066,7 @@ class SalesOrderController extends Controller
                 $thisDriverId = auth()->user()->id;
 
                 if (empty(Helper::getAvailableStockFromDriver($thisDriverId))) {
-                    return response()->json(['status' => false, 'messages' => 'You do\'t have stock for this product.']);
+                    return response()->json(['status' => false, 'messages' => 'You don\'t have stock for this product.']);
                 }
 
                 DB::beginTransaction();
@@ -1120,8 +1120,9 @@ class SalesOrderController extends Controller
                         'form_record_id' => $order->id,
                         'transaction_id' => Helper::hash(),
                         'user_id' => auth()->user()->id,
+                        'driver_id' => auth()->user()->id,
                         'voucher' => $order->order_no,
-                        'amount' => $newTotal,
+                        'amount' => ($newTotal - $driverRecevies),
                         'year' => '2024-25',
                         'added_by' => auth()->user()->id
                     ]);
