@@ -190,7 +190,7 @@
                                 <div class="col-md-4 col-sm-12">
                                     <div class="form-group">
                                         <label class="c-gr f-500 f-16 w-100 mb-2">Amount received by driver :</label>
-                                        <input type="text" class="form-control" value="{{ $so->sold_amount }}" readonly>
+                                        <input type="text" class="form-control" value="{{ $so->sold_amount + $so->driver_amount }}" readonly>
                                     </div>
                                 </div>
         
@@ -204,7 +204,7 @@
                                 <div class="col-md-4 col-sm-12">
                                     <div class="form-group">
                                         <label class="c-gr f-500 f-16 w-100 mb-2">New order amount :</label>
-                                        <input type="text" class="form-control" readonly value="{{ $so->sold_amount + $so->driver_amount }}">
+                                        <input type="text" class="form-control" readonly value="{{ $so->sold_amount }}">
                                     </div>
                                 </div>
         
