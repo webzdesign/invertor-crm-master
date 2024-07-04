@@ -817,6 +817,8 @@
                                 $('#close-order').modal('hide');
                                 ServerDataTable.ajax.reload();
                             }
+                        } else {
+                            Swal.fire('', 'Something went wrong please try again later.', 'error');
                         }
                     },
                     complete: function () {
