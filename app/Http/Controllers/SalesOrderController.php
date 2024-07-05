@@ -1047,18 +1047,29 @@ class SalesOrderController extends Controller
                                 'driver_receives' => $driverRecevies
                             ]);
         
+                            //Pay to driver
                             Transaction::create([
-                                'form_id' => 1, //Sales Order
-                                'form_record_id' => $order->id,
-                                'transaction_id' => Helper::hash(),
+                                'so_id' => $order->id,
                                 'user_id' => auth()->user()->id,
-                                'ledger_type' => 0,
-                                'voucher' => $order->order_no,
-                                'amount' => $orderAmountAfterDriverAmountDeduction,
-                                'year' => '2024-25',
+                                'transaction_type' => 0,
+                                'amount_type' => 1,
+                                'voucher' => "DRIVER",
+                                'amount' => $driverRecevies,
+                                'year' => Helper::$financialYear,
                                 'added_by' => auth()->user()->id
                             ]);
-                            //driver amount
+
+                            //Pay to admin
+                            Transaction::create([
+                                'so_id' => $order->id,
+                                'user_id' => auth()->user()->id,
+                                'transaction_type' => 0,
+                                'amount_type' => 2,
+                                'voucher' => $order->order_no,
+                                'amount' => $orderAmountAfterDriverAmountDeduction,
+                                'year' => Helper::$financialYear,
+                                'added_by' => auth()->user()->id
+                            ]);
         
                             if ($procurementCost->exists()) {
                                 $procurementCost = $procurementCost->first();
@@ -1082,6 +1093,17 @@ class SalesOrderController extends Controller
                                         'item_amount' => $newProductTotal,
                                         'commission_actual_amount' => $comPrice,
                                         'item_qty' => $prodQty
+                                    ]);
+
+                                    Transaction::create([
+                                        'so_id' => $order->id,
+                                        'user_id' => $order->seller_id,
+                                        'transaction_type' => 1,
+                                        'amount_type' => 3,
+                                        'voucher' => $order->order_no,
+                                        'amount' => $comPrice * $prodQty,
+                                        'year' => Helper::$financialYear,
+                                        'added_by' => auth()->user()->id
                                     ]);
                                 }
                             }
@@ -1206,18 +1228,29 @@ class SalesOrderController extends Controller
                         'driver_receives' => $driverRecevies
                     ]);
 
+                    //Pay to driver
                     Transaction::create([
-                        'form_id' => 1, //Sales Order
-                        'form_record_id' => $order->id,
-                        'transaction_id' => Helper::hash(),
+                        'so_id' => $order->id,
                         'user_id' => auth()->user()->id,
-                        'ledger_type' => 0,
-                        'voucher' => $order->order_no,
-                        'amount' => $orderAmountAfterDriverAmountDeduction,
-                        'year' => '2024-25',
+                        'transaction_type' => 0,
+                        'amount_type' => 1,
+                        'voucher' => "DRIVER",
+                        'amount' => $driverRecevies,
+                        'year' => Helper::$financialYear,
                         'added_by' => auth()->user()->id
                     ]);
-                    //driver amount
+
+                    //Pay to admin
+                    Transaction::create([
+                        'so_id' => $order->id,
+                        'user_id' => auth()->user()->id,
+                        'transaction_type' => 0,
+                        'amount_type' => 2,
+                        'voucher' => $order->order_no,
+                        'amount' => $orderAmountAfterDriverAmountDeduction,
+                        'year' => Helper::$financialYear,
+                        'added_by' => auth()->user()->id
+                    ]);
 
                     if ($procurementCost->exists()) {
                         $procurementCost = $procurementCost->first();
@@ -1241,6 +1274,17 @@ class SalesOrderController extends Controller
                                 'item_amount' => $newProductTotal,
                                 'commission_actual_amount' => $comPrice,
                                 'item_qty' => $prodQty
+                            ]);
+
+                            Transaction::create([
+                                'so_id' => $order->id,
+                                'user_id' => $order->seller_id,
+                                'transaction_type' => 1,
+                                'amount_type' => 3,
+                                'voucher' => $order->order_no,
+                                'amount' => $comPrice * $prodQty,
+                                'year' => Helper::$financialYear,
+                                'added_by' => auth()->user()->id
                             ]);
                         }
                     }

@@ -20,4 +20,23 @@ class Transaction extends Model
     {
         $builder->where('transaction_type', 1);
     }
+
+    public function scopeSeller($builder): void
+    {
+        $builder->whereHas('user.roles', fn ($query) => ($query->whereIn('roles.id', [2,6])));
+    }
+
+    public function scopeDriver($builder): void
+    {
+        $builder->whereHas('user.roles', fn ($query) => ($query->where('roles.id', 3)));
+    }
+
+    public function scopeAdmin($builder): void
+    {
+        $builder->whereHas('user.roles', fn ($query) => ($query->where('roles.id', 1)));
+    }
+
+    public function user() {
+        return $this->belongsTo(User::class, 'user_id');        
+    }
 }

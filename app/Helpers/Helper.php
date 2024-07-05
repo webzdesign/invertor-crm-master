@@ -17,6 +17,8 @@ class Helper {
     public static $errorMessage = 'Oops! Something went wrong.';
     public static $notFound = 'Not found.';
 
+    public static $financialYear = '2024-25';
+
     public static function getAppTitle()
     {
         $setting = Setting::select('title')->first();
@@ -161,21 +163,24 @@ class Helper {
     }
 
     public static function getSellerCommission() {
-        $cr = Transaction::where('form_id', 1)->credit()->where('user_id', auth()->user()->id)->sum('amount');
-        $dr = Transaction::where('form_id', 1)->debit()->where('user_id', auth()->user()->id)->sum('amount');
+        $cr = Transaction::credit()->whereIn('amount_type', [0])->where('user_id', auth()->user()->id)->sum('amount');
+        $dr = Transaction::debit()->whereIn('amount_type', [0])->where('user_id', auth()->user()->id)->sum('amount');
 
         return Helper::currency($cr - $dr);
     }
 
     public static function getAdminBalance() {
-        $cr = Transaction::where('form_id', 1)->credit()->where('user_id', 1)->sum('amount');
-        $dr = Transaction::where('form_id', 1)->debit()->where('user_id', 1)->sum('amount');
+        $cr = Transaction::credit()->where('amount_type', 0)->where('user_id', 1)->sum('amount');
+        $dr = Transaction::debit()->where('amount_type', 0)->where('user_id', 1)->sum('amount');
 
         return Helper::currency($cr - $dr);
     }
 
     public static function getDriverBalance() {
-        return self::currency(DriverWallet::where('driver_id', auth()->user()->id)->sum('driver_receives'));
+        $cr = Transaction::credit()->whereIn('amount_type', [0, 2])->where('user_id', auth()->user()->id)->sum('amount');
+        $dr = Transaction::debit()->whereIn('amount_type', [0, 2])->where('user_id', auth()->user()->id)->sum('amount');
+
+        return Helper::currency($cr - $dr);
     }
 
     public static function currencyFormatter($amount, $showSign = false, $in = 'GBP') {
@@ -332,6 +337,6 @@ class Helper {
     }
 
     public static function hash() {
-        return sha1(md5(time()));
+        return sha1(md5(time() + mt_rand(1, 99999999999999999)));
     }
 }

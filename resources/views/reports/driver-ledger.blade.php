@@ -13,18 +13,14 @@
         <thead>
             <tr>
                 <th>Voucher</th>
-                <th>Cr</th>
-                <th>Dr</th>
-                <th width="20%">Balance</th>
+                <th width="20%">Cr/Dr</th>
             </tr>
         </thead>
         <tbody>
         </tbody>
         <tfoot>
             <tr>
-                <td >  <button data-bs-toggle="modal" data-bs-target="#payamount" class="btn btn-sm btn-success" id="pay-amount" style="width: 60px;float:right;"> Pay </button>  </td>
-                <td id="cr-total" style="background: #e583a47d;font-weight:600;">0</td>
-                <td id="dr-total" style="background: #e583a47d;font-weight:600;">0</td>
+                <td>  <button data-bs-toggle="modal" data-bs-target="#payamount" class="btn btn-sm btn-success" id="pay-amount" style="width: 60px;float:right;"> Pay </button>  </td>
                 <td id="bl-total" style="background: #e583a47d;font-weight:600;">0</td>
             </tr>
         </tfoot>
@@ -92,24 +88,12 @@
                     searchable: false,
                 },
                 {
-                    data: 'cr',
-                    orderable: false,
-                    searchable: false,
-                },
-                {
-                    data: 'dr',
-                    orderable: false,
-                    searchable: false,
-                },
-                {
-                    data: 'amount',
+                    data: 'crdr',
                     orderable: false,
                     searchable: false,
                 }
             ],
             drawCallback: function (data) {
-                $('#cr-total').text(data.json.cr);
-                $('#dr-total').text(data.json.dr);
                 $('#bl-total').text(data.json.bl);
             }
         });
