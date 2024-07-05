@@ -283,7 +283,7 @@ class ReportController extends Controller
             if (!$request->ajax()) {
                 $moduleName = 'Seller Report';
                 $sellers = SellerWallet::join('users','users.id', '=', 'wallets.seller_id')->selectRaw('wallets.seller_id as id, users.name as name, users.email as email')
-                            ->when(!empty($users), fn ($builder) => ($builder->where('users.id', $users)))
+                            ->when(!empty($users), fn ($builder) => ($builder->whereIn('users.id', $users)))
                             ->groupBy('wallets.seller_id')
                             ->get()
                             ->toArray();
