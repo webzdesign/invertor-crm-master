@@ -176,6 +176,8 @@ class ReportController extends Controller
                 return view('reports.driver-commission', compact('moduleName'));
             }
     
+            $users = [];
+
             $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
             ->selectRaw("users.name as driver_info, users.id as userid")
             ->whereIn('transactions.amount_type', [2])
@@ -183,6 +185,36 @@ class ReportController extends Controller
 
             if (isset($request->search['value']) && !empty($request->search['value'])) {
                 $ledger = $ledger->where('users.name', 'LIKE', '%' . trim($request->search['value']) . '%');
+            }
+
+            foreach ($ledger->get() as $thisIterator) {
+
+                $tr = Transaction::where('user_id', $thisIterator->userid)
+                ->select('transaction_type', 'amount')
+                ->whereIn('transactions.amount_type', [0, 2])
+                ->get()
+                ->toArray();
+    
+                $rem = 0;
+    
+                foreach ($tr as $transact) {
+                    if ($transact['transaction_type']) {
+                        $rem += $transact['amount'];
+                    } else {
+                        $rem -= $transact['amount'];
+                    }
+                }
+
+                if (abs($rem) > 0) {
+                    $users[] = $thisIterator->userid;
+                }
+    
+            }
+
+            if (!empty($users)) {
+                $ledger = $ledger->whereIn('users.id', $users);
+            } else {
+                $ledger = $ledger->whereNull('users.id');
             }
 
             return dataTables()->eloquent($ledger)
@@ -264,7 +296,9 @@ class ReportController extends Controller
             }
 
             if (!empty($users)) {
-                $ledger = $ledger->where('users.id', $users);
+                $ledger = $ledger->whereIn('users.id', $users);
+            } else {
+                $ledger = $ledger->whereNull('users.id');
             }
 
             return dataTables()->eloquent($ledger)
@@ -447,7 +481,6 @@ class ReportController extends Controller
 
                 Transaction::create([
                     'amount_type' => 0,
-                    'transaction_id' => Helper::hash(),
                     'transaction_type' => 1,
                     'user_id' => 1,
                     'voucher' => 'ADMIN PAID TO SELLER',
@@ -458,7 +491,6 @@ class ReportController extends Controller
 
                 Transaction::create([
                     'amount_type' => 0,
-                    'transaction_id' => Helper::hash(),
                     'transaction_type' => 0,
                     'user_id' => $request->seller,
                     'voucher' => 'ADMIN PAID TO SELLER',
