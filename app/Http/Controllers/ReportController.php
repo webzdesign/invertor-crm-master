@@ -128,7 +128,7 @@ class ReportController extends Controller
         if (User::isDriver()) {
 
             if (!$request->ajax()) {
-                $moduleName = 'Driver Report';
+                $moduleName = 'Financial Report';
                 return view('reports.driver-ledger', compact('moduleName'));
             }
     
@@ -329,7 +329,7 @@ class ReportController extends Controller
         } else if (auth()->user()->hasPermission('sales-orders.view')) {
 
             if (!$request->ajax()) {
-                $moduleName = 'Seller Report';
+                $moduleName = 'Financial Report';
                 return view('reports.seller-ledger', compact('moduleName'));
             }
 
@@ -340,12 +340,21 @@ class ReportController extends Controller
             ->whereIn('transactions.amount_type', [3, 0])
             ->where('transactions.user_id', '=', auth()->user()->id);
 
-            foreach ($ledger->get() as $data) {
-                if ($data->amount_type == 0) {
+            $skip = true;
+
+            if ($ledger->count() == 1) {
+                $total = $ledger->first()->amount ?? 0;
+            } else {
+                foreach ($ledger->get() as $data) {
+                    if ($data->amount_type == 3 && $data->transaction_type == 1 && $skip) {
+                        $skip = false;
+                        continue;
+                    }
+    
                     if ($data->transaction_type) {
-                        $total += $data->amount;
-                    } else {
                         $total -= $data->amount;
+                    } else {
+                        $total += $data->amount;
                     }
                 }
             }
@@ -368,7 +377,7 @@ class ReportController extends Controller
                     return '<span class="text-success"> +' . $row->amount . ' </span>';
                 }
             })
-            ->with(['bl' => Helper::currency(abs($total))])
+            ->with(['bl' => Helper::currency($total)])
             ->rawColumns(['voucher', 'crdr'])
             ->toJson();
 
