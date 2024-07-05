@@ -996,6 +996,7 @@ class SalesOrderController extends Controller
     }
 
     public function checkPrice (Request $request) {
+
         if (!empty($request->order_id) && !empty($request->amount) && is_numeric($request->amount)) {
             $order = SalesOrder::with(['items', 'seller.roles'])->where('id', $request->order_id);
             if ($order->exists()) {
@@ -1004,149 +1005,141 @@ class SalesOrderController extends Controller
 
                     $comPrice = $prodQty = $driverRecevies = 0;
 
-                    if ($order->exists()) {
-                        $order = $order->first();
-                        $thisProductId = $order->items->first()->product_id ?? 0;
-                        $thisDriverId = auth()->user()->id;
+                    $thisProductId = $order->items->first()->product_id ?? 0;
+                    $thisDriverId = auth()->user()->id;
+    
+                    if (empty(Helper::getAvailableStockFromDriver($thisDriverId))) {
+                        return response()->json(['status' => false, 'message' => 'You don\'t have stock for this product.']);
+                    }
+    
+                    DB::beginTransaction();
+    
+                    try {
         
-                        if (empty(Helper::getAvailableStockFromDriver($thisDriverId))) {
-                            return response()->json(['status' => false, 'messages' => 'You don\'t have stock for this product.']);
+                        $procurementCost = ProcurementCost::where('role_id', $order->seller->roles->first()->id ?? 2)->where('product_id', $thisProductId);
+                        $newTotal = is_numeric($request->amount) ? round($request->amount) : round(floatval($request->amount));
+                        $prodQty = $order->items->first()->qty ?? 1;
+        
+                        //driver amount
+                        $p4dDriver = PaymentForDelivery::where('driver_id', $thisDriverId);
+                        $assignedDriver = Deliver::where('user_id', $thisDriverId)->where('status', 1)->first();
+    
+                        if ($p4dDriver->exists() && $assignedDriver != null) {
+                            $thisRange = sprintf('%.2f', $assignedDriver->range);
+                            $p4dDriver = $p4dDriver->where('distance', '>=', $thisRange)->orderBy('distance', 'ASC')->first();
+    
+                            if ($p4dDriver != null) {
+                                $driverRecevies = $p4dDriver->payment;
+                            }
+    
+                        } else if (PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first() != null) {
+                            $driverRecevies = PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first()->payment;
                         }
-        
-                        DB::beginTransaction();
-        
-                        try {
-            
-                            $procurementCost = ProcurementCost::where('role_id', $order->seller->roles->first()->id ?? 2)->where('product_id', $thisProductId);
-                            $newTotal = is_numeric($request->amount) ? round($request->amount) : round(floatval($request->amount));
-                            $orderTotal = round($order->items->sum('amount'));
-                            $prodQty = $order->items->first()->qty ?? 1;
-            
-                            //driver amount
-                            $p4dDriver = PaymentForDelivery::where('driver_id', $thisDriverId);
-                            $assignedDriver = Deliver::where('user_id', $thisDriverId)->where('status', 1)->first();
-        
-                            if ($p4dDriver->exists() && $assignedDriver != null) {
-                                $thisRange = sprintf('%.2f', $assignedDriver->range);
-                                $p4dDriver = $p4dDriver->where('distance', '>=', $thisRange)->orderBy('distance', 'ASC')->first();
-        
-                                if ($p4dDriver != null) {
-                                    $driverRecevies = $p4dDriver->payment;
-                                }
-        
-                            } else if (PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first() != null) {
-                                $driverRecevies = PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first()->payment;
-                            }
-        
-                            $orderAmountAfterDriverAmountDeduction = $newTotal - $driverRecevies;
-        
-                            DriverWallet::create([
-                                'so_id' => $order->id,
-                                'driver_id' => $thisDriverId,
-                                'amount' => $orderAmountAfterDriverAmountDeduction,
-                                'driver_receives' => $driverRecevies
-                            ]);
-        
-                            //Pay to driver
-                            Transaction::create([
-                                'so_id' => $order->id,
-                                'user_id' => auth()->user()->id,
-                                'transaction_type' => 0,
-                                'amount_type' => 1,
-                                'voucher' => "DRIVER",
-                                'amount' => $driverRecevies,
-                                'year' => Helper::$financialYear,
-                                'added_by' => auth()->user()->id
-                            ]);
+    
+                        $orderAmountAfterDriverAmountDeduction = $newTotal - $driverRecevies;
 
-                            //Pay to admin
-                            Transaction::create([
-                                'so_id' => $order->id,
-                                'user_id' => auth()->user()->id,
-                                'transaction_type' => 0,
-                                'amount_type' => 2,
-                                'voucher' => $order->order_no,
-                                'amount' => $orderAmountAfterDriverAmountDeduction,
-                                'year' => Helper::$financialYear,
-                                'added_by' => auth()->user()->id
-                            ]);
-        
-                            if ($procurementCost->exists()) {
-                                $procurementCost = $procurementCost->first();
-                                if ($newTotal != $orderTotal) {
-            
-                                    $newProductTotal = $orderAmountAfterDriverAmountDeduction / $prodQty;
-        
-                                    if ($newProductTotal > $procurementCost->base_price) {
-                                        $comPrice = $newProductTotal - $procurementCost->base_price;
-                                    } else {
-                                        $comPrice = $procurementCost->default_commission_price;
-                                    }
-        
-                                    Wallet::create([
-                                        'seller_id' => $order->seller_id,
-                                        'added_by' => $thisDriverId,
-                                        'form' => 1,
-                                        'form_record_id' => $order->id,
-                                        'item_id' => $order->items->first()->id ?? null,
-                                        'commission_amount' => $comPrice * $prodQty,
-                                        'item_amount' => $newProductTotal,
-                                        'commission_actual_amount' => $comPrice,
-                                        'item_qty' => $prodQty
-                                    ]);
+                        DriverWallet::create([
+                            'so_id' => $order->id,
+                            'driver_id' => $thisDriverId,
+                            'amount' => $orderAmountAfterDriverAmountDeduction,
+                            'driver_receives' => $driverRecevies
+                        ]);
+    
+                        //Pay to driver
+                        Transaction::create([
+                            'so_id' => $order->id,
+                            'user_id' => auth()->user()->id,
+                            'transaction_type' => 0,
+                            'amount_type' => 1,
+                            'voucher' => "DRIVER",
+                            'amount' => $driverRecevies,
+                            'year' => Helper::$financialYear,
+                            'added_by' => auth()->user()->id
+                        ]);
 
-                                    Transaction::create([
-                                        'so_id' => $order->id,
-                                        'user_id' => $order->seller_id,
-                                        'transaction_type' => 1,
-                                        'amount_type' => 3,
-                                        'voucher' => $order->order_no,
-                                        'amount' => $comPrice * $prodQty,
-                                        'year' => Helper::$financialYear,
-                                        'added_by' => auth()->user()->id
-                                    ]);
+                        //Pay to admin
+                        Transaction::create([
+                            'so_id' => $order->id,
+                            'user_id' => auth()->user()->id,
+                            'transaction_type' => 0,
+                            'amount_type' => 2,
+                            'voucher' => $order->order_no,
+                            'amount' => $orderAmountAfterDriverAmountDeduction,
+                            'year' => Helper::$financialYear,
+                            'added_by' => auth()->user()->id
+                        ]);
+    
+                        if ($procurementCost->exists()) {
+                            $procurementCost = $procurementCost->first();
+        
+                                $newProductTotal = $orderAmountAfterDriverAmountDeduction / $prodQty;
+    
+                                if ($newProductTotal > $procurementCost->base_price) {
+                                    $comPrice = $newProductTotal - $procurementCost->base_price;
+                                } else {
+                                    $comPrice = $procurementCost->default_commission_price;
                                 }
-                            }
-        
-                            $si = Stock::where('product_id', $thisProductId)->where('type', 1)->whereIn('form', [1, 3])->sum('qty');
-                            $so = Stock::where('product_id', $thisProductId)->where('form', 3)->where('type', 0)->where('driver_id', $thisDriverId)->sum('qty');
-                            $stotal = ($si - $so) - $prodQty;
-        
-                            if ($stotal > 0) {
-                                Stock::create([
-                                    'product_id' => $thisProductId,
-                                    'driver_id' => $thisDriverId,
-                                    'type' => 1,
-                                    'date' => now(),
-                                    'qty' => $prodQty,
+
+                                Wallet::create([
+                                    'seller_id' => $order->seller_id,
                                     'added_by' => $thisDriverId,
-                                    'form' => 2,
-                                    'form_record_id' => $order->id
+                                    'form' => 1,
+                                    'form_record_id' => $order->id,
+                                    'item_id' => $order->items->first()->id ?? null,
+                                    'commission_amount' => $comPrice * $prodQty,
+                                    'item_amount' => $newProductTotal,
+                                    'commission_actual_amount' => $comPrice,
+                                    'item_qty' => $prodQty
                                 ]);
-                            }
-        
-                            $newestTotal = $orderAmountAfterDriverAmountDeduction;
-        
-                            if ($newestTotal == 0) {
-                                $newestTotalQty = 0;
-                            } else {
-                                $newestTotalQty = $newestTotal / $prodQty;
-                            }
-            
-                            SalesOrder::where('id', $request->order_id)->update(['price_matched' => 1, 'sold_amount' => $newestTotal, 'driver_amount' => $driverRecevies]);
-                            SalesOrderItem::where('so_id', $request->order_id)->update(['sold_item_amount' => $newestTotalQty]);
-        
-                            DB::commit();
-                            return response()->json(['status' => true, 'next' => false]);
-        
-                        } catch (\Exception $e) {
-                            Helper::logger($e->getMessage());
-                            DB::rollBack();
-                
-                            return response()->json(['status' => false, 'next' => false]);
+
+                                Transaction::create([
+                                    'so_id' => $order->id,
+                                    'user_id' => $order->seller_id,
+                                    'transaction_type' => 1,
+                                    'amount_type' => 3,
+                                    'voucher' => $order->order_no,
+                                    'amount' => $comPrice * $prodQty,
+                                    'year' => Helper::$financialYear,
+                                    'added_by' => auth()->user()->id
+                                ]);
                         }
-                    } else {
-                        return response()->json(['status' => false, 'next' => false]);
+    
+                        $si = Stock::where('product_id', $thisProductId)->where('type', 1)->whereIn('form', [1, 3])->sum('qty');
+                        $so = Stock::where('product_id', $thisProductId)->where('form', 3)->where('type', 0)->where('driver_id', $thisDriverId)->sum('qty');
+                        $stotal = ($si - $so) - $prodQty;
+    
+                        if ($stotal > 0) {
+                            Stock::create([
+                                'product_id' => $thisProductId,
+                                'driver_id' => $thisDriverId,
+                                'type' => 1,
+                                'date' => now(),
+                                'qty' => $prodQty,
+                                'added_by' => $thisDriverId,
+                                'form' => 2,
+                                'form_record_id' => $order->id
+                            ]);
+                        }
+    
+                        $newestTotal = $orderAmountAfterDriverAmountDeduction;
+    
+                        if ($newestTotal == 0) {
+                            $newestTotalQty = 0;
+                        } else {
+                            $newestTotalQty = $newestTotal / $prodQty;
+                        }
+        
+                        SalesOrder::where('id', $request->order_id)->update(['price_matched' => 1, 'sold_amount' => $newestTotal, 'driver_amount' => $driverRecevies]);
+                        SalesOrderItem::where('so_id', $request->order_id)->update(['sold_item_amount' => $newestTotalQty]);
+    
+                        DB::commit();
+                        return response()->json(['status' => true, 'next' => false]);
+    
+                    } catch (\Exception $e) {
+                        Helper::logger($e->getMessage());
+                        DB::rollBack();
+            
+                        return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
                     }
                     
                 } else {
@@ -1254,7 +1247,6 @@ class SalesOrderController extends Controller
 
                     if ($procurementCost->exists()) {
                         $procurementCost = $procurementCost->first();
-                        if ($newTotal != $orderTotal) {
     
                             $newProductTotal = $orderAmountAfterDriverAmountDeduction / $prodQty;
 
@@ -1286,7 +1278,6 @@ class SalesOrderController extends Controller
                                 'year' => Helper::$financialYear,
                                 'added_by' => auth()->user()->id
                             ]);
-                        }
                     }
 
                     $si = Stock::where('product_id', $thisProductId)->where('type', 1)->whereIn('form', [1, 3])->sum('qty');

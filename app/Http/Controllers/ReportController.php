@@ -181,6 +181,10 @@ class ReportController extends Controller
             ->whereIn('transactions.amount_type', [2])
             ->groupBy('transactions.user_id');
 
+            if (isset($request->search['value']) && !empty($request->search['value'])) {
+                $ledger = $ledger->where('users.name', 'LIKE', '%' . trim($request->search['value']) . '%');
+            }
+
             return dataTables()->eloquent($ledger)
             ->addColumn('driver_amount', function ($row) {
                 $transaction = Transaction::where('user_id', $row->userid)
@@ -210,18 +214,58 @@ class ReportController extends Controller
 
         if (User::isAdmin()) {
          
-            if (!$request->ajax()) {
-                $moduleName = 'Seller Report';
-                $sellers = SellerWallet::join('users','users.id', '=', 'wallets.seller_id')->selectRaw('wallets.seller_id as id, users.name as name, users.email as email')->groupBy('wallets.seller_id')->get()->toArray();
-
-                return view('reports.seller-commission', compact('moduleName', 'sellers'));
-            }
-
             $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
             ->selectRaw("users.name as seller_info, users.id as userid")
             ->whereIn('transactions.amount_type', [3, 0])
             ->groupBy('transactions.user_id')
             ->seller();
+
+            $users = [];
+
+            foreach ($ledger->get() as $thisIterator) {
+
+                $tr = Transaction::where('user_id', $thisIterator->userid)
+                ->select('transaction_type', 'amount')
+                ->where('transactions.amount_type', 0)
+                ->get()
+                ->toArray();
+
+                $rem = 0;
+
+                foreach ($tr as $transact) {
+                    if ($transact['transaction_type']) {
+                        $rem += $transact['amount'];
+                    } else {
+                        $rem -= $transact['amount'];
+                    }
+                }
+
+                $rem = Transaction::where('user_id', $thisIterator->userid)->where('transactions.amount_type', 3)->debit()->sum('amount') - abs($rem);
+
+                if ($rem > 0) {
+                    $users[] = $thisIterator->userid;
+                }
+
+            }
+
+            if (!$request->ajax()) {
+                $moduleName = 'Seller Report';
+                $sellers = SellerWallet::join('users','users.id', '=', 'wallets.seller_id')->selectRaw('wallets.seller_id as id, users.name as name, users.email as email')
+                            ->when(!empty($users), fn ($builder) => ($builder->where('users.id', $users)))
+                            ->groupBy('wallets.seller_id')
+                            ->get()
+                            ->toArray();
+
+                return view('reports.seller-commission', compact('moduleName', 'sellers'));
+            }
+
+            if (isset($request->search['value']) && !empty($request->search['value'])) {
+                $ledger = $ledger->where('users.name', 'LIKE', '%' . trim($request->search['value']) . '%');
+            }
+
+            if (!empty($users)) {
+                $ledger = $ledger->where('users.id', $users);
+            }
 
             return dataTables()->eloquent($ledger)
             ->addColumn('seller_amount', function ($row) {
@@ -273,6 +317,16 @@ class ReportController extends Controller
             }
 
             return dataTables()->eloquent($ledger)
+            ->addColumn('voucher', function ($row) {
+                if (str_contains($row->voucher, 'SO-')) {
+                    $order = SalesOrder::where('order_no', $row->voucher)->first();
+                    if ($order != null) {
+                        return '<a target="_blank" href="' . route('sales-orders.view', encrypt($order->id)) . '"> ' . ($order->order_no) . '</a>';
+                    }
+                }
+    
+                return $row->voucher;
+            })
             ->editColumn('crdr', function ($row){
                 if ($row->transaction_type) {
                     return '<span class="text-danger"> -' . $row->amount . ' </span>';

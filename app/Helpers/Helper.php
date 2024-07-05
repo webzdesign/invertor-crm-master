@@ -177,8 +177,8 @@ class Helper {
     }
 
     public static function getDriverBalance() {
-        $cr = Transaction::credit()->whereIn('amount_type', [0, 2])->where('user_id', auth()->user()->id)->sum('amount');
-        $dr = Transaction::debit()->whereIn('amount_type', [0, 2])->where('user_id', auth()->user()->id)->sum('amount');
+        $cr = Transaction::credit()->whereIn('amount_type', [1])->where('user_id', auth()->user()->id)->sum('amount');
+        $dr = Transaction::debit()->whereIn('amount_type', [1])->where('user_id', auth()->user()->id)->sum('amount');
 
         return Helper::currency($cr - $dr);
     }

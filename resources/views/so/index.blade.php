@@ -818,7 +818,7 @@
                                 ServerDataTable.ajax.reload();
                             }
                         } else {
-                            Swal.fire('', 'Something went wrong please try again later.', 'error');
+                            Swal.fire('', response.message, 'error');
                         }
                     },
                     complete: function () {
