@@ -1051,7 +1051,7 @@ class SalesOrderController extends Controller
                             'user_id' => auth()->user()->id,
                             'transaction_type' => 0,
                             'amount_type' => 1,
-                            'voucher' => "DRIVER",
+                            'voucher' => $order->order_no,
                             'amount' => $driverRecevies,
                             'year' => Helper::$financialYear,
                             'added_by' => auth()->user()->id
@@ -1227,7 +1227,7 @@ class SalesOrderController extends Controller
                         'user_id' => auth()->user()->id,
                         'transaction_type' => 0,
                         'amount_type' => 1,
-                        'voucher' => "DRIVER",
+                        'voucher' => $order->order_no,
                         'amount' => $driverRecevies,
                         'year' => Helper::$financialYear,
                         'added_by' => auth()->user()->id

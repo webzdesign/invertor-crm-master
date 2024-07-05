@@ -341,10 +341,12 @@ class ReportController extends Controller
             ->where('transactions.user_id', '=', auth()->user()->id);
 
             foreach ($ledger->get() as $data) {
-                if ($data->transaction_type) {
-                    $total += $data->amount;
-                } else {
-                    $total -= $data->amount;
+                if ($data->amount_type == 0) {
+                    if ($data->transaction_type) {
+                        $total += $data->amount;
+                    } else {
+                        $total -= $data->amount;
+                    }
                 }
             }
 
@@ -419,7 +421,7 @@ class ReportController extends Controller
                     'amount_type' => 0,
                     'transaction_type' => 1,
                     'user_id' => auth()->user()->id,
-                    'voucher' => 'DRIVER PAID TO ADMIN',
+                    'voucher' => 'Payment done',
                     'amount' => $request->amount,
                     'year' => Helper::$financialYear,
                     'added_by' => auth()->user()->id
@@ -430,7 +432,7 @@ class ReportController extends Controller
                     'transaction_type' => 0,
                     'user_id' => 1,
                     'attachments' => $attachmentJson,
-                    'voucher' => 'DRIVER PAID TO ADMIN',
+                    'voucher' => 'Payment received',
                     'amount' => $request->amount,
                     'year' => Helper::$financialYear,
                     'added_by' => auth()->user()->id
@@ -481,7 +483,7 @@ class ReportController extends Controller
                     'amount_type' => 0,
                     'transaction_type' => 1,
                     'user_id' => 1,
-                    'voucher' => 'ADMIN PAID TO SELLER',
+                    'voucher' => 'Payment done',
                     'amount' => $request->amount,
                     'year' => Helper::$financialYear,
                     'added_by' => auth()->user()->id
@@ -491,7 +493,7 @@ class ReportController extends Controller
                     'amount_type' => 0,
                     'transaction_type' => 0,
                     'user_id' => $request->seller,
-                    'voucher' => 'ADMIN PAID TO SELLER',
+                    'voucher' => 'Payment received',
                     'amount' => $request->amount,
                     'year' => Helper::$financialYear,
                     'added_by' => auth()->user()->id
