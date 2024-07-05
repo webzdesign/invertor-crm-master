@@ -236,6 +236,25 @@ class ReportController extends Controller
 
                 return Helper::currency(abs($rem));
             })
+
+            ->addColumn('total', function ($row) {
+                $transaction = Transaction::where('user_id', $row->userid)
+                ->select('transaction_type', 'amount')
+                ->whereIn('transactions.amount_type', [2])
+                ->sum('amount');
+
+                return Helper::currency(abs($transaction));
+            })
+
+            ->addColumn('paid', function ($row) {
+                $transaction = Transaction::where('user_id', $row->userid)
+                ->select('transaction_type', 'amount')
+                ->whereIn('transactions.amount_type', [0])
+                ->sum('amount');
+
+                return Helper::currency(abs($transaction));
+            })
+
             ->toJson();
         } else {
             abort(404);
@@ -324,6 +343,40 @@ class ReportController extends Controller
                 return Helper::currency($rem);
 
             })
+
+            ->addColumn('total', function ($row) {
+
+                $transaction = Transaction::where('user_id', $row->userid)
+                ->select('transaction_type', 'amount')
+                ->where('transactions.amount_type', 3)
+                ->sum('amount');
+
+                return Helper::currency($transaction);
+
+            })
+
+            ->addColumn('paid', function ($row) {
+
+                $transaction = Transaction::where('user_id', $row->userid)
+                ->select('transaction_type', 'amount')
+                ->where('transactions.amount_type', 0)
+                ->get()
+                ->toArray();
+
+                $rem = 0;
+
+                foreach ($transaction as $transact) {
+                    if ($transact['transaction_type']) {
+                        $rem += $transact['amount'];
+                    } else {
+                        $rem -= $transact['amount'];
+                    }
+                }
+
+                return Helper::currency(abs($rem));
+
+            })
+
             ->toJson();
 
         } else if (auth()->user()->hasPermission('sales-orders.view')) {

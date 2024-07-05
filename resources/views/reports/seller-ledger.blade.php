@@ -12,8 +12,8 @@
     <table class="seller-commission table datatableMain" style="width: 100%!important;">
         <thead>
             <tr>
-                <th>Voucher</th>
-                <th width="20%">Cr/Dr</th>
+                <th>Description</th>
+                <th width="20%">Amount</th>
             </tr>
         </thead>
         <tbody>

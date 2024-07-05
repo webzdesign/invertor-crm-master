@@ -13,6 +13,8 @@
         <thead>
             <tr>
                 <th>Seller Name</th>
+                <th>Total Commission</th>
+                <th>Commission Paid</th>
                 <th width="20%">Commission Payable</th>
             </tr>
         </thead>
@@ -20,7 +22,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="2"> <button data-bs-toggle="modal" data-bs-target="#payamount" class="btn btn-sm btn-success" id="pay-amount" style="width: 60px;float:right;"> Pay </button> </td>
+                <td colspan="4"> <button data-bs-toggle="modal" data-bs-target="#payamount" class="btn btn-sm btn-success" id="pay-amount" style="width: 60px;float:right;"> Pay </button> </td>
             </tr>
         </tfoot>
     </table>
@@ -87,6 +89,16 @@
             columns: [
                 {
                     data: 'seller_info',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'total',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'paid',
                     orderable: false,
                     searchable: false,
                 },

@@ -13,6 +13,8 @@
         <thead>
             <tr>
                 <th>Driver Name</th>
+                <th>Total Amount</th>
+                <th>Amount Received</th>
                 <th width="20%">Amount Receivable</th>
             </tr>
         </thead>
@@ -47,6 +49,16 @@
             columns: [
                 {
                     data: 'driver_info',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'total',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'paid',
                     orderable: false,
                     searchable: false,
                 },
