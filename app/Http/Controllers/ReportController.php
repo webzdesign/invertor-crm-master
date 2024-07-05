@@ -165,7 +165,7 @@ class ReportController extends Controller
                     return '<span class="text-success"> +' . $row->amount . ' </span>';
                 }
             })
-            ->with(['bl' => abs($total)])
+            ->with(['bl' => Helper::currency(abs($total))])
             ->rawColumns(['voucher', 'crdr'])
             ->toJson();
 
@@ -234,7 +234,7 @@ class ReportController extends Controller
                     }
                 }
 
-                return abs($rem);
+                return Helper::currency(abs($rem));
             })
             ->toJson();
         } else {
@@ -321,7 +321,7 @@ class ReportController extends Controller
 
                 $rem = Transaction::where('user_id', $row->userid)->where('transactions.amount_type', 3)->debit()->sum('amount') - abs($rem);
 
-                return $rem;
+                return Helper::currency($rem);
 
             })
             ->toJson();
@@ -341,12 +341,10 @@ class ReportController extends Controller
             ->where('transactions.user_id', '=', auth()->user()->id);
 
             foreach ($ledger->get() as $data) {
-                if ($data->amount_type == 0) {
-                    if ($data->transaction_type) {
-                        $total += $data->amount;
-                    } else {
-                        $total -= $data->amount;
-                    }
+                if ($data->transaction_type) {
+                    $total += $data->amount;
+                } else {
+                    $total -= $data->amount;
                 }
             }
 
@@ -368,7 +366,7 @@ class ReportController extends Controller
                     return '<span class="text-success"> +' . $row->amount . ' </span>';
                 }
             })
-            ->with(['bl' => abs($total)])
+            ->with(['bl' => Helper::currency(abs($total))])
             ->rawColumns(['voucher', 'crdr'])
             ->toJson();
 

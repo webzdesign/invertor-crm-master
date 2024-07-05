@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{Category, User, Wallet, Bonus, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger, ManageStatus, DriverWallet};
 use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ChangeOrderStatusTrigger, SalesOrderProofImages};
-use App\Models\{AdminWallet, PaymentForDelivery, Transaction};
+use App\Models\{PaymentForDelivery, Transaction};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -18,7 +18,7 @@ class SalesOrderController extends Controller
     {
         if (!$request->ajax()) {
             $moduleName = $this->moduleName;
-            $sellers = User::whereHas('role', fn ($builder) => ($builder->whereIn('roles.id', [2, 6])))->select('name', 'id')->pluck('name', 'id')->toArray();
+            $sellers = User::whereHas('role', fn ($builder) => ($builder->whereIn('roles.id', [2, 6])))->selectRaw("CONCAT(name, ' - (', email, ')') as name, users.id as id")->pluck('name', 'id')->toArray();
             $drivers = User::whereHas('role', fn ($builder) => ($builder->where('roles.id', [3])))->selectRaw("CONCAT(name, ' - (', email, ')') as name, users.id, users.lat, users.long")->get()->toArray();
             $statuses = DB::table('sales_order_statuses')->select('name', 'id')->pluck('name', 'id')->toArray();
             $products = Product::select('name', 'id')->pluck('name', 'id')->toArray();
