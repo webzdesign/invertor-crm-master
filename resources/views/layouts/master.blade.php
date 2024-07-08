@@ -52,7 +52,7 @@
                         </li>
                         @elseif(User::isDriver())
                         <li class="dropdown middleContent p-0 userMenu">
-                            <div class="commission-btn text-white f-700"> Balance : {{ Helper::getDriverBalance() }} </div>
+                            <div class="commission-btn text-white f-700"> Earning : {{ Helper::getDriverBalance() }} </div>
                         </li>
                         @endif
 
