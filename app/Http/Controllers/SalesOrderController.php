@@ -998,7 +998,7 @@ class SalesOrderController extends Controller
     public function checkPrice (Request $request) {
 
         if (!empty($request->order_id) && !empty($request->amount) && is_numeric($request->amount)) {
-            $order = SalesOrder::with(['items', 'seller.roles'])->where('id', $request->order_id);
+            $order = SalesOrder::with(['items', 'addedby.roles'])->where('id', $request->order_id);
             if ($order->exists()) {
                 $order = $order->first();
                 if (round($order->items->sum('amount')) == round($request->amount)) {
@@ -1016,7 +1016,7 @@ class SalesOrderController extends Controller
     
                     try {
         
-                        $procurementCost = ProcurementCost::where('role_id', $order->seller->roles->first()->id ?? 2)->where('product_id', $thisProductId);
+                        $procurementCost = ProcurementCost::where('role_id', $order->addedby->roles->first()->id ?? 2)->where('product_id', $thisProductId);
                         $newTotal = is_numeric($request->amount) ? round($request->amount) : round(floatval($request->amount));
                         $prodQty = $order->items->first()->qty ?? 1;
         
@@ -1153,10 +1153,6 @@ class SalesOrderController extends Controller
 
     public function priceUnmatched(Request $request) {
 
-        if (!$request->hasFile('file')) {
-            return response()->json(['status' => false, 'messages' => 'Upload atleast a file.']);
-        }
-
         $toBeDeleted = [];
         $comPrice = $prodQty = $driverRecevies = 0;
 
@@ -1165,7 +1161,7 @@ class SalesOrderController extends Controller
         }
 
         if (!empty($request->order_id) && !empty($request->amount) && is_numeric($request->amount)) {
-            $order = SalesOrder::with(['items', 'seller.roles'])->where('id', $request->order_id);
+            $order = SalesOrder::with(['items', 'addedby.roles'])->where('id', $request->order_id);
             if ($order->exists()) {
                 $order = $order->first();
                 $thisProductId = $order->items->first()->product_id ?? 0;
@@ -1191,9 +1187,8 @@ class SalesOrderController extends Controller
                         }                    
                     }
     
-                    $procurementCost = ProcurementCost::where('role_id', $order->seller->roles->first()->id ?? 2)->where('product_id', $thisProductId);
+                    $procurementCost = ProcurementCost::where('role_id', $order->addedby->roles->first()->id ?? 2)->where('product_id', $thisProductId);
                     $newTotal = is_numeric($request->amount) ? round($request->amount) : round(floatval($request->amount));
-                    $orderTotal = round($order->items->sum('amount'));
                     $prodQty = $order->items->first()->qty ?? 1;
     
                     //driver amount
