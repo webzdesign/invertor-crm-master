@@ -13,7 +13,8 @@
         <thead>
             <tr>
                 <th>Description</th>
-                <th width="20%">Amount</th>
+                <th width="20%">My Earnings</th>
+                <th width="20%">Amount Payable</th>
             </tr>
         </thead>
         <tbody>
@@ -21,6 +22,7 @@
         <tfoot>
             <tr>
                 <td>  <button data-bs-toggle="modal" data-bs-target="#payamount" class="btn btn-sm btn-success" id="pay-amount" style="width: 60px;float:right;"> Pay </button>  </td>
+                <td id="me-total" style="background: #e583a47d;font-weight:600;">0</td>
                 <td id="bl-total" style="background: #e583a47d;font-weight:600;">0</td>
             </tr>
         </tfoot>
@@ -44,7 +46,7 @@
                         </div>
 
                         <div class="col-12 mb-2 document-field">
-                            <label class="c-gr f-500 f-12 w-100 mb-2"> UPLOAD PROOF IMAGE : <span class="text-danger">*</span> </label>
+                            <label class="c-gr f-500 f-12 w-100 mb-2"> UPLOAD PROOF IMAGE : </label>
                             <input type="file" id="order-closing-document" name="file[]" class="form-control" multiple />
                         </div>
 
@@ -88,12 +90,18 @@
                     searchable: false,
                 },
                 {
+                    data: 'me',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
                     data: 'crdr',
                     orderable: false,
                     searchable: false,
                 }
             ],
             drawCallback: function (data) {
+                $('#me-total').text(data.json.me);
                 $('#bl-total').text(data.json.bl);
             }
         });
@@ -136,7 +144,6 @@
                     min: 1
                 },
                 'file[]': {
-                    required: true,
                     fileType: 'jpeg|png|jpg',
                     maxFiles: 10,
                     fileSizeLimit: (10 * 1024 * 1024) * 2
@@ -147,9 +154,6 @@
                     required: "Enter the amount",
                     number: "Enter valid amount",
                     min: "Enter valid amount."
-                },
-                'file[]': {
-                    required: "Upload atleast an image proof"
                 }
             },
             submitHandler: function(form, event) {

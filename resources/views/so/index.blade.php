@@ -776,7 +776,6 @@
                     min: 1
                 },
                 'file[]': {
-                    required: true,
                     fileType: 'jpeg|png|jpg',
                     maxFiles: 10,
                     fileSizeLimit: (10 * 1024 * 1024) * 2
@@ -787,9 +786,6 @@
                     required: "Enter the amount",
                     number: "Enter valid amount",
                     min: "Enter valid amount."
-                },
-                'file[]': {
-                    required: "Upload atleast an image proof"
                 }
             }
         });

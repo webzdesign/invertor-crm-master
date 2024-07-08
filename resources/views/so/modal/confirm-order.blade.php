@@ -16,7 +16,7 @@
                         </div>
 
                         <div class="col-12 mb-2 document-field" style="display: none;">
-                            <label class="c-gr f-500 f-12 w-100 mb-2"> UPLOAD PROOF IMAGE : <span class="text-danger">*</span> </label>
+                            <label class="c-gr f-500 f-12 w-100 mb-2"> UPLOAD PROOF IMAGE : </label>
                             <input type="file" id="order-closing-document" name="file[]" class="form-control" multiple />
                         </div>
 

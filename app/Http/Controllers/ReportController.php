@@ -132,20 +132,22 @@ class ReportController extends Controller
                 return view('reports.driver-ledger', compact('moduleName'));
             }
     
-            $total = 0;
+            $total = $earnings = 0;
     
             $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
-            ->selectRaw("voucher, users.name as user, amount, transaction_type")
+            ->selectRaw("voucher, users.name as user, amount, transaction_type, so_id")
             ->whereIn('transactions.amount_type', [0, 2])
             ->where('transactions.user_id', '=', auth()->user()->id);
     
-            foreach ($ledger->get() as $data) {    
+            foreach ($ledger->get() as $data) {
                 if ($data->transaction_type) {
                     $total += $data->amount;
                 } else {
                     $total -= $data->amount;
                 }
             }
+
+            $earnings = Transaction::select('amount')->where('amount_type', 1)->whereIn('so_id', $ledger->clone()->groupBy('so_id')->pluck('so_id')->toArray())->sum('amount');
     
             return dataTables()->eloquent($ledger)
             ->addColumn('voucher', function ($row) {
@@ -165,8 +167,17 @@ class ReportController extends Controller
                     return '<span class="text-success"> +' . $row->amount . ' </span>';
                 }
             })
-            ->with(['bl' => Helper::currency(abs($total))])
-            ->rawColumns(['voucher', 'crdr'])
+            ->addColumn('me', function ($row) {
+                $temp = Transaction::select('amount')->where('so_id', $row->so_id)->where('amount_type', 1)->first();
+                if ($temp != null) {
+                    return '<span class="text-success"> +' . $temp->amount . ' </span>';
+                } else {
+                    return '-';
+                }
+            })
+
+            ->with(['bl' => Helper::currency(abs($total)), 'me' => Helper::currency($earnings)])
+            ->rawColumns(['voucher', 'crdr', 'me'])
             ->toJson();
 
         } else if (User::isAdmin()) {
@@ -393,22 +404,11 @@ class ReportController extends Controller
             ->whereIn('transactions.amount_type', [3, 0])
             ->where('transactions.user_id', '=', auth()->user()->id);
 
-            $skip = true;
-
-            if ($ledger->count() == 1) {
-                $total = $ledger->first()->amount ?? 0;
-            } else {
-                foreach ($ledger->get() as $data) {
-                    if ($data->amount_type == 3 && $data->transaction_type == 1 && $skip) {
-                        $skip = false;
-                        continue;
-                    }
-    
-                    if ($data->transaction_type) {
-                        $total -= $data->amount;
-                    } else {
-                        $total += $data->amount;
-                    }
+            foreach ($ledger->clone()->orderBy('transaction_type', 'ASC')->get() as $data) {
+                if ($data->transaction_type) {
+                    $total -= $data->amount;
+                } else {
+                    $total += $data->amount;
                 }
             }
 
@@ -450,8 +450,8 @@ class ReportController extends Controller
             return back()->with('error', 'You have insufficient balance in your account.');
         }
 
-        if (!file_exists(storage_path('app/public/payment-receipt'))) {
-            mkdir(storage_path('app/public/payment-receipt'), 0777, true);
+        if (!file_exists(storage_path('app/public/payment-receipt/driver'))) {
+            mkdir(storage_path('app/public/payment-receipt/driver'), 0777, true);
         }
 
         if (is_numeric($request->amount)) {
@@ -465,9 +465,9 @@ class ReportController extends Controller
                 if ($request->hasFile('file')) {
                     foreach ($request->file('file') as $file) {
                         $name = 'PAY-RECEIPT-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
-                        $file->move(storage_path('app/public/payment-receipt'), $name);
+                        $file->move(storage_path('app/public/payment-receipt/driver'), $name);
 
-                        if (file_exists(storage_path("app/public/payment-receipt/{$name}"))) {
+                        if (file_exists(storage_path("app/public/payment-receipt/driver/{$name}"))) {
                             $attachmentJson[] = $name;
                         }
                     }
@@ -506,8 +506,8 @@ class ReportController extends Controller
 
                 if (is_array($attachmentJson) && !empty($attachmentJson)) {
                     foreach ($attachmentJson as $eachImage) {
-                        if (file_exists(storage_path("app/public/payment-receipt/{$eachImage}"))) {
-                            unlink(storage_path("app/public/payment-receipt/{$eachImage}"));
+                        if (file_exists(storage_path("app/public/payment-receipt/driver/{$eachImage}"))) {
+                            unlink(storage_path("app/public/payment-receipt/driver/{$eachImage}"));
                         }
                     }
                 }
@@ -535,11 +535,34 @@ class ReportController extends Controller
             return back()->with('error', 'You have insufficient balance in your account.');
         }
 
+        if (!file_exists(storage_path('app/public/payment-receipt/seller'))) {
+            mkdir(storage_path('app/public/payment-receipt/seller'), 0777, true);
+        }
+
         if (is_numeric($request->amount)) {
             
+            $attachmentJson = [];
+
             DB::beginTransaction();
 
             try {
+
+                if ($request->hasFile('file')) {
+                    foreach ($request->file('file') as $file) {
+                        $name = 'PAY-RECEIPT-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
+                        $file->move(storage_path('app/public/payment-receipt/seller'), $name);
+
+                        if (file_exists(storage_path("app/public/payment-receipt/seller/{$name}"))) {
+                            $attachmentJson[] = $name;
+                        }
+                    }
+                }
+
+                if (empty($attachmentJson)) {
+                    $attachmentJson = null;
+                } else {
+                    $attachmentJson = json_encode($attachmentJson);
+                }
 
                 Transaction::create([
                     'amount_type' => 0,
@@ -556,6 +579,7 @@ class ReportController extends Controller
                     'transaction_type' => 0,
                     'user_id' => $request->seller,
                     'voucher' => 'Payment received',
+                    'attachments' => $attachmentJson,
                     'amount' => $request->amount,
                     'year' => Helper::$financialYear,
                     'added_by' => auth()->user()->id
@@ -564,6 +588,14 @@ class ReportController extends Controller
                 DB::commit();
                 return back()->with('success', Helper::currency($request->amount) . " paid to seller successfully.");
             } catch (\Exception $e) {
+
+                if (is_array($attachmentJson) && !empty($attachmentJson)) {
+                    foreach ($attachmentJson as $eachImage) {
+                        if (file_exists(storage_path("app/public/payment-receipt/seller/{$eachImage}"))) {
+                            unlink(storage_path("app/public/payment-receipt/seller/{$eachImage}"));
+                        }
+                    }
+                }
 
                 DB::rollback();
 

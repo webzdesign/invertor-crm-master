@@ -54,6 +54,11 @@
                             <input type="text" id="order-closing-amount" name="amount" class="form-control" placeholder="Enter amount" />
                         </div>
 
+                        <div class="col-12 mb-2 document-field">
+                            <label class="c-gr f-500 f-12 w-100 mb-2"> UPLOAD PROOF IMAGE : </label>
+                            <input type="file" id="order-closing-document" name="file[]" class="form-control" multiple />
+                        </div>
+
                     </div>
                 </div>
                 <div class="modal-footer no-border">
@@ -117,6 +122,31 @@
             ServerDataTable.search($(this).val()).draw();
         });
 
+        $.validator.addMethod("fileType", function(value, element, param) {
+            var fileTypes = param.split('|');
+            var files = element.files;
+            for (var i = 0; i < files.length; i++) {
+                var extension = files[i].name.split('.').pop().toLowerCase();
+                if ($.inArray(extension, fileTypes) === -1) {
+                    return false;
+                }
+            }
+            return true;
+        }, "Only .png, .jpg, and .jpeg extensions supported");
+
+        $.validator.addMethod("maxFiles", function(value, element, param) {
+            return element.files.length <= param;
+        }, "Maximum 10 files can be uploaded.");
+
+        $.validator.addMethod("fileSizeLimit", function(value, element, param) {
+            var totalSize = 0;
+            var files = element.files;
+            for (var i = 0; i < files.length; i++) {
+                totalSize += files[i].size;
+            }
+            return totalSize <= param;
+        }, "Total file size must not exceed 20 MB");
+
         $('#seller-picker').select2({
             dropdownParent: $('#payamount'),
             width: '100%',
@@ -132,6 +162,11 @@
                     required: true,
                     number: true,
                     min: 1
+                },
+                'file[]': {
+                    fileType: 'jpeg|png|jpg',
+                    maxFiles: 10,
+                    fileSizeLimit: (10 * 1024 * 1024) * 2
                 }
             },
             messages: {
