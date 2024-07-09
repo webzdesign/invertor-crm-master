@@ -33,6 +33,7 @@
             <div class="row">
 
                 @foreach($permission as $key => $value)
+                @if($role->slug == 'driver' && $key != 'SalesOrderStatus' || $role->slug != 'driver')
                         <div class="col-xl-3 col-lg-4 col-md-6 mb-3 permission-listing">
                             <div class="PlBox">
                                 @foreach($value as $k => $v)
@@ -49,6 +50,7 @@
                                 @endforeach
                             </div>
                         </div>
+                @endif
                 @endforeach
             </div>
         </div>

@@ -729,10 +729,17 @@
             let oId = $(this).attr('data-oid');
             let title = $(this).attr('data-title');
 
-            if (isNumeric(oId)) {
-                $('#close-order').find('#modal-title').text(title);
-                $('#closing-order-id').val(oId);
-                $('#close-order').modal('show');
+            let availableQty = $(this).attr('data-available');
+            let wantedQty = $(this).attr('data-wanted');
+
+            if (isNumeric(oId) && isNumeric(availableQty) && isNumeric(wantedQty)) {
+                if (availableQty < wantedQty) {
+                    Swal.fire('', "You don\'t have stock for this product.", 'error');
+                } else {
+                    $('#close-order').find('#modal-title').text(title);
+                    $('#closing-order-id').val(oId);
+                    $('#close-order').modal('show');
+                }
             }
         });
 

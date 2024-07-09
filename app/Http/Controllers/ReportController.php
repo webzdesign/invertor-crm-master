@@ -14,7 +14,8 @@ class ReportController extends Controller
 
         $drivers = User::whereHas('role', function ($builder) {
             $builder->where('roles.id', 3);
-        })->selectRaw("CONCAT(users.name, ' - (', users.email, ')') as name, users.id as id");
+        })->selectRaw("CONCAT(users.name, ' - (', users.email, ')') as name, users.id as id")
+        ->when(User::isDriver(), fn ($builder) => ($builder->where('id', auth()->user()->id)));
 
         if (!$request->ajax()) {
             $moduleName = 'Stock Report';
@@ -25,16 +26,20 @@ class ReportController extends Controller
             return view('reports.stock', compact('moduleName', 'drivers', 'types', 'products'));
         }
 
-        $stock = Helper::getAvailableStockFromStorage();
-        $storageStock = collect($stock)->map(function ($val, $key) {
-            return ['product_id' => $key, 'qty' => $val, 'type' => 'Storage'];
-        })->filter()->values();
+        $storageStock = $driverStock = [];
 
-        $driverStock = [];
-
-        if ($request->has('filterDriver') && !empty(trim($request->filterDriver))) {
-            $request->filterType = '2';
-            $drivers = $drivers->where('id', $request->filterDriver)->pluck('name', 'id')->toArray();
+        if(!User::isDriver()) {
+            $stock = Helper::getAvailableStockFromStorage();
+            $storageStock = collect($stock)->map(function ($val, $key) {
+                return ['product_id' => $key, 'qty' => $val, 'type' => 'Storage'];
+            })->filter()->values();
+    
+            if ($request->has('filterDriver') && !empty(trim($request->filterDriver))) {
+                $request->filterType = '2';
+                $drivers = $drivers->where('id', $request->filterDriver)->pluck('name', 'id')->toArray();
+            } else {
+                $drivers = $drivers->pluck('name', 'id')->toArray();
+            }
         } else {
             $drivers = $drivers->pluck('name', 'id')->toArray();
         }
@@ -76,53 +81,6 @@ class ReportController extends Controller
         ->toJson();
     }
 
-    public function ledgerReport(Request $request) {
-        return abort(404);
-        if (!$request->ajax()) {
-            $moduleName = 'Ledger Report';
-            $users = User::selectRaw("CONCAT(roles.name, ' - ', users.name, ' (',  users.email, ')' ) as name, users.id as id")
-            ->join('user_roles', 'user_roles.user_id', '=', 'users.id')
-            ->join('roles', 'user_roles.role_id', '=', 'roles.id')
-            ->whereIn('roles.id', [2,3,6])
-            ->pluck('name', 'id')
-            ->toArray();
-
-            return view('reports.ledger', compact('moduleName', 'users'));
-        }
-
-        $driverWallet = DriverWallet::selectRaw('driver_wallets.driver_id as user_id, driver_wallets.amount, driver_wallets.created_at as date, sales_orders.id as orderid, sales_orders.order_no as order_id')->join('sales_orders', 'sales_orders.id', '=', 'driver_wallets.so_id')->get()->toArray();
-        $sellerWallet = SellerWallet::selectRaw('wallets.seller_id as user_id, wallets.commission_amount as amount, wallets.created_at as date, sales_orders.id as orderid, sales_orders.order_no as order_id')->join('sales_orders', 'sales_orders.id', '=', 'wallets.form_record_id')->where('form', 1)->get()->toArray();
-
-        $wallet = collect($driverWallet)->merge($sellerWallet)->sortBy('order_id');
-        $total = 0;
-
-        if (!empty($request->user) && is_numeric($request->user)) {
-            $wallet = $wallet->where('user_id', $request->user);
-        }
-
-        foreach ($wallet as $amount) {
-            $total += $amount['amount'];            
-        }
-
-        return dataTables()->collection($wallet)
-        ->addColumn('user', function ($row) {
-            return Helper::userName($row['user_id']);
-        })
-        ->addColumn('order', function ($row) {
-            return '<a target="_blank" href="' . route('sales-orders.view', encrypt($row['orderid'])) . '"> ' . $row['order_id'] . '</a>';
-        })
-        ->addColumn('date', function ($row) {
-            return date($row['date'], strtotime('d-m-Y H:i'));
-        })
-        ->addColumn('credit', function ($row) {
-            return Helper::currency($row['amount']);
-        })
-        ->rawColumns(['order'])
-        ->with(['total' => Helper::currency($total)])
-        ->toJson();
-
-    }
-
     public function driverCommission(Request $request) {
 
         if (User::isDriver()) {
@@ -132,51 +90,54 @@ class ReportController extends Controller
                 return view('reports.driver-ledger', compact('moduleName'));
             }
     
-            $total = $earnings = 0;
+            $total = 0;
     
             $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
-            ->selectRaw("voucher, users.name as user, amount, transaction_type, so_id")
+            ->selectRaw("voucher, users.name as user, amount, transaction_type, so_id, is_approved, amount_type")
             ->whereIn('transactions.amount_type', [0, 2])
             ->where('transactions.user_id', '=', auth()->user()->id);
     
             foreach ($ledger->get() as $data) {
-                if ($data->transaction_type) {
-                    $total += $data->amount;
-                } else {
-                    $total -= $data->amount;
+                if ($data->is_approved == 1) {
+                    if ($data->transaction_type) {
+                        $total -= $data->amount;
+                    } else {
+                        $total += $data->amount;
+                    }
                 }
             }
-
-            $earnings = Transaction::select('amount')->where('amount_type', 1)->whereIn('so_id', $ledger->clone()->groupBy('so_id')->pluck('so_id')->toArray())->sum('amount');
     
             return dataTables()->eloquent($ledger)
             ->addColumn('voucher', function ($row) {
-                if (str_contains($row->voucher, 'SO-')) {
-                    $order = SalesOrder::where('order_no', $row->voucher)->first();
-                    if ($order != null) {
-                        return '<a target="_blank" href="' . route('sales-orders.view', encrypt($order->id)) . '"> ' . ($order->order_no) . '</a>';
+                if ($row->is_approved == 0 && $row->amount_type == 0) {
+                    return "<span class='text-secondary'> Payment pending </span>";
+                } else if ($row->is_approved == 1 && $row->amount_type == 0) {
+                    return "<span class='text-success'> Payment received </span>";
+                } else if ($row->is_approved == 2 && $row->amount_type == 0) {
+                    return "<span class='text-danger'> Payment rejected </span>";
+                } else {
+                    if (str_contains($row->voucher, 'SO-')) {
+                        $order = SalesOrder::where('order_no', $row->voucher)->first();
+                        if ($order != null) {
+                            return '<a target="_blank" href="' . route('sales-orders.view', encrypt($order->id)) . '"> ' . ($order->order_no) . '</a>';
+                        }
                     }
+
+                    return $row->voucher;
                 }
-    
-                return $row->voucher;
             })
             ->editColumn('crdr', function ($row) {
-                if ($row->transaction_type) {
-                    return '<span class="text-danger"> -' . $row->amount . ' </span>';
+                if ($row->is_approved == 0 && $row->amount_type == 0) {
+                    return '<span class="text-secondary"> -' . $row->amount . ' </span>';
                 } else {
-                    return '<span class="text-success"> +' . $row->amount . ' </span>';
+                    if ($row->transaction_type) {
+                        return '<span class="text-danger"> -' . $row->amount . ' </span>';
+                    } else {
+                        return '<span class="text-success"> +' . $row->amount . ' </span>';
+                    }
                 }
             })
-            ->addColumn('me', function ($row) {
-                $temp = Transaction::select('amount')->where('so_id', $row->so_id)->where('amount_type', 1)->first();
-                if ($temp != null) {
-                    return '<span class="text-success"> +' . $temp->amount . ' </span>';
-                } else {
-                    return '-';
-                }
-            })
-
-            ->with(['bl' => Helper::currency(abs($total)), 'me' => Helper::currency($earnings)])
+            ->with(['bl' => Helper::currency(abs($total))])
             ->rawColumns(['voucher', 'crdr', 'me'])
             ->toJson();
 
@@ -184,10 +145,11 @@ class ReportController extends Controller
 
             if (!$request->ajax()) {
                 $moduleName = 'Driver Report';
-                return view('reports.driver-commission', compact('moduleName'));
+                $moduleName2 = 'Driver Paid Amount';
+                return view('reports.driver-commission', compact('moduleName', 'moduleName2'));
             }
     
-            $users = [];
+            $total = 0;
 
             $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
             ->selectRaw("users.name as driver_info, users.id as userid")
@@ -202,36 +164,29 @@ class ReportController extends Controller
 
                 $tr = Transaction::where('user_id', $thisIterator->userid)
                 ->select('transaction_type', 'amount')
+                ->where('transactions.is_approved', 1)
                 ->whereIn('transactions.amount_type', [0, 2])
-                ->get()
-                ->toArray();
-    
+                ->orderBy('transaction_type', 'ASC')
+                ->get()->toArray();
+
                 $rem = 0;
-    
-                foreach ($tr as $transact) {
-                    if ($transact['transaction_type']) {
-                        $rem += $transact['amount'];
+
+                foreach ($tr as $t) {
+                    if ($t['transaction_type']) {
+                        $rem -= $t['amount'];
                     } else {
-                        $rem -= $transact['amount'];
+                        $rem += $t['amount'];
                     }
                 }
-
-                if (abs($rem) > 0) {
-                    $users[] = $thisIterator->userid;
-                }
     
-            }
-
-            if (!empty($users)) {
-                $ledger = $ledger->whereIn('users.id', $users);
-            } else {
-                $ledger = $ledger->whereNull('users.id');
+                $total += $rem;
             }
 
             return dataTables()->eloquent($ledger)
             ->addColumn('driver_amount', function ($row) {
                 $transaction = Transaction::where('user_id', $row->userid)
                 ->select('transaction_type', 'amount')
+                ->where('transactions.is_approved', 1)
                 ->whereIn('transactions.amount_type', [0, 2])
                 ->get()->toArray();
 
@@ -247,25 +202,7 @@ class ReportController extends Controller
 
                 return Helper::currency(abs($rem));
             })
-
-            ->addColumn('total', function ($row) {
-                $transaction = Transaction::where('user_id', $row->userid)
-                ->select('transaction_type', 'amount')
-                ->whereIn('transactions.amount_type', [2])
-                ->sum('amount');
-
-                return Helper::currency(abs($transaction));
-            })
-
-            ->addColumn('paid', function ($row) {
-                $transaction = Transaction::where('user_id', $row->userid)
-                ->select('transaction_type', 'amount')
-                ->whereIn('transactions.amount_type', [0])
-                ->sum('amount');
-
-                return Helper::currency(abs($transaction));
-            })
-
+            ->with(['total' => Helper::currency($total)])
             ->toJson();
         } else {
             abort(404);
@@ -275,60 +212,45 @@ class ReportController extends Controller
     public function sellerCommission(Request $request) {
 
         if (User::isAdmin()) {
-         
+
+            if (!$request->ajax()) {
+                $moduleName = 'Seller Report';
+                return view('reports.seller-commission', compact('moduleName'));
+            }
+
+            $total = 0;
+
             $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
             ->selectRaw("users.name as seller_info, users.id as userid")
             ->whereIn('transactions.amount_type', [3, 0])
             ->groupBy('transactions.user_id')
             ->seller();
 
-            $users = [];
+            if (isset($request->search['value']) && !empty($request->search['value'])) {
+                $ledger = $ledger->where('users.name', 'LIKE', '%' . trim($request->search['value']) . '%');
+            }
 
             foreach ($ledger->get() as $thisIterator) {
 
                 $tr = Transaction::where('user_id', $thisIterator->userid)
                 ->select('transaction_type', 'amount')
                 ->where('transactions.amount_type', 0)
-                ->get()
-                ->toArray();
+                ->orderBy('transaction_type', 'ASC')
+                ->get()->toArray();
 
                 $rem = 0;
 
-                foreach ($tr as $transact) {
-                    if ($transact['transaction_type']) {
-                        $rem += $transact['amount'];
+                foreach ($tr as $t) {
+                    if ($t['transaction_type']) {
+                        $rem -= $t['amount'];
                     } else {
-                        $rem -= $transact['amount'];
+                        $rem += $t['amount'];
                     }
                 }
 
-                $rem = Transaction::where('user_id', $thisIterator->userid)->where('transactions.amount_type', 3)->debit()->sum('amount') - abs($rem);
-
-                if ($rem > 0) {
-                    $users[] = $thisIterator->userid;
-                }
-
-            }
-
-            if (!$request->ajax()) {
-                $moduleName = 'Seller Report';
-                $sellers = SellerWallet::join('users','users.id', '=', 'wallets.seller_id')->selectRaw('wallets.seller_id as id, users.name as name, users.email as email')
-                            ->when(!empty($users), fn ($builder) => ($builder->whereIn('users.id', $users)))
-                            ->groupBy('wallets.seller_id')
-                            ->get()
-                            ->toArray();
-
-                return view('reports.seller-commission', compact('moduleName', 'sellers'));
-            }
-
-            if (isset($request->search['value']) && !empty($request->search['value'])) {
-                $ledger = $ledger->where('users.name', 'LIKE', '%' . trim($request->search['value']) . '%');
-            }
-
-            if (!empty($users)) {
-                $ledger = $ledger->whereIn('users.id', $users);
-            } else {
-                $ledger = $ledger->whereNull('users.id');
+                $rem = Transaction::where('user_id', $thisIterator->userid)->where('transactions.amount_type', 3)->debit()->sum('amount') - $rem;
+    
+                $total += $rem;
             }
 
             return dataTables()->eloquent($ledger)
@@ -336,58 +258,25 @@ class ReportController extends Controller
                 $transaction = Transaction::where('user_id', $row->userid)
                 ->select('transaction_type', 'amount')
                 ->where('transactions.amount_type', 0)
-                ->get()
-                ->toArray();
+                ->orderBy('transaction_type', 'ASC')
+                ->get()->toArray();
 
                 $rem = 0;
 
                 foreach ($transaction as $transact) {
                     if ($transact['transaction_type']) {
-                        $rem += $transact['amount'];
-                    } else {
                         $rem -= $transact['amount'];
+                    } else {
+                        $rem += $transact['amount'];
                     }
                 }
 
-                $rem = Transaction::where('user_id', $row->userid)->where('transactions.amount_type', 3)->debit()->sum('amount') - abs($rem);
+                $rem = Transaction::where('user_id', $row->userid)->where('transactions.amount_type', 3)->debit()->sum('amount') - $rem;
 
                 return Helper::currency($rem);
 
             })
-
-            ->addColumn('total', function ($row) {
-
-                $transaction = Transaction::where('user_id', $row->userid)
-                ->select('transaction_type', 'amount')
-                ->where('transactions.amount_type', 3)
-                ->sum('amount');
-
-                return Helper::currency($transaction);
-
-            })
-
-            ->addColumn('paid', function ($row) {
-
-                $transaction = Transaction::where('user_id', $row->userid)
-                ->select('transaction_type', 'amount')
-                ->where('transactions.amount_type', 0)
-                ->get()
-                ->toArray();
-
-                $rem = 0;
-
-                foreach ($transaction as $transact) {
-                    if ($transact['transaction_type']) {
-                        $rem += $transact['amount'];
-                    } else {
-                        $rem -= $transact['amount'];
-                    }
-                }
-
-                return Helper::currency(abs($rem));
-
-            })
-
+            ->with(['total' => Helper::currency($total)])
             ->toJson();
 
         } else if (auth()->user()->hasPermission('sales-orders.view')) {
@@ -441,8 +330,8 @@ class ReportController extends Controller
 
     public function payAmountToAdmin(Request $request) {
 
-        $credit = Transaction::whereIn('amount_type', [0, 2])->where('user_id', auth()->user()->id)->credit()->sum('amount');
-        $debit = Transaction::whereIn('amount_type', [0, 2])->where('user_id', auth()->user()->id)->debit()->sum('amount');
+        $credit = Transaction::whereIn('amount_type', [0, 2])->where('is_approved', 1)->where('user_id', auth()->user()->id)->credit()->sum('amount');
+        $debit = Transaction::whereIn('amount_type', [0, 2])->where('is_approved', 1)->where('user_id', auth()->user()->id)->debit()->sum('amount');
 
         $remaining = $credit - $debit;
 
@@ -479,8 +368,11 @@ class ReportController extends Controller
                     $attachmentJson = json_encode($attachmentJson);
                 }
 
+                $transactionUid = Helper::hash();
+
                 Transaction::create([
                     'amount_type' => 0,
+                    'transaction_id' => $transactionUid,
                     'transaction_type' => 1,
                     'user_id' => auth()->user()->id,
                     'voucher' => 'Payment done',
@@ -491,6 +383,7 @@ class ReportController extends Controller
 
                 Transaction::create([
                     'amount_type' => 0,
+                    'transaction_id' => $transactionUid,
                     'transaction_type' => 0,
                     'user_id' => 1,
                     'attachments' => $attachmentJson,
@@ -564,8 +457,11 @@ class ReportController extends Controller
                     $attachmentJson = json_encode($attachmentJson);
                 }
 
+                $transactionUid = Helper::hash();
+
                 Transaction::create([
                     'amount_type' => 0,
+                    'transaction_id' => $transactionUid,
                     'transaction_type' => 1,
                     'user_id' => 1,
                     'voucher' => 'Payment done',
@@ -576,6 +472,7 @@ class ReportController extends Controller
 
                 Transaction::create([
                     'amount_type' => 0,
+                    'transaction_id' => $transactionUid,
                     'transaction_type' => 0,
                     'user_id' => $request->seller,
                     'voucher' => 'Payment received',
@@ -604,6 +501,69 @@ class ReportController extends Controller
 
         } else {
             return back()->with('error', 'Please enter valid amount.');
+        }
+    }
+
+    public function driverPaymentLog(Request $request) {
+        $drivers = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
+                ->selectRaw("transactions.amount, transactions.is_approved, transactions.id as id, transaction_id, transactions.created_at as date")
+                ->where('amount_type', 0)
+                ->where('user_id', 1)
+                ->orderBy('id', 'DESC');
+
+        return dataTables()->eloquent($drivers)
+        ->addColumn('driver', function ($row) {
+            return Transaction::with('user')->where('user_id', '!=', 1)->where('transaction_id', $row->transaction_id)->first()->user->name ?? '-';
+        })
+        ->addColumn('date', function ($row) {
+            return date('d-m-Y', strtotime($row->date));
+        })
+        ->editColumn('amount', function ($row) {
+            return Helper::currency($row->amount);
+        })
+        ->addColumn('proof', function ($row) {
+            return '<button class="btn btn-success btn-sm show-proofs" data-id="' . $row->id . '"> <i class="fa fa-eye"> </i> </button>';
+        })
+        ->addColumn('action', function ($row) {
+
+            if ($row->is_approved == 1) {
+                return '<span class="text-success"> Accepted </span>';
+            } else if ($row->is_approved == 2) {
+                return '<span class="text-danger"> Rejected </span>';
+            } else {
+                return '<button class="accept-payment btn-primary f-500 f-14 btn-sm bg-success" data-id="' . $row->id . '"> ACCEPT </button>
+                <button class="reject-payment btn-primary f-500 f-14 btn-sm bg-error" data-id="' . $row->id . '"> REJECT </button>';
+            }
+        })
+        ->rawColumns(['action', 'proof'])
+        ->toJson();
+    }
+
+    public function acceptOrRejectDriverPayment(Request $request, $type) {
+        if (Transaction::where('id', $request->id)->exists()) {
+            $id = Transaction::where('id', $request->id)->first()->transaction_id;
+            if ($type == 'accept') {
+                Transaction::where('transaction_id', $id)->update(['is_approved' => 1]);
+                return response()->json(['status' => true, 'message' => 'Payment approved successfully.']);
+            } else if ($type == 'reject') {
+                Transaction::where('transaction_id', $id)->update(['is_approved' => 2]);
+                return response()->json(['status' => true, 'message' => 'Payment rejected successfully.']);
+            } else {
+                return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+            }
+        } else {
+            return response()->json(['status' => false, 'message' => Helper::$notFound]);
+        }
+    }
+
+    public function showDriverPaymentProofs(Request $request) {
+        $transaction = Transaction::select('transaction_id')->where('id', $request->id)->first()->transaction_id ?? 0;
+        $transaction = Transaction::select('attachments')->where('transaction_id', $transaction)->whereNotNull('attachments')->first();
+
+        if ($transaction != null) {
+            return response()->json(['status' => true, 'html' => view('reports.proofs', compact('transaction'))->render()]);
+        } else {
+            return response()->json(['status' => false, 'message' => 'No payment proofs uploaded for this transaction.']);
         }
     }
 }

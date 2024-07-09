@@ -131,6 +131,7 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('price-unmatched', [SalesOrderController::class, 'priceUnmatched'])->name('price-unmatched');
         Route::post('change-driver', [SalesOrderController::class, 'changeDriver'])->name('change-driver');
         Route::post('get-real-time-commission', [SalesOrderController::class, 'getRealTimeCommission'])->name('get-real-time-commission');
+        Route::post('is-customer-scammer', [SalesOrderController::class, 'isCustomerScammer'])->name('is-customer-scammer');
         /** Sales Order **/
 
         /** Suppliers **/
@@ -158,6 +159,9 @@ Route::group(["middleware" => "auth"], function () {
         Route::match(['GET', 'POST'], 'financial-report/seller', [ReportController::class, 'sellerCommission'])->name('seller-commission')->middleware('ModuleAccessor:financial-seller-report.view');
         Route::post('pay-amount-to-admin', [ReportController::class, 'payAmountToAdmin'])->name('pay-amount-to-admin');
         Route::post('pay-amount-to-seller', [ReportController::class, 'payAmountToSeller'])->name('pay-amount-to-seller');
+        Route::post('driver-payment-log', [ReportController::class, 'driverPaymentLog'])->name('driver-payment-log');
+        Route::post('driver-payment/{type}', [ReportController::class, 'acceptOrRejectDriverPayment'])->name('driver-payment');
+        Route::post('show-driver-payment-proofs', [ReportController::class, 'showDriverPaymentProofs'])->name('show-driver-payment-proofs');
         /** Financial report **/
 
         /** Payment for deliveyr **/

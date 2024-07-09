@@ -46,4 +46,14 @@ class SalesOrderStatus extends Model
     {
         return $this->hasMany(ChangeOrderStatusTrigger::class, 'status_id');
     }
+
+    public function scopeSequence($query) {
+        return $query->orderByRaw("
+            CASE
+                WHEN slug = 'closed-win' THEN 3
+                WHEN slug = 'scammer' THEN 2
+                ELSE 1
+            END, sequence
+        ");
+    }
 }

@@ -13,7 +13,6 @@
         <thead>
             <tr>
                 <th>Description</th>
-                <th width="20%">My Earnings</th>
                 <th width="20%">Amount Payable</th>
             </tr>
         </thead>
@@ -22,7 +21,6 @@
         <tfoot>
             <tr>
                 <td>  <button data-bs-toggle="modal" data-bs-target="#payamount" class="btn btn-sm btn-success" id="pay-amount" style="width: 60px;float:right;"> Pay </button>  </td>
-                <td id="me-total" style="background: #e583a47d;font-weight:600;">0</td>
                 <td id="bl-total" style="background: #e583a47d;font-weight:600;">0</td>
             </tr>
         </tfoot>
@@ -90,18 +88,12 @@
                     searchable: false,
                 },
                 {
-                    data: 'me',
-                    orderable: false,
-                    searchable: false,
-                },
-                {
                     data: 'crdr',
                     orderable: false,
                     searchable: false,
                 }
             ],
             drawCallback: function (data) {
-                $('#me-total').text(data.json.me);
                 $('#bl-total').text(data.json.bl);
             }
         });
@@ -140,7 +132,7 @@
             rules: {
                 amount: {
                     required: true,
-                    number: true,
+                    digits: true,
                     min: 1
                 },
                 'file[]': {
@@ -152,7 +144,7 @@
             messages: {
                 amount: {
                     required: "Enter the amount",
-                    number: "Enter valid amount",
+                    digits: "Enter valid amount",
                     min: "Enter valid amount."
                 }
             },

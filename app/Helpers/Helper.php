@@ -163,24 +163,52 @@ class Helper {
     }
 
     public static function getSellerCommission() {
-        $cr = Transaction::credit()->whereIn('amount_type', [0])->where('user_id', auth()->user()->id)->sum('amount');
-        $dr = Transaction::debit()->whereIn('amount_type', [0])->where('user_id', auth()->user()->id)->sum('amount');
+        $total = 0;
 
-        return Helper::currency($cr - $dr);
+        $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
+        ->selectRaw("voucher, users.name as user, amount, transaction_type, amount_type")
+        ->whereIn('transactions.amount_type', [3, 0])
+        ->where('transactions.is_approved', 1)
+        ->where('transactions.user_id', '=', auth()->user()->id)
+        ->orderBy('transaction_type', 'ASC');
+
+        foreach ($ledger->get() as $data) {
+            if ($data->transaction_type) {
+                $total -= $data->amount;
+            } else {
+                $total += $data->amount;
+            }
+        }
+
+        return Helper::currency($total);
     }
 
     public static function getAdminBalance() {
-        $cr = Transaction::credit()->where('amount_type', 0)->where('user_id', 1)->sum('amount');
-        $dr = Transaction::debit()->where('amount_type', 0)->where('user_id', 1)->sum('amount');
+        $cr = Transaction::credit()->where('is_approved', 1)->where('amount_type', 0)->where('user_id', 1)->sum('amount');
+        $dr = Transaction::debit()->where('is_approved', 1)->where('amount_type', 0)->where('user_id', 1)->sum('amount');
 
         return Helper::currency($cr - $dr);
     }
 
     public static function getDriverBalance() {
-        $cr = Transaction::credit()->whereIn('amount_type', [1])->where('user_id', auth()->user()->id)->sum('amount');
-        $dr = Transaction::debit()->whereIn('amount_type', [1])->where('user_id', auth()->user()->id)->sum('amount');
+        $total = 0;
 
-        return Helper::currency($cr - $dr);
+        $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
+        ->selectRaw("voucher, users.name as user, amount, transaction_type, so_id")
+        ->where('transactions.is_approved', 1)
+        ->whereIn('transactions.amount_type', [0, 2])
+        ->where('transactions.user_id', '=', auth()->user()->id)
+        ->orderBy('transaction_type', 'ASC');
+
+        foreach ($ledger->get() as $data) {
+            if ($data->transaction_type) {
+                $total -= $data->amount;
+            } else {
+                $total += $data->amount;
+            }
+        }
+
+        return Helper::currency($total);
     }
 
     public static function currencyFormatter($amount, $showSign = false, $in = 'GBP') {
@@ -229,10 +257,11 @@ class Helper {
         return $products;
     }
 
-    public static function getAvailableStockFromDriver($driver) {
+    public static function getAvailableStockFromDriver($driver, $productId = null) {
         $stockInItems = Stock::where('type', '0')
                         ->where('driver_id', $driver)
                         ->whereIn('form', ['1', '3'])
+                        ->when($productId != null, fn ($builder) => $builder->where('product_id', $productId))
                         ->groupBy('product_id')
                         ->select('product_id')
                         ->pluck('product_id')
@@ -333,10 +362,14 @@ class Helper {
     }
 
     public static function currency($amount) {
-        return "£" . number_format(round($amount), 0, '.', ',');
+        if ($amount < 0) {
+            return '- £' . number_format(round(abs($amount)), 0, '.', ',');
+        } else {
+            return '£' . number_format(round($amount), 0, '.', ',');
+        }
     }
 
     public static function hash() {
-        return sha1(md5(time() + mt_rand(1, 99999999999999999)));
+        return sha1(md5(time() . mt_rand(1, 99999999999999999) . uniqid()));
     }
 }

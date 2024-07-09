@@ -8,7 +8,7 @@
 @endsection
 
 @section('content')
-{{ Config::set('app.module',$moduleName); }}
+{{ Config::set('app.module',$moduleName) }}
 <h2 class="f-24 f-700 c-36 my-2">Add {{ $moduleName }}</h2>
 <form action="{{ route('roles.store') }}" method="POST" id="addRole"> @csrf
     <div class="cards">

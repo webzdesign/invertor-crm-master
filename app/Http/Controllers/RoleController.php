@@ -53,11 +53,14 @@ class RoleController extends Controller
                 $action = "";
                 $action .= '<div class="whiteSpace">';
 
-                if (!in_array($roles->id, [1,2,3])) {
+                if (!in_array($roles->id, [1])) {
                     if (auth()->user()->hasPermission("roles.edit")) {
                         $url = route("roles.edit", encrypt($variable->id));
                         $action .= view('buttons.edit', compact('variable', 'url'));
                     }
+                }
+
+                if (!in_array($roles->id, [1,2,3])) {
                     if (auth()->user()->hasPermission("roles.activeinactive")) {
                         $url = route("roles.activeinactive", encrypt($variable->id));
                         $action .= view('buttons.status', compact('variable', 'url'));
@@ -174,9 +177,6 @@ class RoleController extends Controller
 
         $role = Role::find($id);
         $role->name = $request->name;
-        if ($id != '6') {
-            $role->slug = Str::slug($request->name,"-");
-        }
         $role->description = $request->description;
         $role->updated_by = auth()->User()->id;
         $role->save();

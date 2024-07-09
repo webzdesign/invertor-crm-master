@@ -58,9 +58,9 @@ class SalesOrderStatusSeeder extends Seeder
             [
                 'color' => '#ed5e3a',
                 'name' => 'SCAMMER',
-                'sequence' => 5,
+                'sequence' => null,
                 'type' => 1,
-                'is_static' => 0
+                'is_static' => 1
             ],
             [
                 'color' => '#bced3a',
@@ -79,7 +79,7 @@ class SalesOrderStatusSeeder extends Seeder
             [
                 'color' => '#4CAF50',
                 'name' => 'CLOSED WIN',
-                'sequence' => 8,
+                'sequence' => null,
                 'type' => 1,
                 'is_static' => 1
             ]

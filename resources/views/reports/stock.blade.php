@@ -11,6 +11,7 @@
 <div class="cards">
     <div class="row m-0 filterColumn">
 
+        @if(!User::isDriver())
         <div class="col-md-4 col-sm-12 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Type</label>
@@ -36,6 +37,7 @@
                 </select>
             </div>
         </div>
+        @endif
 
         <div class="col-md-4 col-sm-12 position-relative">
             <div class="form-group mb-0 mb-10-500">
@@ -60,7 +62,9 @@
     <table class="datatables-po table datatableMain" style="width: 100%!important;">
         <thead>
             <tr>
+                @if(!User::isDriver())
                 <th width="10%">Type</th>
+                @endif
                 <th>Product</th>
                 <th width="10%">Quantity</th>
             </tr>
@@ -69,7 +73,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="2">  </td>
+                <td @if(!User::isDriver()) colspan="2" @endif>  </td>
                 <td id="q-total" style="background: #e583a47d;font-weight:600;">0</td>
             </tr>
         </tfoot>
@@ -112,9 +116,11 @@
                 }
             },
             columns: [
+            @if(!User::isDriver())
                 {
                     data: 'type',
                 },
+            @endif
                 {
                     data: 'product_id',
                 },

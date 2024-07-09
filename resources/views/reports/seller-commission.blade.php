@@ -13,8 +13,6 @@
         <thead>
             <tr>
                 <th>Seller Name</th>
-                <th>Total Commission</th>
-                <th>Commission Paid</th>
                 <th width="20%">Commission Payable</th>
             </tr>
         </thead>
@@ -22,51 +20,11 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="4"> <button data-bs-toggle="modal" data-bs-target="#payamount" class="btn btn-sm btn-success" id="pay-amount" style="width: 60px;float:right;"> Pay </button> </td>
+                <td></td>
+                <td id="total-receivable" style="background: #e583a47d;font-weight:600;">0</td>
             </tr>
         </tfoot>
     </table>
-</div>
-
-<div class="modal fade" id="payamount" tabindex="-1" aria-labelledby="exampleModalLabelA" aria-hidden="true">
-    <div class="modal-dialog modal-xs modal-dialog-centered">
-        <div class="modal-content">
-            <form action="{{ url('pay-amount-to-seller') }}" method="POST" id="payamount-form" enctype="multipart/form-data"> @csrf
-                <div class="modal-header py-2">
-                    <h6 class="modal-title" id="exampleModalLongTitle"> Pay commission to seller </h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-
-                        <div class="col-12 mb-2 amount-field">
-                            <label class="c-gr f-500 f-12 w-100 mb-2"> SELLER : <span class="text-danger">*</span> </label>
-                            <select class="select2-hidden-accessible" name="seller" id="seller-picker" data-placeholder="--- Select a Seller ---">
-                                <option value="" selected> --- Select a seller --- </option>
-                                @foreach ($sellers as $seller)
-                                    <option value="{{ $seller['id'] }}"> {{ $seller['name'] }} - ({{ $seller['email'] }}) </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="col-12 mb-2 amount-field">
-                            <label class="c-gr f-500 f-12 w-100 mb-2"> ENTER AMOUNT : <span class="text-danger">*</span> </label>
-                            <input type="text" id="order-closing-amount" name="amount" class="form-control" placeholder="Enter amount" />
-                        </div>
-
-                        <div class="col-12 mb-2 document-field">
-                            <label class="c-gr f-500 f-12 w-100 mb-2"> UPLOAD PROOF IMAGE : </label>
-                            <input type="file" id="order-closing-document" name="file[]" class="form-control" multiple />
-                        </div>
-
-                    </div>
-                </div>
-                <div class="modal-footer no-border">
-                    <button type="submit" class="btn-success f-500 f-14 btn"> Pay </button>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
 
 @endsection
@@ -98,99 +56,19 @@
                     searchable: false,
                 },
                 {
-                    data: 'total',
-                    orderable: false,
-                    searchable: false,
-                },
-                {
-                    data: 'paid',
-                    orderable: false,
-                    searchable: false,
-                },
-                {
                     data: 'seller_amount',
                     orderable: false,
                     searchable: false,
                 }
             ],
             drawCallback: function (data) {
+                $('#total-receivable').text(data.json.total);
             }
         });
 
         $('#filterInput').html($('#searchPannel').html());
         $('#filterInput > input').keyup(function() {
             ServerDataTable.search($(this).val()).draw();
-        });
-
-        $.validator.addMethod("fileType", function(value, element, param) {
-            var fileTypes = param.split('|');
-            var files = element.files;
-            for (var i = 0; i < files.length; i++) {
-                var extension = files[i].name.split('.').pop().toLowerCase();
-                if ($.inArray(extension, fileTypes) === -1) {
-                    return false;
-                }
-            }
-            return true;
-        }, "Only .png, .jpg, and .jpeg extensions supported");
-
-        $.validator.addMethod("maxFiles", function(value, element, param) {
-            return element.files.length <= param;
-        }, "Maximum 10 files can be uploaded.");
-
-        $.validator.addMethod("fileSizeLimit", function(value, element, param) {
-            var totalSize = 0;
-            var files = element.files;
-            for (var i = 0; i < files.length; i++) {
-                totalSize += files[i].size;
-            }
-            return totalSize <= param;
-        }, "Total file size must not exceed 20 MB");
-
-        $('#seller-picker').select2({
-            dropdownParent: $('#payamount'),
-            width: '100%',
-            allowClear: true
-        });
-
-        $('#payamount-form').validate({
-            rules: {
-                seller: {
-                    required: true
-                },
-                amount: {
-                    required: true,
-                    number: true,
-                    min: 1
-                },
-                'file[]': {
-                    fileType: 'jpeg|png|jpg',
-                    maxFiles: 10,
-                    fileSizeLimit: (10 * 1024 * 1024) * 2
-                }
-            },
-            messages: {
-                seller: {
-                    required: "Select a seller."
-                },
-                amount: {
-                    required: "Enter the amount",
-                    number: "Enter valid amount",
-                    min: "Enter valid amount."
-                }
-            },
-            errorPlacement: function(error, element) {
-                error.appendTo(element.parent("div"));
-            },
-            submitHandler: function(form, event) {
-                if ($('#payamount-form').valid()) {
-                    $('body').find('.LoaderSec').addClass('d-none');
-                    $('button[type="submit"]').attr('disabled', false);
-                    return true;
-                } else {
-                    return false;
-                }
-            }
         });
 
     });

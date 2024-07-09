@@ -42,7 +42,8 @@
                 </div>
                 @endif
 
-                <input type="text" name="name[]" class="title-of-card f-14 m-auto" value="{{ $status->name }}" @if($status->is_static) disabled @endif >
+                <input type="text" name="name[]" class="title-of-card f-14 m-auto @if($status->is_static) is-locked @endif" value="{{ $status->name }}" @if($status->is_static) disabled @endif >
+                @if($status->is_static) <i class="fa fa-lock"></i> @endif
 
                 <div class="d-flex align-items-center card-options">
                     <span class="me-2">
@@ -789,7 +790,7 @@
             } else if ($(target).hasClass('color-picker')) {
                 $(target).parent().parent().prev().focus()
             } else {
-                $('.title-of-card').next().attr('style', "display:none!important;");
+                $('.title-of-card').not('.is-locked').next().attr('style', "display:none!important;");
             }
 
             if ($('#custom-cursor').css('display') != 'none') {

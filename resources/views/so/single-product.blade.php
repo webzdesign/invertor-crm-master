@@ -2,36 +2,7 @@
     <div class="cardsBody pb-0">
         <div class="row">
 
-            <div class="col-md-2 col-sm-12">
-                <div class="form-group">
-                    <label class="c-gr f-500 f-16 w-100 mb-2">Driver Name :</label>
-                    <input class="form-control" type="text" value="{{ $driverDetail->name }}" title="{{ $driverDetail->name }}" readonly style="background:#efefef">
-                </div>
-            </div>
-
-            <div class="col-md-2 col-sm-12">
-                <div class="form-group">
-                    <label class="c-gr f-500 f-16 w-100 mb-2">Driver Email :</label>
-                    <input class="form-control" type="text" value="{{ $driverDetail->email }}" title="{{ $driverDetail->email }}" readonly style="background:#efefef">
-                </div>
-            </div>
-
-            <div class="col-md-2 col-sm-12">
-                <div class="form-group">
-                    <label class="c-gr f-500 f-16 w-100 mb-2">Distance :</label>
-                    <input class="form-control" type="text" value="{{ number_format($range, 2, '.', "") }} miles" readonly style="background:#efefef">
-                </div>
-            </div>
-
-            <div class="col-md-2 col-sm-12">
-                <div class="form-group">
-                    <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number :</label>
-                    <input class="form-control" id="order_number" type="text" value="{{ $orderNo }}" readonly
-                        style="background:#efefef">
-                </div>
-            </div>
-
-            <div class="col-md-4 col-sm-12">
+            <div class="col-md-6 col-sm-12">
                 <div class="form-group">
                     <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Name :
                         <span class="text-danger">*</span>
@@ -44,12 +15,12 @@
                 </div>
             </div>
 
-            <div class="col-md-4 col-sm-12">
+            <div class="col-md-6 col-sm-12">
                 <div class="form-group">
                     <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Phone Number :
                         <span class="text-danger">*</span>
                     </label>
-                    <input type="text" class="form-control" name="customerphone" id="customer-phone"
+                    <input type="text" class="form-control customerphone" name="customerphone" id="customer-phone"
                         value="{{ old('customerphone') }}">
                     <input type="hidden" name="country_dial_code" id="country_dial_code">
                     <input type="hidden" name="country_iso_code" id="country_iso_code"
@@ -60,7 +31,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4 col-sm-12">
+            <div class="col-md-6 col-sm-12">
                 <div class="form-group">
                     <label for="supplier" class="c-gr f-500 f-16 w-100 mb-2">Customer Facebook URL :
                     </label>
@@ -72,7 +43,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4 col-sm-12">
+            <div class="col-md-6 col-sm-12">
                 <div class="form-group">
                     <label for="order_date" class="c-gr f-500 f-16 w-100 mb-2">Order Delivery Date :
                         <span class="text-danger">*</span>
@@ -86,6 +57,34 @@
                 </div>
             </div>
 
+            <div class="col-md-3 col-sm-12">
+                <div class="form-group">
+                    <label for="order_number" class="c-gr f-500 f-16 w-100 mb-2">Order Number :</label>
+                    <input class="form-control" id="order_number" type="text" value="{{ $orderNo }}" readonly
+                        style="background:#efefef">
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-12">
+                <div class="form-group">
+                    <label class="c-gr f-500 f-16 w-100 mb-2">Driver Name :</label>
+                    <input class="form-control" type="text" value="{{ $driverDetail->name }}" title="{{ $driverDetail->name }}" readonly style="background:#efefef">
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-12">
+                <div class="form-group">
+                    <label class="c-gr f-500 f-16 w-100 mb-2">Driver Email :</label>
+                    <input class="form-control" type="text" value="{{ $driverDetail->email }}" title="{{ $driverDetail->email }}" readonly style="background:#efefef">
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-12">
+                <div class="form-group">
+                    <label class="c-gr f-500 f-16 w-100 mb-2">Distance :</label>
+                    <input class="form-control" type="text" value="{{ number_format($range, 2, '.', "") }} miles" readonly style="background:#efefef">
+                </div>
+            </div>
 
             <div>
                 <div class="col-md-12">

@@ -69,4 +69,8 @@ class SalesOrder extends Model
     public function proofimages() {
         return $this->hasMany(SalesOrderProofImages::class, 'so_id');
     }
+
+    public function assigneddriver() {
+        return $this->belongsTo(Deliver::class, 'id', 'so_id')->where('status', 1);
+    }
 }

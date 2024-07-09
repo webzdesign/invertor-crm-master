@@ -48,11 +48,11 @@
                         </li>
                         @elseif(User::isSellerManager() || User::isSeller())
                         <li class="dropdown middleContent p-0 userMenu">
-                            <div class="commission-btn text-white f-700"> Commission : {{ Helper::getSellerCommission() }} </div>
+                            <div class="commission-btn text-white f-700"> Commission receivable : {{ Helper::getSellerCommission() }} </div>
                         </li>
                         @elseif(User::isDriver())
                         <li class="dropdown middleContent p-0 userMenu">
-                            <div class="commission-btn text-white f-700"> Earning : {{ Helper::getDriverBalance() }} </div>
+                            <div class="commission-btn text-white f-700"> Amount Payable : {{ Helper::getDriverBalance() }} </div>
                         </li>
                         @endif
 

@@ -13,7 +13,7 @@
         <thead>
             <tr>
                 <th>Description</th>
-                <th width="20%">Amount</th>
+                <th width="20%">Commission receivable</th>
             </tr>
         </thead>
         <tbody>

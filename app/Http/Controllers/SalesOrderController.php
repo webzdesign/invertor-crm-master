@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{Category, User, Wallet, Bonus, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger, ManageStatus, DriverWallet};
 use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ChangeOrderStatusTrigger, SalesOrderProofImages};
-use App\Models\{PaymentForDelivery, Transaction};
+use App\Models\{PaymentForDelivery, Transaction, TriggerLog};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -29,7 +29,7 @@ class SalesOrderController extends Controller
         $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
         $orderClosedWinStatus = SalesOrderStatus::where('slug', 'closed-win')->first()->id ?? 0;
 
-        $po = SalesOrder::with(['items.product', 'addedby', 'updatedby', 'ostatus'])->where(function ($builder) use ($thisUserRoles) {
+        $po = SalesOrder::with(['items.product', 'addedby', 'updatedby', 'ostatus', 'assigneddriver'])->where(function ($builder) use ($thisUserRoles) {
             if (!in_array(1, $thisUserRoles)) {
                 $builder->where('added_by', auth()->user()->id)
                 ->orWhereHas('driver', fn ($innerBuilder) => $innerBuilder->where('user_id', auth()->user()->id)->whereIn('status', [0, 1]))
@@ -109,13 +109,17 @@ class SalesOrderController extends Controller
                         ';
                 }
                 
-                $delvieryPartner = Deliver::where('so_id', $users->id)->where('status', 1)->first();
+                $proQty = $users->items->first()->product_id ?? 0;
 
-                if ($users->status == $orderClosedWinStatus && !$users->price_matched && isset($delvieryPartner) && $delvieryPartner->user_id == auth()->user()->id) {
+                if ($users->status == $orderClosedWinStatus && !$users->price_matched && isset($users->assigneddriver) && $users->assigneddriver->user_id == auth()->user()->id) {
+                    $stockQty = Helper::getAvailableStockFromDriver($users->assigneddriver->user_id, $proQty);
+                    $stockQty = isset($stockQty[$proQty]) ? $stockQty[$proQty] : 0;
+                    $wantedQty = $users->items->first()->qty ?? 0;
+
                     $action .= '
                     <div class="tableCards d-inline-block me-1 pb-0">
                         <div class="editDlbtn">
-                            <button class="btn btn-sm btn-warning close-order" style="width: 30px;margin-left: 2px;" data-bs-toggle="tooltip" title="Final sale price" data-oid="' . $users->id . '" data-title="' . $users->order_no . '"> <i class="fa fa-gbp"> </i> </button>
+                            <button data-wanted="' . $wantedQty . '" data-available="' . $stockQty . '" class="btn btn-sm btn-warning close-order" style="width: 30px;margin-left: 2px;" data-bs-toggle="tooltip" title="Final sale price" data-oid="' . $users->id . '" data-title="' . $users->order_no . '"> <i class="fa fa-gbp"> </i> </button>
                         </div>
                     </div>
                     ';
@@ -129,7 +133,7 @@ class SalesOrderController extends Controller
                     return $row->items->first()->product->name;
             })
             ->addColumn('note', function ($row) {
-                $note = \App\Models\TriggerLog::where('order_id', $row->id)->where('type', 2)->whereNotNull('description')->where('description', '!=', '')->orderBy('id', 'DESC')->first()->description ?? '-';
+                $note = TriggerLog::where('order_id', $row->id)->where('type', 2)->whereNotNull('description')->where('description', '!=', '')->orderBy('id', 'DESC')->first()->description ?? '-';
                 $shortNote = Str::of(strip_tags($note))->limit(20);
 
                 if (strlen($note) > 20) {
@@ -216,7 +220,7 @@ class SalesOrderController extends Controller
                         }
                     }
 
-                    $lastChangedDate = \App\Models\TriggerLog::where('order_id', $row->id)->where('type', 2)->orderBy('id', 'DESC')->first();
+                    $lastChangedDate = TriggerLog::where('order_id', $row->id)->where('type', 2)->orderBy('id', 'DESC')->first();
                     if (isset($lastChangedDate->created_at)) {
                         $html .= " <div class='f-12'> Last changed on : <strong> " . date('d-m-Y H:i', strtotime($lastChangedDate->created_at)) . " </strong> </div>" ;
                     } else {
@@ -403,13 +407,6 @@ class SalesOrderController extends Controller
         }
 
         $thisProduct = $request->product;
-        $neededStock = $request->stock;
-
-        if (is_numeric($neededStock) && (intval($neededStock) > 0)) {
-            $neededStock = intval($neededStock);
-        } else {
-            $neededStock = null;
-        }
 
         if ($errorWhileSavingLatLong === false) {
 
@@ -511,7 +508,7 @@ class SalesOrderController extends Controller
                 $so->added_by = $userId;
                 $so->save();
 
-                \App\Models\TriggerLog::create([
+                TriggerLog::create([
                     'trigger_id' => 0,
                     'order_id' => $so->id,
                     'watcher_id' => $userId,
@@ -903,8 +900,9 @@ class SalesOrderController extends Controller
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $so = SalesOrder::find(decrypt($id));
         $driverDetails = Deliver::with('user')->where('so_id', decrypt($id))->whereIn('status', [0,1,3])->first();
+        $logs = TriggerLog::where('order_id', $so->id)->where('type', 2)->orderBy('id', 'ASC')->get();
 
-        return view('so.view', compact('moduleName', 'categories', 'so', 'moduleLink', 'driverDetails'));
+        return view('so.view', compact('moduleName', 'categories', 'so', 'moduleLink', 'driverDetails', 'logs'));
     }
 
     public function destroy(Request $request, $id)
@@ -1008,7 +1006,9 @@ class SalesOrderController extends Controller
                     $thisProductId = $order->items->first()->product_id ?? 0;
                     $thisDriverId = auth()->user()->id;
     
-                    if (empty(Helper::getAvailableStockFromDriver($thisDriverId))) {
+                    $hasStock = Helper::getAvailableStockFromDriver($thisDriverId, $thisProductId);
+
+                    if (isset($hasStock[$thisProductId]) && $hasStock[$thisProductId] > 0) {
                         return response()->json(['status' => false, 'message' => 'You don\'t have stock for this product.']);
                     }
     
@@ -1045,9 +1045,13 @@ class SalesOrderController extends Controller
                             'driver_receives' => $driverRecevies
                         ]);
     
+                        $transactionUid = Helper::hash();
+
                         //Pay to driver
                         Transaction::create([
                             'so_id' => $order->id,
+                            'is_approved' => 1,
+                            'transaction_id' => $transactionUid,
                             'user_id' => auth()->user()->id,
                             'transaction_type' => 0,
                             'amount_type' => 1,
@@ -1060,6 +1064,8 @@ class SalesOrderController extends Controller
                         //Pay to admin
                         Transaction::create([
                             'so_id' => $order->id,
+                            'is_approved' => 1,
+                            'transaction_id' => $transactionUid,
                             'user_id' => auth()->user()->id,
                             'transaction_type' => 0,
                             'amount_type' => 2,
@@ -1094,6 +1100,8 @@ class SalesOrderController extends Controller
 
                                 Transaction::create([
                                     'so_id' => $order->id,
+                                    'is_approved' => 1,
+                                    'transaction_id' => $transactionUid,
                                     'user_id' => $order->seller_id,
                                     'transaction_type' => 1,
                                     'amount_type' => 3,
@@ -1216,9 +1224,13 @@ class SalesOrderController extends Controller
                         'driver_receives' => $driverRecevies
                     ]);
 
+                    $transactionUid = Helper::hash();
+
                     //Pay to driver
                     Transaction::create([
                         'so_id' => $order->id,
+                        'is_approved' => 1,
+                        'transaction_id' => $transactionUid,
                         'user_id' => auth()->user()->id,
                         'transaction_type' => 0,
                         'amount_type' => 1,
@@ -1231,6 +1243,8 @@ class SalesOrderController extends Controller
                     //Pay to admin
                     Transaction::create([
                         'so_id' => $order->id,
+                        'is_approved' => 1,
+                        'transaction_id' => $transactionUid,
                         'user_id' => auth()->user()->id,
                         'transaction_type' => 0,
                         'amount_type' => 2,
@@ -1265,6 +1279,8 @@ class SalesOrderController extends Controller
 
                             Transaction::create([
                                 'so_id' => $order->id,
+                                'is_approved' => 1,
+                                'transaction_id' => $transactionUid,
                                 'user_id' => $order->seller_id,
                                 'transaction_type' => 1,
                                 'amount_type' => 3,
@@ -1399,5 +1415,14 @@ class SalesOrderController extends Controller
 
 
         return response()->json(['com' => $total]);
+    }
+
+    public function isCustomerScammer(Request $request) {
+        if (!empty($request->customerphone) && !empty($request->country_code)) {
+            $scammer = SalesOrderStatus::select('id')->where('slug', 'scammer')->first()->id ?? 0;
+            return response()->json(SalesOrder::when($scammer > 0, fn ($builder) => ($builder->where('status', $scammer)) )->where('country_dial_code', trim($request->country_code))->where(DB::raw("REPLACE(`customer_phone`, ' ', '')"), str_replace(' ', '', trim($request->customerphone)))->doesntExist());
+        }
+
+        return response()->json(true);
     }
 }

@@ -12,12 +12,9 @@ use Illuminate\Support\Str;
 class SalesOrderStatusController extends Controller
 {
     public function index() {
-        if(in_array(3, User::getUserRoles())) {
-            return redirect('sales-order-status-list');
-        }
 
         $moduleName = 'Sales Order Status';
-        $statuses = SalesOrderStatus::custom()->orderBy('sequence', 'ASC')->get();
+        $statuses = SalesOrderStatus::sequence()->custom()->orderBy('sequence', 'ASC')->get();
         $colours = ['#99ccff', '#ffcccc', '#ffff99', '#c1c1c1', '#9bffe2', '#f7dd8b', '#c5ffd6'];
         $orders = [];
 
@@ -53,8 +50,8 @@ class SalesOrderStatusController extends Controller
 
     public function edit() {
         $moduleName = 'Sales Order Status';
-        $statuses = SalesOrderStatus::custom()->orderBy('sequence', 'ASC')->get();
-        $s = SalesOrderStatus::custom()->select('id', 'name')->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
+        $statuses = SalesOrderStatus::sequence()->custom()->orderBy('sequence', 'ASC')->get();
+        $s = SalesOrderStatus::sequence()->custom()->select('id', 'name')->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
         $colours = ['#99ccff', '#ffcccc', '#ffff99', '#c1c1c1', '#9bffe2', '#f7dd8b', '#c5ffd6'];
         $roles = Role::active()->select('id', 'name')->whereIn('id', [1, 2, 3])->pluck('name', 'id')->toArray();
         $maxTriggers = Setting::first()->triggers_per_status ?? 10;
