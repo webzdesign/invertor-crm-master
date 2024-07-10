@@ -67,6 +67,11 @@
     .stickyTable table tfoot tr td{
         font-family: "Roboto Bold" !important;
     }
+    .inline-image-preview {
+        width: 100%;
+        border: 1px solid black;
+        border-radius: 10px;
+    }
 </style>
 @endsection
 

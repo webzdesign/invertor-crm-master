@@ -44,7 +44,7 @@
                         </div>
 
                         <div class="col-12 mb-2 document-field">
-                            <label class="c-gr f-500 f-12 w-100 mb-2"> UPLOAD PROOF RECEIPT : </label>
+                            <label class="c-gr f-500 f-12 w-100 mb-2"> UPLOAD PAYMENT RECEIPT : </label>
                             <input type="file" id="order-closing-document" name="file[]" class="form-control" multiple />
                         </div>
 

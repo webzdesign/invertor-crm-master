@@ -44,7 +44,7 @@
                     <th width="20%">Amount Paid</th>
                     <th width="20%">Date</th>
                     <th width="20%">Status</th>
-                    <th width="10%">Payment Proof</th>
+                    <th width="10%">Payment Receipt</th>
                 </tr>
             </thead>
             <tbody>

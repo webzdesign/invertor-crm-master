@@ -514,6 +514,7 @@ class ReportController extends Controller
                 ->selectRaw("transactions.amount, transactions.is_approved, transactions.id as id, transaction_id, transactions.created_at as date")
                 ->where('amount_type', 0)
                 ->where('user_id', 1)
+                ->where('transaction_type', 0)
                 ->orderBy('id', 'DESC');
 
         return dataTables()->eloquent($drivers)
@@ -568,7 +569,7 @@ class ReportController extends Controller
         if ($transaction != null) {
             return response()->json(['status' => true, 'html' => view('reports.proofs', compact('transaction'))->render()]);
         } else {
-            return response()->json(['status' => false, 'message' => 'No payment proofs uploaded for this transaction.']);
+            return response()->json(['status' => false, 'message' => 'No payment receipt uploaded for this transaction.']);
         }
     }
 
@@ -708,11 +709,8 @@ class ReportController extends Controller
                 ->where('amount_type', 3)
                 ->update(['withdrawal_request' => 2]);
                 $sellerAmount = $withdrawalRequest->amount;
-                $sellerId = $withdrawalRequest->amount;
-                
-                CommissionWithdrawalHistory::where('id', $request->id)->update(['status' => 1]);
+                $sellerId = $withdrawalRequest->user_id;
 
-                ///
                 if ($request->hasFile('receipt')) {
                     foreach ($request->file('receipt') as $file) {
                         $name = 'PAY-RECEIPT-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
@@ -729,6 +727,8 @@ class ReportController extends Controller
                 } else {
                     $attachmentJson = json_encode($attachmentJson);
                 }
+
+                CommissionWithdrawalHistory::where('id', $request->id)->update(['status' => 1, 'attachments' => $attachmentJson]);
 
                 $transactionUid = Helper::hash();
 
@@ -754,7 +754,6 @@ class ReportController extends Controller
                     'year' => Helper::$financialYear,
                     'added_by' => auth()->user()->id
                 ]); 
-                ///               
 
                 DB::commit();
                 return response()->json(['status' => true, 'message' => 'Withdrawal request accepted successfully.']);

@@ -1,73 +1,55 @@
 <div class="row">
 
-    <div class="col-12 f-14">
-        <label> SELLER NAME : </label>
-        <strong>
-            {{ $data->user->name ?? '' }}
-        </strong>
-    </div>
-
-    <div class="col-12 f-14">
-        <label> COMMISSION AMOUNT : </label>
-        <strong>
-            {{ Helper::currency($data->amount) }}
-        </strong>
-    </div>
-
-    <div class="col-12 f-14">
-        <label> FIRST NAME (BANK) : </label>
-        <strong>
-            {{ $data->bank->name ?? '-' }}
-        </strong>
-    </div>
-
-    <div class="col-12 f-14">
-        <label> SURNAME (BANK) : </label>
-        <strong>
-            {{ $data->bank->surname ?? '-' }}
-        </strong>
-    </div>
-
-    <div class="col-12 f-14">
-        <label> IBAN NUMBER (BANK) : </label>
-        <strong>
-            {{ $data->bank->iban_number ?? '' }}
-        </strong>
-    </div>
-
-    <div class="col-12 f-14">
-        <label> REQUEST STATUS : </label>
-        <strong>
-            @if($data->status == 1)
-            <span class="text-success"> Accepted </span>
-            @elseif($data->status == 2)
-            <span class="text-danger"> Rejected </span>
-            @else
-            <span class="text-secondary"> Pending </span>
-            @endif
-        </strong>
-    </div>
-
-    <div class="col-12 f-14">
-        <label> DATE : </label>
-        <strong>
-            {{ date('d-m-Y', strtotime($data->created_at)) }}
-        </strong>
-    </div>
-
-    <div class="col-12 f-14">
-        <label> ORDES FROM DATE : </label>
-        <strong>
-            {{ date('d-m-Y', strtotime($data->from)) }}
-        </strong>
-    </div>
-
-    <div class="col-12 f-14">
-        <label> ORDES TO DATE : </label>
-        <strong>
-            {{ date('d-m-Y', strtotime($data->to)) }}
-        </strong>
-    </div>
+    <table>
+        <tbody>
+            <tr>
+                <td>SELLER NAME</td>
+                <td> {{ $data->user->name ?? '' }} </td>
+            </tr>
+            <tr>
+                <td>COMMISSION AMOUNT</td>
+                <td> {{ Helper::currency($data->amount) }} </td>
+            </tr>
+            <tr>
+                <td>FIRST NAME (BANK)</td>
+                <td> {{ $data->bank->name ?? '-' }} </td>
+            </tr>
+            <tr>
+                <td>SURNAME (BANK)</td>
+                <td> {{ $data->bank->surname ?? '-' }} </td>
+            </tr>
+            <tr>
+                <td>IBAN NUMBER (BANK)</td>
+                <td> {{ $data->bank->iban_number ?? '' }} </td>
+            </tr>
+            <tr>
+                <td>REQUEST STATUS</td>
+                <td>
+                    <strong>
+                        @if($data->status == 1)
+                        <span class="text-success"> Accepted </span>
+                        @elseif($data->status == 2)
+                        <span class="text-danger"> Rejected </span>
+                        @else
+                        <span class="text-secondary"> Pending </span>
+                        @endif
+                    </strong>
+                </td>
+            </tr>
+            <tr>
+                <td>REQUEST DATE</td>
+                <td> {{ date('d-m-Y', strtotime($data->created_at)) }} </td>
+            </tr>
+            <tr>
+                <td>ORDERS FROM DATE</td>
+                <td> {{ date('d-m-Y', strtotime($data->from)) }} </td>
+            </tr>
+            <tr>
+                <td>ORDERS TO DATE</td>
+                <td> {{ date('d-m-Y', strtotime($data->to)) }} </td>
+            </tr>
+        </tbody>
+    </table>
 
     @php
     $transactions = \App\Models\Transaction::with('order')->whereIn('so_id', json_decode($data->orders, true))
@@ -75,7 +57,7 @@
         ->get();
     @endphp
 
-<table class="table" id="withdrawable-orders">
+<table class="table" id="withdrawable-orders" style="margin-top: 20px!important;">
     <thead>
         <tr>
             <th>ORDER NUMBER</th>
@@ -116,5 +98,23 @@
         </tr>
     </tfoot>
 </table>
+
+<hr class="hr mt-2">
+
+<div class="row">
+    @if(!empty($data->attachments))
+    @foreach (json_decode($data->attachments) as $image)
+    <div class="col-4">
+        <a target="_blank" href="{{ asset("storage/payment-receipt/seller/$image") }}">
+            <img class="inline-image-preview" src="{{ asset("storage/payment-receipt/seller/$image") }}" alt="{{ $image }}">
+        </a>
+    </div>
+    @endforeach
+    @else
+    @if(in_array($data->status, [1,2]))
+        <strong class="text-center mt-4 mb-2">No payment receipt uploaded for this transaction.</strong>
+    @endif
+    @endif
+</div>
 
 </div>

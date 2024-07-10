@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('bank_id');
             $table->unsignedBigInteger('user_id');
+            $table->json('attachments')->nullable();
             $table->json('orders')->nullable();
             $table->dateTime('from');
             $table->dateTime('to');
