@@ -168,7 +168,6 @@ class Helper {
         $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
         ->selectRaw("voucher, users.name as user, amount, transaction_type, amount_type")
         ->whereIn('transactions.amount_type', [3, 0])
-        ->where('transactions.is_approved', 1)
         ->where('transactions.user_id', '=', auth()->user()->id)
         ->orderBy('transaction_type', 'ASC');
 

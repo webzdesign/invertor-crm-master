@@ -12,6 +12,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\Helper;
@@ -24,6 +25,11 @@ Route::get('/', function () {
 
 Route::get('/register', function () {
     return redirect("/login");
+});
+
+Route::get('view', function () {
+    Artisan::call('view:clear');
+    return redirect()->back();
 });
 
 Route::match(['GET', 'POST'], 'register/{role}/{user?}', [UserController::class, 'register']);
@@ -42,6 +48,7 @@ Route::group(["middleware" => "auth"], function () {
         Route::put('users/{id}/update', [UserController::class, 'update'])->name('users.update');
         Route::get('users/{id}/delete', [UserController::class, 'destroy'])->name('users.delete')->middleware('ModuleAccessor:users.delete');
         Route::get('users/{id}/status', [UserController::class, 'status'])->name('users.activeinactive')->middleware('ModuleAccessor:users.activeinactive');
+        Route::post('role-permissions', [UserController::class, 'rolePermissions'])->name('role-permissions');
         /** Users **/
 
         /** Roles **/
@@ -162,6 +169,16 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('driver-payment-log', [ReportController::class, 'driverPaymentLog'])->name('driver-payment-log');
         Route::post('driver-payment/{type}', [ReportController::class, 'acceptOrRejectDriverPayment'])->name('driver-payment');
         Route::post('show-driver-payment-proofs', [ReportController::class, 'showDriverPaymentProofs'])->name('show-driver-payment-proofs');
+        Route::post('iban-check', [ReportController::class, 'ibanCheck'])->name('iban-check');
+        Route::post('bank-account-save', [ReportController::class, 'bankAccountSave'])->name('bank-account-save');
+        Route::post('bank-account-delete', [ReportController::class, 'bankAccountDelete'])->name('bank-account-delete');
+        Route::post('withdrawal-request', [ReportController::class, 'withdrawalRequest'])->name('withdrawal-request');
+        Route::post('withdrawalable-amount', [ReportController::class, 'withdrawableAmount'])->name('withdrawalable-amount');
+        Route::post('seller-withdrawal-reqs', [ReportController::class, 'withdrawReqs'])->name('seller-withdrawal-reqs');
+        Route::post('withdrawal-req-info', [ReportController::class, 'withdrawalReqInfo'])->name('withdrawal-req-info');
+        Route::post('withdrwal-details', [ReportController::class, 'withdrwalDetails'])->name('withdrwal-details');
+        Route::post('accept-withdrawal-request', [ReportController::class, 'acceptWithdrawalRequest'])->name('accept-withdrawal-request');
+        Route::post('reject-withdrawal-request', [ReportController::class, 'rejectWithdrawalRequest'])->name('reject-withdrawal-request');
         /** Financial report **/
 
         /** Payment for deliveyr **/

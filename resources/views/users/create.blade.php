@@ -168,32 +168,8 @@
 
             <div class="cardsBody py-0 container-for-permissions">
                 <label class="c-gr f-500 f-16 w-100 mb-2">Permissions : </label>
-                <div class="form-group">
-                    <div class="row">
-                        @foreach ($permission as $key => $value)
-                            <div class="col-xl-3 col-lg-4 col-md-6 mb-3 permission-listing" data-permissionlabel="{{ $key }}">
-                                <div class="PlBox">
-                                    @foreach ($value as $k => $v)
-                                        @if ($loop->first)
-                                            <li class="list-group-item inline bg-transparent border-0 p-0 mb-2">
-                                                <label class="c-gr w-100 mb-2 f-14">
-                                                    <input type="checkbox" class="form-check-input selectDeselect">
-                                                    <span class="c-primary f-700">{{ Helper::spaceBeforeCap($v->model) }}</span>
-                                                </label>
-                                            </li>
-                                        @endif
-                                        <li class="form-check">
-                                            <input type="checkbox" class="form-check-input permission"
-                                                name="permission[]" id="{{ $v->id }}"
-                                                value="{{ $v->id }}" aria-label="..." >
-                                            <label for="{{ $v->id }}"
-                                                class="form-check-label mb-0 f-14 f-500 aside-input-checbox">{{ $v->name }}</label>
-                                        </li>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
+                <div class="form-group permissions-container">
+
                 </div>
             </div>
 
@@ -256,17 +232,35 @@
             });
 
             $('#role').on('change', function () {
-                if ($(this).val() == '1') {
-                    $('.container-for-permissions').hide();
+                let rId = $(this).val();
+
+                if (isNumeric(rId)) {
+                    $.ajax({
+                        url: "{{ route('role-permissions') }}",
+                        type: 'POST',
+                        data: {
+                            id: rId     
+                        },
+                        beforeSend: function () {
+                            $('body').find('.LoaderSec').removeClass('d-none');
+                            $('button[type="submit"]').attr('disabled', true);
+                        },
+                        success: function (response) {
+                            if (response.status) {
+                                $('.permissions-container').html(response.html);
+                            } else {
+                                Swal.fire('', response.message, 'error');
+                            }
+                        },
+                        complete: function () {
+                            $('body').find('.LoaderSec').addClass('d-none');
+                            $('button[type="submit"]').attr('disabled', false);
+                        }
+                    });
                 } else {
-                    $('.container-for-permissions').show();
+                    $('.permissions-container').html('');
                 }
 
-                if ($(this).val() == '3') {
-                    $('[data-permissionlabel="SalesOrderStatus"]').hide();
-                } else {
-                    $('[data-permissionlabel="SalesOrderStatus"]').show();
-                }
             });
 
             $('#addUser').validate({

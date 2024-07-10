@@ -32,7 +32,7 @@
         <div class="modal-content">
             <form action="{{ url('pay-amount-to-admin') }}" method="POST" id="payamount-form" enctype="multipart/form-data"> @csrf
                 <div class="modal-header py-2">
-                    <h6 class="modal-title" id="exampleModalLongTitle"> Pay amount to admin </h6>
+                    <h6 class="modal-title" id="exampleModalLongTitle"> PAY AMOUNT TO ADMIN </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -44,7 +44,7 @@
                         </div>
 
                         <div class="col-12 mb-2 document-field">
-                            <label class="c-gr f-500 f-12 w-100 mb-2"> UPLOAD PROOF IMAGE : </label>
+                            <label class="c-gr f-500 f-12 w-100 mb-2"> UPLOAD PROOF RECEIPT : </label>
                             <input type="file" id="order-closing-document" name="file[]" class="form-control" multiple />
                         </div>
 

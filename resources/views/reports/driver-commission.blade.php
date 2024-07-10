@@ -60,7 +60,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered" style="max-width: 700px;">
         <div class="modal-content">
             <div class="modal-header py-2">
-                <h6 class="modal-title" id="exampleModalLongTitle"> Payment Proof </h6>
+                <h6 class="modal-title" id="exampleModalLongTitle"> PAYMENT PROOF </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body pb-3">

@@ -1007,8 +1007,8 @@ class SalesOrderController extends Controller
                     $thisDriverId = auth()->user()->id;
     
                     $hasStock = Helper::getAvailableStockFromDriver($thisDriverId, $thisProductId);
-
-                    if (isset($hasStock[$thisProductId]) && $hasStock[$thisProductId] > 0) {
+                    
+                    if (isset($hasStock[$thisProductId]) && $hasStock[$thisProductId] <= 0) {
                         return response()->json(['status' => false, 'message' => 'You don\'t have stock for this product.']);
                     }
     
@@ -1029,14 +1029,19 @@ class SalesOrderController extends Controller
                             $p4dDriver = $p4dDriver->where('distance', '>=', $thisRange)->orderBy('distance', 'ASC')->first();
     
                             if ($p4dDriver != null) {
-                                $driverRecevies = $p4dDriver->payment;
+                                $driverRecevies = $p4dDriver->payment * $prodQty;//driver commission for each qty of order;
                             }
     
                         } else if (PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first() != null) {
-                            $driverRecevies = PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first()->payment;
+                            $driverRecevies = PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first()->payment * $prodQty;//driver commission for each qty of order;
                         }
     
                         $orderAmountAfterDriverAmountDeduction = $newTotal - $driverRecevies;
+
+                        if ($orderAmountAfterDriverAmountDeduction <= 0) {
+                            DB::rollBack();
+                            return response()->json(['status' => false, 'messages' => 'Driver\'s payment amount is more than the order amount.']);
+                        }
 
                         DriverWallet::create([
                             'so_id' => $order->id,
@@ -1078,7 +1083,7 @@ class SalesOrderController extends Controller
                         if ($procurementCost->exists()) {
                             $procurementCost = $procurementCost->first();
         
-                                $newProductTotal = $orderAmountAfterDriverAmountDeduction / $prodQty;
+                                $newProductTotal = $newTotal / $prodQty;
     
                                 if ($newProductTotal > $procurementCost->base_price) {
                                     $comPrice = $newProductTotal - $procurementCost->base_price;
@@ -1103,7 +1108,7 @@ class SalesOrderController extends Controller
                                     'is_approved' => 1,
                                     'transaction_id' => $transactionUid,
                                     'user_id' => $order->seller_id,
-                                    'transaction_type' => 1,
+                                    'transaction_type' => 1, // if change here then withrawal req. functionality will be effected
                                     'amount_type' => 3,
                                     'voucher' => $order->order_no,
                                     'amount' => $comPrice * $prodQty,
@@ -1112,8 +1117,9 @@ class SalesOrderController extends Controller
                                 ]);
                         }
     
-                        $si = Stock::where('product_id', $thisProductId)->where('type', 1)->whereIn('form', [1, 3])->sum('qty');
-                        $so = Stock::where('product_id', $thisProductId)->where('form', 3)->where('type', 0)->where('driver_id', $thisDriverId)->sum('qty');
+                        $si = Stock::where('product_id', $thisProductId)->whereIn('form', [1,2,3])->where('type', 0)->where('driver_id', $thisDriverId)->sum('qty');
+                        $so = Stock::where('product_id', $thisProductId)->whereIn('form', [1,2,3])->where('type', 1)->where('driver_id', $thisDriverId)->sum('qty');
+
                         $stotal = ($si - $so) - $prodQty;
     
                         if ($stotal > 0) {
@@ -1124,7 +1130,7 @@ class SalesOrderController extends Controller
                                 'date' => now(),
                                 'qty' => $prodQty,
                                 'added_by' => $thisDriverId,
-                                'form' => 2,
+                                'form' => 4,
                                 'form_record_id' => $order->id
                             ]);
                         }
@@ -1175,7 +1181,9 @@ class SalesOrderController extends Controller
                 $thisProductId = $order->items->first()->product_id ?? 0;
                 $thisDriverId = auth()->user()->id;
 
-                if (empty(Helper::getAvailableStockFromDriver($thisDriverId))) {
+                $hasStock = Helper::getAvailableStockFromDriver($thisDriverId, $thisProductId);
+                    
+                if (isset($hasStock[$thisProductId]) && $hasStock[$thisProductId] <= 0) {
                     return response()->json(['status' => false, 'messages' => 'You don\'t have stock for this product.']);
                 }
 
@@ -1208,14 +1216,19 @@ class SalesOrderController extends Controller
                         $p4dDriver = $p4dDriver->where('distance', '>=', $thisRange)->orderBy('distance', 'ASC')->first();
 
                         if ($p4dDriver != null) {
-                            $driverRecevies = $p4dDriver->payment;
+                            $driverRecevies = $p4dDriver->payment * $prodQty;//driver commission for each qty of order
                         }
 
                     } else if (PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first() != null) {
-                        $driverRecevies = PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first()->payment;
+                        $driverRecevies = PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first()->payment * $prodQty;//driver commission for each qty of order
                     }
 
                     $orderAmountAfterDriverAmountDeduction = $newTotal - $driverRecevies;
+
+                    if ($orderAmountAfterDriverAmountDeduction <= 0) {
+                        DB::rollBack();
+                        return response()->json(['status' => false, 'messages' => 'Driver\'s payment amount is more than the order amount.']);
+                    }
 
                     DriverWallet::create([
                         'so_id' => $order->id,
@@ -1257,7 +1270,7 @@ class SalesOrderController extends Controller
                     if ($procurementCost->exists()) {
                         $procurementCost = $procurementCost->first();
     
-                            $newProductTotal = $orderAmountAfterDriverAmountDeduction / $prodQty;
+                            $newProductTotal = $newTotal / $prodQty;
 
                             if ($newProductTotal > $procurementCost->base_price) {
                                 $comPrice = $newProductTotal - $procurementCost->base_price;
@@ -1282,7 +1295,7 @@ class SalesOrderController extends Controller
                                 'is_approved' => 1,
                                 'transaction_id' => $transactionUid,
                                 'user_id' => $order->seller_id,
-                                'transaction_type' => 1,
+                                'transaction_type' => 1, // if change here then withrawal req. functionality will be effected
                                 'amount_type' => 3,
                                 'voucher' => $order->order_no,
                                 'amount' => $comPrice * $prodQty,
@@ -1291,8 +1304,9 @@ class SalesOrderController extends Controller
                             ]);
                     }
 
-                    $si = Stock::where('product_id', $thisProductId)->where('type', 1)->whereIn('form', [1, 3])->sum('qty');
-                    $so = Stock::where('product_id', $thisProductId)->where('form', 3)->where('type', 0)->where('driver_id', $thisDriverId)->sum('qty');
+                    $si = Stock::where('product_id', $thisProductId)->whereIn('form', [1,2,3])->where('type', 0)->where('driver_id', $thisDriverId)->sum('qty');
+                    $so = Stock::where('product_id', $thisProductId)->whereIn('form', [1,2,3])->where('type', 1)->where('driver_id', $thisDriverId)->sum('qty');
+
                     $stotal = ($si - $so) - $prodQty;
 
                     if ($stotal > 0) {
@@ -1303,7 +1317,7 @@ class SalesOrderController extends Controller
                             'date' => now(),
                             'qty' => $prodQty,
                             'added_by' => $thisDriverId,
-                            'form' => 2,
+                            'form' => 4,
                             'form_record_id' => $order->id
                         ]);
                     }

@@ -304,4 +304,29 @@
         }
     }
 
+    $.validator.addMethod("fileType", function(value, element, param) {
+        var fileTypes = param.split('|');
+        var files = element.files;
+        for (var i = 0; i < files.length; i++) {
+            var extension = files[i].name.split('.').pop().toLowerCase();
+            if ($.inArray(extension, fileTypes) === -1) {
+                return false;
+            }
+        }
+        return true;
+    }, "Only .png, .jpg, and .jpeg extensions supported");
+
+    $.validator.addMethod("maxFiles", function(value, element, param) {
+        return element.files.length <= param;
+    }, "Maximum 10 files can be uploaded.");
+
+    $.validator.addMethod("fileSizeLimit", function(value, element, param) {
+        var totalSize = 0;
+        var files = element.files;
+        for (var i = 0; i < files.length; i++) {
+            totalSize += files[i].size;
+        }
+        return totalSize <= param;
+    }, "Total file size must not exceed 20 MB");
+
 </script>

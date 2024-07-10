@@ -238,20 +238,16 @@ class UserController extends Controller
         $states = State::active()->where('country_id', $user->country_id)->select('id', 'name')->pluck('name', 'id')->toArray();
         $cities = City::active()->where('state_id', $user->state_id)->select('id', 'name')->pluck('name', 'id')->toArray();
 
+        $permission = PermissionRole::where('role_id', $user->roles->first()->id)->select('permission_id')->pluck('permission_id')->toArray() ?? [];
+
+        array_push($permission, 46);
+        $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
+
         if (in_array(1, $user->roles->pluck('id')->toArray())) {
             $userPermissions = Permission::select('id')->pluck('id')->toArray();
         } else {
             $userPermissions = UserPermission::where('user_id', $user->id)->select('permission_id')->pluck('permission_id')->toArray();
         }
-
-        $permission = auth()->user()->roles->pluck('id')->toArray();
-        $permission = PermissionRole::whereIn('role_id', $permission)->select('permission_id')->pluck('permission_id')->toArray();
-
-        $temp = UserPermission::where('user_id', auth()->user()->id)->select('permission_id')->pluck('permission_id')->toArray();
-        $permission = array_unique(array_merge($temp, $permission));
-
-        array_push($permission, 46);
-        $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
         return view('users.edit', compact('moduleName', 'user', 'roles', 'countries', 'states', 'cities', 'id', 'userPermissions', 'permission','moduleLink'));
     }
@@ -419,20 +415,16 @@ class UserController extends Controller
         $user = User::with('roles')->where('id', decrypt($id))->first();
         $roles = Role::active()->get();
 
+        $permission = PermissionRole::where('role_id', $user->roles->first()->id)->select('permission_id')->pluck('permission_id')->toArray() ?? [];
+
+        array_push($permission, 46);
+        $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
+
         if (in_array(1, $user->roles->pluck('id')->toArray())) {
             $userPermissions = Permission::select('id')->pluck('id')->toArray();
         } else {
             $userPermissions = UserPermission::where('user_id', $user->id)->select('permission_id')->pluck('permission_id')->toArray();
         }
-
-        $permission = auth()->user()->roles->pluck('id')->toArray();
-        $permission = PermissionRole::whereIn('role_id', $permission)->select('permission_id')->pluck('permission_id')->toArray();
-
-        $temp = UserPermission::where('user_id', auth()->user()->id)->select('permission_id')->pluck('permission_id')->toArray();
-        $permission = array_unique(array_merge($temp, $permission));
-        array_push($permission, 46);
-        
-        $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
         return view('users.view', compact('moduleName', 'user', 'roles', 'userPermissions', 'permission','moduleLink'));
     }
@@ -500,6 +492,31 @@ class UserController extends Controller
         }
 
         return response()->json($user->doesntExist());
+    }
+
+    public function rolePermissions(Request $request) {
+        $role = Role::where('id', $request->id);
+
+        if ($role->exists()) {
+
+            if ($request->user) {
+                if ($request->id == 1) {
+                    $userPermissions = Permission::select('id')->pluck('id')->toArray();
+                } else {
+                    $userPermissions = UserPermission::where('user_id', $request->user)->select('permission_id')->pluck('permission_id')->toArray();
+                }
+            } else {
+                $userPermissions = [];
+            }
+
+            $permission = PermissionRole::where('role_id', $request->id)->select('permission_id')->pluck('permission_id')->toArray() ?? [];
+            $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
+            $roleId = $role->first()->id ?? 0;
+
+            return response()->json(['status' => true, 'html' => view('users.permissions', compact('permission', 'userPermissions', 'roleId'))->render()]);
+        }
+
+        return response()->json(['status' => false, 'message' => Helper::$notFound]);
     }
 
     public function register(Request $request, $role, $uid = 1) {
