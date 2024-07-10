@@ -187,7 +187,7 @@
     $(document).ready(function() {
 
         @if($errors->any())
-            Swal.fire('', /*'Something went wrong please try again later.'*/ "{{ json_encode($errors->toArray()) }}" , 'error');
+            Swal.fire('', 'Something went wrong please try again later.' , 'error');
         @endif
 
         $('#withdrawal-request').validate({

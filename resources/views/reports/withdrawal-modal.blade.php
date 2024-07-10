@@ -19,6 +19,9 @@
 
                     @if($loop->first)
                         <input type="hidden" name="from_date" value="{{ date('Y-m-d H:i:s', strtotime($item->created_at)) }}">
+                        @if(count($transactions) == 1)
+                            <input type="hidden" name="to_date" value="{{ date('Y-m-d H:i:s', strtotime($item->created_at)) }}">
+                        @endif
                     @elseif($loop->last)
                         <input type="hidden" name="to_date" value="{{ date('Y-m-d H:i:s', strtotime($item->created_at)) }}">
                     @endif
