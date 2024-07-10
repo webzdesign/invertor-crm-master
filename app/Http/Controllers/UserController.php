@@ -126,7 +126,7 @@ class UserController extends Controller
 
         $userPermission = UserPermission::where('user_id', auth()->user()->id)->select('permission_id')->pluck('permission_id')->toArray();
         $permission = array_unique(array_merge($userPermission, $permission));
-        array_push($permission, 46);
+        array_push($permission, 45);
 
         $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
@@ -240,7 +240,7 @@ class UserController extends Controller
 
         $permission = PermissionRole::where('role_id', $user->roles->first()->id)->select('permission_id')->pluck('permission_id')->toArray() ?? [];
 
-        array_push($permission, 46);
+        array_push($permission, 45);
         $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
         if (in_array(1, $user->roles->pluck('id')->toArray())) {
@@ -417,7 +417,7 @@ class UserController extends Controller
 
         $permission = PermissionRole::where('role_id', $user->roles->first()->id)->select('permission_id')->pluck('permission_id')->toArray() ?? [];
 
-        array_push($permission, 46);
+        array_push($permission, 45);
         $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
         if (in_array(1, $user->roles->pluck('id')->toArray())) {
