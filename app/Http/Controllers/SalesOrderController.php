@@ -1118,8 +1118,7 @@ class SalesOrderController extends Controller
                         }
     
                         $si = Stock::where('product_id', $thisProductId)->whereIn('form', [1,2,3])->where('type', 0)->where('driver_id', $thisDriverId)->sum('qty');
-                        $so = Stock::where('product_id', $thisProductId)->whereIn('form', [1,2,3])->where('type', 1)->where('driver_id', $thisDriverId)->sum('qty');
-
+                        $so = Stock::where('product_id', $thisProductId)->whereIn('form', [1,2,3,4])->where('type', 1)->where('driver_id', $thisDriverId)->sum('qty');
                         $stotal = ($si - $so) - $prodQty;
     
                         if ($stotal > 0) {
@@ -1305,8 +1304,7 @@ class SalesOrderController extends Controller
                     }
 
                     $si = Stock::where('product_id', $thisProductId)->whereIn('form', [1,2,3])->where('type', 0)->where('driver_id', $thisDriverId)->sum('qty');
-                    $so = Stock::where('product_id', $thisProductId)->whereIn('form', [1,2,3])->where('type', 1)->where('driver_id', $thisDriverId)->sum('qty');
-
+                    $so = Stock::where('product_id', $thisProductId)->whereIn('form', [1,2,3,4])->where('type', 1)->where('driver_id', $thisDriverId)->sum('qty');
                     $stotal = ($si - $so) - $prodQty;
 
                     if ($stotal > 0) {
