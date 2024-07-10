@@ -128,7 +128,11 @@ class ReportController extends Controller
             })
             ->editColumn('crdr', function ($row) {
                 if ($row->is_approved == 0 && $row->amount_type == 0) {
-                    return '<span class="text-secondary"> -' . $row->amount . ' </span>';
+                    return '<span class="text-secondary"> ' . $row->amount . ' </span>';
+                } else if ($row->is_approved == 1 && $row->amount_type == 0) {
+                    return '<span class="text-secondary"> ' . $row->amount . ' </span>';
+                } else if ($row->is_approved == 2 && $row->amount_type == 0) {
+                    return '<span class="text-secondary"> ' . $row->amount . ' </span>';
                 } else {
                     if ($row->transaction_type) {
                         return '<span class="text-danger"> -' . $row->amount . ' </span>';
