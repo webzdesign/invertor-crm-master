@@ -1,5 +1,21 @@
 @extends('layouts.master')
 
+@section('css')
+<style>
+    #filterInput2 input{
+        padding-left: 40px;
+    }
+
+    #filterInput2 svg {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        top: 50%;
+        left: 22px;
+        pointer-events: none;
+    }
+</style>
+@endsection
+
 {{ Config::set('app.module', $moduleName) }}
 
 @section('create_button')
@@ -125,7 +141,7 @@
             processing: true,
             serverSide: true,
             oLanguage: {sProcessing: "<div id='dataTableLoader'></div>"},
-            "dom": "<'filterHeader d-block-500 cardsHeader'l<'#filterInput'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
+            "dom": "<'filterHeader d-block-500 cardsHeader'l<'#filterInput2'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
             ajax: {
                 "url": "{{ route('driver-payment-log') }}",
                 "dataType": "json",
@@ -159,6 +175,11 @@
             ],
             drawCallback: function (data) {
             }
+        });
+
+        $('#filterInput2').html($('#searchPannel').html());
+        $('#filterInput2 > input').keyup(function() {
+            driverCommissionDt.search($(this).val()).draw();
         });
 
         $(document).on('click', '.accept-payment', function (e) {

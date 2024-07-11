@@ -411,7 +411,7 @@
             processing: true,
             serverSide: true,
             oLanguage: {sProcessing: "<div id='dataTableLoader'></div>"},
-            "dom": "<'filterHeader d-block-500 cardsHeader'l<'#filterInput'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
+            "dom": "<'filterHeader d-block-500 cardsHeader'l<'#filterInput2'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
             ajax: {
                 "url": "{{ route('seller-withdrawal-reqs-2') }}",
                 "dataType": "json",
@@ -477,6 +477,11 @@
         $('#filterInput').html($('#searchPannel').html());
         $('#filterInput > input').keyup(function() {
             ServerDataTable.search($(this).val()).draw();
+        });
+        
+        $('#filterInput2').html($('#searchPannel').html());
+        $('#filterInput2 > input').keyup(function() {
+            sellerCommissionDt.search($(this).val()).draw();
         });
 
         $('#withdraw-amount').on('click', function (e) {

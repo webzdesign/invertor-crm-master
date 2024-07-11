@@ -175,6 +175,8 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('withdrawal-request', [ReportController::class, 'withdrawalRequest'])->name('withdrawal-request');
         Route::post('withdrawalable-amount', [ReportController::class, 'withdrawableAmount'])->name('withdrawalable-amount');
         Route::post('seller-withdrawal-reqs', [ReportController::class, 'withdrawReqs'])->name('seller-withdrawal-reqs');
+        Route::post('seller-withdrawal-reqs-accepted', [ReportController::class, 'withdrawReqsAccepted'])->name('seller-withdrawal-reqs-accepted');
+        Route::post('seller-withdrawal-reqs-rejected', [ReportController::class, 'withdrawReqsRejected'])->name('seller-withdrawal-reqs-rejected');
         Route::post('withdrawal-req-info', [ReportController::class, 'withdrawalReqInfo'])->name('withdrawal-req-info');
         Route::post('withdrwal-details', [ReportController::class, 'withdrwalDetails'])->name('withdrwal-details');
         Route::post('accept-withdrawal-request', [ReportController::class, 'acceptWithdrawalRequest'])->name('accept-withdrawal-request');

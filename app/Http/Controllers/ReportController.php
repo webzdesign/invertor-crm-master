@@ -159,7 +159,7 @@ class ReportController extends Controller
             ->groupBy('transactions.user_id');
 
             if (isset($request->search['value']) && !empty($request->search['value'])) {
-                $ledger = $ledger->where('users.name', 'LIKE', '%' . trim($request->search['value']) . '%');
+                $ledger = $ledger->where('users.name', 'LIKE', '%' . $request->search['value'] . '%');
             }
 
             foreach ($ledger->get() as $thisIterator) {
@@ -218,7 +218,9 @@ class ReportController extends Controller
             if (!$request->ajax()) {
                 $moduleName = 'Seller Report';
                 $moduleName2 = 'Commission Withdrawal Requests';
-                return view('reports.seller-commission', compact('moduleName', 'moduleName2'));
+                $sellers = CommissionWithdrawalHistory::with('user')->where('status', 0)->groupBy('user_id')->get();
+                
+                return view('reports.seller-commission', compact('moduleName', 'moduleName2', 'sellers'));
             }
 
             $total = 0;
@@ -230,7 +232,7 @@ class ReportController extends Controller
             ->seller();
 
             if (isset($request->search['value']) && !empty($request->search['value'])) {
-                $ledger = $ledger->where('users.name', 'LIKE', '%' . trim($request->search['value']) . '%');
+                $ledger = $ledger->where('users.name', 'LIKE', '%' . $request->search['value'] . '%');
             }
 
             foreach ($ledger->get() as $thisIterator) {
@@ -252,7 +254,7 @@ class ReportController extends Controller
                 }
 
                 $rem = Transaction::where('user_id', $thisIterator->userid)->where('transactions.amount_type', 3)->debit()->sum('amount') - $rem;
-    
+                
                 $total += $rem;
             }
 
@@ -518,6 +520,39 @@ class ReportController extends Controller
                 ->where('transaction_type', 0)
                 ->orderBy('id', 'DESC');
 
+        
+        if (isset($request->search['value']) && !empty(trim($request->search['value']))) {
+            $searchVal = trim($request->search['value']);
+
+            $tmp = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
+                ->select("transaction_id")
+                ->where('amount_type', 0)
+                ->where('users.name', 'LIKE', "%$searchVal%")
+                ->whereIn('transaction_id', $drivers->clone()->pluck('transaction_id')->toArray())
+                ->pluck('transaction_id')
+                ->toArray();
+
+            $tmp = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
+                ->selectRaw("transactions.id as id")
+                ->where('amount_type', 0)
+                ->where('user_id', 1)
+                ->whereIn('transaction_id', $tmp)
+                ->pluck('id')
+                ->toArray();
+
+            $drivers = $drivers->where(function ($builder) use ($tmp, $searchVal) {
+                $builder->whereIn('transactions.id', $tmp)
+                ->orWhere('transactions.amount', 'LIKE', "%$searchVal%")
+                ->orWhere(DB::raw("DATE_FORMAT(transactions.created_at, '%d-%m-%Y')"), 'LIKE', "%$searchVal%");
+
+                if (str_contains('accepted', strtolower($searchVal))) {
+                    $builder = $builder->orWhere('transactions.is_approved', 1);
+                } else if (str_contains('rejected', strtolower($searchVal))) {
+                    $builder = $builder->orWhere('transactions.is_approved', 2);
+                }
+            });          
+        }
+
         return dataTables()->eloquent($drivers)
         ->addColumn('driver', function ($row) {
             return Transaction::with('user')->where('user_id', '!=', 1)->where('transaction_id', $row->transaction_id)->first()->user->name ?? '-';
@@ -652,7 +687,20 @@ class ReportController extends Controller
     public function withdrawReqs(Request $request) {
         $reqs = CommissionWithdrawalHistory::join('users', 'users.id', '=', 'commission_withdrawal_histories.user_id')
         ->selectRaw("users.name as name, commission_withdrawal_histories.amount, commission_withdrawal_histories.status, commission_withdrawal_histories.id as id, commission_withdrawal_histories.created_at as date")
+        ->where('commission_withdrawal_histories.status', 0)
         ->orderBy('id', 'DESC');
+
+        if (isset($request->search['value']) && !empty($request->search['value'])) {
+            $searchVal = $request->search['value'];
+
+            $users = User::select('id')->where('name', 'LIKE', "%$searchVal%")->pluck('id')->toArray();
+
+            $reqs = $reqs->where(function ($builder) use($users, $searchVal) {
+                $builder->whereIn('users.id', $users)
+                ->orWhere('amount', 'LIKE', "%$searchVal%")
+                ->orWhere(DB::raw("DATE_FORMAT(commission_withdrawal_histories.created_at, '%d-%m-%Y')"), 'LIKE', "%$searchVal%");
+            });
+        }
 
         return dataTables()->eloquent($reqs)
         ->addColumn('seller_name', function ($row) {
@@ -669,16 +717,80 @@ class ReportController extends Controller
         })
         ->addColumn('action', function ($row) {
 
-            if ($row->status == 1) {
-                return '<span class="text-success"> Accepted </span>';
-            } else if ($row->status == 2) {
-                return '<span class="text-danger"> Rejected </span>';
-            } else {
-                return '<button class="accept-wreq btn-primary f-500 f-14 btn-sm bg-success" data-id="' . $row->id . '"> ACCEPT </button>
+            return '<button class="accept-wreq btn-primary f-500 f-14 btn-sm bg-success" data-id="' . $row->id . '"> ACCEPT </button>
                 <button class="reject-wreq btn-primary f-500 f-14 btn-sm bg-error" data-id="' . $row->id . '"> REJECT </button>';
-            }
         })
         ->rawColumns(['action', 'details'])
+        ->toJson();
+    }
+
+    public function withdrawReqsAccepted(Request $request) {
+        $reqs = CommissionWithdrawalHistory::join('users', 'users.id', '=', 'commission_withdrawal_histories.user_id')
+        ->selectRaw("users.name as name, commission_withdrawal_histories.amount, commission_withdrawal_histories.status, commission_withdrawal_histories.id as id, commission_withdrawal_histories.created_at as date")
+        ->where('commission_withdrawal_histories.status', 1)
+        ->orderBy('id', 'DESC');
+
+        if (isset($request->search['value']) && !empty($request->search['value'])) {
+            $searchVal = $request->search['value'];
+
+            $users = User::select('id')->where('name', 'LIKE', "%$searchVal%")->pluck('id')->toArray();
+
+            $reqs = $reqs->where(function ($builder) use($users, $searchVal) {
+                $builder->whereIn('users.id', $users)
+                ->orWhere('amount', 'LIKE', "%$searchVal%")
+                ->orWhere(DB::raw("DATE_FORMAT(commission_withdrawal_histories.created_at, '%d-%m-%Y')"), 'LIKE', "%$searchVal%");
+            });
+        }
+
+        return dataTables()->eloquent($reqs)
+        ->addColumn('seller_name', function ($row) {
+            return $row->name ?? '-';
+        })
+        ->addColumn('date', function ($row) {
+            return date('d-m-Y', strtotime($row->date));
+        })
+        ->editColumn('amount', function ($row) {
+            return Helper::currency($row->amount);
+        })
+        ->addColumn('details', function ($row) {
+            return '<button class="btn btn-success btn-sm show-orders" data-id="' . $row->id . '"> <i class="fa fa-eye"> </i> </button>';
+        })
+        ->rawColumns(['details'])
+        ->toJson();
+    }
+
+    public function withdrawReqsRejected(Request $request) {
+        $reqs = CommissionWithdrawalHistory::join('users', 'users.id', '=', 'commission_withdrawal_histories.user_id')
+        ->selectRaw("users.name as name, commission_withdrawal_histories.amount, commission_withdrawal_histories.status, commission_withdrawal_histories.id as id, commission_withdrawal_histories.created_at as date")
+        ->where('commission_withdrawal_histories.status', 2)
+        ->orderBy('id', 'DESC');
+
+        if (isset($request->search['value']) && !empty($request->search['value'])) {
+            $searchVal = $request->search['value'];
+
+            $users = User::select('id')->where('name', 'LIKE', "%$searchVal%")->pluck('id')->toArray();
+
+            $reqs = $reqs->where(function ($builder) use($users, $searchVal) {
+                $builder->whereIn('users.id', $users)
+                ->orWhere('amount', 'LIKE', "%$searchVal%")
+                ->orWhere(DB::raw("DATE_FORMAT(commission_withdrawal_histories.created_at, '%d-%m-%Y')"), 'LIKE', "%$searchVal%");
+            });
+        }
+
+        return dataTables()->eloquent($reqs)
+        ->addColumn('seller_name', function ($row) {
+            return $row->name ?? '-';
+        })
+        ->addColumn('date', function ($row) {
+            return date('d-m-Y', strtotime($row->date));
+        })
+        ->editColumn('amount', function ($row) {
+            return Helper::currency($row->amount);
+        })
+        ->addColumn('details', function ($row) {
+            return '<button class="btn btn-success btn-sm show-orders" data-id="' . $row->id . '"> <i class="fa fa-eye"> </i> </button>';
+        })
+        ->rawColumns(['details'])
         ->toJson();
     }
 
@@ -687,6 +799,23 @@ class ReportController extends Controller
         ->selectRaw("users.name as name, commission_withdrawal_histories.amount, commission_withdrawal_histories.status, commission_withdrawal_histories.id as id, commission_withdrawal_histories.created_at as date")
         ->where('commission_withdrawal_histories.user_id', auth()->user()->id)
         ->orderBy('id', 'DESC');
+
+        if (isset($request->search['value']) && !empty($request->search['value'])) {
+            $searchVal = $request->search['value'];
+            
+            $reqs = $reqs->where(function ($builder) use($searchVal) {
+                $builder->where('amount', 'LIKE', "%$searchVal%")
+                ->orWhere(DB::raw("DATE_FORMAT(commission_withdrawal_histories.created_at, '%d-%m-%Y')"), 'LIKE', "%$searchVal%");
+
+                if (str_contains('accepted', strtolower($searchVal))) {
+                    $builder = $builder->orWhere('commission_withdrawal_histories.status', 1);
+                } else if (str_contains('rejected', strtolower($searchVal))) {
+                    $builder = $builder->orWhere('commission_withdrawal_histories.status', 2);
+                } else if (str_contains('pending', strtolower($searchVal))) {
+                    $builder = $builder->orWhere('commission_withdrawal_histories.status', 0);
+                }
+            });
+        }
 
         return dataTables()->eloquent($reqs)
         ->addColumn('seller_name', function ($row) {

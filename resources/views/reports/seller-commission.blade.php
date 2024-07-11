@@ -72,6 +72,17 @@
         border: 1px solid black;
         border-radius: 10px;
     }
+    #filterInput2 input, #filterInput3 input, #filterInput4 input{
+        padding-left: 40px;
+    }
+
+    #filterInput2 svg, #filterInput3 svg, #filterInput4 svg {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        top: 50%;
+        left: 22px;
+        pointer-events: none;
+    }
 </style>
 @endsection
 
@@ -102,30 +113,83 @@
     </table>
 </div>
 
-
-
 <div class="d-flex align-items-center justify-content-between filterPanelbtn my-2 flex-wrap mt-4">
     <h2 class="f-24 f-700 c-36 mb-0"> {{ $moduleName2 }} </h2>
 </div>
 
-<div class="cards mt-3">
+<div class="mt-3">
+    <div class="tabCards">
 
-    <div class="cards">
-        <table class="sellerCommissionDt table datatableMain" style="width: 100%!important;">
-            <thead>
-                <tr>
-                    <th>Seller Name</th>
-                    <th width="20%">Amount Requested</th>
-                    <th width="20%">Date</th>
-                    <th width="20%">Status</th>
-                    <th width="20%">Details</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+    <ul class="nav nav-tabs border-0 accountWrpr px-2 mb-1" id="myTab" role="tablist">
+        <li class="nav-item mb-3" role="presentation">
+            <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true"> Pending </button>
+        </li>
+        <li class="nav-item mb-3" role="presentation">
+            <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Accepted</button>
+        </li>
+        <li class="nav-item mb-3" role="presentation">
+            <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab" aria-controls="contact" aria-selected="false">Rejected</button>
+        </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+            {{-- Pending --}}
+            <div class="cards">
+                <table class="sellerCommissionDt table datatableMain" style="width: 100%!important;">
+                    <thead>
+                        <tr>
+                            <th>Seller Name</th>
+                            <th width="20%">Commission Amount</th>
+                            <th width="20%">Date</th>
+                            <th width="20%">Request</th>
+                            <th width="20%">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            {{-- Pending --}}
+        </div>
+        <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+            {{-- Accepted --}}
+            <div class="cards">
+                <table class="sellerCommissionDt2 table datatableMain" style="width: 100%!important;">
+                    <thead>
+                        <tr>
+                            <th>Seller Name</th>
+                            <th width="20%">Commission Amount</th>
+                            <th width="20%">Date</th>
+                            <th width="20%">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            {{-- Accepted --}}
+        </div>
+        <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+            {{-- Rejected --}}
+            <div class="cards">
+                <table class="sellerCommissionDt3 table datatableMain" style="width: 100%!important;">
+                    <thead>
+                        <tr>
+                            <th>Seller Name</th>
+                            <th width="20%">Commission Amount</th>
+                            <th width="20%">Date</th>
+                            <th width="20%">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            {{-- Rejected --}}
+        </div>
     </div>
 
+    </div>
 </div>
 
 
@@ -224,11 +288,6 @@
             }
         });
 
-        $('#filterInput').html($('#searchPannel').html());
-        $('#filterInput > input').keyup(function() {
-            ServerDataTable.search($(this).val()).draw();
-        });
-
         var sellerCommissionDt = $('.sellerCommissionDt').DataTable({
             language: {
                 search: "_INPUT_",
@@ -238,7 +297,7 @@
             processing: true,
             serverSide: true,
             oLanguage: {sProcessing: "<div id='dataTableLoader'></div>"},
-            "dom": "<'filterHeader d-block-500 cardsHeader'l<'#filterInput'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
+            "dom": "<'filterHeader d-block-500 cardsHeader'l<'#seller-filter'><'#filterInput2'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
             ajax: {
                 "url": "{{ route('seller-withdrawal-reqs') }}",
                 "dataType": "json",
@@ -262,6 +321,87 @@
                 {
                     data: 'action',
                     orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'details',
+                    orderable: false,
+                    searchable: false,
+                }
+            ],
+            drawCallback: function (data) {
+                $('#seller-select2').select2();
+            }
+        });
+
+        var sellerCommissionDt2 = $('.sellerCommissionDt2').DataTable({
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search here",
+
+            },
+            processing: true,
+            serverSide: true,
+            oLanguage: {sProcessing: "<div id='dataTableLoader'></div>"},
+            "dom": "<'filterHeader d-block-500 cardsHeader'l<'#filterInput3'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
+            ajax: {
+                "url": "{{ route('seller-withdrawal-reqs-accepted') }}",
+                "dataType": "json",
+                "type": "POST"
+            },
+            columns: [
+                {
+                    data: 'seller_name',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'amount',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'date',
+                    searchable: false,
+                },
+                {
+                    data: 'details',
+                    orderable: false,
+                    searchable: false,
+                }
+            ],
+            drawCallback: function (data) {
+            }
+        });
+
+        var sellerCommissionDt3 = $('.sellerCommissionDt3').DataTable({
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search here",
+
+            },
+            processing: true,
+            serverSide: true,
+            oLanguage: {sProcessing: "<div id='dataTableLoader'></div>"},
+            "dom": "<'filterHeader d-block-500 cardsHeader'l<'#filterInput4'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
+            ajax: {
+                "url": "{{ route('seller-withdrawal-reqs-rejected') }}",
+                "dataType": "json",
+                "type": "POST"
+            },
+            columns: [
+                {
+                    data: 'seller_name',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'amount',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'date',
                     searchable: false,
                 },
                 {
@@ -298,6 +438,8 @@
                                     Swal.fire('', response.message, 'success');
                                     ServerDataTable.ajax.reload();
                                     sellerCommissionDt.ajax.reload();
+                                    sellerCommissionDt2.ajax.reload();
+                                    sellerCommissionDt3.ajax.reload();
                                 } else {
                                     Swal.fire('', response.message, 'error');
                                 }
@@ -376,6 +518,8 @@
                         Swal.fire('', response.message, 'success');
                         ServerDataTable.ajax.reload();
                         sellerCommissionDt.ajax.reload();
+                        sellerCommissionDt2.ajax.reload();
+                        sellerCommissionDt3.ajax.reload();
                     } else {
                         Swal.fire('', response.message, 'error');
                     }
@@ -418,6 +562,42 @@
             if (e.namespace == 'bs.modal') {
                 $('#withdrwal-details').html('');
             }
+        });
+
+
+        $('#filterInput').html($('#searchPannel').html());
+        $('#filterInput > input').keyup(function() {
+            ServerDataTable.search($(this).val()).draw();
+        });
+
+        $('#filterInput2').html($('#searchPannel').html());
+        $('#seller-filter').html(`
+            <select class="seller-select2 select2-hidden-accessible" style="width:100%" data-placeholder="Select a Seller">
+                @forelse($sellers as $seller)
+                    @if($loop->first)
+                        <option value="" selected> --- Select a Seller --- </option>
+                    @endif
+                        <option value="{{ $seller->user_id }}">{{ $seller->user->name ?? '-' }}</option>
+                @empty
+                        <option value="" selected> --- No Seller Found --- </option>
+                @endforelse
+            </select>
+        `);
+        $('#filterInput2 > input').keyup(function() {
+            sellerCommissionDt.search($(this).val()).draw();
+        });
+        $('#seller-filter > select').on('change', function () {
+            sellerCommissionDt.search($(this).val()).draw();
+        });
+
+        $('#filterInput3').html($('#searchPannel').html());
+        $('#filterInput3 > input').keyup(function() {
+            sellerCommissionDt2.search($(this).val()).draw();
+        });
+
+        $('#filterInput4').html($('#searchPannel').html());
+        $('#filterInput4 > input').keyup(function() {
+            sellerCommissionDt3.search($(this).val()).draw();
         });
 
     });

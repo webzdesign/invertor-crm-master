@@ -246,7 +246,7 @@
                             <div class="row">
         
                                 @forelse($logs as $key => $l)
-                                <div class="activity py-1 hist @if(in_array($loop->iteration, [1,2,3])) show-first-history @else d-none @endif">
+                                <div class="activity py-1 hist">
                                     <p class="f-14" style="margin-bottom:0px;">
                                         <strong> {{ date('d-m-Y H:i', strtotime($l->created_at)) }} @if(!empty($l->watcher_id)) {{ $l->watcher->name }} @else @if(!empty($l->user->name)) {{ $l->user->name }} @else Robot @endif @endif </strong> :
                                         @if($l->type == 1)
