@@ -112,7 +112,7 @@ class ReportController extends Controller
                 if ($row->is_approved == 0 && $row->amount_type == 0) {
                     return "<span class='text-secondary'> Payment pending </span>";
                 } else if ($row->is_approved == 1 && $row->amount_type == 0) {
-                    return "<span class='text-success'> Payment received </span>";
+                    return "<span class='text-success'> Payment accepted </span>";
                 } else if ($row->is_approved == 2 && $row->amount_type == 0) {
                     return "<span class='text-danger'> Payment rejected </span>";
                 } else {
@@ -147,7 +147,7 @@ class ReportController extends Controller
 
             if (!$request->ajax()) {
                 $moduleName = 'Driver Report';
-                $moduleName2 = 'Driver Paid Amount';
+                $moduleName2 = 'Driver Payment Requests';
                 return view('reports.driver-commission', compact('moduleName', 'moduleName2'));
             }
     
@@ -217,7 +217,7 @@ class ReportController extends Controller
 
             if (!$request->ajax()) {
                 $moduleName = 'Seller Report';
-                $moduleName2 = 'Amount Withdrawal Requests';
+                $moduleName2 = 'Commission Withdrawal Requests';
                 return view('reports.seller-commission', compact('moduleName', 'moduleName2'));
             }
 
@@ -286,9 +286,10 @@ class ReportController extends Controller
 
             if (!$request->ajax()) {
                 $moduleName = 'Financial Report';
+                $moduleName2 = 'Commission Requests';
                 $accounts = BankDetail::where('user_id', auth()->user()->id)->get();
 
-                return view('reports.seller-ledger', compact('moduleName', 'accounts'));
+                return view('reports.seller-ledger', compact('moduleName', 'moduleName2', 'accounts'));
             }
 
             $total = 0;
@@ -675,6 +676,39 @@ class ReportController extends Controller
             } else {
                 return '<button class="accept-wreq btn-primary f-500 f-14 btn-sm bg-success" data-id="' . $row->id . '"> ACCEPT </button>
                 <button class="reject-wreq btn-primary f-500 f-14 btn-sm bg-error" data-id="' . $row->id . '"> REJECT </button>';
+            }
+        })
+        ->rawColumns(['action', 'details'])
+        ->toJson();
+    }
+
+    public function withdrawReqs2(Request $request) {
+        $reqs = CommissionWithdrawalHistory::join('users', 'users.id', '=', 'commission_withdrawal_histories.user_id')
+        ->selectRaw("users.name as name, commission_withdrawal_histories.amount, commission_withdrawal_histories.status, commission_withdrawal_histories.id as id, commission_withdrawal_histories.created_at as date")
+        ->where('commission_withdrawal_histories.user_id', auth()->user()->id)
+        ->orderBy('id', 'DESC');
+
+        return dataTables()->eloquent($reqs)
+        ->addColumn('seller_name', function ($row) {
+            return $row->name ?? '-';
+        })
+        ->addColumn('date', function ($row) {
+            return date('d-m-Y', strtotime($row->date));
+        })
+        ->editColumn('amount', function ($row) {
+            return Helper::currency($row->amount);
+        })
+        ->addColumn('details', function ($row) {
+            return '<button class="btn btn-success btn-sm show-orders" data-id="' . $row->id . '"> <i class="fa fa-eye"> </i> </button>';
+        })
+        ->addColumn('action', function ($row) {
+
+            if ($row->status == 1) {
+                return '<span class="text-success"> Accepted </span>';
+            } else if ($row->status == 2) {
+                return '<span class="text-danger"> Rejected </span>';
+            } else {
+                return '<span class="text-secondary"> Pending </span>';
             }
         })
         ->rawColumns(['action', 'details'])

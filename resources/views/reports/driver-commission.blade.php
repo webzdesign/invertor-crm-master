@@ -84,7 +84,6 @@
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here",
-
             },
             processing: true,
             serverSide: true,
@@ -122,7 +121,6 @@
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here",
-
             },
             processing: true,
             serverSide: true,

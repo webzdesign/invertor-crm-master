@@ -4,7 +4,7 @@
         <tr>
             <th>ORDER NUMBER</th>
             <th>COMMISSION AMOUNT</th>
-            <th>ORDER AMOUNT</th>
+            {{-- <th>ORDER AMOUNT</th> --}}
         </tr>
     </thead>
     <tbody>
@@ -31,7 +31,7 @@
                     @endphp
                 </td>
                 <td>{{ Helper::currency($item->amount) }}</td>
-                <td>{{ Helper::currency($item->order->sold_amount) }}</td>
+                {{-- <td>{{ Helper::currency($item->order->sold_amount) }}</td> --}}
             </tr>            
         @endforeach
     </tbody>
@@ -39,7 +39,7 @@
         <tr>
             <td> Total </td>
             <td> {{ Helper::currency($orderAmt) }} </td>
-            <td> {{ Helper::currency($commissionAmount) }} </td>
+            {{-- <td> {{ Helper::currency($commissionAmount) }} </td> --}}
         </tr>
     </tfoot>
 </table>

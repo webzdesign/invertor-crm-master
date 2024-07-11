@@ -88,10 +88,6 @@
         $.fn.dataTable.ext.errMode = 'none';
 
         var ServerDataTable = $('.datatables-po').DataTable({
-            language: {
-                search: "_INPUT_",
-                searchPlaceholder: "Search here"
-            },
             processing: true,
             serverSide: true,
             language: {

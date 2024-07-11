@@ -2,7 +2,7 @@
 
 @section('css')
 <style>
-    .stickyTable{
+    .stickyTable:not('#withdrwal-details'){
         max-height: 295px;
         overflow: auto;
         border: 1px solid #dee2e6;
@@ -67,6 +67,11 @@
     .stickyTable table tfoot tr td{
         font-family: "Roboto Bold" !important;
     }
+    .inline-image-preview {
+        width: 100%;
+        border: 1px solid black;
+        border-radius: 10px;
+    }
 </style>
 @endsection
 
@@ -97,6 +102,31 @@
     </table>
 </div>
 
+
+<div class="d-flex align-items-center justify-content-between filterPanelbtn my-2 flex-wrap mt-4">
+    <h2 class="f-24 f-700 c-36 mb-0"> {{ $moduleName2 }} </h2>
+</div>
+
+<div class="cards mt-3">
+
+    <div class="cards">
+        <table class="sellerCommissionDt table datatableMain" style="width: 100%!important;">
+            <thead>
+                <tr>
+                    <th width="20%">Amount Requested</th>
+                    <th width="20%">Date</th>
+                    <th width="20%">Status</th>
+                    <th width="20%">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+
 {{-- Withdrawal request --}}
 <div class="modal fade" id="withdrawal-modal" tabindex="-1" aria-labelledby="withdrawal-modal" aria-modal="true"
     role="dialog">
@@ -104,7 +134,7 @@
         <div class="modal-content">
             <form action="{{ route('withdrawal-request') }}" id="withdrawal-request" method="POST" enctype="multipart/form-data"> @csrf
                 <div class="modal-header py-2">
-                    <h6 class="modal-title" id="exampleModalLongTitle"> AMOUNT WITHDRAWAL REQUEST </h6>
+                    <h6 class="modal-title" id="exampleModalLongTitle"> COMMISSION WITHDRAWAL REQUEST </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body pb-3">
@@ -132,7 +162,7 @@
 
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary" > Save </button>
+                    <button type="submit" class="btn btn-primary" id="should-disabled"> Save </button>
                     <button type="button" class="btn btn-default" data-bs-dismiss="modal"> Cancel </button>
                 </div>
             </form>
@@ -179,6 +209,28 @@
     </div>
 </div>
 {{-- Bank details adder --}}
+
+
+{{-- Details --}}
+<div class="modal fade" id="details" tabindex="-1" aria-labelledby="accept-request" aria-hidden="true">
+    <div class="modal-dialog modal-xs modal-dialog-centered">
+        <div class="modal-content">
+                <div class="modal-header no-border modal-padding">
+                    <h1 class="modal-title fs-5"> WITHDRAWAL DETAILS </h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="withdrwal-details" class="mt-2 stickyTable">
+
+                    </div>
+                </div>
+                <div class="modal-footer no-border">
+                    <button type="button" class="btn-default f-500 f-14" data-bs-dismiss="modal"> Close </button>
+                </div>
+        </div>
+    </div>
+</div>
+{{-- Details --}}
 
 @endsection
 
@@ -350,6 +402,78 @@
             }
         });
 
+        var sellerCommissionDt = $('.sellerCommissionDt').DataTable({
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search here",
+
+            },
+            processing: true,
+            serverSide: true,
+            oLanguage: {sProcessing: "<div id='dataTableLoader'></div>"},
+            "dom": "<'filterHeader d-block-500 cardsHeader'l<'#filterInput'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
+            ajax: {
+                "url": "{{ route('seller-withdrawal-reqs-2') }}",
+                "dataType": "json",
+                "type": "POST"
+            },
+            columns: [
+                {
+                    data: 'amount',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'date',
+                    searchable: false,
+                },
+                {
+                    data: 'action',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'details',
+                    orderable: false,
+                    searchable: false,
+                }
+            ],
+            drawCallback: function (data) {
+            }
+        });
+
+        $(document).on('click', '.show-orders', function (e) {
+            let thisId = $(this).attr('data-id');
+
+            if (isNumeric(thisId)) {
+                $.ajax({
+                    url: "{{ route('withdrwal-details') }}",
+                    type: 'POST',
+                    data: {
+                        id: thisId
+                    },
+                    beforeSend: function () {
+                        $('body').find('.LoaderSec').removeClass('d-none');
+                    },
+                    success: function (response) {
+                        if (response.status) {
+                            $('#details').modal('show');
+                            $('#withdrwal-details').html(response.html);
+                        }
+                    },
+                    complete: function () {
+                        $('body').find('.LoaderSec').addClass('d-none');
+                    }
+                });                
+            }
+        });
+
+        $(document).on('hidden.bs.modal', '#details', function (e) {
+            if (e.namespace == 'bs.modal') {
+                $('#withdrwal-details').html('');
+            }
+        });
+
         $('#filterInput').html($('#searchPannel').html());
         $('#filterInput > input').keyup(function() {
             ServerDataTable.search($(this).val()).draw();
@@ -368,9 +492,9 @@
                         $('#withdrawal-modal').modal('show');
 
                         if (response.orders > 0) {
-                            $('button[type="submit"]').attr('disabled', false);
+                            $('#should-disabled').attr('disabled', false);
                         } else {
-                            $('button[type="submit"]').attr('disabled', true);
+                            $('#should-disabled').attr('disabled', true);
                         }
 
                     } else {
@@ -381,6 +505,15 @@
                     $('body').find('.LoaderSec').addClass('d-none');
                 }
             });
+        });
+
+        $(document).on('hidden.bs.modal', '#bank-adder', function (e) {
+            if (e.namespace == 'bs.modal') {
+                $("#bankDetailAddForm")[0].reset();
+                $('#surname-add-error').remove();
+                $('#iban-add-error').remove();
+                $('#bank-name-add-error').remove();
+            }
         });
     });
 </script>

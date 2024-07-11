@@ -179,6 +179,7 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('withdrwal-details', [ReportController::class, 'withdrwalDetails'])->name('withdrwal-details');
         Route::post('accept-withdrawal-request', [ReportController::class, 'acceptWithdrawalRequest'])->name('accept-withdrawal-request');
         Route::post('reject-withdrawal-request', [ReportController::class, 'rejectWithdrawalRequest'])->name('reject-withdrawal-request');
+        Route::post('seller-withdrawal-reqs-2', [ReportController::class, 'withdrawReqs2'])->name('seller-withdrawal-reqs-2');
         /** Financial report **/
 
         /** Payment for deliveyr **/
