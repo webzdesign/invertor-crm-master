@@ -111,19 +111,19 @@ class SalesOrderController extends Controller
                 
                 $proQty = $users->items->first()->product_id ?? 0;
 
-                if ($users->status == $orderClosedWinStatus && !$users->price_matched && isset($users->assigneddriver) && $users->assigneddriver->user_id == auth()->user()->id) {
-                    $stockQty = Helper::getAvailableStockFromDriver($users->assigneddriver->user_id, $proQty);
-                    $stockQty = isset($stockQty[$proQty]) ? $stockQty[$proQty] : 0;
-                    $wantedQty = $users->items->first()->qty ?? 0;
+                // if ($users->status == $orderClosedWinStatus && !$users->price_matched &&  $users->responsible_user == auth()->user()->id) {
+                //     $stockQty = Helper::getAvailableStockFromDriver($users->assigneddriver->user_id, $proQty);
+                //     $stockQty = isset($stockQty[$proQty]) ? $stockQty[$proQty] : 0;
+                //     $wantedQty = $users->items->first()->qty ?? 0;
 
-                    $action .= '
-                    <div class="tableCards d-inline-block me-1 pb-0">
-                        <div class="editDlbtn">
-                            <button data-wanted="' . $wantedQty . '" data-available="' . $stockQty . '" class="btn btn-sm btn-warning close-order" style="width: 30px;margin-left: 2px;" data-bs-toggle="tooltip" title="Final sale price" data-oid="' . $users->id . '" data-title="' . $users->order_no . '"> <i class="fa fa-gbp"> </i> </button>
-                        </div>
-                    </div>
-                    ';
-                }
+                //     $action .= '
+                //     <div class="tableCards d-inline-block me-1 pb-0">
+                //         <div class="editDlbtn">
+                //             <button data-wanted="' . $wantedQty . '" data-available="' . $stockQty . '" class="btn btn-sm btn-warning close-order" style="width: 30px;margin-left: 2px;" data-bs-toggle="tooltip" title="Final sale price" data-oid="' . $users->id . '" data-title="' . $users->order_no . '"> <i class="fa fa-gbp"> </i> </button>
+                //         </div>
+                //     </div>
+                //     ';
+                // }
 
                 $action .= '</div>';
 
@@ -157,6 +157,8 @@ class SalesOrderController extends Controller
             })
             ->addColumn('option', function ($row) use ($allStatuses) {
                 $html = "";
+
+                $cwStatus = SalesOrderStatus::select('id')->where('slug', 'closed-win')->first()->id ?? 0;
 
                 if ($row->status != '1') {
 
@@ -192,18 +194,28 @@ class SalesOrderController extends Controller
                                         $html .= '<div class="status-dropdown-menu">';
         
                                         foreach ($allStatuses as $status) {
-                                            $html .= '<div class="f-14 cursor-pointer" data-isajax="true" style="background: '. $status->color .';color:' . Helper::generateTextColor($status->color) . ';" data-sid="' . $status->id . '" data-oid="' . $row->id . '" > '. $status->name .' </div>';
+                                            $html .= '<div class="f-14 cursor-pointer" data-cwstatus="' . $cwStatus . '" data-onumber="' . $row->order_no . '" data-isajax="true" style="background: '. $status->color .';color:' . Helper::generateTextColor($status->color) . ';" data-sid="' . $status->id . '" data-oid="' . $row->id . '" > '. $status->name .' </div>';
                                         }
         
                                         $html .= '</div>
                                     </div>
     
                                     <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> COMMENT : <span class="text-danger">*</span></label>
-                                    <textarea placeholder="Add a comment" class="form-control" style="height:60px;"> </textarea>
+                                    <textarea id="cs-txtar" placeholder="Add a comment" class="form-control" style="height:60px;"> </textarea>
                                     <label class="cmnt-er-lbl f-12 d-none text-danger"> Add comment to change status </label>
+
+                                    <div class="form-group" id="closedwin-statusupdate">
+                                        <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> FINAL SALES PRICE : <span class="text-danger">*</span></label>
+                                        <input type="text" id="cs-fsp" class="form-control" />
+                                        <label class="fsp-er-lbl f-12 d-none text-danger"> </label>
+
+                                        <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> PRICE CHANGE PROOF : </label>
+                                        <input type="file" multiple id="cs-pcp" class="form-control" />
+                                        <label class="pcp-er-lbl f-12 d-none text-danger"> </label>
+                                    </div>
     
                                     <div class="status-action-btn mt-2 position-relative -z-1">
-                                        <button class="status-save-btn btn-primary f-500 f-14 d-inline-block" disabled type="button"> Save </button>
+                                        <button data-cwstatus="' . $cwStatus . '" class="status-save-btn btn-primary f-500 f-14 d-inline-block" disabled type="button"> Save </button>
                                         <button class="refresh-dt hide-dropdown btn-default f-500 f-14 d-inline-block ms-1" type="button"> Cancel </button>
                                     </div>
                                 </div>

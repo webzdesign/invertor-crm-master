@@ -702,6 +702,14 @@ class ReportController extends Controller
             });
         }
 
+        if (!empty($request->date)) {
+            $reqs = $reqs->where(DB::raw("DATE_FORMAT(commission_withdrawal_histories.created_at, '%d-%m-%Y')"), $request->date);
+        }
+
+        if (!empty($request->seller)) {
+            $reqs = $reqs->where('commission_withdrawal_histories.user_id', $request->seller);
+        }
+
         return dataTables()->eloquent($reqs)
         ->addColumn('seller_name', function ($row) {
             return $row->name ?? '-';

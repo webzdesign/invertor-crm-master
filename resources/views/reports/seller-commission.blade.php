@@ -297,11 +297,19 @@
             processing: true,
             serverSide: true,
             oLanguage: {sProcessing: "<div id='dataTableLoader'></div>"},
-            "dom": "<'filterHeader d-block-500 cardsHeader'l<'#seller-filter'><'#filterInput2'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
+            "dom": "<'filterHeader d-block-500 cardsHeader row'<'div.col-lg-3'l><'#seller-filter.col-lg-9'>>" + "<'row m-0'<'col-sm-12 p-0'tr>>" + "<'row datatableFooter'<'col-md-5 align-self-center'i><'col-md-7'p>>",
             ajax: {
                 "url": "{{ route('seller-withdrawal-reqs') }}",
                 "dataType": "json",
-                "type": "POST"
+                "type": "POST",
+                "data" : {
+                    seller: function () {
+                        return $('#seller-filter > div.row > .col-sm-4 > select.seller-select2').val();
+                    },
+                    date: function () {
+                        return $('#seller-filter > div.row > .col-sm-4 > div.position-relative > input#date-filter').val();
+                    }
+                }
             },
             columns: [
                 {
@@ -330,8 +338,27 @@
                 }
             ],
             drawCallback: function (data) {
-                $('#seller-select2').select2();
+                $('.seller-select2').select2({
+                    allowClear: true,
+                });
+
+                $('#date-filter').datepicker({
+                    format: 'dd-mm-yyyy',
+                    autoclose: true,
+                    todayHighlight: true,
+                    orientation: "bottom"
+                });
             }
+        });
+        
+        $(document).on('change', '#seller-filter > div.row > .col-sm-4 > select.seller-select2', function() {
+            sellerCommissionDt.ajax.reload();
+        });
+        $(document).on('change', '#seller-filter > div.row > .col-sm-4 > div.position-relative > input#date-filter', function() {
+            sellerCommissionDt.ajax.reload();
+        });
+        $(document).on('keyup', '#seller-filter > div.row > .col-sm-4 > div.position-relative > input#tbl-2-search', function() {
+            sellerCommissionDt.search($(this).val()).draw();
         });
 
         var sellerCommissionDt2 = $('.sellerCommissionDt2').DataTable({
@@ -570,25 +597,35 @@
             ServerDataTable.search($(this).val()).draw();
         });
 
-        $('#filterInput2').html($('#searchPannel').html());
         $('#seller-filter').html(`
-            <select class="seller-select2 select2-hidden-accessible" style="width:100%" data-placeholder="Select a Seller">
-                @forelse($sellers as $seller)
-                    @if($loop->first)
-                        <option value="" selected> --- Select a Seller --- </option>
-                    @endif
-                        <option value="{{ $seller->user_id }}">{{ $seller->user->name ?? '-' }}</option>
-                @empty
-                        <option value="" selected> --- No Seller Found --- </option>
-                @endforelse
-            </select>
+            <div class="row">
+                <div class="col-sm-4 mt-lg-0 mt-2">
+                    <select class="seller-select2 select2-hidden-accessible" style="width:100%" data-placeholder="Select a Seller">
+                        @forelse($sellers as $seller)
+                            @if($loop->first)
+                                <option value="" selected> --- Select a Seller --- </option>
+                            @endif
+                                <option value="{{ $seller->user_id }}">{{ $seller->user->name ?? '-' }}</option>
+                        @empty
+                                <option value="" selected> --- No Seller Found --- </option>
+                        @endforelse
+                    </select>
+                </div>
+                <div class="col-sm-4 mt-lg-0 mt-2">
+                    <div class="position-relative">
+                        <input type="text" class="form-control f-14" id="date-filter" readonly >
+                    </div>
+                </div>
+                <div class="col-sm-4 mt-lg-0 mt-2">
+                    <div class="position-relative" id="filterInput2">
+                        <input class="form-control f-14" placeholder="Search" id="tbl-2-search">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15.6932 14.2957L10.7036 9.31023C11.386 8.35146 11.791 7.1584 11.791 5.90142C11.791 2.64178 9.14704 0 5.8847 0C2.62254 0.00017572 0 2.64196 0 5.90142C0 9.16105 2.64397 11.8028 5.90631 11.8028C7.18564 11.8028 8.35839 11.3981 9.31795 10.7163L14.3076 15.7018C14.4994 15.8935 14.7553 16 15.0113 16C15.2672 16 15.523 15.8935 15.7149 15.7018C16.0985 15.2971 16.0985 14.6792 15.6935 14.2956L15.6932 14.2957ZM1.96118 5.90155C1.96118 3.72845 3.73104 1.98133 5.88465 1.98133C8.03826 1.9815 9.82938 3.72845 9.82938 5.90155C9.82938 8.07466 8.05952 9.82178 5.90591 9.82178C3.7523 9.82178 1.96118 8.05338 1.96118 5.90155Z" fill="#7B809A" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
         `);
-        $('#filterInput2 > input').keyup(function() {
-            sellerCommissionDt.search($(this).val()).draw();
-        });
-        $('#seller-filter > select').on('change', function () {
-            sellerCommissionDt.search($(this).val()).draw();
-        });
 
         $('#filterInput3').html($('#searchPannel').html());
         $('#filterInput3 > input').keyup(function() {

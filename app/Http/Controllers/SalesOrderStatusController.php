@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser, Setting, Trigger};
-use App\Models\{SalesOrderStatus, SalesOrder, Deliver, Role, ManageStatus, User};
+use App\Models\{Stock, Transaction, DriverWallet, PaymentForDelivery, ProcurementCost, SalesOrderProofImages};
+use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser, Setting, Trigger, Wallet};
+use App\Models\{SalesOrderStatus, SalesOrder, Deliver, Role, ManageStatus, User, SalesOrderItem};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -738,7 +739,196 @@ class SalesOrderStatusController extends Controller
                     /** Change order status **/
 
 
+                    //Commission and driver fees
+                    $cwStatus = SalesOrderStatus::select('id')->where('slug', 'closed-win')->first()->id ?? 0;
 
+                    if ($cwStatus == $request->status) {
+                        
+                        $toBeDeleted = [];
+                        $comPrice = $prodQty = $driverRecevies = 0;
+                
+                        if (!file_exists(storage_path('app/public/so-price-change-agreement'))) {
+                            mkdir(storage_path('app/public/so-price-change-agreement'), 0777, true);
+                        }
+                
+                        if (!empty($request->order) && !empty($request->price) && is_numeric($request->price)) {
+                            $order = SalesOrder::with(['items', 'addedby.roles'])->where('id', $request->order)->first();
+                            if ($order != null) {
+                                $thisProductId = $order->items->first()->product_id ?? 0;
+                                $thisDriverId = Deliver::where('so_id', $order->id)->where('status', 1)->first()->user_id;
+                
+                                $hasStock = Helper::getAvailableStockFromDriver($thisDriverId, $thisProductId);
+                                    
+                                if (isset($hasStock[$thisProductId]) && $hasStock[$thisProductId] <= 0) {
+                                    return response()->json(['status' => false, 'message' => 'Driver doesn\'t have stocks for order items.', 'color' => $color, 'text' => $text]);
+                                }
+                
+                                DB::beginTransaction();
+                
+                                try {
+                
+                                    if($request->has('proof') && $request->hasFile('proof')) {
+                                        foreach ($request->file('proof') as $file) {
+                                            $name = 'SO-PRICE-PROOF-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
+                                            $file->move(storage_path('app/public/so-price-change-agreement'), $name);
+                    
+                                            if (file_exists(storage_path("app/public/so-price-change-agreement/{$name}"))) {
+                                                $toBeDeleted[] = storage_path("app/public/so-price-change-agreement/{$name}");
+                                                SalesOrderProofImages::create(['so_id' => $order->id,'name' => $name]);
+                                            }
+                                        }                    
+                                    }
+                    
+                                    $procurementCost = ProcurementCost::where('role_id', $order->addedby->roles->first()->id ?? 2)->where('product_id', $thisProductId);
+                                    $newTotal = is_numeric($request->price) ? round($request->price) : round(floatval($request->price));
+                                    $prodQty = $order->items->first()->qty ?? 1;
+                    
+                                    //driver amount
+                                    $p4dDriver = PaymentForDelivery::where('driver_id', $thisDriverId);
+                                    $assignedDriver = Deliver::where('user_id', $thisDriverId)->where('status', 1)->first();
+                
+                                    if ($p4dDriver->exists() && $assignedDriver != null) {
+                                        $thisRange = sprintf('%.2f', $assignedDriver->range);
+                                        $p4dDriver = $p4dDriver->where('distance', '>=', $thisRange)->orderBy('distance', 'ASC')->first();
+                
+                                        if ($p4dDriver != null) {
+                                            $driverRecevies = $p4dDriver->payment * $prodQty;//driver commission for each qty of order
+                                        }
+                
+                                    } else if (PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first() != null) {
+                                        $driverRecevies = PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first()->payment * $prodQty;//driver commission for each qty of order
+                                    }
+                
+                                    $orderAmountAfterDriverAmountDeduction = $newTotal - $driverRecevies;
+                
+                                    if ($orderAmountAfterDriverAmountDeduction <= 0) {
+                                        DB::rollBack();
+                                        return response()->json(['status' => false, 'message' => 'Driver\'s payment amount is more than the order amount.', 'color' => $color, 'text' => $text]);
+                                    }
+                
+                                    DriverWallet::create([
+                                        'so_id' => $order->id,
+                                        'driver_id' => $thisDriverId,
+                                        'amount' => $orderAmountAfterDriverAmountDeduction,
+                                        'driver_receives' => $driverRecevies
+                                    ]);
+                
+                                    $transactionUid = Helper::hash();
+                
+                                    //Pay to driver
+                                    Transaction::create([
+                                        'so_id' => $order->id,
+                                        'is_approved' => 1,
+                                        'transaction_id' => $transactionUid,
+                                        'user_id' => auth()->user()->id,
+                                        'transaction_type' => 0,
+                                        'amount_type' => 1,
+                                        'voucher' => $order->order_no,
+                                        'amount' => $driverRecevies,
+                                        'year' => Helper::$financialYear,
+                                        'added_by' => auth()->user()->id
+                                    ]);
+                
+                                    //Pay to admin
+                                    Transaction::create([
+                                        'so_id' => $order->id,
+                                        'is_approved' => 1,
+                                        'transaction_id' => $transactionUid,
+                                        'user_id' => auth()->user()->id,
+                                        'transaction_type' => 0,
+                                        'amount_type' => 2,
+                                        'voucher' => $order->order_no,
+                                        'amount' => $orderAmountAfterDriverAmountDeduction,
+                                        'year' => Helper::$financialYear,
+                                        'added_by' => auth()->user()->id
+                                    ]);
+                
+                                    if ($procurementCost->exists()) {
+                                        $procurementCost = $procurementCost->first();
+                    
+                                            $newProductTotal = $newTotal / $prodQty;
+                
+                                            if ($newProductTotal > $procurementCost->base_price) {
+                                                $comPrice = $newProductTotal - $procurementCost->base_price;
+                                            } else {
+                                                $comPrice = $procurementCost->default_commission_price;
+                                            }
+                
+                                            Wallet::create([
+                                                'seller_id' => $order->seller_id,
+                                                'added_by' => $thisDriverId,
+                                                'form' => 1,
+                                                'form_record_id' => $order->id,
+                                                'item_id' => $order->items->first()->id ?? null,
+                                                'commission_amount' => $comPrice * $prodQty,
+                                                'item_amount' => $newProductTotal,
+                                                'commission_actual_amount' => $comPrice,
+                                                'item_qty' => $prodQty
+                                            ]);
+                
+                                            Transaction::create([
+                                                'so_id' => $order->id,
+                                                'is_approved' => 1,
+                                                'transaction_id' => $transactionUid,
+                                                'user_id' => $order->seller_id,
+                                                'transaction_type' => 1, // if change here then withrawal req. functionality will be effected
+                                                'amount_type' => 3,
+                                                'voucher' => $order->order_no,
+                                                'amount' => $comPrice * $prodQty,
+                                                'year' => Helper::$financialYear,
+                                                'added_by' => auth()->user()->id
+                                            ]);
+                                    }
+                
+                                    $si = Stock::where('product_id', $thisProductId)->whereIn('form', [1,2,3])->where('type', 0)->where('driver_id', $thisDriverId)->sum('qty');
+                                    $so = Stock::where('product_id', $thisProductId)->whereIn('form', [1,2,3,4])->where('type', 1)->where('driver_id', $thisDriverId)->sum('qty');
+                                    $stotal = ($si - $so) - $prodQty;
+                
+                                    if ($stotal > 0) {
+                                        Stock::create([
+                                            'product_id' => $thisProductId,
+                                            'driver_id' => $thisDriverId,
+                                            'type' => 1,
+                                            'date' => now(),
+                                            'qty' => $prodQty,
+                                            'added_by' => $thisDriverId,
+                                            'form' => 4,
+                                            'form_record_id' => $order->id
+                                        ]);
+                                    }
+                
+                                    $newestTotal = $orderAmountAfterDriverAmountDeduction;
+                
+                                    if ($newestTotal == 0) {
+                                        $newestTotalQty = 0;
+                                    } else {
+                                        $newestTotalQty = $newestTotal / $prodQty;
+                                    }
+                    
+                                    SalesOrder::where('id', $request->order)->update(['price_matched' => 1, 'sold_amount' => $newestTotal, 'driver_amount' => $driverRecevies]);
+                                    SalesOrderItem::where('so_id', $request->order)->update(['sold_item_amount' => $newestTotalQty]);
+                
+                                    DB::commit();
+                                    return response()->json(['status' => true, 'message' => 'Sales price changes proof uploaded successfully.', 'color' => $color, 'text' => $text]);
+                
+                                } catch (\Exception $e) {
+                                    Helper::logger($e->getMessage());
+                                    DB::rollBack();
+                
+                                    if (!empty($toBeDeleted)) {
+                                        foreach ($toBeDeleted as $eachImage) {
+                                            if (file_exists($eachImage)) {
+                                                unlink($eachImage);
+                                            }
+                                        }
+                                    }
+                
+                                    return response()->json(['status' => false, 'message' => Helper::$errorMessage, 'color' => $color, 'text' => $text]);
+                                }
+                            }
+                        }
+                        //Commission and driver fees
+                    }
                 }
             }
         }

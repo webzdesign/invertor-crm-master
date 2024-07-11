@@ -132,6 +132,9 @@
     .bg-error, .bg-error:hover {
         background: #dd2d20!important;        
     }
+    #closedwin-statusupdate {
+        display: none;
+    }
 </style>
 @endsection
 
@@ -911,6 +914,13 @@
             var text = $(this).text();
             var thisSid = $(this).data('sid');
             var thisOid = $(this).data('oid');
+            let cwstatus = $(this).attr('data-cwstatus');
+
+            if (thisSid == cwstatus) {
+                $('#closedwin-statusupdate').css('display', 'block');
+            } else {
+                $('#closedwin-statusupdate').css('display', 'none');
+            }
 
             var dropdownToggle = $(this).closest(".status-dropdown").find(".status-dropdown-toggle");
             var dropdownToggleText = $(this).closest(".status-dropdown").find(".status-dropdown-toggle").find("span");
@@ -938,6 +948,20 @@
         $(document).on('click', '.hide-dropdown', function() {
             $('.dropdown-menu').hide();
         });
+
+        $(document).on('change', '#cs-txtar', function () {
+            $('.cmnt-er-lbl').addClass('d-none');
+        });
+
+        $(document).on('change', '#cs-fsp', function () {
+            $('.fsp-er-lbl').text('');
+            $('.fsp-er-lbl').addClass('d-none');
+        });
+
+        $(document).on('change', '#cs-pcp', function () {
+            $('.pcp-er-lbl').text('');
+            $('.pcp-er-lbl').addClass('d-none');
+        });
         
         $(document).on('click', '.status-save-btn', function () {
             let el = $(this).parent().parent().find('.status-dropdown-toggle');
@@ -947,25 +971,101 @@
             let commentEle = $(this).parent().parent().find('textarea');
             let comment = $(this).parent().parent().find('textarea').val().trim();
             let errEle = $(this).parent().parent().find('.cmnt-er-lbl'); 
+            let errEleFsp = $(this).parent().parent().find('.fsp-er-lbl'); 
+            let errElePcp = $(this).parent().parent().find('.pcp-er-lbl'); 
+            let proofElement = $(this).parent().parent().find('div#closedwin-statusupdate input#cs-pcp');
+            let priceElement = $(this).parent().parent().find('div#closedwin-statusupdate input#cs-fsp');
+            let cwstatus = $(this).attr('data-cwstatus');
 
-            if (comment == '' || comment == null) {
+            if (comment == null || comment == '') {
                 $(errEle).removeClass('d-none');
                 return false;
             } else {
                 $(errEle).addClass('d-none');
             }
 
+            let formData = new FormData();
+
+            formData.append("status", thisSid);
+            formData.append("order", thisOrder);
+            formData.append("comment", comment);
+
+            if (cwstatus == thisSid) {
+                let priceChangeProof = $(proofElement).prop('files');
+                let finalSalesPrice = $(priceElement).val();
+
+                //Price input
+                if (finalSalesPrice == null || finalSalesPrice == '') {
+                    $(errEleFsp).text('Enter the amount.');
+                    $(errEleFsp).removeClass('d-none');
+                    return false;
+                } else if (!isNumeric(finalSalesPrice)) {
+                    $(errEleFsp).text('Enter valid amount.');
+                    $(errEleFsp).removeClass('d-none');
+                    return false;
+                } else {
+                    if (finalSalesPrice <= 0) {
+                        $(errEleFsp).text('Amount must be greater than 0.');
+                        $(errEleFsp).removeClass('d-none');
+                        return false;
+                    }
+                }
+                //Price input
+
+                //file validation
+                if (priceChangeProof.length > 0) {
+                    var fileTypes = ['jpeg', 'png', 'jpg'];
+                    for (var i = 0; i < priceChangeProof.length; i++) {
+                        var extension = priceChangeProof[i].name.split('.').pop().toLowerCase();
+                        if ($.inArray(extension, fileTypes) === -1) {
+                            $(errElePcp).text('Only .png, .jpg, and .jpeg extensions supported.');
+                            $(errElePcp).removeClass('d-none');
+                            return false;
+                        }
+                    }
+
+                    if ($(errElePcp).hasClass('d-none') && priceChangeProof.length > 10) {
+                        $(errElePcp).text('Maximum 10 files can be uploaded.');
+                        $(errElePcp).removeClass('d-none');
+                        return false;
+                    }
+
+                    if ($(errElePcp).hasClass('d-none')) {
+
+                        let totalSize = 0;
+                        for (let i = 0; i < priceChangeProof.length; i++) {
+                            totalSize += priceChangeProof[i].size;
+                        }
+
+                        if (totalSize > ((10 * 1024 * 1024) * 2)) {
+                            $(errElePcp).text('Total file size must not exceed 20 MB');
+                            $(errElePcp).removeClass('d-none');
+                            return false;
+                        }
+                    }
+                }
+                //file validation
+
+                formData.append("price", finalSalesPrice);
+
+                if (priceChangeProof.length > 0) {
+                    for (let i = 0; i < priceChangeProof.length; i++) {
+                        formData.append(`proof[${i}]`, priceChangeProof[i])
+                    }
+                }
+            }
+
             if (isNumeric(thisSid) && isNumeric(thisOrder) && comment !== '') {
                 $.ajax({
                     url: "{{ route('sales-order-status-update-status') }}",
                     type: "POST",
-                    data: {
-                        status : thisSid,
-                        order : thisOrder,
-                        comment : comment
-                    },
+                    contentType: false,
+                    processData: false,
+                    dataType: 'json',
+                    data: formData,
                     beforeSend: function() {
                         $('button[type="submit"]').attr('disabled', true);
+                        $('.status-save-btn').attr('disabled', true);
                         $('body').find('.LoaderSec').removeClass('d-none');
                     },
                     success: function (response) {
@@ -976,14 +1076,13 @@
                             Swal.fire('', response.message, 'error');
                         }
 
-                        if (!$('.cmnt-er-lbl').hasClass('d-none')) {
-                            $('.cmnt-er-lbl').addClass('d-none');
-                        }
-
                         $(commentEle).val(null);
+                        $(priceElement).val(null);
+                        $(proofElement).val('');
                     },
                     complete: function() {
                         $('button[type="submit"]').attr('disabled', false);
+                        $('.status-save-btn').attr('disabled', false);
                         $('body').find('.LoaderSec').addClass('d-none');
                     }
                     

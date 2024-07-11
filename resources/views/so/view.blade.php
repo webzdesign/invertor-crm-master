@@ -176,7 +176,7 @@
                         </div>
                     </div>
 
-                    @if($so->price_matched && $so->sold_amount != round($so->items->sum('amount')))
+                    @if($so->price_matched)
                     
                     <div class="col-md-12">
                         <div
