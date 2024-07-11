@@ -179,7 +179,7 @@ class Helper {
             }
         }
 
-        return Helper::currency($total);
+        return Helper::currency(abs($total));
     }
 
     public static function getAdminBalance() {
