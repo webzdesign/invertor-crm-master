@@ -40,7 +40,7 @@ class SalesOrderStatusController extends Controller
                 }
 
                 $orders[$status->id] = SalesOrder::join('sales_order_items', 'sales_order_items.so_id', '=', 'sales_orders.id')
-                ->selectRaw("sales_orders.id, sales_orders.order_no, sales_orders.date, SUM(sales_order_items.amount) as amount, sales_orders.status as status")
+                ->selectRaw("sales_orders.id, sales_orders.order_no, sales_orders.date, SUM(sales_order_items.amount) as amount, sales_orders.status as status, sales_orders.sold_amount as soldamount, sales_orders.driver_amount as driveramount")
                 ->where('sales_orders.status', $status->id)
                 ->whereIn('sales_orders.id', $toBeShown)
                 ->groupBy('sales_order_items.so_id')->get()->toArray();
@@ -767,7 +767,7 @@ class SalesOrderStatusController extends Controller
                     
                                     $hasStock = Helper::getAvailableStockFromDriver($thisDriverId, $thisProductId);
                                         
-                                    if (isset($hasStock[$thisProductId]) && $hasStock[$thisProductId] < $prodQty) {
+                                    if (empty($hasStock) || (isset($hasStock[$thisProductId]) && $hasStock[$thisProductId] < $prodQty)) {
                                         DB::rollBack();
                                         return response()->json(['status' => false, 'message' => 'Driver doesn\'t have stocks for order items.', 'color' => $color, 'text' => $text]);
                                     }
@@ -911,14 +911,29 @@ class SalesOrderStatusController extends Controller
                         
                                         SalesOrder::where('id', $request->order)->update(['price_matched' => 1, 'sold_amount' => $newestTotal, 'driver_amount' => $driverRecevies]);
                                         SalesOrderItem::where('so_id', $request->order)->update(['sold_item_amount' => $newestTotalQty]);
+
+                                        $order = SalesOrder::with('items')->where('id', $order->id)->first();
+                                        $newTotal = $order->sold_amount + $order->driver_amount;
+
+                                        \App\Models\TriggerLog::create([
+                                            'trigger_id' => 0,
+                                            'order_id' => $order->id,
+                                            'watcher_id' => auth()->user()->id,
+                                            'next_status_id' => $request->status,
+                                            'current_status_id' => $oldStatus,
+                                            'type' => 4,
+                                            'description' => "The price in the final agreement has been modified to <strong>£{$newTotal}</strong> from <strong>£{$order->total()}</strong>.",
+                                        ]);
                     
                                         DB::commit();
                                         return response()->json(['status' => true, 'message' => 'Sales price changes proof uploaded successfully.', 'color' => $color, 'text' => $text]);
                                 } else {
-                                    Helper::logger($e->getMessage());
                                     DB::rollBack();
                                     return response()->json(['status' => $response, 'message' => 'Order not found.', 'color' => $color, 'text' => $text]);
                                 }
+                            } else {
+                                DB::rollBack();
+                                return response()->json(['status' => false, 'message' => Helper::$errorMessage, 'color' => $color, 'text' => $text]);
                             }
                             //Commission and driver fees
                         }
@@ -930,7 +945,7 @@ class SalesOrderStatusController extends Controller
                         return response()->json(['status' => false, 'message' => 'Order not found.', 'color' => $color, 'text' => $text]);
                     }
                 } catch (\Exception $err) {
-                    Helper::logger($e->getMessage());
+                    Helper::logger($err->getMessage());
                     DB::rollBack();
 
                     if (!empty($toBeDeleted)) {
@@ -1499,189 +1514,206 @@ class SalesOrderStatusController extends Controller
     public function acceptOrder(Request $request) {
         if (!empty($request->id)) {
             $order = SalesOrder::where('id', $request->id);
-            if ($order->exists()) {
-                Deliver::where('user_id', auth()->user()->id)->where('so_id', $request->id)->where('status', 0)->update(['status' => 1]);
-                SalesOrder::where('id', $request->id)->update(['status' => 2, 'responsible_user' => auth()->user()->id]);
-                $disOrder = SalesOrder::with('items')->where('id', $request->id)->first();
-                $soId = $disOrder->id;
 
-                \App\Models\TriggerLog::create([
-                    'trigger_id' => 0,
-                    'order_id' => $soId,
-                    'watcher_id' => null,
-                    'next_status_id' => 3,
-                    'current_status_id' => 2,
-                    'type' => 2,
-                    'time_type' => $disOrder->time_type,
-                    'main_type' => $disOrder->main_type,
-                    'hour' => $disOrder->hour,
-                    'minute' => $disOrder->minute,
-                    'time' => $disOrder->time,
-                    'executed_at' => date('Y-m-d H:i:s'),
-                    'executed' => 1,
-                    'from_status' => [
-                       'name' => 'INCOMING ORDER',
-                       'color' => '#4237ce'
-                    ],
-                    'to_status' => [
-                        'name' => 'NEW',
-                        'color' => '#a9ebfc'
-                     ]
-                ]);
+            try {
+                if ($order->exists()) {
 
-                $htmlElement = '<div class="card card-light card-outline mb-2 draggable-card portlet" data-cardchild="' . $disOrder->id . '" data-otitle="'. $disOrder->order_no .'">
-                    <div class="card-body bg-white border-0 p-2 d-flex justify-content-between portlet-header ui-sortable-handle ui-corner-all">
-                        <div>
-                            <p class="color-blue">'. $disOrder->order_no .'</p>
-                            <p class="no-m font-13">
-                                '. Helper::currency($disOrder->items->sum('amount')) .' </p>
-                        </div>
-                        <div class="d-flex align-items-end flex-column">
-                            <div class="card-date f-12 c-7b">
-                                '. \Carbon\Carbon::parse($disOrder->date)->diffForHumans() .'
+                    $disOrder = SalesOrder::with('items')->where('id', $request->id)->first();
+                    $thisProductId = $disOrder->items->first()->product_id;
+                    $availableStock = Helper::getAvailableStockFromDriver(auth()->user()->id, $thisProductId);
+    
+                    if (empty($availableStock) || (isset($availableStock[$thisProductId]) && $availableStock[$thisProductId] < $disOrder->items->first()->qty)) {
+                        DB::rollBack();
+                        return response()->json(['status' => false, 'message' => 'You don\'t have stock for this order item.']);
+                    }
+    
+                    Deliver::where('user_id', auth()->user()->id)->where('so_id', $request->id)->where('status', 0)->update(['status' => 1]);
+                    SalesOrder::where('id', $request->id)->update(['status' => 2, 'responsible_user' => auth()->user()->id]);
+                    $soId = $disOrder->id;
+    
+                    \App\Models\TriggerLog::create([
+                        'trigger_id' => 0,
+                        'order_id' => $soId,
+                        'watcher_id' => null,
+                        'next_status_id' => 3,
+                        'current_status_id' => 2,
+                        'type' => 2,
+                        'time_type' => $disOrder->time_type,
+                        'main_type' => $disOrder->main_type,
+                        'hour' => $disOrder->hour,
+                        'minute' => $disOrder->minute,
+                        'time' => $disOrder->time,
+                        'executed_at' => date('Y-m-d H:i:s'),
+                        'executed' => 1,
+                        'from_status' => [
+                           'name' => 'INCOMING ORDER',
+                           'color' => '#4237ce'
+                        ],
+                        'to_status' => [
+                            'name' => 'NEW',
+                            'color' => '#a9ebfc'
+                         ]
+                    ]);
+    
+                    $htmlElement = '<div class="card card-light card-outline mb-2 draggable-card portlet" data-cardchild="' . $disOrder->id . '" data-otitle="'. $disOrder->order_no .'">
+                        <div class="card-body bg-white border-0 p-2 d-flex justify-content-between portlet-header ui-sortable-handle ui-corner-all">
+                            <div>
+                                <p class="color-blue">'. $disOrder->order_no .'</p>
+                                <p class="no-m font-13">
+                                    '. Helper::currency($disOrder->items->sum('amount')) .' </p>
+                            </div>
+                            <div class="d-flex align-items-end flex-column">
+                                <div class="card-date f-12 c-7b">
+                                    '. \Carbon\Carbon::parse($disOrder->date)->diffForHumans() .'
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>';
-
-                event(new \App\Events\OrderStatusEvent('order-status-change', [
-                    'orderId' => $disOrder->id,
-                    'orderStatus' => 2,
-                    'element' => $htmlElement,
-                    'windowId' => Str::random(30),
-                    'users' => [auth()->user()->id, $disOrder->added_by]
-                ]));
-
-                /** TRIGGERS **/
-
-                $oldStatus = SalesOrder::where('id', $soId)->select('status')->first()->status;
-
-                $newStatus = Trigger::where('status_id', 2)->where('type', 2)
-                ->whereIn('action_type', [1, 2, 3])->first()->next_status_id ?? 0;
+                    </div>';
     
-                /** TASKS **/
-                $currentTime1 = date('Y-m-d H:i:s');
-                $y = [];
+                    event(new \App\Events\OrderStatusEvent('order-status-change', [
+                        'orderId' => $disOrder->id,
+                        'orderStatus' => 2,
+                        'element' => $htmlElement,
+                        'windowId' => Str::random(30),
+                        'users' => [auth()->user()->id, $disOrder->added_by]
+                    ]));
     
-                try {
+                    /** TRIGGERS **/
     
-                    $triggers = Trigger::where('type', 1)->where('status_id', 2)->whereIn('action_type', [2, 3]);
-                    if ($triggers->count() > 0) {
+                    $oldStatus = SalesOrder::where('id', $soId)->select('status')->first()->status;
     
-                        foreach ($triggers->get() as $t) {
-    
-                            $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
-                            
-                            $record = AddTaskToOrderTrigger::create([
-                                'order_id' => $soId,
-                                'status_id' => 2,
-                                'added_by' => auth()->user()->id,
-                                'time' => $t->time,
-                                'type' => $t->time_type,
-                                'main_type' => $t->action_type,
-                                'description' => $t->task_description,
-                                'current_status_id' => $oldStatus,
-                                'executed_at' => $currentTime1,
-                                'trigger_id' => $t->id
-                            ]);
-    
-                            if ($t->time_type == 1) {
-                                $y[] = $record->id;
+                    $newStatus = Trigger::where('status_id', 2)->where('type', 2)
+                    ->whereIn('action_type', [1, 2, 3])->first()->next_status_id ?? 0;
+        
+                    /** TASKS **/
+                    $currentTime1 = date('Y-m-d H:i:s');
+                    $y = [];
+        
+                    try {
+        
+                        $triggers = Trigger::where('type', 1)->where('status_id', 2)->whereIn('action_type', [2, 3]);
+                        if ($triggers->count() > 0) {
+        
+                            foreach ($triggers->get() as $t) {
+        
+                                $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
+                                
+                                $record = AddTaskToOrderTrigger::create([
+                                    'order_id' => $soId,
+                                    'status_id' => 2,
+                                    'added_by' => auth()->user()->id,
+                                    'time' => $t->time,
+                                    'type' => $t->time_type,
+                                    'main_type' => $t->action_type,
+                                    'description' => $t->task_description,
+                                    'current_status_id' => $oldStatus,
+                                    'executed_at' => $currentTime1,
+                                    'trigger_id' => $t->id
+                                ]);
+        
+                                if ($t->time_type == 1) {
+                                    $y[] = $record->id;
+                                }
                             }
                         }
+        
+                        (new \App\Console\Commands\TaskTrigger)->handle($y);
+        
+                    } catch (\Exception $e) {
+                        Helper::logger($e->getMessage());
                     }
+        
+                    /** TASKS **/
     
-                    (new \App\Console\Commands\TaskTrigger)->handle($y);
-    
-                } catch (\Exception $e) {
-                    Helper::logger($e->getMessage());
-                }
-    
-                /** TASKS **/
-
-                /** Change User **/
-                $currentTime1 = date('Y-m-d H:i:s');
-                $y = [];
-    
-                try {
-    
-                    $triggers = Trigger::where('type', 3)->where('status_id', 2)->whereIn('action_type', [2, 3]);
-                    if ($triggers->count() > 0) {
-    
-                        foreach ($triggers->get() as $t) {
-    
-                            $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
-                            
-                            $record = ChangeOrderUser::create([
-                                'order_id' => $soId,
-                                'status_id' => 2,
-                                'added_by' => auth()->user()->id,
-                                'time' => $t->time,
-                                'type' => $t->time_type,
-                                'main_type' => $t->action_type,
-                                'user_id' => $t->user_id,
-                                'current_status_id' => $oldStatus,
-                                'executed_at' => $currentTime1,
-                                'trigger_id' => $t->id
-                            ]);
-    
-                            if ($t->time_type == 1) {
-                                $y[] = $record->id;
+                    /** Change User **/
+                    $currentTime1 = date('Y-m-d H:i:s');
+                    $y = [];
+        
+                    try {
+        
+                        $triggers = Trigger::where('type', 3)->where('status_id', 2)->whereIn('action_type', [2, 3]);
+                        if ($triggers->count() > 0) {
+        
+                            foreach ($triggers->get() as $t) {
+        
+                                $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
+                                
+                                $record = ChangeOrderUser::create([
+                                    'order_id' => $soId,
+                                    'status_id' => 2,
+                                    'added_by' => auth()->user()->id,
+                                    'time' => $t->time,
+                                    'type' => $t->time_type,
+                                    'main_type' => $t->action_type,
+                                    'user_id' => $t->user_id,
+                                    'current_status_id' => $oldStatus,
+                                    'executed_at' => $currentTime1,
+                                    'trigger_id' => $t->id
+                                ]);
+        
+                                if ($t->time_type == 1) {
+                                    $y[] = $record->id;
+                                }
                             }
                         }
+        
+                        (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($y);
+        
+                    } catch (\Exception $e) {
+                        Helper::logger($e->getMessage());
                     }
-    
-                    (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($y);
-    
-                } catch (\Exception $e) {
-                    Helper::logger($e->getMessage());
-                }
-    
-                /** Change User **/
-    
-    
-                /** Change order status **/
-                $currentTime = date('Y-m-d H:i:s');
-                $x = [];
-    
-                try {
-    
-                    $triggers = Trigger::where('type', 2)->where('status_id', 2)->whereIn('action_type', [2, 3]);
-                    if ($triggers->count() > 0) {
-                        foreach ($triggers->get() as $t) {
-    
-                            $currentTime = date('Y-m-d H:i:s', strtotime("{$t->time}"));
-    
-                            $record = ChangeOrderStatusTrigger::create([
-                                'order_id' => $soId,
-                                'status_id' => $newStatus,
-                                'added_by' => auth()->user()->id,
-                                'time' => $t->time,
-                                'type' => $t->time_type,
-                                'main_type' => $t->action_type,
-                                'current_status_id' => 2,
-                                'executed_at' => $currentTime,
-                                'trigger_id' => $t->id
-                            ]);
-                            
-                            if ($t->time_type == 1) {
-                                $x[] = $record->id;
+        
+                    /** Change User **/
+        
+        
+                    /** Change order status **/
+                    $currentTime = date('Y-m-d H:i:s');
+                    $x = [];
+        
+                    try {
+        
+                        $triggers = Trigger::where('type', 2)->where('status_id', 2)->whereIn('action_type', [2, 3]);
+                        if ($triggers->count() > 0) {
+                            foreach ($triggers->get() as $t) {
+        
+                                $currentTime = date('Y-m-d H:i:s', strtotime("{$t->time}"));
+        
+                                $record = ChangeOrderStatusTrigger::create([
+                                    'order_id' => $soId,
+                                    'status_id' => $newStatus,
+                                    'added_by' => auth()->user()->id,
+                                    'time' => $t->time,
+                                    'type' => $t->time_type,
+                                    'main_type' => $t->action_type,
+                                    'current_status_id' => 2,
+                                    'executed_at' => $currentTime,
+                                    'trigger_id' => $t->id
+                                ]);
+                                
+                                if ($t->time_type == 1) {
+                                    $x[] = $record->id;
+                                }
                             }
                         }
+        
+                        (new \App\Console\Commands\StatusTrigger)->handle($x);
+        
+                    } catch (\Exception $e) {
+                        Helper::logger($e->getMessage());
                     }
-    
-                    (new \App\Console\Commands\StatusTrigger)->handle($x);
-    
-                } catch (\Exception $e) {
-                    Helper::logger($e->getMessage());
+                    /** Change order status **/
+                    
+                    DB::commit();
+                    return response()->json(['status' => true, 'message' => 'Accepted order successfully.']);
+                } else {
+                    DB::commit();
+                    return response()->json(['status' => false, 'message' => Helper::$notFound]);
                 }
-                /** Change order status **/
-                
-                return response()->json(['status' => true, 'message' => 'Accepted order successfully.']);
+            } catch (\Exception $err) {
+                DB::rollBack();
+                return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
             }
         }
-
-        return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
     }
 
     public function rejectOrder(Request $request) {

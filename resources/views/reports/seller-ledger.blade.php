@@ -100,6 +100,7 @@
         <thead>
             <tr>
                 <th>Description</th>
+                <th>Date</th>
                 <th width="20%">Commission receivable</th>
             </tr>
         </thead>
@@ -107,7 +108,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td> <button class="btn btn-sm btn-success" id="withdraw-amount" style="width: 100px;float:right;"> Withdraw </button> </td>
+                <td colspan="2"> <button class="btn btn-sm btn-success" id="withdraw-amount" style="width: 100px;float:right;"> Withdraw </button> </td>
                 <td id="bl-total" style="background: #e583a47d;font-weight:600;">0</td>
             </tr>
         </tfoot>
@@ -400,6 +401,11 @@
             columns: [
                 {
                     data: 'voucher',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'date',
                     orderable: false,
                     searchable: false,
                 },

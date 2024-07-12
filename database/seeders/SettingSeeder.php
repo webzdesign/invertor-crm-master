@@ -19,7 +19,8 @@ class SettingSeeder extends Seeder
             'logo' => null,
             'bonus' => 3,
             'seller_commission' => 5,
-            'geocode_key' => 'AIzaSyA54jt-xQC6UuWa8f8rJcTYpn4qyJyJ6eA'
+            'geocode_key' => 'AIzaSyA54jt-xQC6UuWa8f8rJcTYpn4qyJyJ6eA',
+            'google_sheet_id' => ''
         ]);
     }
 }

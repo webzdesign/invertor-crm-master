@@ -37,7 +37,13 @@
         <div class="form-group f-12">
             <div class="col-12">
                 <label for="c-gr f-500 f-16 w-100 mb-2"><strong>Order Amount</strong></label> :
-                <span> {{ Helper::currency($order->items->sum('amount')) }} </span>
+                <span>
+                @if($order->price_matched)
+                    {{ Helper::currency($order->driver_amount + $order->sold_amount) }} 
+                @else
+                    {{ Helper::currency($order->total()) }} 
+                @endif
+                </span>
             </div>
             <div class="col-12">
                 <label for="c-gr f-500 f-16 w-100 mb-2"><strong>Date</strong></label> :
@@ -101,6 +107,8 @@
                         assigned order to <strong>
                             @if(isset($l->order->responsible->name)) {{ $l->order->responsible->name }} @else  it's seller @endif
                         </strong>
+                    @elseif($l->type == 4)
+                    {!! $l->description !!}
                     @endif
                 </p>
             </div>

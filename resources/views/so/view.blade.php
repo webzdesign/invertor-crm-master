@@ -149,14 +149,14 @@
                                     <div class="col-md-2 col-sm-12">
                                         <div class="form-group">
                                             <label class="c-gr f-500 f-16 w-100 mb-2"> Price :</label>
-                                            <input type="number" data-indexid="0" id="mprice" name="price[]" id="mprice" readonly class="form-control" min="0" value="{{ round($item->price) }}">
+                                            <input type="number" data-indexid="0" id="mprice" name="price[]" id="mprice" readonly class="form-control" min="0" value="{{ $so->price_matched ? $item->sold_item_amount : $item->price }}">
                                         </div>
                                     </div>
             
                                     <div class="col-md-2 col-sm-12">
                                         <div class="form-group">
                                             <label class="c-gr f-500 f-16 w-100 mb-2"> Amount :</label>
-                                            <input type="number" data-indexid="0" id="mamount" name="amount[]" id="maount" class="form-control" readonly value="{{ round($item->amount) }}">
+                                            <input type="number" data-indexid="0" id="mamount" name="amount[]" id="maount" class="form-control" readonly value="{{ $so->price_matched ? ($item->sold_item_amount * $item->qty) : $item->amount  }}">
                                         </div>
                                     </div>
             
@@ -271,6 +271,8 @@
                                             assigned order to <strong>
                                                 @if(isset($l->order->responsible->name)) {{ $l->order->responsible->name }} @else  it's seller @endif
                                             </strong>
+                                        @elseif($l->type == 4)
+                                            {!! $l->description !!}
                                         @endif
                                     </p>
                                 </div>

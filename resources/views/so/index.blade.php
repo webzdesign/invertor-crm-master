@@ -132,7 +132,7 @@
     .bg-error, .bg-error:hover {
         background: #dd2d20!important;        
     }
-    #closedwin-statusupdate {
+    .closedwin-statusupdate {
         display: none;
     }
 </style>
@@ -688,6 +688,8 @@
                             if (response.status) {
                                 ServerDataTable.ajax.reload();
                                 Swal.fire('', 'Order accepted successfully.', 'success');
+                            } else {
+                                Swal.fire('', response.message, 'error');
                             }
                         }
                     });
@@ -921,9 +923,9 @@
             let cwstatus = $(this).attr('data-cwstatus');
 
             if (thisSid == cwstatus) {
-                $('#closedwin-statusupdate').css('display', 'block');
+                $(this).closest('.status-modal').find('.closedwin-statusupdate').css('display', 'block');
             } else {
-                $('#closedwin-statusupdate').css('display', 'none');
+                $(this).closest('.status-modal').find('.closedwin-statusupdate').css('display', 'none');
             }
 
             var dropdownToggle = $(this).closest(".status-dropdown").find(".status-dropdown-toggle");
@@ -977,8 +979,8 @@
             let errEle = $(this).parent().parent().find('.cmnt-er-lbl'); 
             let errEleFsp = $(this).parent().parent().find('.fsp-er-lbl'); 
             let errElePcp = $(this).parent().parent().find('.pcp-er-lbl'); 
-            let proofElement = $(this).parent().parent().find('div#closedwin-statusupdate input#cs-pcp');
-            let priceElement = $(this).parent().parent().find('div#closedwin-statusupdate input#cs-fsp');
+            let proofElement = $(this).parent().parent().find('div.closedwin-statusupdate input#cs-pcp');
+            let priceElement = $(this).parent().parent().find('div.closedwin-statusupdate input#cs-fsp');
             let cwstatus = $(this).attr('data-cwstatus');
 
             if (comment == null || comment == '') {

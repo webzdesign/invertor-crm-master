@@ -93,9 +93,26 @@ class ReportController extends Controller
             $total = 0;
     
             $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
-            ->selectRaw("voucher, users.name as user, amount, transaction_type, so_id, is_approved, amount_type")
+            ->selectRaw("voucher, users.name as user, amount, transaction_type, so_id, is_approved, amount_type, transactions.created_at as date")
             ->whereIn('transactions.amount_type', [0, 2])
             ->where('transactions.user_id', '=', auth()->user()->id);
+
+            if (isset($request->search['value']) && !empty($request->search['value'])) {
+                $searchVal = $request->search['value'];
+                $ledger = $ledger->where(function ($builder) use ($searchVal) {
+                    $builder->where('transactions.voucher', 'LIKE', "%{$searchVal}%")
+                    ->orWhere('transactions.amount', 'LIKE', "%{$searchVal}%")
+                    ->orWhere(DB::raw("DATE_FORMAT(transactions.created_at, '%d-%m-%Y')"), 'LIKE', "%{$searchVal}%");
+
+                    if (str_contains('payment pending', strtolower($searchVal))) {
+                        $builder = $builder->orWhere('transactions.is_approved', 0);
+                    } else if (str_contains('payment accepted', strtolower($searchVal))) {
+                        $builder = $builder->orWhere('transactions.is_approved', 1);
+                    } else if (str_contains('payment rejected', strtolower($searchVal))) {
+                        $builder = $builder->orWhere('transactions.is_approved', 2);
+                    }
+                });
+            }
     
             foreach ($ledger->get() as $data) {
                 if ($data->is_approved == 1) {
@@ -126,6 +143,7 @@ class ReportController extends Controller
                     return $row->voucher;
                 }
             })
+            ->editColumn('date', fn ($row) => date('d-m-Y', strtotime($row->date)))
             ->editColumn('crdr', function ($row) {
                 if ($row->is_approved == 0 && $row->amount_type == 0) {
                     return '<span class="text-secondary"> ' . $row->amount . ' </span>';
@@ -297,9 +315,18 @@ class ReportController extends Controller
             $total = 0;
 
             $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
-            ->selectRaw("voucher, users.name as user, amount, transaction_type, amount_type")
+            ->selectRaw("voucher, users.name as user, amount, transaction_type, amount_type, transactions.created_at as date")
             ->whereIn('transactions.amount_type', [3, 0])
             ->where('transactions.user_id', '=', auth()->user()->id);
+
+            if (isset($request->search['value']) && !empty($request->search['value'])) {
+                $searchVal = $request->search['value'];
+                $ledger = $ledger->where(function ($builder) use ($searchVal) {
+                    $builder->where('transactions.voucher', 'LIKE', "%{$searchVal}%")
+                    ->orWhere('transactions.amount', 'LIKE', "%{$searchVal}%")
+                    ->orWhere(DB::raw("DATE_FORMAT(transactions.created_at, '%d-%m-%Y')"), 'LIKE', "%{$searchVal}%");
+                });
+            }
 
             foreach ($ledger->clone()->orderBy('transaction_type', 'ASC')->get() as $data) {
                 if ($data->transaction_type) {
@@ -320,6 +347,7 @@ class ReportController extends Controller
     
                 return $row->voucher;
             })
+            ->editColumn('date', fn ($row) => date('d-m-Y', strtotime($row->date)))
             ->editColumn('crdr', function ($row){
                 if ($row->transaction_type) {
                     return '<span class="text-danger"> -' . $row->amount . ' </span>';

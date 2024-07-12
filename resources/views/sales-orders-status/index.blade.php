@@ -347,6 +347,10 @@
         left: 50%;
         transform: translate(-50%,-50%);
     }
+    .cw-status-border {
+        border: 1px solid #4CAF50;
+        cursor: help;
+    }
 </style>
 @endsection
 
@@ -390,26 +394,29 @@
         @php $iteration = 0;  @endphp
         @forelse($statuses as $key => $status)
             <div class="card card-row card-secondary no-border">
-                @php $tempColor = !empty($status->color) ? $status->color : (isset($colours[$key]) ? $colours[$key] : (isset($colours[$iteration]) ? $colours[$iteration] : ($iteration = 0 and $colours[0] ? $colours[$iteration] : '#99ccff' )));  @endphp
-                <div class="card-header" style="border-bottom: 2px solid {{ $tempColor }};">
+                <div class="card-header" style="border-bottom: 2px solid {{ $status->color }};">
                     <h3 class="card-title">
 
                         {{ strtoupper($status->name) }}
 
                     </h3>
                 </div>
-                <div class="card-body-main drag-area" data-cardparent="{{ $status->id }}">
+                <div class="card-body-main @if($cwStatus != $status->id) drag-area @endif" data-cardparent="{{ $status->id }}">
 
                     @if (isset($orders[$status->id]))
                         @foreach ($orders[$status->id] as $order)
-                            <div class="card card-light card-outline mb-2 draggable-card portlet"
-                                data-cardchild="{{ $order['id'] }}" data-otitle="{{ $order['order_no'] }}">
+                            <div class="card card-light card-outline mb-2 draggable-card @if($cwStatus != $status->id) portlet @else cw-status-border @endif"
+                                data-cardchild="{{ $order['id'] }}" data-otitle="{{ $order['order_no'] }}" >
                                 <div
                                     class="card-body bg-white border-0 p-2 d-flex justify-content-between portlet-header">
                                     <div>
                                         <p class="color-blue">{{ $order['order_no'] }}</p>
                                         <p class="no-m font-13">
-                                            {{ Helper::currency($order['amount']) }} </p>
+                                            @if($order['soldamount'])
+                                                {{ Helper::currency($order['soldamount'] + $order['driveramount']) }} </p>
+                                            @else
+                                                {{ Helper::currency($order['amount']) }} </p>
+                                            @endif
                                     </div>
                                     <div class="d-flex align-items-end flex-column">
                                         <div class="card-date f-12 c-7b">
@@ -501,6 +508,10 @@
 
                 $(`[data-cardchild="${data.orderId}"]`).remove();
                 $(toBeMovedAt).append(toBeMoved)
+
+                if (data.orderStatus == "{{ $cwStatus }}") {
+                    $(toBeMoved).addClass('cw-status-border');
+                }
             }
         });
 

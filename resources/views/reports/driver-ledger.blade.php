@@ -13,6 +13,7 @@
         <thead>
             <tr>
                 <th>Description</th>
+                <th>Date</th>
                 <th width="20%">Amount Payable</th>
             </tr>
         </thead>
@@ -20,7 +21,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td>  <button data-bs-toggle="modal" data-bs-target="#payamount" class="btn btn-sm btn-success" id="pay-amount" style="width: 60px;float:right;"> Pay </button>  </td>
+                <td colspan="2">  <button data-bs-toggle="modal" data-bs-target="#payamount" class="btn btn-sm btn-success" id="pay-amount" style="width: 60px;float:right;"> Pay </button>  </td>
                 <td id="bl-total" style="background: #e583a47d;font-weight:600;">0</td>
             </tr>
         </tfoot>
@@ -84,6 +85,11 @@
             columns: [
                 {
                     data: 'voucher',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'date',
                     orderable: false,
                     searchable: false,
                 },

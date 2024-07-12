@@ -76,9 +76,7 @@ class SalesOrderController extends Controller
         $allStatuses = SalesOrderStatus::custom()->active()->select('id', 'name', 'color')->get();
 
         return dataTables()->eloquent($po)
-            ->addColumn('total', function ($product) {
-                return Helper::currency($product->total());
-            })
+            ->addColumn('total', fn ($row) => $row->price_matched ? Helper::currency($row->sold_amount + $row->driver_amount) : Helper::currency($row->total()))
             ->addColumn('action', function ($users) use ($orderClosedWinStatus) {
 
                 $variable = $users;
@@ -109,22 +107,6 @@ class SalesOrderController extends Controller
                         ';
                 }
                 
-                $proQty = $users->items->first()->product_id ?? 0;
-
-                // if ($users->status == $orderClosedWinStatus && !$users->price_matched &&  $users->responsible_user == auth()->user()->id) {
-                //     $stockQty = Helper::getAvailableStockFromDriver($users->assigneddriver->user_id, $proQty);
-                //     $stockQty = isset($stockQty[$proQty]) ? $stockQty[$proQty] : 0;
-                //     $wantedQty = $users->items->first()->qty ?? 0;
-
-                //     $action .= '
-                //     <div class="tableCards d-inline-block me-1 pb-0">
-                //         <div class="editDlbtn">
-                //             <button data-wanted="' . $wantedQty . '" data-available="' . $stockQty . '" class="btn btn-sm btn-warning close-order" style="width: 30px;margin-left: 2px;" data-bs-toggle="tooltip" title="Final sale price" data-oid="' . $users->id . '" data-title="' . $users->order_no . '"> <i class="fa fa-gbp"> </i> </button>
-                //         </div>
-                //     </div>
-                //     ';
-                // }
-
                 $action .= '</div>';
 
                 return $action;
@@ -204,7 +186,7 @@ class SalesOrderController extends Controller
                                     <textarea id="cs-txtar" placeholder="Add a comment" class="form-control" style="height:60px;"> </textarea>
                                     <label class="cmnt-er-lbl f-12 d-none text-danger"> Add comment to change status </label>
 
-                                    <div class="form-group" id="closedwin-statusupdate">
+                                    <div class="form-group closedwin-statusupdate">
                                         <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> FINAL SALES PRICE : <span class="text-danger">*</span></label>
                                         <input type="text" id="cs-fsp" class="form-control" />
                                         <label class="fsp-er-lbl f-12 d-none text-danger"> </label>
@@ -912,7 +894,7 @@ class SalesOrderController extends Controller
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $so = SalesOrder::find(decrypt($id));
         $driverDetails = Deliver::with('user')->where('so_id', decrypt($id))->whereIn('status', [0,1,3])->first();
-        $logs = TriggerLog::where('order_id', $so->id)->where('type', 2)->orderBy('id', 'ASC')->get();
+        $logs = TriggerLog::where('order_id', $so->id)->whereIn('type', [2, 4])->orderBy('id', 'ASC')->get();
 
         return view('so.view', compact('moduleName', 'categories', 'so', 'moduleLink', 'driverDetails', 'logs'));
     }
