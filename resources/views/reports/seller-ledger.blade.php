@@ -72,6 +72,18 @@
         border: 1px solid black;
         border-radius: 10px;
     }
+
+    #filterInput2 input{
+        padding-left: 40px;
+    }
+
+    #filterInput2 svg{
+        position: absolute;
+        transform: translate(-50%, -50%);
+        top: 50%;
+        left: 22px;
+        pointer-events: none;
+    }
 </style>
 @endsection
 

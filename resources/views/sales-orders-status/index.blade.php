@@ -1454,9 +1454,22 @@
             handle: ".portlet-header",
             cancel: ".portlet-toggle",
             placeholder: "portlet-placeholder ui-corner-all",
+            over: function(event, ui) {
+                var $this = $(this);
+
+                if ($this.attr('data-cardparent') == "{{ $cwStatus }}") {
+                    $(ui.sender).sortable('cancel');
+                }
+            },
             receive: function(event, ui) {
+                var $this = $(this);
                 var area = $(event.target).data('cardparent');
                 var box = $(ui.item).data('cardchild');
+
+                if ($this.attr('data-cardparent') == "{{ $cwStatus }}") {
+                    $(ui.sender).sortable('cancel');
+                    return false;
+                }
 
                 $.ajax({
                     url: "{{ route('sales-order-status-sequence') }}",

@@ -355,6 +355,7 @@
             sellerCommissionDt.ajax.reload();
         });
         $(document).on('change', '#seller-filter > div.row > .col-sm-4 > div.position-relative > input#date-filter', function() {
+            $('.empty-date').css('display', 'block');
             sellerCommissionDt.ajax.reload();
         });
         $(document).on('keyup', '#seller-filter > div.row > .col-sm-4 > div.position-relative > input#tbl-2-search', function() {
@@ -613,7 +614,8 @@
                 </div>
                 <div class="col-sm-4 mt-lg-0 mt-2">
                     <div class="position-relative">
-                        <input type="text" class="form-control f-14" id="date-filter" readonly >
+                        <input type="text" class="form-control f-14" id="date-filter" readonly placeholder="Select a date">
+                        <i class="fa fa-times cursor-pointer empty-date" style="position:absolute;top:7px;right:10px;display:none;"> </i>
                     </div>
                 </div>
                 <div class="col-sm-4 mt-lg-0 mt-2">
@@ -635,6 +637,12 @@
         $('#filterInput4').html($('#searchPannel').html());
         $('#filterInput4 > input').keyup(function() {
             sellerCommissionDt3.search($(this).val()).draw();
+        });
+
+        $(document).on('click', '.empty-date', function () {
+            $('#date-filter').val('');
+            $(this).css('display', 'none');
+            sellerCommissionDt.ajax.reload();
         });
 
     });

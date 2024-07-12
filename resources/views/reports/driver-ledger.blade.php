@@ -132,7 +132,7 @@
             rules: {
                 amount: {
                     required: true,
-                    digits: true,
+                    number: true,
                     min: 1
                 },
                 'file[]': {
@@ -144,7 +144,7 @@
             messages: {
                 amount: {
                     required: "Enter the amount",
-                    digits: "Enter valid amount",
+                    number: "Enter valid amount",
                     min: "Enter valid amount."
                 }
             },

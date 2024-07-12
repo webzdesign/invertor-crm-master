@@ -879,6 +879,10 @@
             var target = $(event.target);
             
             if (!target.parents().hasClass("button-dropdown")) {
+                if ($('.dropdown-menu').is(':visible')) {
+                    ServerDataTable.ajax.reload();
+                }
+
                 $(".button-dropdown .dropdown-menu").hide();
                 $(".button-dropdown .dropdown-toggle").removeClass("active");
                 //hide
