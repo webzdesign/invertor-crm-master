@@ -763,10 +763,11 @@ class SalesOrderStatusController extends Controller
                                 if ($order != null) {
                                     $thisProductId = $order->items->first()->product_id ?? 0;
                                     $thisDriverId = Deliver::where('so_id', $order->id)->where('status', 1)->first()->user_id;
+                                    $prodQty = $order->items->first()->qty ?? 1;
                     
                                     $hasStock = Helper::getAvailableStockFromDriver($thisDriverId, $thisProductId);
                                         
-                                    if (isset($hasStock[$thisProductId]) && $hasStock[$thisProductId] <= 0) {
+                                    if (isset($hasStock[$thisProductId]) && $hasStock[$thisProductId] < $prodQty) {
                                         DB::rollBack();
                                         return response()->json(['status' => false, 'message' => 'Driver doesn\'t have stocks for order items.', 'color' => $color, 'text' => $text]);
                                     }
@@ -785,7 +786,6 @@ class SalesOrderStatusController extends Controller
                         
                                         $procurementCost = ProcurementCost::where('role_id', $order->addedby->roles->first()->id ?? 2)->where('product_id', $thisProductId);
                                         $newTotal = is_numeric($request->price) ? round($request->price) : round(floatval($request->price));
-                                        $prodQty = $order->items->first()->qty ?? 1;
                         
                                         //driver amount
                                         $p4dDriver = PaymentForDelivery::where('driver_id', $thisDriverId);
