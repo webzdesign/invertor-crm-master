@@ -11,4 +11,8 @@ class PaymentForDelivery extends Model
     use HasFactory, SoftDeletes;
 
     public $guarded = [];
+
+    public function driver() {
+        return $this->belongsTo(User::class, 'driver_id');
+    }
 }

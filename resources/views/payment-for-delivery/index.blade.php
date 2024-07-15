@@ -229,6 +229,23 @@ $(document).ready(function() {
 
     });
 
+    $.validator.addMethod("customDistance", function (value, element) {
+        let isValid = true;
+        let thisDistance = $(element).val();
+        let thisIndex = $(element).attr('data-indexid');
+        let thisDriver = $(`#m-driver-${thisIndex}`).val();
+
+        $('.m-distance').not(element).each(function (index, el) {
+            let iteratingIndex = $(el).attr('data-indexid');
+            if ($(el).val() !== "" && thisDistance == $(el).val() && $(`#m-driver-${iteratingIndex}`).val() == thisDriver) {
+                isValid = false;
+                return false;
+            }
+        });
+
+        return isValid;
+    }, "Driver with this distance is alredy added.");
+
     $('#delivery4Payment').validate({
         rules: {
             distance : {
@@ -241,14 +258,15 @@ $(document).ready(function() {
                 min: 0,
                 number: true
             },
-            @forelse ([] as $key => $value)
+            @forelse ($payments as $key => $value)
                 "mdriver[{{ $key }}]" : {
                     required: true
                 },  
                 "mdistance[{{ $key }}]" : {
                     required: true,
                     min: 0,
-                    number: true
+                    number: true,
+                    customDistance: true
                 },  
                 "mpayment[{{ $key }}]" : {
                     required: true,
@@ -262,7 +280,8 @@ $(document).ready(function() {
                 "mdistance[0]" : {
                     required: true,
                     min: 0,
-                    number: true
+                    number: true,
+                    customDistance: true
                 },  
                 "mpayment[0]" : {
                     required: true,
@@ -282,7 +301,7 @@ $(document).ready(function() {
                 min: "Payment amount can\'t be less than 1.",
                 number: "Enter valid payment amount."
             },
-            @forelse ([] as $key => $value)
+            @forelse ($payments as $key => $value)
                 "mdriver[{{ $key }}]" : {
                     required: "Select a driver"
                 },  

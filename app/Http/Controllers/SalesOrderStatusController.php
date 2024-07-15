@@ -1047,11 +1047,17 @@ class SalesOrderStatusController extends Controller
     }
 
     public function getManagedStatus(Request $request) {
+        $requestStatus = $request->id;
+        $cwStatus = SalesOrderStatus::select('id')->where('slug', 'closed-win')->first()->id ?? 0;
 
-        $updatedStatuses = SalesOrderStatus::custom()->select('id', 'name')->when(!empty($request->id), fn ($builder) => ($builder->where('id', '!=', $request->id)))->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
+        if ($cwStatus == $requestStatus) {
+            return response()->json(['exists' => false, 'updatedStatuses' => []]);
+        }
 
-        if (ManageStatus::where('status_id', $request->id)->exists()) {
-            return response()->json(['exists' => true, 'data' => ManageStatus::where('status_id', $request->id)->first()->toArray(), 'updatedStatuses' => $updatedStatuses]);
+        $updatedStatuses = SalesOrderStatus::custom()->select('id', 'name')->when(!empty($requestStatus), fn ($builder) => ($builder->where('id', '!=', $requestStatus)))->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
+
+        if (ManageStatus::where('status_id', $requestStatus)->exists()) {
+            return response()->json(['exists' => true, 'data' => ManageStatus::where('status_id', $requestStatus)->first()->toArray(), 'updatedStatuses' => $updatedStatuses]);
         }
 
         return response()->json(['exists' => false, 'updatedStatuses' => $updatedStatuses]);

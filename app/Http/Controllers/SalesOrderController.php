@@ -413,8 +413,16 @@ class SalesOrderController extends Controller
                         $getAllDriversDistance[$row['id']] = Distance::measure($latFrom, $longFrom, $row['lat'], $row['long']);
                     }
 
-                    $getNearbyDriver = array_search(min($getAllDriversDistance), $getAllDriversDistance);
-                    $range = min($getAllDriversDistance);
+                    asort($getAllDriversDistance);
+
+                    $result = self::getDriver($getAllDriversDistance);
+
+                    if ($result['exists']) {
+                        $getNearbyDriver = $result['driver'];
+                        $range = $result['range'];    
+                    } else {
+                        return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
+                    }
 
                     $category = Product::where('id', $request->product)->first()->category_id;
                     $category = Category::where('id', $category)->first();
@@ -438,6 +446,32 @@ class SalesOrderController extends Controller
 
         } else {
             return response()->json(['status' => false, 'message' => 'Please provide accurate address.']);
+        }
+    }
+
+    private static function getDriver($drivers) {
+        if (empty($drivers)) {
+            return ['exists' => false];
+        }
+
+        $nearbyDriverId = array_search(min($drivers), $drivers);
+        $range = 0;
+
+        if (isset($drivers[$nearbyDriverId])) {
+            $range = $drivers[$nearbyDriverId];
+            unset($drivers[$nearbyDriverId]);
+        }
+
+        $paymentForDelivery = PaymentForDelivery::where('driver_id', $nearbyDriverId)->where('distance', '>=', $range);
+
+        if ($paymentForDelivery->exists()) {
+            return ['exists' => true, 'driver' => $nearbyDriverId, 'range' => $range];
+        } else {
+            if (PaymentForDelivery::where(fn ($b) => $b->whereNull('driver_id')->orWhere('driver_id', ''))->where('distance', '>=', $range)->exists()) {
+                return ['exists' => true, 'driver' => $nearbyDriverId, 'range' => $range];
+            } else {
+                return self::getDriver($drivers);
+            }
         }
     }
 
