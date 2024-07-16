@@ -3,6 +3,9 @@
     <thead>
         <tr>
             <th>ORDER NUMBER</th>
+            @if(isset($postalCodeShow))
+            <th>POSTAL CODE</th>
+            @endif
             <th>COMMISSION AMOUNT</th>
             {{-- <th>ORDER AMOUNT</th> --}}
         </tr>
@@ -30,6 +33,9 @@
                     $commissionAmount += $item->order->sold_amount;
                     @endphp
                 </td>
+                @if(isset($postalCodeShow))
+                <td> <a target="_blank" href="https://www.google.com/maps/place/{{ $item->order->customer_postal_code }}"> {{ $item->order->customer_postal_code }} </a> </td>
+                @endif
                 <td>{{ Helper::currency($item->amount) }}</td>
                 {{-- <td>{{ Helper::currency($item->order->sold_amount) }}</td> --}}
             </tr>            
@@ -37,7 +43,7 @@
     </tbody>
     <tfoot>
         <tr>
-            <td> Total </td>
+            <td @if(isset($postalCodeShow)) colspan="2" @endif> Total </td>
             <td> {{ Helper::currency($orderAmt) }} </td>
             {{-- <td> {{ Helper::currency($commissionAmount) }} </td> --}}
         </tr>

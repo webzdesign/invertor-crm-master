@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="shortcut icon" href="{{ asset(Helper::getAppFavicon()) }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset(Helper::getAppFavicon()) . '?time=' . time() }}" type="image/x-icon">
     <title> {{ Helper::getAppTitle() . ' - ' . config('app.module', 'Module') }} </title>
     @include('layouts.partials.header')
     @yield('css')
@@ -77,11 +77,19 @@
                                 <div class="cardsBody settingWrpr px-0 py-0">
                                     <li class="m-0 w-100">
                                         <a href="javascript:;"
-                                            style="background-image: linear-gradient(to right bottom, #a53692, #cb367d, #e34765, #ee634c, #ec8335);border-radius: 3px 3px 0 0;">
+                                            style="background-image: linear-gradient(to right bottom, #3F51B5, #673AB7, #F44336, #FF9800, #FFEB3B);border-radius: 3px 3px 0 0;">
                                             <h4 class="f-16 mb-0 f-700 text-white">
-                                                {{ auth()->user()->name }}
+                                                <i class="fa fa-user"></i>
+                                                <span style="padding-left:10px;"> {{ auth()->user()->name }} </span>
                                             </h4>
                                         </a>
+
+                                        @if(User::isAdmin())
+                                        <a class="dropdown-item" href="{{ route('settings') }}" >
+                                            <i class="fa fa-cog"></i>
+                                            <span class="text-truncate f-700" style="padding-left:10px;" title="Change Password"> Settings </span>
+                                        </a>
+                                        @endif
                                     </li>
 
                                     <li class="m-0 w-100">

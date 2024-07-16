@@ -9,6 +9,7 @@ use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
@@ -220,5 +221,8 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('getStates', [Helper::class, 'getStates'])->name('getStates');
         Route::post('getCities', [Helper::class, 'getCities'])->name('getCities');
         /** Common **/
+
+        Route::get('settings', [SettingController::class, 'index'])->name('settings');
+        Route::put('settings-update', [SettingController::class, 'update'])->name('settings.update');
     });
 });

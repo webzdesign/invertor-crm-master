@@ -1044,7 +1044,7 @@ class SalesOrderController extends Controller
     
                     try {
         
-                        $procurementCost = ProcurementCost::where('role_id', $order->addedby->roles->first()->id ?? 2)->where('product_id', $thisProductId);
+                        $procurementCost = ProcurementCost::where('role_id', $order->addedby->roles->first()->id ?? 2)->where('product_id', $thisProductId)->active();
                         $newTotal = is_numeric($request->amount) ? round($request->amount) : round(floatval($request->amount));
                         $prodQty = $order->items->first()->qty ?? 1;
         
@@ -1230,7 +1230,7 @@ class SalesOrderController extends Controller
                         }                    
                     }
     
-                    $procurementCost = ProcurementCost::where('role_id', $order->addedby->roles->first()->id ?? 2)->where('product_id', $thisProductId);
+                    $procurementCost = ProcurementCost::where('role_id', $order->addedby->roles->first()->id ?? 2)->where('product_id', $thisProductId)->active();
                     $newTotal = is_numeric($request->amount) ? round($request->amount) : round(floatval($request->amount));
                     $prodQty = $order->items->first()->qty ?? 1;
     

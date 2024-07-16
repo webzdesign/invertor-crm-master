@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\{Stock, Transaction, DriverWallet, PaymentForDelivery, ProcurementCost, SalesOrderProofImages};
 use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser, Setting, Trigger, Wallet};
 use App\Models\{SalesOrderStatus, SalesOrder, Deliver, Role, ManageStatus, User, SalesOrderItem};
+use Revolution\Google\Sheets\Facades\Sheets;
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -784,7 +785,7 @@ class SalesOrderStatusController extends Controller
                                             }                    
                                         }
                         
-                                        $procurementCost = ProcurementCost::where('role_id', $order->addedby->roles->first()->id ?? 2)->where('product_id', $thisProductId);
+                                        $procurementCost = ProcurementCost::where('role_id', $order->addedby->roles->first()->id ?? 2)->where('product_id', $thisProductId)->active();
                                         $newTotal = is_numeric($request->price) ? round($request->price) : round(floatval($request->price));
                         
                                         //driver amount
@@ -909,10 +910,10 @@ class SalesOrderStatusController extends Controller
                                             $newestTotalQty = $newestTotal / $prodQty;
                                         }
                         
-                                        SalesOrder::where('id', $request->order)->update(['price_matched' => 1, 'sold_amount' => $newestTotal, 'driver_amount' => $driverRecevies]);
+                                        SalesOrder::where('id', $request->order)->update(['price_matched' => 1, 'sold_amount' => $newestTotal, 'driver_amount' => $driverRecevies, 'closed_win_date' => date('Y-m-d H:i:s')]);
                                         SalesOrderItem::where('so_id', $request->order)->update(['sold_item_amount' => $newestTotalQty]);
 
-                                        $order = SalesOrder::with('items')->where('id', $order->id)->first();
+                                        $order = SalesOrder::with(['items', 'seller'])->where('id', $order->id)->first();
                                         $newTotal = $order->sold_amount + $order->driver_amount;
 
                                         \App\Models\TriggerLog::create([
@@ -922,9 +923,44 @@ class SalesOrderStatusController extends Controller
                                             'next_status_id' => $request->status,
                                             'current_status_id' => $oldStatus,
                                             'type' => 4,
-                                            'description' => "The price in the final agreement has been modified to <strong>£{$newTotal}</strong> from <strong>£{$order->total()}</strong>.",
+                                            'description' => "The sales price in final agreement has been modified to <strong>£{$newTotal}</strong> from <strong>£{$order->total()}</strong>.",
                                         ]);
                     
+                                        $driverInfo = User::where('id', $thisDriverId)->first();
+
+                                        $sheetId = Setting::first()->google_sheet_id ?? '';
+                                        $sheetName = 'ДДС месяц';
+                                
+                                        //credit
+                                        Sheets::spreadsheet($sheetId)->sheet($sheetName)->append([
+                                            [
+                                                '',
+                                                '',
+                                                date('d.m.Y', strtotime($order->closed_win_date)),
+                                                $newTotal,
+                                                "{$driverInfo->name} ({$driverInfo->city_id})",
+                                                '',
+                                                date('d.m.Y H:i:s', strtotime($order->closed_win_date)) . "        " . (isset($order->seller->country_dial_code) ? "+{$order->seller->country_dial_code} {$order->seller->phone}" : "") . "        " . $order->customer_postal_code,
+                                                '',
+                                                'Продажи'
+                                            ]
+                                        ]);
+
+                                        //debit
+                                        Sheets::spreadsheet($sheetId)->sheet($sheetName)->append([
+                                            [
+                                                '',
+                                                '',
+                                                date('d.m.Y', strtotime($order->closed_win_date)),
+                                                -$order->driver_amount,
+                                                "{$driverInfo->name} ({$driverInfo->city_id})",
+                                                '',
+                                                date('d.m.Y H:i:s', strtotime($order->closed_win_date)) . "        " . (isset($order->seller->country_dial_code) ? "+{$order->seller->country_dial_code} {$order->seller->phone}" : "") . "        " . $order->customer_postal_code,
+                                                '',
+                                                'Зарплата производственного персонала'
+                                            ]
+                                        ]);
+
                                         DB::commit();
                                         return response()->json(['status' => true, 'message' => 'Sales price changes proof uploaded successfully.', 'color' => $color, 'text' => $text]);
                                 } else {

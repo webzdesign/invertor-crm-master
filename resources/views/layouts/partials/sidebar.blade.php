@@ -5,7 +5,7 @@
 </style>
 <aside class="asideLeft">
     <div class="logoSec d-flex align-items-center">
-        <img src="{{ asset(Helper::getAppLogo()) }}" alt="logo" width="100%" height="60" class="m-auto d-table">
+        <img src="{{ asset(Helper::getAppLogo()) . '?time=' . time() }}" alt="logo" width="100%" height="60" class="m-auto d-table">
     </div>
     <ul class="p-0 menuList" id="accordionExample">
         <li>

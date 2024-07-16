@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{BankDetail, Stock, User, Transaction, SalesOrder, CommissionWithdrawalHistory};
+use App\Models\{BankDetail, Stock, User, Transaction, SalesOrder, Setting, CommissionWithdrawalHistory};
+use Revolution\Google\Sheets\Facades\Sheets;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Helpers\Helper;
@@ -236,7 +237,7 @@ class ReportController extends Controller
             if (!$request->ajax()) {
                 $moduleName = 'Seller Report';
                 $moduleName2 = 'Commission Withdrawal Requests';
-                $sellers = CommissionWithdrawalHistory::with('user')->where('status', 0)->groupBy('user_id')->get();
+                $sellers = CommissionWithdrawalHistory::with('user')->groupBy('user_id')->get();
                 
                 return view('reports.seller-commission', compact('moduleName', 'moduleName2', 'sellers'));
             }
@@ -610,19 +611,66 @@ class ReportController extends Controller
     }
 
     public function acceptOrRejectDriverPayment(Request $request, $type) {
-        if (Transaction::where('id', $request->id)->exists()) {
-            $id = Transaction::where('id', $request->id)->first()->transaction_id;
-            if ($type == 'accept') {
-                Transaction::where('transaction_id', $id)->update(['is_approved' => 1]);
-                return response()->json(['status' => true, 'message' => 'Payment approved successfully.']);
-            } else if ($type == 'reject') {
-                Transaction::where('transaction_id', $id)->update(['is_approved' => 2]);
-                return response()->json(['status' => true, 'message' => 'Payment rejected successfully.']);
+
+        DB::beginTransaction();
+
+        try {
+            if (Transaction::where('id', $request->id)->exists()) {
+                $id = Transaction::where('id', $request->id)->first()->transaction_id;
+                if ($type == 'accept') {
+                    Transaction::where('transaction_id', $id)->update(['is_approved' => 1]);
+                    $transaction = Transaction::with('user')->where('transaction_id', $id)->where('user_id', '!=', 1)->first();
+    
+                    $sheetId = Setting::first()->google_sheet_id ?? '';
+                    $sheetName = 'ДДС месяц';
+    
+                    //debit
+                    Sheets::spreadsheet($sheetId)->sheet($sheetName)->append([
+                        [
+                            '',
+                            '',
+                            date('d.m.Y'),
+                            -$transaction->amount,
+                            ($transaction->user->name ?? '') . (isset($transaction->user->city_id) ? " ({$transaction->user->city_id})" : ''),
+                            '',
+                            '',
+                            '',
+                            'Выбытие — Перевод между счетами'
+                        ]
+                    ]);
+
+                    //credit
+                    Sheets::spreadsheet($sheetId)->sheet($sheetName)->append([
+                        [
+                            '',
+                            '',
+                            date('d.m.Y'),
+                            $transaction->amount,
+                            User::select('name')->where('id', 1)->first()->name ?? '',
+                            '',
+                            '',
+                            '',
+                            'Поступление — Перевод между счетами'
+                        ]
+                    ]);
+
+                    DB::commit();
+                    return response()->json(['status' => true, 'message' => 'Payment approved successfully.']);
+                } else if ($type == 'reject') {
+                    Transaction::where('transaction_id', $id)->update(['is_approved' => 2]);
+                    DB::commit();
+                    return response()->json(['status' => true, 'message' => 'Payment rejected successfully.']);
+                } else {
+                    DB::rollBack();
+                    return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+                }
             } else {
-                return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+                DB::rollBack();
+                return response()->json(['status' => false, 'message' => Helper::$notFound]);
             }
-        } else {
-            return response()->json(['status' => false, 'message' => Helper::$notFound]);
+        } catch(\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
         }
     }
 
@@ -888,8 +936,10 @@ class ReportController extends Controller
                             ->where('amount_type', 3)
                             ->where('withdrawal_request', 1)
                             ->get();
+            
+            $postalCodeShow = true;
 
-            return response()->json(['status' => true, 'html' => view('reports.withdrawal-modal', compact('transactions'))->render()]);
+            return response()->json(['status' => true, 'html' => view('reports.withdrawal-modal', compact('transactions', 'postalCodeShow'))->render()]);
         }
 
         return response()->json(['status' => false, 'message' => Helper::$notFound]);
@@ -953,6 +1003,33 @@ class ReportController extends Controller
                     'year' => Helper::$financialYear,
                     'added_by' => auth()->user()->id
                 ]); 
+
+                $transaction = CommissionWithdrawalHistory::with(['user', 'bank'])->where('id', $request->id)->first();
+
+                $sheetId = Setting::first()->google_sheet_id ?? '';
+                $sheetName = 'ДДС месяц';
+
+                $orderDetails = json_decode($transaction->orders, true);
+                $ordersDetail = 1;
+
+                if ($orderDetails != null) {
+                    $ordersDetail = implode("   ", SalesOrder::select('order_no')->whereIn('id', $orderDetails)->pluck('order_no')->toArray());
+                }
+
+                //debit
+                Sheets::spreadsheet($sheetId)->sheet($sheetName)->append([
+                    [
+                        '',
+                        '',
+                        date('d.m.Y'),
+                        -$transaction->amount,
+                        User::select('name')->where('id', 1)->first()->name ?? '',
+                        '',
+                        $ordersDetail,
+                        '',
+                        'Зарплата коммерческого персонала - Посредники'
+                    ]
+                ]);
 
                 DB::commit();
                 return response()->json(['status' => true, 'message' => 'Withdrawal request accepted successfully.']);

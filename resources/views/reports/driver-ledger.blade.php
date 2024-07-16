@@ -45,7 +45,7 @@
                         </div>
 
                         <div class="col-12 mb-2 document-field">
-                            <label class="c-gr f-500 f-12 w-100 mb-2"> UPLOAD PAYMENT RECEIPT : </label>
+                            <label class="c-gr f-500 f-12 w-100 mb-2"> PAYMENT RECEIPT : <span class="text-danger">*</span> </label>
                             <input type="file" id="order-closing-document" name="file[]" class="form-control" multiple />
                         </div>
 
@@ -142,6 +142,7 @@
                     min: 1
                 },
                 'file[]': {
+                    required: true,
                     fileType: 'jpeg|png|jpg',
                     maxFiles: 10,
                     fileSizeLimit: (10 * 1024 * 1024) * 2
@@ -152,6 +153,9 @@
                     required: "Enter the amount",
                     number: "Enter valid amount",
                     min: "Enter valid amount."
+                },
+                'file[]': {
+                    required: "Upload payment receipt."
                 }
             },
             submitHandler: function(form, event) {

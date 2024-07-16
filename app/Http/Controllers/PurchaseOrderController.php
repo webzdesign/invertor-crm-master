@@ -166,7 +166,8 @@ class PurchaseOrderController extends Controller
         $moduleLink = route('purchase-orders.index');
         $suppliers = User::whereHas('role', function ($builder) {
             $builder->where('roles.id', 4);
-        })->select('users.id as id', 'users.name as name')->pluck('name', 'id')->toArray();
+        })->select('users.id as id', 'users.name as name')->active()->pluck('name', 'id')->toArray();
+
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $orderNo = Helper::generatePurchaseOrderNumber();
 

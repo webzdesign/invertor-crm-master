@@ -2,9 +2,8 @@
 
 namespace App\Helpers;
 
-
-use App\Models\{PurchaseOrder, Transaction, DriverWallet, Distribution};
-use App\Models\{SalesOrder, Setting, Product, Country, Wallet};
+use App\Models\{PurchaseOrder, Transaction, Distribution};
+use App\Models\{SalesOrder, Setting, Product, Country};
 use App\Models\{State, Stock, City, User};
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Number;
@@ -16,6 +15,20 @@ class Helper {
     public static $favIcon = 'assets/images/favicon.ico';
     public static $errorMessage = 'Oops! Something went wrong.';
     public static $notFound = 'Not found.';
+    public static $russianMonthNames = [
+        1 => 'Январь',
+        2 => 'Февраль',
+        3 => 'Март',
+        4 => 'Апрель',
+        5 => 'Май',
+        6 => 'Июнь',
+        7 => 'Июль',
+        8 => 'Август',
+        9 => 'Сентябрь',
+        10 => 'Октябрь',
+        11 => 'Ноябрь',
+        12 => 'Декабрь'
+    ];
 
     public static $financialYear = '2024-25';
 
@@ -33,13 +46,12 @@ class Helper {
     {
         $setting = Setting::select('favicon')->first();
         if ($setting) {
-            if ($setting->favicon && @file_exists(storage_path("public/settings/favicon/" . $setting->favicon))) {
-                return "storage/app/public/settings/favicon/" . $setting->favicon;
+            if ($setting->favicon && file_exists(public_path("assets/images/{$setting->favicon}"))) {
+                return "assets/images/{$setting->favicon}";
             }
-            return self::$favIcon . '?time=' . time();
-        } else {
-            return self::$favIcon . '?time=' . time();
         }
+
+        return self::$favIcon;
     }
 
     //get app favicon
@@ -47,13 +59,12 @@ class Helper {
     {
         $setting = Setting::select('logo')->first();
         if ($setting) {
-            if ($setting->logo && @file_exists(storage_path("public/settings/logo/" . $setting->logo))) {
-                return "storage/app/public/settings/logo/" . $setting->logo;
+            if ($setting->logo && file_exists(public_path("assets/images/{$setting->logo}"))) {
+                return "assets/images/{$setting->logo}";
             }
-            return self::$appLogo . '?time=' . time();
-        } else {
-            return self::$appLogo . '?time=' . time();
         }
+
+        return self::$appLogo;
     }
 
     public function getStates(Request $request) {

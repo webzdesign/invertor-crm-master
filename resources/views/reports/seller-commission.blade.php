@@ -206,9 +206,9 @@
                 <div class="modal-body">                    
 
                     <div class="form-group">
-                        <div class="row">
-                            <label class="c-gr f-500 f-14 w-100 mb-2"> UPLOAD PAYMENT RECEIPT : </label>
-                            <input type="file" class="form-control" name="receipt[]" id="receipt" multiple>
+                        <div class="row d-flex flex-column align-items-center">
+                            <label class="c-gr f-500 f-14 w-100 mb-2"> PAYMENT RECEIPT : <span class="text-danger">*</span> </label>
+                            <input type="file" class="form-control" name="receipt[]" id="receipt" style="width: 95%;" multiple>
                             <input type="hidden" name="id" id="withdrawal-request-id">
                         </div>
                     </div>
@@ -517,9 +517,15 @@
         $('#accept-request-form').validate({
             rules: {
                 'receipt[]': {
+                    required: true,
                     fileType: 'jpeg|png|jpg',
                     maxFiles: 10,
                     fileSizeLimit: (10 * 1024 * 1024) * 2
+                }
+            },
+            messages: {
+                'receipt[]': {
+                    required: "Upload payment receipt."
                 }
             }
         });
