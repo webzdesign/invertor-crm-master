@@ -26,7 +26,7 @@ return [
 
     /*
     |----------------------------------------------------------------------------
-    | Google developer key
+    | Google developer key 
     |----------------------------------------------------------------------------
     |
     | Simple API access key, also from the API console. Ensure you get

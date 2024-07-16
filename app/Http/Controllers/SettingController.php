@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use App\Helpers\Helper;
 use App\Models\Setting;
 use App\Models\User;
 
