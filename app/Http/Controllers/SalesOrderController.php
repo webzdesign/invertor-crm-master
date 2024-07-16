@@ -76,7 +76,7 @@ class SalesOrderController extends Controller
         $allStatuses = SalesOrderStatus::custom()->active()->select('id', 'name', 'color')->get();
 
         return dataTables()->eloquent($po)
-            ->addColumn('total', fn ($row) => $row->price_matched ? Helper::currency($row->sold_amount + $row->driver_amount) : Helper::currency($row->total()))
+            ->addColumn('total', fn ($row) => $row->price_matched ? ('£' . ($row->sold_amount + $row->driver_amount)) : ('£' . ($row->total())))
             ->addColumn('action', function ($users) use ($orderClosedWinStatus) {
 
                 $variable = $users;
@@ -355,6 +355,7 @@ class SalesOrderController extends Controller
         $users = User::whereHas('role', function ($builder) {
             $builder->where('roles.id', 3);
         })->whereNotNull('lat')->whereNotNull('long')
+        ->active()
         ->select('id', 'lat', 'long')->get()->toArray();
 
         try {
@@ -421,7 +422,20 @@ class SalesOrderController extends Controller
                         $getNearbyDriver = $result['driver'];
                         $range = $result['range'];    
                     } else {
-                        return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
+                        $isNotAvail = true;
+
+                        foreach ($getAllDriversDistance as $tmpDriver => $tmpRange) {
+                            if (PaymentForDelivery::where(fn ($b) => $b->whereNull('driver_id')->orWhere('driver_id', ''))->where('distance', '>=', $tmpRange)->exists()) {
+                                $getNearbyDriver = $tmpDriver;
+                                $range = $tmpRange;
+                                $isNotAvail = false;
+                                break;
+                            }
+                        }
+
+                        if ($isNotAvail) {
+                            return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
+                        }
                     }
 
                     $category = Product::where('id', $request->product)->first()->category_id;
@@ -467,11 +481,7 @@ class SalesOrderController extends Controller
         if ($paymentForDelivery->exists()) {
             return ['exists' => true, 'driver' => $nearbyDriverId, 'range' => $range];
         } else {
-            if (PaymentForDelivery::where(fn ($b) => $b->whereNull('driver_id')->orWhere('driver_id', ''))->where('distance', '>=', $range)->exists()) {
-                return ['exists' => true, 'driver' => $nearbyDriverId, 'range' => $range];
-            } else {
-                return self::getDriver($drivers);
-            }
+            return self::getDriver($drivers);
         }
     }
 

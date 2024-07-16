@@ -612,7 +612,7 @@
                             @if($loop->first)
                                 <option value="" selected> --- Select a Seller --- </option>
                             @endif
-                                <option value="{{ $seller->user_id }}">{{ $seller->user->name ?? '-' }}</option>
+                                <option value="{{ $seller->user_id }}">{{ isset($seller->user->name) ? $seller->user->name . ' - (' . $seller->user->email . ')' : '' }}</option>
                         @empty
                                 <option value="" selected> --- No Seller Found --- </option>
                         @endforelse

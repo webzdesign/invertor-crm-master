@@ -73,13 +73,13 @@ class ProcurementCostController extends Controller
                 return $cost->role->name ?? '-';
             })
             ->editColumn('base_price', function ($cost) {
-                return Helper::currency($cost->base_price);
+                return "£$cost->base_price";
             })
             ->editColumn('min_sales_price', function ($cost) {
-                return Helper::currency($cost->min_sales_price);
+                return "£$cost->min_sales_price";
             })
             ->editColumn('default_commission_price', function ($cost) {
-                return Helper::currency($cost->default_commission_price);
+                return "£$cost->default_commission_price";
             })
             ->addColumn('action', function ($users) {
                 $variable = $users;
@@ -144,9 +144,9 @@ class ProcurementCostController extends Controller
         $user->product_id = $request->product;
         $user->category_id = $request->category;
         $user->role_id = $request->role;
-        $user->base_price = round($request->base_price);
-        $user->min_sales_price = round($request->min_sales_price);
-        $user->default_commission_price = round($request->default_commission_price);
+        $user->base_price = $request->base_price;
+        $user->min_sales_price = $request->min_sales_price;
+        $user->default_commission_price = $request->default_commission_price;
         $user->added_by = auth()->user()->id;
         $user->save();
 
@@ -169,9 +169,9 @@ class ProcurementCostController extends Controller
         $user->product_id = $request->product;
         $user->category_id = $request->category;
         $user->role_id = $request->role;
-        $user->base_price = round($request->base_price);
-        $user->min_sales_price = round($request->min_sales_price);
-        $user->default_commission_price = round($request->default_commission_price);
+        $user->base_price = $request->base_price;
+        $user->min_sales_price = $request->min_sales_price;
+        $user->default_commission_price = $request->default_commission_price;
         $user->updated_by = auth()->user()->id;
         $user->save();
 

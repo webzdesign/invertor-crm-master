@@ -203,6 +203,9 @@
                         data: {
                             id: thisId
                         },
+                        beforeSend: function () {
+                            $('body').find('.LoaderSec').removeClass('d-none');
+                        },
                         success: function(response) {
                             if (response.status) {
                                 ServerDataTable.ajax.reload()
@@ -211,6 +214,9 @@
                             } else {
                                 Swal.fire('', response.message, 'error');
                             }
+                        },
+                        complete: function () {
+                            $('body').find('.LoaderSec').addClass('d-none');
                         }
                     });
 
@@ -239,6 +245,9 @@
                         data: {
                             id: thisId
                         },
+                        beforeSend: function () {
+                            $('body').find('.LoaderSec').removeClass('d-none');
+                        },
                         success: function(response) {
                             if (response.status) {
                                 ServerDataTable.ajax.reload()
@@ -247,6 +256,9 @@
                             } else {
                                 Swal.fire('', response.message, 'error');
                             }
+                        },
+                        complete: function () {
+                            $('body').find('.LoaderSec').addClass('d-none');
                         }
                     });
 

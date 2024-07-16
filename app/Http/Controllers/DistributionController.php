@@ -22,9 +22,10 @@ class DistributionController extends Controller
 
             $moduleName = $this->moduleName;
             $types = self::$types;
+
             $drivers = User::whereHas('role', function ($builder) {
                 $builder->where('roles.id', 3);
-            })->select('name', 'id')->pluck('name', 'id')->toArray();
+            })->selectRaw("id, CONCAT(name, ' - (', email, ')') as name")->pluck('name', 'id')->toArray();
     
             return view('distribution.index', compact('moduleName', 'drivers', 'types'));
         }

@@ -63,6 +63,7 @@
     <thead>
         <tr>
             <th>ORDER NUMBER</th>
+            <th>POSTAL CODE</th>
             <th>COMMISSION AMOUNT</th>
             {{-- <th>ORDER AMOUNT</th> --}}
         </tr>
@@ -87,6 +88,7 @@
                     $commissionAmount += $item->order->sold_amount;
                     @endphp
                 </td>
+                <td> <a target="_blank" href="https://www.google.com/maps/place/{{ $item->order->customer_postal_code }}"> {{ $item->order->customer_postal_code }} </a> </td>
                 <td>{{ Helper::currency($item->amount) }}</td>
                 {{-- <td>{{ Helper::currency($item->order->sold_amount) }}</td> --}}
             </tr>            
@@ -94,7 +96,7 @@
     </tbody>
     <tfoot>
         <tr>
-            <td> Total </td>
+            <td colspan="2"> Total </td>
             <td> {{ Helper::currency($orderAmt) }} </td>
             {{-- <td> {{ Helper::currency($commissionAmount) }} </td> --}}
         </tr>
