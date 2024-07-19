@@ -34,7 +34,7 @@ class ReportController extends Controller
             $storageStock = collect($stock)->map(function ($val, $key) {
                 return ['product_id' => $key, 'qty' => $val, 'type' => 'Storage'];
             })->filter()->values();
-    
+
             if ($request->has('filterDriver') && !empty(trim($request->filterDriver))) {
                 $request->filterType = '2';
                 $drivers = $drivers->where('id', $request->filterDriver)->pluck('name', 'id')->toArray();
@@ -90,9 +90,9 @@ class ReportController extends Controller
                 $moduleName = 'Financial Report';
                 return view('reports.driver-ledger', compact('moduleName'));
             }
-    
+
             $total = 0;
-    
+
             $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
             ->selectRaw("voucher, users.name as user, amount, transaction_type, so_id, is_approved, amount_type, transactions.created_at as date")
             ->whereIn('transactions.amount_type', [0, 2])
@@ -114,7 +114,7 @@ class ReportController extends Controller
                     }
                 });
             }
-    
+
             foreach ($ledger->get() as $data) {
                 if ($data->is_approved == 1) {
                     if ($data->transaction_type) {
@@ -124,7 +124,7 @@ class ReportController extends Controller
                     }
                 }
             }
-    
+
             return dataTables()->eloquent($ledger)
             ->addColumn('voucher', function ($row) {
                 if ($row->is_approved == 0 && $row->amount_type == 0) {
@@ -169,7 +169,7 @@ class ReportController extends Controller
                 $moduleName2 = 'Driver Payment Requests';
                 return view('reports.driver-commission', compact('moduleName', 'moduleName2'));
             }
-    
+
             $total = 0;
 
             $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
@@ -199,7 +199,7 @@ class ReportController extends Controller
                         $rem += $t['amount'];
                     }
                 }
-    
+
                 $total += $rem;
             }
 
@@ -238,7 +238,7 @@ class ReportController extends Controller
                 $moduleName = 'Seller Report';
                 $moduleName2 = 'Commission Withdrawal Requests';
                 $sellers = CommissionWithdrawalHistory::with('user')->groupBy('user_id')->get();
-                
+
                 return view('reports.seller-commission', compact('moduleName', 'moduleName2', 'sellers'));
             }
 
@@ -273,7 +273,7 @@ class ReportController extends Controller
                 }
 
                 $rem = Transaction::where('user_id', $thisIterator->userid)->where('transactions.amount_type', 3)->debit()->sum('amount') - $rem;
-                
+
                 $total += $rem;
             }
 
@@ -345,7 +345,7 @@ class ReportController extends Controller
                         return '<a target="_blank" href="' . route('sales-orders.view', encrypt($order->id)) . '"> ' . ($order->order_no) . '</a>';
                     }
                 }
-    
+
                 return $row->voucher;
             })
             ->editColumn('date', fn ($row) => date('d-m-Y', strtotime($row->date)))
@@ -383,7 +383,7 @@ class ReportController extends Controller
         if (is_numeric($request->amount)) {
 
             $attachmentJson = [];
-            
+
             DB::beginTransaction();
 
             try {
@@ -470,7 +470,7 @@ class ReportController extends Controller
         }
 
         if (is_numeric($request->amount)) {
-            
+
             $attachmentJson = [];
 
             DB::beginTransaction();
@@ -549,7 +549,7 @@ class ReportController extends Controller
                 ->where('transaction_type', 0)
                 ->orderBy('id', 'DESC');
 
-        
+
         if (isset($request->search['value']) && !empty(trim($request->search['value']))) {
             $searchVal = trim($request->search['value']);
 
@@ -579,7 +579,7 @@ class ReportController extends Controller
                 } else if (str_contains('rejected', strtolower($searchVal))) {
                     $builder = $builder->orWhere('transactions.is_approved', 2);
                 }
-            });          
+            });
         }
 
         return dataTables()->eloquent($drivers)
@@ -620,16 +620,13 @@ class ReportController extends Controller
                 if ($type == 'accept') {
                     Transaction::where('transaction_id', $id)->update(['is_approved' => 1]);
                     $transaction = Transaction::with('user')->where('transaction_id', $id)->where('user_id', '!=', 1)->first();
-    
+
                     $sheetId = Setting::first()->google_sheet_id ?? '';
                     $sheetName = 'ДДС месяц';
-    
-                    //debit
-                    Sheets::spreadsheet($sheetId)->sheet($sheetName)->append([
+
+                    $params = [
                         [
-                            '',
-                            '',
-                            date('d.m.Y'),
+                            date('d/m/Y'),
                             -$transaction->amount,
                             ($transaction->user->name ?? '') . (isset($transaction->user->city_id) ? " ({$transaction->user->city_id})" : ''),
                             '',
@@ -637,14 +634,27 @@ class ReportController extends Controller
                             '',
                             'Выбытие — Перевод между счетами'
                         ]
-                    ]);
-
+                    ];
                     //credit
-                    Sheets::spreadsheet($sheetId)->sheet($sheetName)->append([
+                    $response = Sheets::spreadsheet($sheetId)
+                    ->sheet($sheetName)
+                    ->get();
+
+                    $rowCount = count($response); // Number of rows with data
+
+                    // Determine the starting row for the new data
+                    $startRow = $rowCount + 1;
+                    $startRow1 = $rowCount + 2;
+
+                    // Define the range starting from column C
+                    $range = "{$sheetName}!C{$startRow}:M{$startRow}";
+                    Sheets::spreadsheet($sheetId)->sheet($sheetName)->range($range)->append($params);
+                    $startRow = $rowCount + 1;
+                    $range1 = "{$sheetName}!C{$startRow1}:M{$startRow1}";
+                    //debit
+                    $params1 = [
                         [
-                            '',
-                            '',
-                            date('d.m.Y'),
+                            date('d/m/Y'),
                             $transaction->amount,
                             User::select('name')->where('id', 1)->first()->name ?? '',
                             '',
@@ -652,7 +662,9 @@ class ReportController extends Controller
                             '',
                             'Поступление — Перевод между счетами'
                         ]
-                    ]);
+                    ];
+                    //credit
+                    Sheets::spreadsheet($sheetId)->sheet($sheetName)->range($range1)->append($params1);
 
                     DB::commit();
                     return response()->json(['status' => true, 'message' => 'Payment approved successfully.']);
@@ -686,7 +698,7 @@ class ReportController extends Controller
     }
 
     public function ibanCheck(Request $request) {
-        return response()->json(BankDetail::where('iban_number', $request->iban_add)->doesntExist());        
+        return response()->json(BankDetail::where('iban_number', $request->iban_add)->doesntExist());
     }
 
     public function bankAccountSave(Request $request) {
@@ -710,7 +722,7 @@ class ReportController extends Controller
         if ($account->exists()) {
             return response()->json(['status' => $account->delete(), 'message' => 'Bank account deleted successfully.']);
         }
- 
+
         return response()->json(['status' => false, 'message' => Helper::$notFound]);
     }
 
@@ -748,7 +760,7 @@ class ReportController extends Controller
                 'to' => $request->to_date,
                 'amount' => array_sum($request->amount)
             ]);
-    
+
             Transaction::whereIn('id', $request->transactions)->update(['withdrawal_request' => 1]);
 
             DB::commit();
@@ -886,7 +898,7 @@ class ReportController extends Controller
 
         if (isset($request->search['value']) && !empty($request->search['value'])) {
             $searchVal = $request->search['value'];
-            
+
             $reqs = $reqs->where(function ($builder) use($searchVal) {
                 $builder->where('amount', 'LIKE', "%$searchVal%")
                 ->orWhere(DB::raw("DATE_FORMAT(commission_withdrawal_histories.created_at, '%d-%m-%Y')"), 'LIKE', "%$searchVal%");
@@ -936,7 +948,7 @@ class ReportController extends Controller
                             ->where('amount_type', 3)
                             ->where('withdrawal_request', 1)
                             ->get();
-            
+
             $postalCodeShow = true;
 
             return response()->json(['status' => true, 'html' => view('reports.withdrawal-modal', compact('transactions', 'postalCodeShow'))->render()]);
@@ -1002,7 +1014,7 @@ class ReportController extends Controller
                     'amount' => $sellerAmount,
                     'year' => Helper::$financialYear,
                     'added_by' => auth()->user()->id
-                ]); 
+                ]);
 
                 $transaction = CommissionWithdrawalHistory::with(['user', 'bank'])->where('id', $request->id)->first();
 
@@ -1010,18 +1022,26 @@ class ReportController extends Controller
                 $sheetName = 'ДДС месяц';
 
                 $orderDetails = json_decode($transaction->orders, true);
-                $ordersDetail = 1;
+                $ordersDetail = [];
 
                 if ($orderDetails != null) {
                     $ordersDetail = implode("   ", SalesOrder::select('order_no')->whereIn('id', $orderDetails)->pluck('order_no')->toArray());
                 }
 
-                //debit
-                Sheets::spreadsheet($sheetId)->sheet($sheetName)->append([
+                $response = Sheets::spreadsheet($sheetId)
+                ->sheet($sheetName)
+                ->get();
+
+                $rowCount = count($response); // Number of rows with data
+
+                // Determine the starting row for the new data
+                $startRow = $rowCount + 1;
+                // Define the range starting from column C
+                $range = "{$sheetName}!C{$startRow}:M{$startRow}";
+
+                $params = [
                     [
-                        '',
-                        '',
-                        date('d.m.Y'),
+                        date('d/m/Y'),
                         -$transaction->amount,
                         User::select('name')->where('id', 1)->first()->name ?? '',
                         '',
@@ -1029,7 +1049,9 @@ class ReportController extends Controller
                         '',
                         'Зарплата коммерческого персонала - Посредники'
                     ]
-                ]);
+                ];
+                Sheets::spreadsheet($sheetId)->sheet($sheetName)->range($range)->append($params);
+                //debit
 
                 DB::commit();
                 return response()->json(['status' => true, 'message' => 'Withdrawal request accepted successfully.']);
@@ -1062,8 +1084,8 @@ class ReportController extends Controller
                 Transaction::where('transaction_type', 1)
                 ->whereIn('so_id', json_decode($withdrawalRequest->orders, true))
                 ->where('amount_type', 3)
-                ->update(['withdrawal_request' => 3]);      
-                
+                ->update(['withdrawal_request' => 3]);
+
                 CommissionWithdrawalHistory::where('id', $request->id)->update(['status' => 2]);
 
                 DB::commit();
