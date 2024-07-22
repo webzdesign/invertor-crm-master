@@ -7,10 +7,10 @@
     .color-blue {
         color: #0057a9;
         cursor: pointer;
-    }      
+    }
     .select2-selection__clear {
         display: none!important;
-    }  
+    }
     .no-border {
         border: none;
     }
@@ -130,10 +130,13 @@
     }
 
     .bg-error, .bg-error:hover {
-        background: #dd2d20!important;        
+        background: #dd2d20!important;
     }
     .closedwin-statusupdate {
         display: none;
+    }
+    span.drivertitle {
+        cursor: pointer;
     }
 </style>
 @endsection
@@ -695,7 +698,7 @@
                     });
 
                 }
-            });            
+            });
         })
 
         $(document).on('click', '#driver-reject-the-order', function () {
@@ -727,7 +730,7 @@
                     });
 
                 }
-            });            
+            });
         })
 
         $(document).on('click', '.close-order', function () {
@@ -848,7 +851,7 @@
                         $('button[type="submit"]').attr('disabled', false);
                         $('body').find('.LoaderSec').addClass('d-none');
                     }
-                });                                             
+                });
             }
         });
 
@@ -862,12 +865,12 @@
                 $(this).parent().fadeOut();
             });
         }
-    
+
         $(document).on('click', '.dropdown-toggle', function() {
             var isHidden = $(this).parents(".button-dropdown").children(".dropdown-menu").is(":hidden");
             $(".button-dropdown .dropdown-menu").hide();
             $(".button-dropdown .dropdown-toggle").removeClass("active");
-            
+
             if (isHidden) {
                 $(this).parents(".button-dropdown").children(".dropdown-menu").toggle()
                     .parents(".button-dropdown")
@@ -876,10 +879,10 @@
 
             $('.cmnt-er-lbl').addClass('d-none');
         });
-    
+
         $(document).on('click', function() {
             var target = $(event.target);
-            
+
             if (!target.parents().hasClass("button-dropdown")) {
                 if ($('.dropdown-menu').is(':visible')) {
                     ServerDataTable.ajax.reload();
@@ -902,19 +905,19 @@
                 $(this).parent().fadeOut();
             });
         }
-    
+
         $(document).on('click', '.status-dropdown-toggle', function() {
             var isHidden = $(this).parents(".status-dropdown").children(".status-dropdown-menu").is(":hidden");
             $(".status-dropdown .status-dropdown-menu").hide();
             $(".status-dropdown .status-dropdown-toggle").removeClass("active");
-            
+
             if (isHidden) {
                 $(this).parents(".status-dropdown").children(".status-dropdown-menu").toggle()
                     .parents(".status-dropdown")
                     .children(".status-dropdown-toggle").addClass("active");
             }
         });
-    
+
         $(document).on('click', '.status-dropdown-menu div', function() {
             var bgColor = rgbToHex($(this).css("background-color"));
             var text = $(this).text();
@@ -931,14 +934,14 @@
             var dropdownToggle = $(this).closest(".status-dropdown").find(".status-dropdown-toggle");
             var dropdownToggleText = $(this).closest(".status-dropdown").find(".status-dropdown-toggle").find("span");
             dropdownToggleText.text(text);
-            
+
             dropdownToggle.css("background-color", bgColor);
             dropdownToggle.css("color", generateTextColor(bgColor));
-            
+
             // Hide the dropdown menu and remove the active class
             $(this).parent().hide();
             dropdownToggle.removeClass("active");
-            
+
             $(this).parent().parent().parent().find('.status-action-btn').find('.status-save-btn').removeAttr("disabled");
 
             if ($(this).data('isajax') === undefined) {
@@ -968,7 +971,7 @@
             $('.pcp-er-lbl').text('');
             $('.pcp-er-lbl').addClass('d-none');
         });
-        
+
         $(document).on('click', '.status-save-btn', function () {
             let el = $(this).parent().parent().find('.status-dropdown-toggle');
             let thisSid = $(el).attr('data-sid');
@@ -976,9 +979,9 @@
             let lbl = $(this).parent().parent().prev().prev();
             let commentEle = $(this).parent().parent().find('textarea');
             let comment = $(this).parent().parent().find('textarea').val().trim();
-            let errEle = $(this).parent().parent().find('.cmnt-er-lbl'); 
-            let errEleFsp = $(this).parent().parent().find('.fsp-er-lbl'); 
-            let errElePcp = $(this).parent().parent().find('.pcp-er-lbl'); 
+            let errEle = $(this).parent().parent().find('.cmnt-er-lbl');
+            let errEleFsp = $(this).parent().parent().find('.fsp-er-lbl');
+            let errElePcp = $(this).parent().parent().find('.pcp-er-lbl');
             let proofElement = $(this).parent().parent().find('div.closedwin-statusupdate input#cs-pcp');
             let priceElement = $(this).parent().parent().find('div.closedwin-statusupdate input#cs-fsp');
             let cwstatus = $(this).attr('data-cwstatus');
@@ -1091,8 +1094,8 @@
                         $('.status-save-btn').attr('disabled', false);
                         $('body').find('.LoaderSec').addClass('d-none');
                     }
-                    
-                });                
+
+                });
             }
         })
 

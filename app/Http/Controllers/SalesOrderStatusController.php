@@ -1580,6 +1580,7 @@ class SalesOrderStatusController extends Controller
                     }
 
                     Deliver::where('user_id', auth()->user()->id)->where('so_id', $request->id)->where('status', 0)->update(['status' => 1]);
+                    Deliver::where('user_id','!=',auth()->user()->id)->where('so_id', $request->id)->delete();
                     SalesOrder::where('id', $request->id)->update(['status' => 2, 'responsible_user' => auth()->user()->id]);
                     $soId = $disOrder->id;
 

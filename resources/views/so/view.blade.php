@@ -88,14 +88,13 @@
                         <textarea id="address_line_1" class="form-control" style="height: 60px;background:#efefef;" readonly>{{ $so->customer_address_line_1 }}</textarea>
                     </div>
                 </div>
-
+                @if(!empty($driverDetails))
                 <div class="col-sm-12 col-md-4">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Driver Name</label>
                         <input class="form-control" placeholder="" type="text" value="{{ isset($driverDetails->user->name) ? $driverDetails->user->name : '-' }}" readonly style="background:#efefef">
                     </div>
                 </div>
-
                 <div class="col-sm-12 col-md-4">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Driver Email</label>
@@ -109,6 +108,7 @@
                         <input class="form-control"  placeholder="" type="text" value="{{ isset($driverDetails->range) ? number_format($driverDetails->range, 2, '.', "") : '0' }}" readonly style="background:#efefef">
                     </div>
                 </div>
+                @endif
 
                 <div>
                     <div class="col-md-12">
@@ -124,49 +124,49 @@
 
                             <div class="col-md-12">
                                 <div class="row">
-            
+
                                     <div class="col-md-2 col-sm-12">
                                         <div class="form-group">
                                             <label class="c-gr f-500 f-16 w-100 mb-2">Category :</label>
                                             <input type="text" readonly class="form-control" value="{{ $item->category->status == 1 ? $item->category->name : '' }}" readonly>
                                         </div>
                                     </div>
-            
+
                                     <div class="col-md-2 col-sm-12">
                                         <div class="form-group">
                                             <label class="c-gr f-500 f-16 w-100 mb-2">Product :</label>
                                             <input type="text" readonly class="form-control" value="{{ $item->category->status == 1 ? $item->product->name : '' }}" readonly>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="col-md-2 col-sm-12">
                                         <div class="form-group">
                                             <label class="c-gr f-500 f-16 w-100 mb-2">Quantity :</label>
                                             <input type="number" data-indexid="0" name="quantity[]" id="mquantity" class="form-control" min="1" readonly value="{{$item->qty}}">
                                         </div>
                                     </div>
-            
+
                                     <div class="col-md-2 col-sm-12">
                                         <div class="form-group">
                                             <label class="c-gr f-500 f-16 w-100 mb-2"> Price :</label>
                                             <input type="number" data-indexid="0" id="mprice" name="price[]" id="mprice" readonly class="form-control" min="0" value="{{ $so->price_matched ? $item->sold_item_amount : $item->price }}">
                                         </div>
                                     </div>
-            
+
                                     <div class="col-md-2 col-sm-12">
                                         <div class="form-group">
                                             <label class="c-gr f-500 f-16 w-100 mb-2"> Amount :</label>
                                             <input type="number" data-indexid="0" id="mamount" name="amount[]" id="maount" class="form-control" readonly value="{{ $so->price_matched ? ($item->sold_item_amount * $item->qty) : $item->amount  }}">
                                         </div>
                                     </div>
-            
+
                                     <div class="col-md-2 col-sm-12">
                                         <div class="form-group">
                                             <label class="c-gr f-500 f-16 w-100 mb-2">Remarks :</label>
                                             <input type="text" data-indexid="0" tabindex="0" maxlength="255" name="remarks[]" id="mremarks" class="form-control" readonly value="{{$item->remarks}}">
                                         </div>
                                     </div>
-            
+
                                 </div>
                             </div>
 
@@ -177,7 +177,7 @@
                     </div>
 
                     @if($so->price_matched)
-                    
+
                     <div class="col-md-12">
                         <div
                             class="cardsHeader f-20 f-600 c-36 f-700 border-0 ps-0 tableHeading position-relative my-4">
@@ -186,28 +186,28 @@
 
                         <div class="col-md-12">
                             <div class="row">
-        
+
                                 <div class="col-md-4 col-sm-12">
                                     <div class="form-group">
                                         <label class="c-gr f-500 f-16 w-100 mb-2">Amount received by driver :</label>
                                         <input type="text" class="form-control" value="{{ $so->sold_amount + $so->driver_amount }}" readonly>
                                     </div>
                                 </div>
-        
+
                                 <div class="col-md-4 col-sm-12">
                                     <div class="form-group">
                                         <label class="c-gr f-500 f-16 w-100 mb-2">Driver amount :</label>
                                         <input type="text" class="form-control" value="{{ $so->driver_amount }}" readonly>
                                     </div>
                                 </div>
-                                
+
                                 <div class="col-md-4 col-sm-12">
                                     <div class="form-group">
                                         <label class="c-gr f-500 f-16 w-100 mb-2">New order amount :</label>
                                         <input type="text" class="form-control" readonly value="{{ $so->sold_amount }}">
                                     </div>
                                 </div>
-        
+
                             </div>
                         </div>
 
@@ -244,7 +244,7 @@
 
                         <div class="col-md-12">
                             <div class="row">
-        
+
                                 @forelse($logs as $key => $l)
                                 <div class="activity py-1 hist">
                                     <p class="f-14" style="margin-bottom:0px;">
@@ -281,7 +281,7 @@
                                 History not available
                             </div>
                             @endforelse
-        
+
                             </div>
                         </div>
 

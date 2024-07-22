@@ -149,8 +149,8 @@ class SalesOrderController extends Controller
 
                     if (User::isAdmin() || (!empty($row->responsible_user) && is_numeric($row->responsible_user) && $row->responsible_user == auth()->user()->id)) {
                         if (count($allStatuses) > 0) {
-    
-                            $html = 
+
+                            $html =
                             '<div class="status-main button-dropdown position-relative">
                                 <label class="status-label" style="background:' . ($row->ostatus->color ?? '') . ';color:' . (Helper::generateTextColor($row->ostatus->color ?? '')) . ';"> ' . ($row->ostatus->name ?? '') . ' </label>
                                 <button type="button" class="dropdown-toggle status-opener ms-2 d-inline-flex align-items-center justify-content-center">
@@ -161,7 +161,7 @@ class SalesOrderController extends Controller
                                 <div class="dropdown-menu status-modal">
                                     <label class="c-gr f-500 f-14 w-100 mb-2"> STATUS : <span class="text-danger">*</span></label>
                                     <div class="status-dropdown">';
-    
+
                                     foreach ($allStatuses as $k => $status) {
                                         if ($k == 0) {
                                         $html .= '<button type="button" data-sid="' . $status->id . '" data-oid="' . $row->id . '" style="background:' . $status->color . ';color:' . Helper::generateTextColor($status->color) . ';" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
@@ -172,16 +172,16 @@ class SalesOrderController extends Controller
                                         </button>';
                                         }
                                     }
-        
+
                                         $html .= '<div class="status-dropdown-menu">';
-        
+
                                         foreach ($allStatuses as $status) {
                                             $html .= '<div class="f-14 cursor-pointer" data-cwstatus="' . $cwStatus . '" data-onumber="' . $row->order_no . '" data-isajax="true" style="background: '. $status->color .';color:' . Helper::generateTextColor($status->color) . ';" data-sid="' . $status->id . '" data-oid="' . $row->id . '" > '. $status->name .' </div>';
                                         }
-        
+
                                         $html .= '</div>
                                     </div>
-    
+
                                     <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> COMMENT : <span class="text-danger">*</span></label>
                                     <textarea id="cs-txtar" placeholder="Add a comment" class="form-control" style="height:60px;"> </textarea>
                                     <label class="cmnt-er-lbl f-12 d-none text-danger"> Add comment to change status </label>
@@ -195,7 +195,7 @@ class SalesOrderController extends Controller
                                         <input type="file" multiple id="cs-pcp" class="form-control" />
                                         <label class="pcp-er-lbl f-12 d-none text-danger"> </label>
                                     </div>
-    
+
                                     <div class="status-action-btn mt-2 position-relative -z-1">
                                         <button data-cwstatus="' . $cwStatus . '" class="status-save-btn btn-primary f-500 f-14 d-inline-block" disabled type="button"> Save </button>
                                         <button class="refresh-dt hide-dropdown btn-default f-500 f-14 d-inline-block ms-1" type="button"> Cancel </button>
@@ -222,18 +222,25 @@ class SalesOrderController extends Controller
                     }
 
                 } else {
-                    if (Deliver::where('so_id', $row->id)->where('status', 0)->doesntExist() && Deliver::where('so_id', $row->id)->where('status', 2)->exists()) {
+                    $totalDeliver = Deliver::where('so_id', $row->id)->count();
+                    $rejectedDriver = Deliver::where('so_id', $row->id)->where('status', 2)->count();
+
+                    if (Deliver::where('so_id', $row->id)->where('status', 0)->doesntExist() && $rejectedDriver == $totalDeliver) {
                         if (in_array(auth()->user()->roles->first()->id, [1,2,6])) {
-                            $isRejected = Deliver::with('user')->where('so_id', $row->id)->where('status', 2)->first();
+                            $isRejected = Deliver::with('user')->where('so_id', $row->id)->where('status', 2)->get();
 
                             if ($isRejected != null) {
                                 if (Deliver::with('user')->where('so_id', $row->id)->whereIn('status', [0,1,3])->doesntExist()) {
-    
+                                    $alldriver = Deliver::with('user')->where('so_id', $row->id)->get()->pluck('user.name')->toArray();
+                                    $alldriverName = '';
+                                    if(!empty($alldriver)) {
+                                        $alldriverName = implode(',',$alldriver);
+                                    }
                                     $deliveryUser = Deliver::where('so_id', $row->id)->whereIn('status', [0,1])->first()->user_id ?? null;
-    
+//. (isset($isRejected->user->name) ? $isRejected->user->name : 'driver') .
                                     $html =  '
                                     <i class="fa fa-warning" aria-hidden="true" style="color: #dd2d20;font-size:16px;"></i>
-                                    <strong class="text-danger f-12"> Order was rejected by ' . (isset($isRejected->user->name) ? $isRejected->user->name : 'driver') . ' </strong>
+                                    <strong class="text-danger f-12"> Order was rejected by <span title="'.$alldriverName.'" class="drivertitle"> All drivers</span> </strong>
                                     <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
                                     ';
                                 }
@@ -248,11 +255,10 @@ class SalesOrderController extends Controller
                         } else if (User::isSeller() || User::isSellerManager() || User::isAdmin()) {
                             $driver = Deliver::with('user')->where('status', 0)->where('so_id', $row->id);
                             if ($driver->exists()) {
-                                $deliveryUser = Deliver::where('so_id', $row->id)->whereIn('status', [0,1])->first()->user_id ?? null;
+                                // $deliveryUser = Deliver::where('so_id', $row->id)->whereIn('status', [0,1])->first()->user_id ?? null;
 
-                                return '<strong> Order assigned to : ' . ($driver->first()->user->name ?? '-') . ' </strong>
-                                <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
-                                ';
+                                return '<strong> Order Placed </strong><div class="f-12">Waiting for driver response</div>';
+                                // <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
                             } else {
                                 $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
                             }
@@ -365,20 +371,20 @@ class SalesOrderController extends Controller
                 $address = trim("{$request->address_line_1} {$request->postal_code}");
                 $address = str_replace(' ', '+', $address);
                 $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
-    
+
                 $data = json_decode(file_get_contents($url), true);
-    
+
                 if ($data['status'] == "OK") {
                     $lat = $data['results'][0]['geometry']['location']['lat'];
                     $long = $data['results'][0]['geometry']['location']['lng'];
-    
+
                     if (!empty($lat)) {
                         $latFrom = $lat;
                         $longFrom = $long;
-    
+
                         $errorWhileSavingLatLong = false;
                     }
-    
+
                     AddressLog::create([
                         'postal_code' => $request->postal_code,
                         'address' => $request->address_line_1,
@@ -414,25 +420,31 @@ class SalesOrderController extends Controller
                         $getAllDriversDistance[$row['id']] = Distance::measure($latFrom, $longFrom, $row['lat'], $row['long']);
                     }
 
+
                     asort($getAllDriversDistance);
 
                     $result = self::getDriver($getAllDriversDistance);
 
                     if ($result['exists']) {
-                        $getNearbyDriver = $result['driver'];
-                        $range = $result['range'];    
+                        $getNearbyDriver = $result['drivers'];
+                        $driverids = array_keys($getNearbyDriver);
                     } else {
                         $isNotAvail = true;
-
+                        $successdrivers = [];
                         foreach ($getAllDriversDistance as $tmpDriver => $tmpRange) {
                             if (PaymentForDelivery::where(fn ($b) => $b->whereNull('driver_id')->orWhere('driver_id', ''))->where('distance', '>=', $tmpRange)->exists()) {
-                                $getNearbyDriver = $tmpDriver;
-                                $range = $tmpRange;
-                                $isNotAvail = false;
-                                break;
+                                $successdrivers[$tmpDriver] = $tmpRange;
+                                // $getNearbyDriver = $tmpDriver;
+                                // $range = $tmpRange;
+                                // $isNotAvail = false;
+                                // break;
                             }
                         }
-
+                        if(!empty($successdrivers)) {
+                            $getNearbyDriver = $successdrivers;
+                            $driverids = array_keys($getNearbyDriver);
+                            $isNotAvail = false;
+                        }
                         if ($isNotAvail) {
                             return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
                         }
@@ -443,12 +455,12 @@ class SalesOrderController extends Controller
                     $minSalesPrice = Product::msp($request->product);
                     $product = Product::where('id', $request->product)->first();
                     $orderNo = Helper::generateSalesOrderNumber();
-                    $driverDetail = User::findOrFail($getNearbyDriver);
+                    $driverDetail = User::whereIn('id',$driverids)->get();
                     $postalcode = $request->postal_code;
                     $addressline = $request->address_line_1;
                     $enteredPrice = $request->price;
 
-                    return response()->json(['status' => true , 'message' => 'Available', 'html' => view('so.single-product', compact('product', 'minSalesPrice', 'orderNo', 'category', 'longFrom', 'latFrom', 'driverDetail', 'range', 'postalcode', 'addressline', 'enteredPrice'))->render()]);
+                    return response()->json(['status' => true , 'message' => 'Available', 'html' => view('so.single-product', compact('product', 'minSalesPrice', 'orderNo', 'category', 'longFrom', 'latFrom', 'driverDetail', 'getNearbyDriver', 'postalcode', 'addressline', 'enteredPrice'))->render()]);
 
                 } else {
                     return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
@@ -466,26 +478,40 @@ class SalesOrderController extends Controller
     private static function getDriver($drivers) {
         if (empty($drivers)) {
             return ['exists' => false];
-        }
-
-        $nearbyDriverId = array_search(min($drivers), $drivers);
-        $range = 0;
-
-        if (isset($drivers[$nearbyDriverId])) {
-            $range = $drivers[$nearbyDriverId];
-            unset($drivers[$nearbyDriverId]);
-        }
-
-        $paymentForDelivery = PaymentForDelivery::where('driver_id', $nearbyDriverId)->where('distance', '>=', $range);
-
-        if ($paymentForDelivery->exists()) {
-            return ['exists' => true, 'driver' => $nearbyDriverId, 'range' => $range];
         } else {
-            return self::getDriver($drivers);
+            $successDrivers = [];
+            foreach($drivers as $driverid=>$driverdetials) {
+                $paymentForDelivery = PaymentForDelivery::where('driver_id', $driverid)->where('distance', '>=', $driverdetials);
+                if($paymentForDelivery->exists()) {
+                    $successDrivers[$driverid] = $driverdetials;
+                }
+            }
         }
+        if(!empty($successDrivers)) {
+            return ['exists' => true, 'drivers' => $successDrivers];
+        } else {
+            return ['exists' => false];
+        }
+        // $nearbyDriverId = array_search(min($drivers), $drivers);
+        // $range = 0;
+
+        // if (isset($drivers[$nearbyDriverId])) {
+        //     $range = $drivers[$nearbyDriverId];
+        //     unset($drivers[$nearbyDriverId]);
+        // }
+
+        // $paymentForDelivery = PaymentForDelivery::where('driver_id', $nearbyDriverId)->where('distance', '>=', $range);
+
+        // if ($paymentForDelivery->exists()) {
+
+        //     return ['exists' => true, 'driver' => $nearbyDriverId, 'range' => $range];
+        // } else {
+        //     return self::getDriver($drivers);
+        // }
     }
 
     public function saveSo(Request $request) {
+
         $this->validate($request, [
             'order_del_date' => 'required',
             'customername' => 'required',
@@ -598,16 +624,26 @@ class SalesOrderController extends Controller
                     } else {
                         SalesOrderItem::insert($soItems);
 
-                        Deliver::create([
-                            'user_id' => $request->driver_id,
-                            'so_id' => $soId,
-                            'added_by' => auth()->user()->id,
-                            'driver_lat' => $request->driver_lat,
-                            'driver_long' => $request->driver_long,
-                            'delivery_location_lat' => $request->lat,
-                            'delivery_location_long' => $request->long,
-                            'range' => $request->range
-                        ]);
+                        if($request->range !="") {
+                            $driverrangeData = json_decode($request->range);
+                            if(!empty($driverrangeData)) {
+                                foreach($driverrangeData as $driverid=>$range) {
+                                    $driverDetail = User::find($driverid);
+                                    if(!empty($driverDetail)) {
+                                        Deliver::create([
+                                            'user_id' => $driverid,
+                                            'so_id' => $soId,
+                                            'added_by' => auth()->user()->id,
+                                            'driver_lat' => $request->lat,
+                                            'driver_long' => $request->long,
+                                            'delivery_location_lat' => $request->lat,
+                                            'delivery_location_long' => $request->long,
+                                            'range' => $range
+                                        ]);
+                                    }
+                                }
+                            }
+                        }
 
                         DB::commit();
                         return redirect()->route('sales-orders.index')->with('success', "Sales order added successfully.");
@@ -937,7 +973,7 @@ class SalesOrderController extends Controller
         $moduleLink = route('sales-orders.index');
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $so = SalesOrder::find(decrypt($id));
-        $driverDetails = Deliver::with('user')->where('so_id', decrypt($id))->whereIn('status', [0,1,3])->first();
+        $driverDetails = Deliver::with('user')->where('so_id', decrypt($id))->whereIn('status', [1,3])->first();//0,
         $logs = TriggerLog::where('order_id', $so->id)->whereIn('type', [2, 4])->orderBy('id', 'ASC')->get();
 
         return view('so.view', compact('moduleName', 'categories', 'so', 'moduleLink', 'driverDetails', 'logs'));
@@ -970,7 +1006,7 @@ class SalesOrderController extends Controller
     }
 
     public function ordersToBeDeliverd(Request $request) {
-        
+
         $statusToBeShown = [1,2];
         $tempStatus = SalesOrderStatus::whereIn(DB::raw("LOWER(slug)"), ['no-answered-1', 'no-answered-2', 'confirmed-order'])->select('id');
 
@@ -1004,7 +1040,7 @@ class SalesOrderController extends Controller
             }
 
             if ($request->has('driver') && !empty($request->driver)) {
-                $d = $d->where('user_id', $request->driver);                
+                $d = $d->where('user_id', $request->driver);
             }
 
         return dataTables()->eloquent($d)
@@ -1043,37 +1079,37 @@ class SalesOrderController extends Controller
 
                     $thisProductId = $order->items->first()->product_id ?? 0;
                     $thisDriverId = auth()->user()->id;
-    
+
                     $hasStock = Helper::getAvailableStockFromDriver($thisDriverId, $thisProductId);
-                    
+
                     if (isset($hasStock[$thisProductId]) && $hasStock[$thisProductId] <= 0) {
                         return response()->json(['status' => false, 'message' => 'You don\'t have stock for this product.']);
                     }
-    
+
                     DB::beginTransaction();
-    
+
                     try {
-        
+
                         $procurementCost = ProcurementCost::where('role_id', $order->addedby->roles->first()->id ?? 2)->where('product_id', $thisProductId)->active();
                         $newTotal = is_numeric($request->amount) ? round($request->amount) : round(floatval($request->amount));
                         $prodQty = $order->items->first()->qty ?? 1;
-        
+
                         //driver amount
                         $p4dDriver = PaymentForDelivery::where('driver_id', $thisDriverId);
                         $assignedDriver = Deliver::where('user_id', $thisDriverId)->where('status', 1)->first();
-    
+
                         if ($p4dDriver->exists() && $assignedDriver != null) {
                             $thisRange = sprintf('%.2f', $assignedDriver->range);
                             $p4dDriver = $p4dDriver->where('distance', '>=', $thisRange)->orderBy('distance', 'ASC')->first();
-    
+
                             if ($p4dDriver != null) {
                                 $driverRecevies = $p4dDriver->payment * $prodQty;//driver commission for each qty of order;
                             }
-    
+
                         } else if (PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first() != null) {
                             $driverRecevies = PaymentForDelivery::whereNull('driver_id')->orWhere('driver_id', '')->first()->payment * $prodQty;//driver commission for each qty of order;
                         }
-    
+
                         $orderAmountAfterDriverAmountDeduction = $newTotal - $driverRecevies;
 
                         if ($orderAmountAfterDriverAmountDeduction <= 0) {
@@ -1087,7 +1123,7 @@ class SalesOrderController extends Controller
                             'amount' => $orderAmountAfterDriverAmountDeduction,
                             'driver_receives' => $driverRecevies
                         ]);
-    
+
                         $transactionUid = Helper::hash();
 
                         //Pay to driver
@@ -1117,12 +1153,12 @@ class SalesOrderController extends Controller
                             'year' => Helper::$financialYear,
                             'added_by' => auth()->user()->id
                         ]);
-    
+
                         if ($procurementCost->exists()) {
                             $procurementCost = $procurementCost->first();
-        
+
                                 $newProductTotal = $newTotal / $prodQty;
-    
+
                                 if ($newProductTotal > $procurementCost->base_price) {
                                     $comPrice = $newProductTotal - $procurementCost->base_price;
                                 } else {
@@ -1154,11 +1190,11 @@ class SalesOrderController extends Controller
                                     'added_by' => auth()->user()->id
                                 ]);
                         }
-    
+
                         $si = Stock::where('product_id', $thisProductId)->whereIn('form', [1,2,3])->where('type', 0)->where('driver_id', $thisDriverId)->sum('qty');
                         $so = Stock::where('product_id', $thisProductId)->whereIn('form', [1,2,3,4])->where('type', 1)->where('driver_id', $thisDriverId)->sum('qty');
                         $stotal = ($si - $so) - $prodQty;
-    
+
                         if ($stotal > 0) {
                             Stock::create([
                                 'product_id' => $thisProductId,
@@ -1171,28 +1207,28 @@ class SalesOrderController extends Controller
                                 'form_record_id' => $order->id
                             ]);
                         }
-    
+
                         $newestTotal = $orderAmountAfterDriverAmountDeduction;
-    
+
                         if ($newestTotal == 0) {
                             $newestTotalQty = 0;
                         } else {
                             $newestTotalQty = $newestTotal / $prodQty;
                         }
-        
+
                         SalesOrder::where('id', $request->order_id)->update(['price_matched' => 1, 'sold_amount' => $newestTotal, 'driver_amount' => $driverRecevies]);
                         SalesOrderItem::where('so_id', $request->order_id)->update(['sold_item_amount' => $newestTotalQty]);
-    
+
                         DB::commit();
                         return response()->json(['status' => true, 'next' => false]);
-    
+
                     } catch (\Exception $e) {
                         Helper::logger($e->getMessage());
                         DB::rollBack();
-            
+
                         return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
                     }
-                    
+
                 } else {
                     return response()->json(['status' => true, 'next' => true]);
                 }
@@ -1219,7 +1255,7 @@ class SalesOrderController extends Controller
                 $thisDriverId = auth()->user()->id;
 
                 $hasStock = Helper::getAvailableStockFromDriver($thisDriverId, $thisProductId);
-                    
+
                 if (isset($hasStock[$thisProductId]) && $hasStock[$thisProductId] <= 0) {
                     return response()->json(['status' => false, 'messages' => 'You don\'t have stock for this product.']);
                 }
@@ -1232,18 +1268,18 @@ class SalesOrderController extends Controller
                         foreach ($request->file('file') as $file) {
                             $name = 'SO-PRICE-PROOF-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
                             $file->move(storage_path('app/public/so-price-change-agreement'), $name);
-    
+
                             if (file_exists(storage_path("app/public/so-price-change-agreement/{$name}"))) {
                                 $toBeDeleted[] = storage_path("app/public/so-price-change-agreement/{$name}");
                                 SalesOrderProofImages::create(['so_id' => $order->id,'name' => $name]);
                             }
-                        }                    
+                        }
                     }
-    
+
                     $procurementCost = ProcurementCost::where('role_id', $order->addedby->roles->first()->id ?? 2)->where('product_id', $thisProductId)->active();
                     $newTotal = is_numeric($request->amount) ? round($request->amount) : round(floatval($request->amount));
                     $prodQty = $order->items->first()->qty ?? 1;
-    
+
                     //driver amount
                     $p4dDriver = PaymentForDelivery::where('driver_id', $thisDriverId);
                     $assignedDriver = Deliver::where('user_id', $thisDriverId)->where('status', 1)->first();
@@ -1306,7 +1342,7 @@ class SalesOrderController extends Controller
 
                     if ($procurementCost->exists()) {
                         $procurementCost = $procurementCost->first();
-    
+
                             $newProductTotal = $newTotal / $prodQty;
 
                             if ($newProductTotal > $procurementCost->base_price) {
@@ -1365,7 +1401,7 @@ class SalesOrderController extends Controller
                     } else {
                         $newestTotalQty = $newestTotal / $prodQty;
                     }
-    
+
                     SalesOrder::where('id', $request->order_id)->update(['price_matched' => 1, 'sold_amount' => $newestTotal, 'driver_amount' => $driverRecevies]);
                     SalesOrderItem::where('so_id', $request->order_id)->update(['sold_item_amount' => $newestTotalQty]);
 
@@ -1414,7 +1450,7 @@ class SalesOrderController extends Controller
                     'range' => Distance::measure($thisUser->lat, $thisUser->long, $driver->delivery_location_lat, $driver->delivery_location_long),
                     'status' => 0
                 ]);
-    
+
                 Deliver::where('id', $driver->id)->update(['status' => 4]);
                 SalesOrder::where('id', $request->order_id)->update(['responsible_user' => $request->driver_id]);
 
@@ -1445,7 +1481,7 @@ class SalesOrderController extends Controller
     }
 
     public function getRealTimeCommission(Request $request) {
-        
+
         $total = 0;
         $salesPriceSet = ProcurementCost::with('product')->active()->whereIn('role_id', User::getUserRoles())->where('product_id', $request->product);
 
