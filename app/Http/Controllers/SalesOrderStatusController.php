@@ -926,51 +926,51 @@ class SalesOrderStatusController extends Controller
                                             'description' => "The sales price in final agreement has been modified to <strong>£{$newTotal}</strong> from <strong>£{$order->total()}</strong>.",
                                         ]);
 
-                                        $driverInfo = User::where('id', $thisDriverId)->first();
+                                        // $driverInfo = User::where('id', $thisDriverId)->first();
 
-                                        $sheetId = Setting::first()->google_sheet_id ?? '';
-                                        $sheetName = 'ДДС месяц';
-                                        $params = [
-                                            [
-                                                date("d/m/Y", strtotime($order->closed_win_date)),
-                                                $newTotal,
-                                                "{$driverInfo->name} ({$driverInfo->city_id})",
-                                                '',
-                                                date('d.m.Y H:i:s', strtotime($order->closed_win_date)) . "        " . (isset($order->seller->country_dial_code) ? "+{$order->seller->country_dial_code} {$order->seller->phone}" : "") . "        " . $order->customer_postal_code,
-                                                '',
-                                                'Продажи'
-                                            ]
-                                        ];
+                                        // $sheetId = Setting::first()->google_sheet_id ?? '';
+                                        // $sheetName = 'ДДС месяц';
+                                        // $params = [
+                                        //     [
+                                        //         date("d/m/Y", strtotime($order->closed_win_date)),
+                                        //         $newTotal,
+                                        //         "{$driverInfo->name} ({$driverInfo->city_id})",
+                                        //         '',
+                                        //         date('d.m.Y H:i:s', strtotime($order->closed_win_date)) . "        " . (isset($order->seller->country_dial_code) ? "+{$order->seller->country_dial_code} {$order->seller->phone}" : "") . "        " . $order->customer_postal_code,
+                                        //         '',
+                                        //         'Продажи'
+                                        //     ]
+                                        // ];
                                         //credit
-                                        $response = Sheets::spreadsheet($sheetId)
-                                        ->sheet($sheetName)
-                                        ->get();
+                                        // $response = Sheets::spreadsheet($sheetId)
+                                        // ->sheet($sheetName)
+                                        // ->get();
 
-                                        $rowCount = count($response); // Number of rows with data
+                                        // $rowCount = count($response); // Number of rows with data
 
                                         // Determine the starting row for the new data
-                                        $startRow = $rowCount + 1;
-                                        $startRow1 = $rowCount + 2;
+                                        // $startRow = $rowCount + 1;
+                                        // $startRow1 = $rowCount + 2;
 
                                         // Define the range starting from column C
-                                        $range = "{$sheetName}!C{$startRow}:M{$startRow}";
-                                        Sheets::spreadsheet($sheetId)->sheet($sheetName)->range($range)->append($params);
-                                        $startRow = $rowCount + 1;
-                                        $range1 = "{$sheetName}!C{$startRow1}:M{$startRow1}";
+                                        // $range = "{$sheetName}!C{$startRow}:M{$startRow}";
+                                        // Sheets::spreadsheet($sheetId)->sheet($sheetName)->range($range)->append($params);
+                                        // $startRow = $rowCount + 1;
+                                        // $range1 = "{$sheetName}!C{$startRow1}:M{$startRow1}";
                                         //debit
-                                        $params1 = [
-                                            [
-                                                date('d/m/Y', strtotime($order->closed_win_date)),
-                                                -$order->driver_amount,
-                                                "{$driverInfo->name} ({$driverInfo->city_id})",
-                                                '',
-                                                date('d.m.Y H:i:s', strtotime($order->closed_win_date)) . "        " . (isset($order->seller->country_dial_code) ? "+{$order->seller->country_dial_code} {$order->seller->phone}" : "") . "        " . $order->customer_postal_code,
-                                                '',
-                                                'Зарплата производственного персонала'
-                                            ]
-                                        ];
+                                        // $params1 = [
+                                        //     [
+                                        //         date('d/m/Y', strtotime($order->closed_win_date)),
+                                        //         -$order->driver_amount,
+                                        //         "{$driverInfo->name} ({$driverInfo->city_id})",
+                                        //         '',
+                                        //         date('d.m.Y H:i:s', strtotime($order->closed_win_date)) . "        " . (isset($order->seller->country_dial_code) ? "+{$order->seller->country_dial_code} {$order->seller->phone}" : "") . "        " . $order->customer_postal_code,
+                                        //         '',
+                                        //         'Зарплата производственного персонала'
+                                        //     ]
+                                        // ];
 
-                                        Sheets::spreadsheet($sheetId)->sheet($sheetName)->range($range1)->append($params1);
+                                        // Sheets::spreadsheet($sheetId)->sheet($sheetName)->range($range1)->append($params1);
                                         DB::commit();
                                         return response()->json(['status' => true, 'message' => 'Sales price changes proof uploaded successfully.', 'color' => $color, 'text' => $text]);
                                 } else {

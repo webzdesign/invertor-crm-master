@@ -619,52 +619,52 @@ class ReportController extends Controller
                 $id = Transaction::where('id', $request->id)->first()->transaction_id;
                 if ($type == 'accept') {
                     Transaction::where('transaction_id', $id)->update(['is_approved' => 1]);
-                    $transaction = Transaction::with('user')->where('transaction_id', $id)->where('user_id', '!=', 1)->first();
+                    // $transaction = Transaction::with('user')->where('transaction_id', $id)->where('user_id', '!=', 1)->first();
 
-                    $sheetId = Setting::first()->google_sheet_id ?? '';
-                    $sheetName = 'ДДС месяц';
+                    // $sheetId = Setting::first()->google_sheet_id ?? '';
+                    // $sheetName = 'ДДС месяц';
 
-                    $params = [
-                        [
-                            date('d/m/Y'),
-                            -$transaction->amount,
-                            ($transaction->user->name ?? '') . (isset($transaction->user->city_id) ? " ({$transaction->user->city_id})" : ''),
-                            '',
-                            '',
-                            '',
-                            'Выбытие — Перевод между счетами'
-                        ]
-                    ];
+                    // $params = [
+                    //     [
+                    //         date('d/m/Y'),
+                    //         -$transaction->amount,
+                    //         ($transaction->user->name ?? '') . (isset($transaction->user->city_id) ? " ({$transaction->user->city_id})" : ''),
+                    //         '',
+                    //         '',
+                    //         '',
+                    //         'Выбытие — Перевод между счетами'
+                    //     ]
+                    // ];
+                    // //credit
+                    // $response = Sheets::spreadsheet($sheetId)
+                    // ->sheet($sheetName)
+                    // ->get();
+
+                    // $rowCount = count($response); // Number of rows with data
+
+                    // // Determine the starting row for the new data
+                    // $startRow = $rowCount + 1;
+                    // $startRow1 = $rowCount + 2;
+
+                    // // Define the range starting from column C
+                    // $range = "{$sheetName}!C{$startRow}:M{$startRow}";
+                    // Sheets::spreadsheet($sheetId)->sheet($sheetName)->range($range)->append($params);
+                    // $startRow = $rowCount + 1;
+                    // $range1 = "{$sheetName}!C{$startRow1}:M{$startRow1}";
+                    // //debit
+                    // $params1 = [
+                    //     [
+                    //         date('d/m/Y'),
+                    //         $transaction->amount,
+                    //         User::select('name')->where('id', 1)->first()->name ?? '',
+                    //         '',
+                    //         '',
+                    //         '',
+                    //         'Поступление — Перевод между счетами'
+                    //     ]
+                    // ];
                     //credit
-                    $response = Sheets::spreadsheet($sheetId)
-                    ->sheet($sheetName)
-                    ->get();
-
-                    $rowCount = count($response); // Number of rows with data
-
-                    // Determine the starting row for the new data
-                    $startRow = $rowCount + 1;
-                    $startRow1 = $rowCount + 2;
-
-                    // Define the range starting from column C
-                    $range = "{$sheetName}!C{$startRow}:M{$startRow}";
-                    Sheets::spreadsheet($sheetId)->sheet($sheetName)->range($range)->append($params);
-                    $startRow = $rowCount + 1;
-                    $range1 = "{$sheetName}!C{$startRow1}:M{$startRow1}";
-                    //debit
-                    $params1 = [
-                        [
-                            date('d/m/Y'),
-                            $transaction->amount,
-                            User::select('name')->where('id', 1)->first()->name ?? '',
-                            '',
-                            '',
-                            '',
-                            'Поступление — Перевод между счетами'
-                        ]
-                    ];
-                    //credit
-                    Sheets::spreadsheet($sheetId)->sheet($sheetName)->range($range1)->append($params1);
+                    // Sheets::spreadsheet($sheetId)->sheet($sheetName)->range($range1)->append($params1);
 
                     DB::commit();
                     return response()->json(['status' => true, 'message' => 'Payment approved successfully.']);
@@ -1016,41 +1016,41 @@ class ReportController extends Controller
                     'added_by' => auth()->user()->id
                 ]);
 
-                $transaction = CommissionWithdrawalHistory::with(['user', 'bank'])->where('id', $request->id)->first();
+                // $transaction = CommissionWithdrawalHistory::with(['user', 'bank'])->where('id', $request->id)->first();
 
-                $sheetId = Setting::first()->google_sheet_id ?? '';
-                $sheetName = 'ДДС месяц';
+                // $sheetId = Setting::first()->google_sheet_id ?? '';
+                // $sheetName = 'ДДС месяц';
 
-                $orderDetails = json_decode($transaction->orders, true);
-                $ordersDetail = [];
+                // $orderDetails = json_decode($transaction->orders, true);
+                // $ordersDetail = [];
 
-                if ($orderDetails != null) {
-                    $ordersDetail = implode("   ", SalesOrder::select('order_no')->whereIn('id', $orderDetails)->pluck('order_no')->toArray());
-                }
+                // if ($orderDetails != null) {
+                //     $ordersDetail = implode("   ", SalesOrder::select('order_no')->whereIn('id', $orderDetails)->pluck('order_no')->toArray());
+                // }
 
-                $response = Sheets::spreadsheet($sheetId)
-                ->sheet($sheetName)
-                ->get();
+                // $response = Sheets::spreadsheet($sheetId)
+                // ->sheet($sheetName)
+                // ->get();
 
-                $rowCount = count($response); // Number of rows with data
+                // $rowCount = count($response); // Number of rows with data
 
-                // Determine the starting row for the new data
-                $startRow = $rowCount + 1;
-                // Define the range starting from column C
-                $range = "{$sheetName}!C{$startRow}:M{$startRow}";
+                // // Determine the starting row for the new data
+                // $startRow = $rowCount + 1;
+                // // Define the range starting from column C
+                // $range = "{$sheetName}!C{$startRow}:M{$startRow}";
 
-                $params = [
-                    [
-                        date('d/m/Y'),
-                        -$transaction->amount,
-                        User::select('name')->where('id', 1)->first()->name ?? '',
-                        '',
-                        $ordersDetail,
-                        '',
-                        'Зарплата коммерческого персонала - Посредники'
-                    ]
-                ];
-                Sheets::spreadsheet($sheetId)->sheet($sheetName)->range($range)->append($params);
+                // $params = [
+                //     [
+                //         date('d/m/Y'),
+                //         -$transaction->amount,
+                //         User::select('name')->where('id', 1)->first()->name ?? '',
+                //         '',
+                //         $ordersDetail,
+                //         '',
+                //         'Зарплата коммерческого персонала - Посредники'
+                //     ]
+                // ];
+                // Sheets::spreadsheet($sheetId)->sheet($sheetName)->range($range)->append($params);
                 //debit
 
                 DB::commit();
