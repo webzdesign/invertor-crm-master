@@ -17,7 +17,7 @@ class PaymentForDeliveryController extends Controller
 
             $drivers = User::whereHas('role', function ($builder) {
                 $builder->where('roles.id', 3);
-            })->selectRaw("CONCAT(name, ' - (', email, ')') as name, id")->pluck('name', 'id')->toArray();
+            })->selectRaw("CONCAT(name, ' - ', city_id, '') as name, id")->pluck('name', 'id')->toArray();
 
             return view('payment-for-delivery.index', compact('moduleName', 'drivers', 'payments', 'payment'));
         } else {
@@ -76,7 +76,7 @@ class PaymentForDeliveryController extends Controller
                                 'added_by' => auth()->user()->id,
                                 'distance' => $request->mdistance[$k],
                                 'payment' => $request->mpayment[$k]
-                            ]);                            
+                            ]);
                         } else {
                             PaymentForDelivery::create([
                                 'driver_id' => $driver,
@@ -87,7 +87,7 @@ class PaymentForDeliveryController extends Controller
                         }
 
                     }
-                } 
+                }
 
                 DB::commit();
                 return redirect()->back()->with('success', 'Payment for delivery records updated successfully.');

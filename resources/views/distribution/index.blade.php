@@ -111,7 +111,6 @@
                 <th>Type</th>
                 <th>Date</th>
                 <th>
-
                     <table style="width: 100%;">
                         <thead>
                             <tr>
@@ -135,7 +134,7 @@
     $(document).ready(function() {
 
         $.fn.dataTable.ext.errMode = 'none';
-        
+
         $('#filterFrom').datepicker({
             format: 'dd-mm-yyyy',
             autoclose: true,

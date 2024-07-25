@@ -15,7 +15,7 @@ class ReportController extends Controller
 
         $drivers = User::whereHas('role', function ($builder) {
             $builder->where('roles.id', 3);
-        })->selectRaw("CONCAT(users.name, ' - (', users.email, ')') as name, users.id as id")
+        })->selectRaw("CONCAT(users.name, ' - ',users.city_id, ' - (', users.email, ')') as name, users.id as id")
         ->when(User::isDriver(), fn ($builder) => ($builder->where('id', auth()->user()->id)));
 
         if (!$request->ajax()) {
@@ -173,12 +173,14 @@ class ReportController extends Controller
             $total = 0;
 
             $ledger = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
-            ->selectRaw("users.name as driver_info, users.id as userid")
+            ->selectRaw("CONCAT(users.name, ' - ', users.city_id, '') as driver_info, users.id as userid")
             ->whereIn('transactions.amount_type', [2])
             ->groupBy('transactions.user_id');
 
             if (isset($request->search['value']) && !empty($request->search['value'])) {
-                $ledger = $ledger->where('users.name', 'LIKE', '%' . $request->search['value'] . '%');
+                $ledger = $ledger->where(function ($q) use ($request){
+                    $q->where('users.name', 'LIKE', '%' . $request->search['value'] . '%')->orWhere('users.city_id', 'LIKE', '%' . $request->search['value'] . '%');
+                });
             }
 
             foreach ($ledger->get() as $thisIterator) {
@@ -556,7 +558,9 @@ class ReportController extends Controller
             $tmp = Transaction::join('users', 'users.id', '=', 'transactions.user_id')
                 ->select("transaction_id")
                 ->where('amount_type', 0)
-                ->where('users.name', 'LIKE', "%$searchVal%")
+                ->where(function ($q) use($searchVal) {
+                    $q->where('users.name', 'LIKE', "%$searchVal%")->orWhere('users.city_id', 'LIKE', "%$searchVal%");
+                })
                 ->whereIn('transaction_id', $drivers->clone()->pluck('transaction_id')->toArray())
                 ->pluck('transaction_id')
                 ->toArray();
@@ -584,7 +588,8 @@ class ReportController extends Controller
 
         return dataTables()->eloquent($drivers)
         ->addColumn('driver', function ($row) {
-            return Transaction::with('user')->where('user_id', '!=', 1)->where('transaction_id', $row->transaction_id)->first()->user->name ?? '-';
+            $driverDeatils = Transaction::with('user')->where('user_id', '!=', 1)->where('transaction_id', $row->transaction_id)->first();
+            return (!empty($driverDeatils) ? $driverDeatils->user->name." - ".$driverDeatils->user->city_id : '-');
         })
         ->addColumn('date', function ($row) {
             return date('d-m-Y', strtotime($row->date));

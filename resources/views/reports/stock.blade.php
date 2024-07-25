@@ -63,7 +63,7 @@
         <thead>
             <tr>
                 @if(!User::isDriver())
-                <th width="10%">Type</th>
+                <th width="15%">Type</th>
                 @endif
                 <th>Product</th>
                 <th width="10%">Quantity</th>

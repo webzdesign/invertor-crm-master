@@ -26,7 +26,7 @@ class DistributionController extends Controller
             $drivers = User::whereHas('role', function ($builder) {
                 $builder->where('roles.id', 3);
             })->selectRaw("id, CONCAT(name, ' - (', email, ')') as name")->pluck('name', 'id')->toArray();
-    
+
             return view('distribution.index', compact('moduleName', 'drivers', 'types'));
         }
 
@@ -77,26 +77,26 @@ class DistributionController extends Controller
 
                     if ($row->type == '1') {
                         foreach ($row->items as $item) {
-                            $html .= "<tr>  
+                            $html .= "<tr>
                             <td> - </td>
                             <td> " . $item->product->name . " </td>
-                            <td> " . $item->todriver->name . " </td>
+                            <td> " . $item->todriver->name . (isset($item->todriver->city_id) ? " - ".$item->todriver->city_id : '')."</td>
                             <td> " . round($item->qty) . " </td>
                              </tr>";
                         }
                     } else if ($row->type == '2') {
                         foreach ($row->items as $item) {
-                            $html .= "<tr>  
-                            <td> " . $item->fromdriver->name . " </td>
+                            $html .= "<tr>
+                            <td> " . $item->fromdriver->name . (isset($item->fromdriver->city_id) ? " - ".$item->fromdriver->city_id : '')."</td>
                             <td> " . $item->product->name . " </td>
-                            <td> " . $item->todriver->name . " </td>
+                            <td> " . $item->todriver->name . (isset($item->todriver->city_id) ? " - ".$item->todriver->city_id : '')." </td>
                             <td> " . round($item->qty) . " </td>
                              </tr>";
                         }
                     } else if ($row->type == '3') {
                         foreach ($row->items as $item) {
-                            $html .= "<tr>  
-                            <td> " . $item->fromdriver->name . " </td>
+                            $html .= "<tr>
+                            <td> " . $item->fromdriver->name . (isset($item->fromdriver->city_id) ? " - ".$item->fromdriver->city_id : '')." </td>
                             <td> " . $item->product->name . " </td>
                             <td> - </td>
                             <td> " . round($item->qty) . " </td>
@@ -104,7 +104,7 @@ class DistributionController extends Controller
                         }
                     }
 
-                    $html .= '</table>'; 
+                    $html .= '</table>';
 
                     return $html;
                 })
@@ -117,11 +117,11 @@ class DistributionController extends Controller
 
                     if (auth()->user()->hasPermission("distribution.view")) {
                         $url = route("distribution.view", encrypt($variable->id));
-                        $action .= view('buttons.view', compact('variable', 'url')); 
+                        $action .= view('buttons.view', compact('variable', 'url'));
                     }
 
                     $action .= '</div>';
-    
+
                     return $action;
 
                 })
@@ -258,7 +258,7 @@ class DistributionController extends Controller
 
                 $data = $products;
             } else if ($request->type == '3' && !empty(trim($request->driver))) {
-                
+
                 $stockInItems = Stock::where('type', '0')
                                 ->where('driver_id', $request->driver)
                                 ->whereIn('form', ['1', '3'])
@@ -331,7 +331,7 @@ class DistributionController extends Controller
             $validations['from_driver.*'] = 'required';
             $messages['from_driver.*.required'] = 'Select a driver.';
         }
-        
+
         $this->validate($request, $validations, $messages);
 
         if (!file_exists(storage_path('app/public/distribution-docs'))) {
@@ -357,7 +357,7 @@ class DistributionController extends Controller
                 foreach ($products as $pk => $p) {
                     $addProdQty[$p] = isset($addProdQty[$p]) ? ($addProdQty[$p] + $quantities[$pk]) : $quantities[$pk];
                 }
-                
+
                 foreach ($addProdQty as $pk => $qty) {
                     if (isset($tempHelper[$pk]) && $tempHelper[$pk] < $qty) {
                         $storageOutBoundErrors[] = '<strong>' . $tempHelper[$pk] . '</strong> quantity of <strong>' . Helper::productName()[$pk] . "</strong> are available in storage and you assigned <strong>{$qty}</strong>.";
@@ -406,11 +406,11 @@ class DistributionController extends Controller
                     foreach ($request->file('docs') as $file) {
                         $name = 'DISTRIBUTION-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
                         $file->move(storage_path('app/public/distribution-docs'), $name);
-        
+
                         if (file_exists(storage_path("app/public/distribution-docs/{$name}"))) {
                             DistributionAttachment::create(['distribution_id' => $distrib->id,'name' => $name]);
                         }
-                    }                    
+                    }
                 }
 
                 foreach ($products as $key => $value) {
@@ -470,11 +470,11 @@ class DistributionController extends Controller
                     foreach ($request->file('docs') as $file) {
                         $name = 'DISTRIBUTION-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
                         $file->move(storage_path('app/public/distribution-docs'), $name);
-        
+
                         if (file_exists(storage_path("app/public/distribution-docs/{$name}"))) {
                             DistributionAttachment::create(['distribution_id' => $distrib->id,'name' => $name]);
                         }
-                    }                    
+                    }
                 }
 
                 foreach ($products as $key => $value) {
@@ -536,11 +536,11 @@ class DistributionController extends Controller
                     foreach ($request->file('docs') as $file) {
                         $name = 'DISTRIBUTION-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
                         $file->move(storage_path('app/public/distribution-docs'), $name);
-        
+
                         if (file_exists(storage_path("app/public/distribution-docs/{$name}"))) {
                             DistributionAttachment::create(['distribution_id' => $distrib->id,'name' => $name]);
                         }
-                    }                    
+                    }
                 }
 
                 foreach ($products as $key => $value) {
@@ -608,5 +608,5 @@ class DistributionController extends Controller
 
         return view('distribution.view', compact('moduleName', 'd', 'types'));
     }
-    
+
 }
