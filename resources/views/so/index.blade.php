@@ -262,11 +262,11 @@
         <thead>
             <tr>
                 <th>Sr No.</th>
+                <th style="width: 10%!important;">Postal Code</th>
                 <th>Order No.</th>
                 <th>Product</th>
                 <th style="width: 10%!important;">Quantity</th>
                 <th style="width: 10%!important;">Order Amount</th>
-                <th style="width: 10%!important;">Postal Code</th>
                 @if(in_array(1, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 <th>Added By</th>
                 @endif
@@ -376,6 +376,11 @@
                     searchable: false,
                 },
                 {
+                    data: 'postalcode',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
                     data: 'order_no',
                 },
                 {
@@ -388,11 +393,6 @@
                 },
                 {
                     data: 'total',
-                },
-                {
-                    data: 'postalcode',
-                    orderable: false,
-                    searchable: false,
                 },
                 @if(in_array(1, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 {
