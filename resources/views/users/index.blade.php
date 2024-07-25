@@ -64,6 +64,7 @@
                 <th>Name</th>
                 <th>Role</th>
                 <th>Email</th>
+                <th>City</th>
                 <th>Status</th>
                 <th>Added By</th>
                 <th>Updated By</th>
@@ -120,6 +121,9 @@
                 },
                 {
                     data: 'email',
+                },
+                {
+                    data: 'city_id',
                 },
                 {
                     data: 'status',

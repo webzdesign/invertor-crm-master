@@ -43,7 +43,8 @@ class SalesOrderController extends Controller
         }
 
         if ($request->has('filterStatus') && !empty(trim($request->filterStatus))) {
-            $po = $po->where('status', $request->filterStatus);
+            $statusfilter = explode(',',$request->filterStatus);
+            $po = $po->whereIn('status',$statusfilter);
         }
 
         if ($request->has('filterFrom') && !empty(trim($request->filterFrom))) {
@@ -106,7 +107,7 @@ class SalesOrderController extends Controller
                         </div>
                         ';
                 }
-                
+
                 $action .= '</div>';
 
                 return $action;
