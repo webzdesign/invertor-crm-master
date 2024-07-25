@@ -37,9 +37,21 @@ class SalesOrderController extends Controller
             }
         });
         if(in_array(auth()->user()->roles->first()->id, [2,3])) {
-            $po = $po->whereNotIn('status',[9]);
+           $po->whereNotIn('status',[9]);
         }
+        if(in_array(auth()->user()->roles->first()->id, [3])) {
 
+            $po->where(function ($query) {
+                $query->whereNull('responsible_user')->orWhereHas('responsible', function($q1)
+                {
+                    $q1->where('id','!=', User::whereHas('role', function ($builder) {
+                        $builder->where('roles.id', 2);
+                    })->get()->pluck('id')->toArray());
+                });
+
+            });
+
+        }
         if ($request->has('filterSeller') && !empty(trim($request->filterSeller))) {
             $po = $po->where('seller_id', $request->filterSeller);
         }
@@ -74,7 +86,7 @@ class SalesOrderController extends Controller
                 $builder->where('product_id', $pro);
             });
         }
-
+// dd($po->get()[0]->responsible->role);
         $orderClosedWinStatus = SalesOrderStatus::where('slug', 'closed-win')->first()->id ?? 0;
         $allStatuses = SalesOrderStatus::custom()->active()->select('id', 'name', 'color')->get();
 
