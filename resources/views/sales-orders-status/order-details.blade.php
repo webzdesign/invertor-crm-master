@@ -29,7 +29,7 @@
             </div>
         </div>
 
-        
+
         <hr class="border-secondary">
 
         <h6 class="f-14 mb-1 mt-2 mb-2"><i class="fa fa-tag" aria-hidden="true"></i> Order details</h6>
@@ -39,9 +39,9 @@
                 <label for="c-gr f-500 f-16 w-100 mb-2"><strong>Order Amount</strong></label> :
                 <span>
                 @if($order->price_matched)
-                    {{ Helper::currency($order->driver_amount + $order->sold_amount) }} 
+                    {{ Helper::currency($order->driver_amount + $order->sold_amount) }}
                 @else
-                    {{ Helper::currency($order->total()) }} 
+                    {{ Helper::currency($order->total()) }}
                 @endif
                 </span>
             </div>
@@ -53,7 +53,7 @@
                 <label for="c-gr f-500 f-16 w-100 mb-2"><strong>Delivery Date</strong></label> :
                 <span> {{ date('d-m-Y', strtotime($order->delivery_date)) }} </span>
             </div>
-            
+
             @php
                 $driver = Deliver::with('user')->where('status', 1)->where('so_id', $order->id)->first();
                 if ($driver !== null) {
@@ -72,7 +72,7 @@
     </div>
 
     {{-- History --}}
-    
+
     <div class="d-flex align-items-center justify-content-between">
         <h6 class="f-14 mb-4 mt-2"><i class="fa fa-clock-o" aria-hidden="true"></i> Order trigger history</h6>
         @if(count($logs) > 3)
@@ -84,7 +84,16 @@
         @forelse($logs as $key => $l)
             <div class="activity py-1 hist @if(in_array($loop->iteration, [1,2,3])) show-first-history @else d-none @endif">
                 <p class="f-12" style="margin-bottom:0px;">
-                    <strong> {{ date('d-m-Y H:i', strtotime($l->created_at)) }} @if(!empty($l->watcher_id)) {{ $l->watcher->name }} @else @if(!empty($l->user->name)) {{ $l->user->name }} @else Robot @endif @endif </strong> :
+                    @if($l->type == 4 && $l->allocated_driver_id !=null && $l->allocated_driver_id !='')
+                        @php
+                            $driverarray = explode(',',$l->allocated_driver_id);
+                            $allocateddriver = User::whereIn('id', $driverarray)->selectRaw("CONCAT(name,' - ',city_id) as drivedetails")->get()->pluck('drivedetails')->toArray();
+                            if(!empty($allocateddriver)) {
+                                $allocatedrivesInfo = implode(', ', $allocateddriver);
+                            }
+                        @endphp
+                    @endif
+                    <strong> {{ date('d-m-Y H:i', strtotime($l->created_at)) }} @if(!empty($l->watcher_id)) {{ $l->watcher->name }} @else @if(!empty($l->user->name)) {{ $l->user->name }} @elseif($l->assgined_driver_id != null && $l->assgined_driver_id !='') {{ $l->assigneddriver->name .' - '. $l->assigneddriver->city_id }} @elseif(isset($allocatedrivesInfo) && $allocatedrivesInfo !="") {{$allocatedrivesInfo}} @else Robot @endif @endif </strong> :
                     @if($l->type == 1)
                         added a task [ <strong>{{ $l->description }}</strong> ]
                     @elseif($l->type == 2)
@@ -108,7 +117,13 @@
                             @if(isset($l->order->responsible->name)) {{ $l->order->responsible->name }} @else  it's seller @endif
                         </strong>
                     @elseif($l->type == 4)
-                    {!! $l->description !!}
+                        @if($l->allocated_driver_id !=null && $l->allocated_driver_id !="")
+                        allocated @if(isset($allocateddriver) && !empty($allocateddriver) && count($allocateddriver) > 1 )drivers @else driver @endif
+                        @elseif($l->assgined_driver_id !=null && $l->assgined_driver_id !="")
+                        assigned driver
+                        @else
+                        {!! $l->description !!}
+                        @endif
                     @endif
                 </p>
             </div>
@@ -152,7 +167,7 @@
                     @endphp
                     {{ $time }}
 
-                    [ 
+                    [
                     @if(!empty($o->deleted_at))
                         <strong style="text-transform: uppercase;color:#dd2d20;" title="Cancelled"> Cancelled </strong>
                     @else
@@ -164,7 +179,7 @@
                             @endif
                         @else
                             <strong style="text-transform: uppercase;color:#3d0000;" title="Status changed before triggered"> CHANGED </strong>
-                        @endif 
+                        @endif
                     @endif
                     ]
                 </p>
@@ -196,13 +211,13 @@
                     <div class="w-100 pe-3">
                         <span class="f-15"> <strong>{{ $o->description ?? 'Task' }}</strong> </span>
                         <p class="mb-0 f-14">
-                            <strong>{{ date('d-m-Y H:i', strtotime($o->created_at)) }}</strong> : 
+                            <strong>{{ date('d-m-Y H:i', strtotime($o->created_at)) }}</strong> :
                             Task added when
                             <strong>
                             @if($o->main_type == '1')
                                 created order with
                             @elseif($o->main_type == '2')
-                                order moved to  
+                                order moved to
                             @elseif($o->main_type == '3')
                                 created or moved order in
                             @endif
@@ -210,7 +225,7 @@
                             <span class="status-lbl f-12" style="background: {{ $o->mainstatus->color }};color:{{ Helper::generateTextColor($o->mainstatus->color) }};text-transform:uppercase;"> {{ $o->mainstatus->name }} </span>
                             @php
                                 $time = str_replace('+', '', $o->time);
-        
+
                                 if (trim($time) == '0 seconds') {
                                     $time = 'Immediately';
                                 } else {
@@ -231,7 +246,7 @@
                                         @endif
                                     @else
                                         <strong style="text-transform: uppercase;color:#3d0000;" title="Status changed before triggered"> CHANGED </strong>
-                                    @endif 
+                                    @endif
                                 @endif
                             ]
                         </p>
@@ -281,10 +296,10 @@
             <div class="activity py-1 actvt-cu @if(in_array($loop->iteration, [1,2,3])) show-first-cu @else d-none @endif">
                 <p class="pb-1 f-12" style="margin-bottom:0px;">
                     <strong>{{ date('d-m-Y H:i', strtotime($o->created_at)) }}</strong> :
-                    order @if(!$o->executed) will be @else was @endif assigned to it's when order 
+                    order @if(!$o->executed) will be @else was @endif assigned to it's when order
                     <strong>
                     @if($o->main_type == '1')
-                        moved to 
+                        moved to
                     @elseif($o->main_type == '2')
                         created into
                     @else
@@ -306,7 +321,7 @@
                     [
                     @if(!empty($o->deleted_at))
                         <strong style="text-transform: uppercase;color:#dd2d20;" title="Cancelled"> Cancelled </strong>
-                    @else    
+                    @else
                         @if(is_null($o->updated_by))
                             @if(!$o->executed)
                                 <strong style="text-transform: uppercase;color:#009688;" title="to be triggered"> PENDING </strong>
@@ -315,7 +330,7 @@
                             @endif
                         @else
                             <strong style="text-transform: uppercase;color:#3d0000;" title="Status changed before triggered"> CHANGED </strong>
-                        @endif 
+                        @endif
                     @endif
                     ]
                 </p>

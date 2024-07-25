@@ -248,7 +248,16 @@
                                 @forelse($logs as $key => $l)
                                 <div class="activity py-1 hist">
                                     <p class="f-14" style="margin-bottom:0px;">
-                                        <strong> {{ date('d-m-Y H:i', strtotime($l->created_at)) }} @if(!empty($l->watcher_id)) {{ $l->watcher->name }} @else @if(!empty($l->user->name)) {{ $l->user->name }} @else Robot @endif @endif </strong> :
+                                        @if($l->type == 4 && $l->allocated_driver_id !=null && $l->allocated_driver_id !='')
+                                            @php
+                                                $driverarray = explode(',',$l->allocated_driver_id);
+                                                $allocateddriver = User::whereIn('id', $driverarray)->selectRaw("CONCAT(name,' - ',city_id) as drivedetails")->get()->pluck('drivedetails')->toArray();
+                                                if(!empty($allocateddriver)) {
+                                                    $allocatedrivesInfo = implode(', ', $allocateddriver);
+                                                }
+                                            @endphp
+                                        @endif
+                                        <strong> {{ date('d-m-Y H:i', strtotime($l->created_at)) }} @if(!empty($l->watcher_id)) {{ $l->watcher->name }} @else @if(!empty($l->user->name)) {{ $l->user->name }} @elseif($l->assgined_driver_id != null && $l->assgined_driver_id !='') {{ $l->assigneddriver->name .' - '. $l->assigneddriver->city_id }} @elseif(isset($allocatedrivesInfo) && $allocatedrivesInfo !="") {{$allocatedrivesInfo}} @else Robot @endif @endif </strong> :
                                         @if($l->type == 1)
                                             added a task [ <strong>{{ $l->description }}</strong> ]
                                         @elseif($l->type == 2)
@@ -272,7 +281,13 @@
                                                 @if(isset($l->order->responsible->name)) {{ $l->order->responsible->name }} @else  it's seller @endif
                                             </strong>
                                         @elseif($l->type == 4)
+                                            @if($l->allocated_driver_id !=null && $l->allocated_driver_id !="")
+                                            allocated @if(isset($allocateddriver) && !empty($allocateddriver) && count($allocateddriver) > 1 )drivers @else driver @endif
+                                            @elseif($l->assgined_driver_id !=null && $l->assgined_driver_id !="")
+                                            assigned driver
+                                            @else
                                             {!! $l->description !!}
+                                            @endif
                                         @endif
                                     </p>
                                 </div>

@@ -262,18 +262,21 @@
         <thead>
             <tr>
                 <th>Sr No.</th>
-                <th style="width: 10%!important;">Postal Code</th>
+                <th style="width: 5%!important;">Postal Code</th>
                 <th>Order No.</th>
                 <th>Product</th>
-                <th style="width: 10%!important;">Quantity</th>
-                <th style="width: 10%!important;">Order Amount</th>
+                <th style="width: 3%!important;">Quantity</th>
+                <th style="width: 3%!important;">Order Amount</th>
                 @if(in_array(1, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 <th>Added By</th>
                 @endif
                 @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 <th>Last Comment</th>
                 @endif
-                <th style="width: 30%!important;">Status</th>
+                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))
+                <th style="width: 15%!important;">Allocated To</th>
+                @endif
+                <th style="width: 20%!important;">Status</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -404,6 +407,13 @@
                 @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 {
                     data: 'note',
+                    orderable: false,
+                    searchable: false,
+                },
+                @endif
+                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))
+                {
+                    data: 'allocated_to',
                     orderable: false,
                     searchable: false,
                 },

@@ -1583,6 +1583,13 @@ class SalesOrderStatusController extends Controller
                     Deliver::where('user_id','!=',auth()->user()->id)->where('so_id', $request->id)->delete();
                     SalesOrder::where('id', $request->id)->update(['status' => 2, 'responsible_user' => auth()->user()->id]);
                     $soId = $disOrder->id;
+                    /*Accepted driver history*/
+                    \App\Models\TriggerLog::create([
+                        'trigger_id' => 0,
+                        'order_id' => $soId,
+                        'type' => 4,
+                        'assgined_driver_id' => auth()->user()->id,
+                    ]);
 
                     \App\Models\TriggerLog::create([
                         'trigger_id' => 0,

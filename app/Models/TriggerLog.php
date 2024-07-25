@@ -24,4 +24,7 @@ class TriggerLog extends Model
     public function order() {
         return $this->belongsTo(SalesOrder::class, 'order_id');
     }
+    public function assigneddriver() {
+        return $this->belongsTo(User::class, 'assgined_driver_id');
+    }
 }

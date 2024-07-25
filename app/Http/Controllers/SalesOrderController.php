@@ -36,7 +36,9 @@ class SalesOrderController extends Controller
                 ->orWhere('responsible_user', auth()->user()->id);
             }
         });
-
+        if(in_array(auth()->user()->roles->first()->id, [2,3])) {
+            $po = $po->whereNotIn('status',[9]);
+        }
 
         if ($request->has('filterSeller') && !empty(trim($request->filterSeller))) {
             $po = $po->where('seller_id', $request->filterSeller);
@@ -238,7 +240,7 @@ class SalesOrderController extends Controller
                                         $alldriverName = implode(',',$alldriver);
                                     }
                                     $deliveryUser = Deliver::where('so_id', $row->id)->whereIn('status', [0,1])->first()->user_id ?? null;
-//. (isset($isRejected->user->name) ? $isRejected->user->name : 'driver') .
+                                    //. (isset($isRejected->user->name) ? $isRejected->user->name : 'driver') .
                                     $html =  '
                                     <i class="fa fa-warning" aria-hidden="true" style="color: #dd2d20;font-size:16px;"></i>
                                     <strong class="text-danger f-12"> Order was rejected by <span title="'.$alldriverName.'" class="drivertitle"> All drivers</span> </strong>
@@ -271,6 +273,17 @@ class SalesOrderController extends Controller
                 }
 
                 return $html;
+
+            })
+            ->addColumn('allocated_to', function ($row) {
+                $assigneOrderdriver = Deliver::query()
+                ->with(['user' => function ($query) {
+                    $query->selectRaw("id,CONCAT(name, ' - ', city_id) AS driverinfo");
+                }])
+                ->where('so_id', $row->id)
+                ->get()->pluck('user.driverinfo')->toArray();
+
+                return (!empty($assigneOrderdriver) ? implode(', ',$assigneOrderdriver) : '-');
 
             })
             ->rawColumns(['action', 'postalcode', 'addedby.name', 'updatedby.name', 'option', 'order_no', 'note'])
@@ -595,6 +608,7 @@ class SalesOrderController extends Controller
                 ]);
 
 
+
                 $soId = $so->id;
                 $soItems = [];
 
@@ -624,13 +638,14 @@ class SalesOrderController extends Controller
                         return redirect()->back()->with('error', implode(' <br/> ', $salesPriceErrors));
                     } else {
                         SalesOrderItem::insert($soItems);
-
+                        $driverids = [];
                         if($request->range !="") {
                             $driverrangeData = json_decode($request->range);
                             if(!empty($driverrangeData)) {
                                 foreach($driverrangeData as $driverid=>$range) {
                                     $driverDetail = User::find($driverid);
                                     if(!empty($driverDetail)) {
+                                        $driverids[] = $driverid;
                                         Deliver::create([
                                             'user_id' => $driverid,
                                             'so_id' => $soId,
@@ -644,6 +659,15 @@ class SalesOrderController extends Controller
                                     }
                                 }
                             }
+                        }
+                        if(!empty($driverids)) {
+                            /*Allocated driver history*/
+                            TriggerLog::create([
+                                'trigger_id' => 0,
+                                'order_id' => $soId,
+                                'type' => 4,
+                                'allocated_driver_id' => implode(',',$driverids),
+                            ]);
                         }
 
                         DB::commit();
