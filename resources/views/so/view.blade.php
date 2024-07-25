@@ -248,6 +248,9 @@
                                 @forelse($logs as $key => $l)
                                 <div class="activity py-1 hist">
                                     <p class="f-14" style="margin-bottom:0px;">
+                                        @php
+                                        $allocatedrivesInfo = '';
+                                        @endphp
                                         @if($l->type == 4 && $l->allocated_driver_id !=null && $l->allocated_driver_id !='')
                                             @php
                                                 $driverarray = explode(',',$l->allocated_driver_id);

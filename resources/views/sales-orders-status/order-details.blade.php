@@ -84,6 +84,9 @@
         @forelse($logs as $key => $l)
             <div class="activity py-1 hist @if(in_array($loop->iteration, [1,2,3])) show-first-history @else d-none @endif">
                 <p class="f-12" style="margin-bottom:0px;">
+                    @php
+                    $allocatedrivesInfo = '';
+                    @endphp
                     @if($l->type == 4 && $l->allocated_driver_id !=null && $l->allocated_driver_id !='')
                         @php
                             $driverarray = explode(',',$l->allocated_driver_id);
