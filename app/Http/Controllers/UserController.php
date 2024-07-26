@@ -18,6 +18,8 @@ use App\Models\State;
 use App\Models\City;
 use App\Models\User;
 use App\Models\Role;
+use App\Models\UserAssignRole;
+
 
 class UserController extends Controller
 {
@@ -25,15 +27,34 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
+        $roleids = auth()->user()->roles->pluck('id')->toArray();
+        $roles = array();
+        $Assignrole = '';
+        if(!in_array('1',$roleids)) {
+            $userassignroledata = UserAssignRole::whereIn('main_role_id',$roleids)->pluck('assign_role_id')->toArray();
+            if(!empty($userassignroledata)) {
+                $Assignrole = explode(',',implode(',',$userassignroledata));
+            }
+        }
         if (!$request->ajax()) {
             $moduleName = $this->moduleName;
-            $roles = Role::where('id', '!=', '4')->get();
+
+            if(!in_array('1',$roleids)) {
+                if(!empty($Assignrole)) {
+                    $roles = Role::active()->where('id', '!=', '4')->whereIn('id',$Assignrole)->get();
+                }
+            } else {
+                $roles = Role::active()->where('id', '!=', '4')->get();
+            }
 
             return view('users.index', compact('moduleName', 'roles'));
         }
 
-        $users = User::with(['roles', 'addedby', 'updatedby'])->whereHas('role', function ($builder) {
+        $users = User::with(['roles', 'addedby', 'updatedby'])->whereHas('role', function ($builder) use ($Assignrole) {
             $builder->where('roles.id', '!=', '4');
+            if(isset($Assignrole) && !empty($Assignrole)) {
+                $builder->whereIn('roles.id', $Assignrole);
+            }
         });
 
         if ($filterRole = $request->filterRole) {
@@ -118,15 +139,30 @@ class UserController extends Controller
     {
         $moduleName = 'User';
         $moduleLink = route('users.index');
-        $roles = Role::active()->where('id', '!=', '4')->get();
+
+
         $countries = Helper::getCountriesOrderBy();
 
-        $permission = auth()->user()->roles->pluck('id')->toArray();
-        $permission = PermissionRole::whereIn('role_id', $permission)->select('permission_id')->pluck('permission_id')->toArray();
+        $roleids = auth()->user()->roles->pluck('id')->toArray();
+
+        $roles = array();
+
+        if(!in_array('1',$roleids)) {
+            $userassignroledata = UserAssignRole::whereIn('main_role_id',$roleids)->pluck('assign_role_id')->toArray();
+            if(!empty($userassignroledata)) {
+                $Assignrole = explode(',',implode(',',$userassignroledata));
+                $roles = Role::active()->where('id', '!=', '4')->whereIn('id',$Assignrole)->get();
+            }
+
+        } else {
+            $roles = Role::active()->where('id', '!=', '4')->get();
+        }
+
+        $permission = PermissionRole::whereIn('role_id', $roleids)->select('permission_id')->pluck('permission_id')->toArray();
 
         $userPermission = UserPermission::where('user_id', auth()->user()->id)->select('permission_id')->pluck('permission_id')->toArray();
         $permission = array_unique(array_merge($userPermission, $permission));
-        array_push($permission, 45);
+        // array_push($permission, 45);
 
         $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
@@ -233,14 +269,28 @@ class UserController extends Controller
         $moduleName = 'User';
         $moduleLink = route('users.index');
         $user = User::with('roles')->where('id', decrypt($id))->first();
-        $roles = Role::active()->where('id', '!=', '4')->get();
+        $roles = array();
+
+        $roleids = auth()->user()->roles->pluck('id')->toArray();
+
+        if(!in_array('1',$roleids)) {
+            $userassignroledata = UserAssignRole::whereIn('main_role_id',$roleids)->pluck('assign_role_id')->toArray();
+            if(!empty($userassignroledata)) {
+                $Assignrole = explode(',',implode(',',$userassignroledata));
+                $roles = Role::active()->where('id', '!=', '4')->whereIn('id',$Assignrole)->get();
+            }
+
+        } else {
+            $roles = Role::active()->where('id', '!=', '4')->get();
+        }
+
         $countries = Helper::getCountriesOrderBy();
         $states = State::active()->where('country_id', $user->country_id)->select('id', 'name')->pluck('name', 'id')->toArray();
         $cities = City::active()->where('state_id', $user->state_id)->select('id', 'name')->pluck('name', 'id')->toArray();
 
-        $permission = PermissionRole::where('role_id', $user->roles->first()->id)->select('permission_id')->pluck('permission_id')->toArray() ?? [];
 
-        array_push($permission, 45);
+        $permission = PermissionRole::where('role_id', $user->roles->first()->id)->select('permission_id')->pluck('permission_id')->toArray() ?? [];
+        // array_push($permission, 45);
         $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
 
         if (in_array(1, $user->roles->pluck('id')->toArray())) {
@@ -327,22 +377,22 @@ class UserController extends Controller
                             $address = trim("{$request->address_line_1} {$request->city} {$request->postal_code} {$request->country}");
                             $address = str_replace(' ', '+', $address);
                             $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
-    
+
                             $data = json_decode(file_get_contents($url), true);
-    
+
                             if ($data['status'] == "OK") {
                                 $lat = $data['results'][0]['geometry']['location']['lat'];
                                 $long = $data['results'][0]['geometry']['location']['lng'];
-    
+
                                 if (!empty($lat)) {
                                     $u = User::find($user->id);
                                     $u->lat = $lat;
                                     $u->long = $long;
                                     $u->save();
-    
+
                                     $errorWhileSavingLatLong = false;
                                 }
-    
+
                                 AddressLog::create([
                                     'city' => $user->city_id,
                                     'country' => Country::where('id', $user->country_id)->first()->name ?? $user->country_id,
@@ -358,7 +408,7 @@ class UserController extends Controller
                     } else {
                         $lat = '22.2735381';
                         $long = '70.764107';
-    
+
                         $errorWhileSavingLatLong = false;
                     }
 

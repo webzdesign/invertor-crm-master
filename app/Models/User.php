@@ -55,7 +55,7 @@ class User extends Authenticatable
     }
 
     public static function getUserRoles() {
-        return auth()->user()->roles->pluck('id')->toArray();        
+        return auth()->user()->roles->pluck('id')->toArray();
     }
 
     public function role()
@@ -98,9 +98,9 @@ class User extends Authenticatable
                                     ->where('users.id', auth()->user()->id)
                                     ->pluck('id', 'slug')
                                     ->toArray();
-            
 
-            if (isset($rolePermissions[$per]) or isset($userPermissions[$per])) {
+
+            if (isset($rolePermissions[$per]) && isset($userPermissions[$per])) {
                 return true;
             }
 
@@ -111,7 +111,7 @@ class User extends Authenticatable
     {
         return $this->belongsTo(User::class, 'added_by');
     }
-    
+
     public function updatedby()
     {
         return $this->belongsTo(User::class, 'updated_by')->withDefault([

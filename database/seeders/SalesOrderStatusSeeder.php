@@ -74,7 +74,7 @@ class SalesOrderStatusSeeder extends Seeder
                 'name' => 'CLOSED LOSS',
                 'sequence' => 7,
                 'type' => 1,
-                'is_static' => 0
+                'is_static' => 1
             ],
             [
                 'color' => '#4CAF50',

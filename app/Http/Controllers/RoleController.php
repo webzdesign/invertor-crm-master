@@ -11,6 +11,7 @@ use App\Models\Permission;
 use App\Models\UserRole;
 use App\Helpers\Helper;
 use App\Models\Role;
+use App\Models\UserAssignRole;
 
 class RoleController extends Controller
 {
@@ -111,12 +112,19 @@ class RoleController extends Controller
             $permission = PermissionRole::whereIn('role_id', $userRoles)->select('permission_id')->pluck('permission_id')->toArray() ?? [];
             $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
         }
+        $roleDetails = Role::active()->where('id', '!=', '4')->pluck('name','id')->toArray();
+        $userassignrole = array();
 
-        return view('roles.create', compact('moduleName', 'permission','moduleLink'));
+        return view('roles.create', compact('moduleName', 'permission','moduleLink','roleDetails','userassignrole'));
     }
 
     public function store(RoleRequest $request)
     {
+        // $permission = ($request->permission !=null ? $request->permission : array());
+        // if(!in_array(45,$permission)) {
+        //     array_push($permission,"45");
+        // }
+
         DB::beginTransaction();
 
         $role = new Role();
@@ -128,6 +136,14 @@ class RoleController extends Controller
 
         $role->permissions()->sync($request->permission);
 
+        if(isset($request->assign_role_id) && !empty($request->assign_role_id)) {
+            $assign_role_id = implode(',',array_unique($request->assign_role_id));
+            UserAssignRole::updateOrCreate([
+                'main_role_id'   => $role->id,
+            ],[
+                'assign_role_id' => $assign_role_id
+            ]);
+        }
         DB::commit();
 
         return redirect()->route('roles.index')->with('success', 'Role added successfully.');
@@ -148,8 +164,10 @@ class RoleController extends Controller
         }
 
         $rolePermissions = PermissionRole::where('role_id', $id)->pluck('permission_id')->toArray();
-
-        return view('roles.view', compact('moduleName', 'permission', 'rolePermissions', 'role','moduleLink'));
+        $roleDetails = Role::active()->where('id', '!=', '4')->pluck('name','id')->toArray();
+        $assigndata = UserAssignRole::where('main_role_id',$id)->first();
+        $userassignrole = (!empty($assigndata)) ? explode(',',$assigndata->assign_role_id) : array();
+        return view('roles.view', compact('moduleName', 'permission', 'rolePermissions', 'role','moduleLink','roleDetails','userassignrole'));
     }
 
     public function edit($id)
@@ -167,13 +185,22 @@ class RoleController extends Controller
         }
 
         $rolePermissions = PermissionRole::where('role_id', $id)->pluck('permission_id')->toArray();
-
-        return view('roles.edit',compact('moduleName', 'permission', 'rolePermissions', 'role','moduleLink'));
+        $roleDetails = Role::active()->where('id', '!=', '4')->pluck('name','id')->toArray();
+        $assigndata = UserAssignRole::where('main_role_id',$id)->first();
+        $userassignrole = (!empty($assigndata)) ? explode(',',$assigndata->assign_role_id) : array();
+        return view('roles.edit',compact('moduleName', 'permission', 'rolePermissions', 'role','moduleLink','roleDetails','userassignrole'));
     }
 
     public function update(RoleRequest $request, $id)
     {
         $id = decrypt($id);
+
+        $permission = ($request->permission !=null ? $request->permission :array());
+
+
+        // if($id !=1 && !in_array(45,$permission)) {
+        //     array_push($permission,"45");
+        // }
 
         $role = Role::find($id);
         $role->name = $request->name;
@@ -183,7 +210,14 @@ class RoleController extends Controller
 
         $role->permissions()->detach();
         $role->permissions()->sync($request->permission);
-
+        if(isset($request->assign_role_id) && !empty($request->assign_role_id)) {
+            $assign_role_id = implode(',',array_unique($request->assign_role_id));
+            UserAssignRole::updateOrCreate([
+                'main_role_id'   => $role->id,
+            ],[
+                'assign_role_id' => $assign_role_id
+            ]);
+        }
         return redirect()->route('roles.index')->with('success', 'Role updated successfully.');
     }
 
@@ -204,6 +238,7 @@ class RoleController extends Controller
         try {
             Role::find($id)->delete();
             PermissionRole::where('role_id', $id)->delete();
+            UserAssignRole::where('main_role_id',$id)->delete();
 
             DB::commit();
             return response()->json(['success' => 'Role deleted successfully.','status' => 200]);
