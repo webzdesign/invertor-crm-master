@@ -86,7 +86,6 @@ class SalesOrderController extends Controller
                 $builder->where('product_id', $pro);
             });
         }
-// dd($po->get()[0]->responsible->role);
         $orderClosedWinStatus = SalesOrderStatus::where('slug', 'closed-win')->first()->id ?? 0;
         $allStatuses = SalesOrderStatus::custom()->active()->select('id', 'name', 'color')->get();
 
@@ -297,6 +296,13 @@ class SalesOrderController extends Controller
 
                 return (!empty($assigneOrderdriver) ? implode(', ',$assigneOrderdriver) : '-');
 
+            })
+            ->editColumn('assigneddriver.range', function($user) {
+                if(isset($user->assigneddriver->range) && $user->assigneddriver->range !="") {
+                    return number_format($user->assigneddriver->range,2,'.','');
+                } else {
+                    return '-';
+                }
             })
             ->rawColumns(['action', 'postalcode', 'addedby.name', 'updatedby.name', 'option', 'order_no', 'note'])
             ->addIndexColumn()

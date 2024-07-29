@@ -262,8 +262,8 @@
         <thead>
             <tr>
                 <th>Sr No.</th>
-                <th style="width: 5%!important;">Postal Code</th>
                 <th>Order No.</th>
+                <th style="width: 5%!important;">Postal Code</th>
                 <th>Product</th>
                 <th style="width: 3%!important;">Quantity</th>
                 <th style="width: 3%!important;">Order Amount</th>
@@ -276,6 +276,7 @@
                 @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))
                 <th style="width: 15%!important;">Allocated To</th>
                 @endif
+                <th>Distance (miles)</th>
                 <th style="width: 20%!important;">Status</th>
                 <th>Action</th>
             </tr>
@@ -379,12 +380,12 @@
                     searchable: false,
                 },
                 {
+                    data: 'order_no',
+                },
+                {
                     data: 'postalcode',
                     orderable: false,
                     searchable: false,
-                },
-                {
-                    data: 'order_no',
                 },
                 {
                     data: 'product',
@@ -418,6 +419,11 @@
                     searchable: false,
                 },
                 @endif
+                {
+                    data: 'assigneddriver.range',
+                    orderable: false,
+                    searchable: false,
+                },
                 {
                     data: 'option',
                     orderable: false,

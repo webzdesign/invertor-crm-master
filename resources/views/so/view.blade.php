@@ -104,7 +104,7 @@
 
                 <div class="col-sm-12 col-md-4">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Distance</label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Distance (miles)</label>
                         <input class="form-control"  placeholder="" type="text" value="{{ isset($driverDetails->range) ? number_format($driverDetails->range, 2, '.', "") : '0' }}" readonly style="background:#efefef">
                     </div>
                 </div>
