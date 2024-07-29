@@ -63,6 +63,7 @@
     $(document).ready(function() {
 
         var ServerDataTable = $('.datatable-roles').DataTable({
+            pageLength : 50,
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here"

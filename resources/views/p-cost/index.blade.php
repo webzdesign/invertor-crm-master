@@ -114,6 +114,7 @@
     $(document).ready(function() {
 
         var ServerDataTable = $('.datatable-users').DataTable({
+            pageLength : 50,
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here",

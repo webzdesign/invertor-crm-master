@@ -30,12 +30,12 @@
     }
     .stickyTable table thead tr,
     .stickyTable table tfoot tr{
-        border-width:0; 
+        border-width:0;
     }
     .stickyTable table tbody tr td:first-child,
     .stickyTable table tfoot tr td:first-child,
     .stickyTable table thead tr th{
-        border-left: 0; 
+        border-left: 0;
     }
     .stickyTable table tbody,
     .stickyTable table tfoot{
@@ -203,7 +203,7 @@
                     <h1 class="modal-title fs-5"> WITHDRAWAL REQUEST CONFIRMATION </h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">                    
+                <div class="modal-body">
 
                     <div class="form-group">
                         <div class="row d-flex flex-column align-items-center">
@@ -258,6 +258,7 @@
         $.fn.dataTable.ext.errMode = 'none';
 
         var ServerDataTable = $('.seller-commission').DataTable({
+            pageLength : 50,
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here"
@@ -289,6 +290,7 @@
         });
 
         var sellerCommissionDt = $('.sellerCommissionDt').DataTable({
+            pageLength : 50,
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here",
@@ -350,7 +352,7 @@
                 });
             }
         });
-        
+
         $(document).on('change', '#seller-filter > div.row > .col-sm-4 > select.seller-select2', function() {
             sellerCommissionDt.ajax.reload();
         });
@@ -363,6 +365,7 @@
         });
 
         var sellerCommissionDt2 = $('.sellerCommissionDt2').DataTable({
+            pageLength : 50,
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here",
@@ -403,6 +406,7 @@
         });
 
         var sellerCommissionDt3 = $('.sellerCommissionDt3').DataTable({
+            pageLength : 50,
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here",
@@ -501,7 +505,7 @@
                         }
                     },
                     complete: function () {
-                        $('body').find('.LoaderSec').addClass('d-none');                        
+                        $('body').find('.LoaderSec').addClass('d-none');
                     }
                 });
             }
@@ -588,7 +592,7 @@
                     complete: function () {
                         $('body').find('.LoaderSec').addClass('d-none');
                     }
-                });                
+                });
             }
         });
 

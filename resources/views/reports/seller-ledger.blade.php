@@ -30,12 +30,12 @@
     }
     .stickyTable table thead tr,
     .stickyTable table tfoot tr{
-        border-width:0; 
+        border-width:0;
     }
     .stickyTable table tbody tr td:first-child,
     .stickyTable table tfoot tr td:first-child,
     .stickyTable table thead tr th{
-        border-left: 0; 
+        border-left: 0;
     }
     .stickyTable table tbody,
     .stickyTable table tfoot{
@@ -165,7 +165,7 @@
                                         @endforelse
                                     </select>
                                 </div>
-        
+
                             </div>
                         </div>
 
@@ -201,12 +201,12 @@
                                 <label for="bank-name"> Name </label>
                                 <input type="text" id="bank-name-add" name="bank_name_add" class="form-control">
                             </div>
-        
+
                             <div class="col-md-4">
                                 <label for="surname"> Surname </label>
                                 <input type="text" id="surname-add" name="suername_add" class="form-control">
                             </div>
-        
+
                             <div class="col-md-4">
                                 <label for="iban"> IBAN Number </label>
                                 <input type="text" id="iban-add" name="iban_add" class="form-control text-uppercase">
@@ -298,7 +298,7 @@
                 iban_add: {
                     required: "IBAN number is required.",
                     remote: "Invalid IBAN Number."
-                }                
+                }
             },
             submitHandler: function (form, event) {
                 event.preventDefault();
@@ -326,7 +326,7 @@
                         }
                     },
                     complete: function () {
-                        $('body').find('.LoaderSec').addClass('d-none');                        
+                        $('body').find('.LoaderSec').addClass('d-none');
                     }
                 });
             }
@@ -351,7 +351,7 @@
 
         $(document).on('click', '.bank-delete-btn', function (e) {
             let thisId = $(this).attr('data-id');
-            
+
             Swal.fire({
                 title: 'Are you sure want to delete this bank account?',
                 icon: 'warning',
@@ -385,6 +385,7 @@
         $.fn.dataTable.ext.errMode = 'none';
 
         var ServerDataTable = $('.seller-commission').DataTable({
+            pageLength : 50,
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here"
@@ -421,6 +422,7 @@
         });
 
         var sellerCommissionDt = $('.sellerCommissionDt').DataTable({
+            pageLength : 50,
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here",
@@ -482,7 +484,7 @@
                     complete: function () {
                         $('body').find('.LoaderSec').addClass('d-none');
                     }
-                });                
+                });
             }
         });
 
@@ -496,7 +498,7 @@
         $('#filterInput > input').keyup(function() {
             ServerDataTable.search($(this).val()).draw();
         });
-        
+
         $('#filterInput2').html($('#searchPannel').html());
         $('#filterInput2 > input').keyup(function() {
             sellerCommissionDt.search($(this).val()).draw();

@@ -10,10 +10,10 @@
     .color-blue {
         color: #0057a9;
         cursor: pointer;
-    }      
+    }
     .select2-selection__clear {
         display: none!important;
-    }  
+    }
     .filterColumn, .select2-selection__arrow {
         display: none;
     }
@@ -136,7 +136,7 @@
     }
 
     .bg-error, .bg-error:hover {
-        background: #dd2d20!important;        
+        background: #dd2d20!important;
     }
 </style>
 @endsection
@@ -146,19 +146,19 @@
 
     @if(!in_array(3, User::getUserRoles()))
     <div>
-        <a href="{{ route('sales-order-status') }}" class="btn-default f-500 f-14 d-inline-block"> 
+        <a href="{{ route('sales-order-status') }}" class="btn-default f-500 f-14 d-inline-block">
             <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
                 <rect x="4" y="2" width="2" height="16" fill="black" />
                 <rect x="9" y="2" width="2" height="12" fill="black" />
                 <rect x="14" y="2" width="2" height="6" fill="black" />
             </svg>
            </a>
-        <a href="{{ route('sales-order-status-list') }}" class="btn-primary f-500 f-14 d-inline-block">  
+        <a href="{{ route('sales-order-status-list') }}" class="btn-primary f-500 f-14 d-inline-block">
             <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
                 <rect x="2" y="4" width="16" height="2" fill="white" />
                 <rect x="2" y="9" width="16" height="2" fill="white" />
                 <rect x="2" y="14" width="16" height="2" fill="white" />
-            </svg>                           
+            </svg>
         </a>
     </div>
     @endif
@@ -337,6 +337,7 @@ var thisWindowId = uuid();
     $(document).ready(function() {
 
         var ServerDataTable = $('#list').DataTable({
+            pageLength : 50,
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here",
@@ -545,7 +546,7 @@ var thisWindowId = uuid();
 
         function showToolBox () {
             let anyCheckboxChecked = false;
-            
+
             if ($('#main-checkbox').prop('checked')) {
                 anyCheckboxChecked = true;
             }
@@ -555,7 +556,7 @@ var thisWindowId = uuid();
                     anyCheckboxChecked = true;
                 }
             });
-            
+
             if (anyCheckboxChecked) {
                 $('.filterColumn').show();
             } else {
@@ -579,7 +580,7 @@ var thisWindowId = uuid();
                         setTimeout(() => {
                             location.reload();
                         }, 500);
-                        return false;                        
+                        return false;
                     }
                 } else {
                     Swal.fire('', 'Something went wrong please try again later.', 'error');
@@ -637,22 +638,22 @@ var thisWindowId = uuid();
                 $(this).parent().fadeOut();
             });
         }
-    
+
         $(document).on('click', '.dropdown-toggle', function() {
             var isHidden = $(this).parents(".button-dropdown").children(".dropdown-menu").is(":hidden");
             $(".button-dropdown .dropdown-menu").hide();
             $(".button-dropdown .dropdown-toggle").removeClass("active");
-            
+
             if (isHidden) {
                 $(this).parents(".button-dropdown").children(".dropdown-menu").toggle()
                     .parents(".button-dropdown")
                     .children(".dropdown-toggle").addClass("active");
             }
         });
-    
+
         $(document).on('click', function() {
             var target = $(event.target);
-            
+
             if (!target.parents().hasClass("button-dropdown")) {
                 $(".button-dropdown .dropdown-menu").hide();
                 $(".button-dropdown .dropdown-toggle").removeClass("active");
@@ -671,19 +672,19 @@ var thisWindowId = uuid();
                 $(this).parent().fadeOut();
             });
         }
-    
+
         $(document).on('click', '.status-dropdown-toggle', function() {
             var isHidden = $(this).parents(".status-dropdown").children(".status-dropdown-menu").is(":hidden");
             $(".status-dropdown .status-dropdown-menu").hide();
             $(".status-dropdown .status-dropdown-toggle").removeClass("active");
-            
+
             if (isHidden) {
                 $(this).parents(".status-dropdown").children(".status-dropdown-menu").toggle()
                     .parents(".status-dropdown")
                     .children(".status-dropdown-toggle").addClass("active");
             }
         });
-    
+
         $(document).on('click', '.status-dropdown-menu li', function() {
             var bgColor = rgbToHex($(this).css("background-color"));
             var text = $(this).text();
@@ -693,14 +694,14 @@ var thisWindowId = uuid();
             var dropdownToggle = $(this).closest(".status-dropdown").find(".status-dropdown-toggle");
             var dropdownToggleText = $(this).closest(".status-dropdown").find(".status-dropdown-toggle").find("span");
             dropdownToggleText.text(text);
-            
+
             dropdownToggle.css("background-color", bgColor);
             dropdownToggle.css("color", generateTextColor(bgColor));
-            
+
             // Hide the dropdown menu and remove the active class
             $(this).parent().hide();
             dropdownToggle.removeClass("active");
-            
+
             $(this).parent().parent().parent().find('.status-action-btn').find('.status-save-btn').removeAttr("disabled");
 
             if ($(this).data('isajax') === undefined) {
@@ -716,7 +717,7 @@ var thisWindowId = uuid();
         $(document).on('click', '.hide-dropdown', function() {
             $('.dropdown-menu').hide();
         });
-        
+
         $(document).on('click', '.status-save-btn', function () {
             let el = $(this).parent().prev().find('.status-dropdown-toggle');
             let thisSid = $(el).attr('data-sid');
@@ -739,8 +740,8 @@ var thisWindowId = uuid();
                             Swal.fire('', response.message, 'error');
                         }
                     },
-                    
-                });                
+
+                });
             }
         })
 

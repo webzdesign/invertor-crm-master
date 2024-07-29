@@ -59,6 +59,7 @@
         $.fn.dataTable.ext.errMode = 'none';
 
         var ServerDataTable = $('.datatables-po').DataTable({
+            pageLength : 50,
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here"
