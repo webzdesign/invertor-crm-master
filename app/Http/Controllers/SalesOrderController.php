@@ -96,7 +96,7 @@ class SalesOrderController extends Controller
                 $variable = $users;
 
                 $action = "";
-                $action .= '<div class="whiteSpace">';
+                $action .= '<div class="d-flex align-items-center justify-content-center">';
 
                 if (auth()->user()->hasPermission("sales-orders.view")) {
                     $url = route("sales-orders.view", encrypt($variable->id));

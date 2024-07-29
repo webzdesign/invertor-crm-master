@@ -61,7 +61,7 @@ class ProductController extends Controller
                 $variable = $product;
 
                 $action = "";
-                $action .= '<div class="whiteSpace">';
+                $action .= '<div class="d-flex align-items-center justify-content-center">';
                 if (auth()->user()->hasPermission("products.edit")) {
                     $url = route("products.edit", encrypt($variable->id));
                     $action .= view('buttons.edit', compact('variable', 'url'));

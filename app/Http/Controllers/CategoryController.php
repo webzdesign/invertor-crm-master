@@ -42,7 +42,7 @@ class CategoryController extends Controller
                 $variable = $users;
 
                 $action = "";
-                $action .= '<div class="whiteSpace">';
+                $action .= '<div class="d-flex align-items-center justify-content-center">';
                 if (auth()->user()->hasPermission("categories.edit")) {
                     $url = route("categories.edit", encrypt($variable->id));
                     $action .= view('buttons.edit', compact('variable', 'url'));

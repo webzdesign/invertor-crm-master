@@ -52,7 +52,7 @@ class RoleController extends Controller
                 $variable = $roles;
 
                 $action = "";
-                $action .= '<div class="whiteSpace">';
+                $action .= '<div class="d-flex align-items-center justify-content-center">';
 
                 if (!in_array($roles->id, [1])) {
                     if (auth()->user()->hasPermission("roles.edit")) {

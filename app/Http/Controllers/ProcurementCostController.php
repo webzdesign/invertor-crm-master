@@ -85,7 +85,7 @@ class ProcurementCostController extends Controller
                 $variable = $users;
 
                 $action = "";
-                $action .= '<div class="whiteSpace">';
+                $action .= '<div class="d-flex align-items-center justify-content-center">';
                 if (auth()->user()->hasPermission("procurement-cost.edit")) {
                     $url = route("procurement-cost.edit", encrypt($variable->id));
                     $action .= view('buttons.edit', compact('variable', 'url'));

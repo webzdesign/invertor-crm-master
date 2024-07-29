@@ -60,7 +60,7 @@ class SupplierController extends Controller
                 $variable = $users;
 
                 $action = "";
-                $action .= '<div class="whiteSpace">';
+                $action .= '<div class="d-flex align-items-center justify-content-center">';
                 if (auth()->user()->hasPermission("suppliers.edit")) {
                     $url = route("suppliers.edit", encrypt($variable->id));
                     $action .= view('buttons.edit', compact('variable', 'url'));

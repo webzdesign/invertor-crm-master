@@ -64,7 +64,7 @@ class PurchaseOrderController extends Controller
                 $variable = $users;
 
                 $action = "";
-                $action .= '<div class="whiteSpace">';
+                $action .= '<div class="d-flex align-items-center justify-content-center">';
                 if (auth()->user()->hasPermission("purchase-orders.edit")) {
                     $url = route("purchase-orders.edit", encrypt($variable->id));
                     $action .= view('buttons.edit', compact('variable', 'url'));
@@ -138,7 +138,7 @@ class PurchaseOrderController extends Controller
                 $variable = $users->order;
 
                 $action = "";
-                $action .= '<div class="whiteSpace">';
+                $action .= '<div class="d-flex align-items-center justify-content-center">';
                 if (auth()->user()->hasPermission("purchase-orders.edit")) {
                     $url = route("purchase-orders.edit", encrypt($variable->id));
                     $action .= view('buttons.edit', compact('variable', 'url'));

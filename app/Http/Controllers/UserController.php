@@ -98,7 +98,7 @@ class UserController extends Controller
                 $variable = $users;
 
                 $action = "";
-                $action .= '<div class="whiteSpace">';
+                $action .= '<div class="d-flex align-items-center justify-content-center">';
                 if (auth()->user()->hasPermission("users.edit")) {
                     $url = route("users.edit", encrypt($variable->id));
                     $action .= view('buttons.edit', compact('variable', 'url'));
