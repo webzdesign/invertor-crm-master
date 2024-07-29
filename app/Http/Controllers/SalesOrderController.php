@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{Category, User, Wallet, Bonus, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger, ManageStatus, DriverWallet};
 use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ChangeOrderStatusTrigger, SalesOrderProofImages};
-use App\Models\{PaymentForDelivery, Transaction, TriggerLog};
+use App\Models\{PaymentForDelivery, Transaction, TriggerLog, SalesOrderUserFilter};
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -16,16 +16,28 @@ class SalesOrderController extends Controller
 
     public function index(Request $request)
     {
+
         if (!$request->ajax()) {
+
             $moduleName = $this->moduleName;
+            $filterSelectedData = (isset(SalesOrderUserFilter::where('user_id',auth()->user()->id)->first()?->filters)) ? json_decode(SalesOrderUserFilter::where('user_id',auth()->user()->id)->first()?->filters) : [];
+
             $sellers = User::whereHas('role', fn ($builder) => ($builder->whereIn('roles.id', [2, 6])))->selectRaw("CONCAT(name, ' - (', email, ')') as name, users.id as id")->pluck('name', 'id')->toArray();
             $drivers = User::whereHas('role', fn ($builder) => ($builder->where('roles.id', [3])))->selectRaw("CONCAT(name, ' - (', email, ')') as name, users.id, users.lat, users.long")->get()->toArray();
             $statuses = DB::table('sales_order_statuses')->select('name', 'id')->pluck('name', 'id')->toArray();
             $products = Product::select('name', 'id')->pluck('name', 'id')->toArray();
 
-            return view('so.index', compact('moduleName', 'sellers', 'drivers', 'statuses', 'products'));
+            return view('so.index', compact('moduleName', 'sellers', 'drivers', 'statuses', 'products','filterSelectedData'));
         }
 
+        $filterData['filterSeller'] = $request->filterSeller ?? null;
+        $filterData['filterProduct'] = $request->filterProduct ?? null;
+        $filterData['filterDriver'] = $request->filterDriver ?? null;
+        $filterData['filterStatus'] = isset($request->filterStatus) ? str_replace(',','-',$request->filterStatus): null;
+        $filterData['filterFrom'] = $request->filterFrom ?? null;
+        $filterData['filterTo'] = $request->filterTo ?? null;
+
+        SalesOrderUserFilter::updateOrCreate(['user_id'=>auth()->user()->id],['filters'=>json_encode($filterData)]);
         $thisUserRoles = auth()->user()->roles->pluck('id')->toArray();
         $orderClosedWinStatus = SalesOrderStatus::where('slug', 'closed-win')->first()->id ?? 0;
 
