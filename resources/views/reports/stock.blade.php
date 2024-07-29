@@ -63,7 +63,8 @@
         <thead>
             <tr>
                 @if(!User::isDriver())
-                <th width="15%">Type</th>
+                <th width="10%">Type</th>
+                <th width="10%">City</th>
                 @endif
                 <th>Product</th>
                 <th width="10%">Quantity</th>
@@ -73,7 +74,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td @if(!User::isDriver()) colspan="2" @endif>  </td>
+                <td @if(!User::isDriver()) colspan="3" @endif>  </td>
                 <td id="q-total" style="background: #e583a47d;font-weight:600;">0</td>
             </tr>
         </tfoot>
@@ -90,6 +91,7 @@
         var ServerDataTable = $('.datatables-po').DataTable({
             processing: true,
             serverSide: true,
+            aaSorting: [],
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here"
@@ -116,6 +118,9 @@
                 {
                     data: 'type',
                 },
+                {
+                    data: 'city',
+                },
             @endif
                 {
                     data: 'product_id',
@@ -124,8 +129,12 @@
                     data: 'qty'
                 }
             ],
-            drawCallback: function (data) {
-                $('#q-total').text(data.json.total);
+            footerCallback: function (row, data, start, end, display) {
+                var totalQTY = 0;
+                data.forEach(element => {
+                    totalQTY += parseFloat(element.qty);
+                });
+                $('#q-total').text(totalQTY);
             }
         });
 

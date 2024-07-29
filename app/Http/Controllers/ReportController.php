@@ -12,14 +12,12 @@ class ReportController extends Controller
 {
     public function stockReport(Request $request) {
         $total = 0;
-
-        $drivers = User::whereHas('role', function ($builder) {
-            $builder->where('roles.id', 3);
-        })->selectRaw("CONCAT(users.name, ' - ',users.city_id, ' - (', users.email, ')') as name, users.id as id")
-        ->when(User::isDriver(), fn ($builder) => ($builder->where('id', auth()->user()->id)));
-
         if (!$request->ajax()) {
             $moduleName = 'Stock Report';
+            $drivers = User::whereHas('role', function ($builder) {
+                $builder->where('roles.id', 3);
+            })->selectRaw("CONCAT(users.name, ' - ',users.city_id) as name, users.id as id")
+            ->when(User::isDriver(), fn ($builder) => ($builder->where('id', auth()->user()->id)));
             $drivers = $drivers->pluck('name', 'id')->toArray();
             $products = Stock::with('product')->whereNotNull('product_id')->where('product_id', '!=', '')->groupBy('product_id')->get();
             $types = [ '1' => 'Storage', '2' => 'Driver'];
@@ -29,25 +27,30 @@ class ReportController extends Controller
 
         $storageStock = $driverStock = [];
 
+        $driversforlisting = User::whereHas('role', function ($builder) {
+            $builder->where('roles.id', 3);
+        })->selectRaw("users.name, users.city_id as city, users.id as id")
+        ->when(User::isDriver(), fn ($builder) => ($builder->where('id', auth()->user()->id)));
+
         if(!User::isDriver()) {
             $stock = Helper::getAvailableStockFromStorage();
             $storageStock = collect($stock)->map(function ($val, $key) {
-                return ['product_id' => $key, 'qty' => $val, 'type' => 'Storage'];
+                return ['product_id' => $key, 'qty' => $val, 'type' => 'Storage','city' => '-'];
             })->filter()->values();
 
             if ($request->has('filterDriver') && !empty(trim($request->filterDriver))) {
                 $request->filterType = '2';
-                $drivers = $drivers->where('id', $request->filterDriver)->pluck('name', 'id')->toArray();
+                $driversforlisting = $driversforlisting->where('id', $request->filterDriver)->get();
             } else {
-                $drivers = $drivers->pluck('name', 'id')->toArray();
+                $driversforlisting = $driversforlisting->get();
             }
         } else {
-            $drivers = $drivers->pluck('name', 'id')->toArray();
+            $driversforlisting = $driversforlisting->get();
         }
 
-        foreach ($drivers as $id => $value) {
-            $temp = collect(Helper::getAvailableStockFromDriver($id))->map(function ($val, $key) use ($value) {
-                return ['product_id' => $key, 'qty' => $val, 'type' => $value];
+        foreach ($driversforlisting as $value) {
+            $temp = collect(Helper::getAvailableStockFromDriver($value->id))->map(function ($val, $key) use ($value) {
+                return ['product_id' => $key, 'qty' => $val, 'type' => $value->name ,'city' => $value->city];
             })->filter()->values()->toArray();
 
             foreach ($temp as $ele) {
@@ -70,7 +73,8 @@ class ReportController extends Controller
         foreach ($stock as $qty) {
             $total += $qty['qty'];
         }
-
+        // dd($stock);
+        // return false;
         return dataTables()->of($stock)
         ->editColumn('product_id', function ($row) {
             return Helper::productName($row['product_id']);
