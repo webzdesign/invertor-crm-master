@@ -39,7 +39,7 @@
                 <th>Order No.</th>
                 <th>Item</th>
                 <th>Quantity</th>
-                <th>Distance</th>
+                <th>Distance (miles)</th>
                 <th>Added By</th>
                 <th>Location</th>
             </tr>
@@ -110,7 +110,7 @@
                     data: 'location',
                     orderable: false,
                     searchable: false,
-                }            
+                }
             ],
         });
 
@@ -120,7 +120,7 @@
         });
 
         $('.datepicker').datetimepicker({
-            format: "DD/MM/YYYY", 
+            format: "DD/MM/YYYY",
             timeZone: ''
         });
 
@@ -128,7 +128,7 @@
         $('body').on('change', '#filterStatus, #filterDriver', function(e){
             var filterStatus = $('body').find('#filterStatus').val();
             var filterDriver = $('body').find('#filterDriver').val();
-            
+
             if (filterStatus != '' || filterDriver != '') {
                 $('body').find('.clearData').show();
             } else {

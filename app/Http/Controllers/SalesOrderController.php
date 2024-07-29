@@ -299,12 +299,12 @@ class SalesOrderController extends Controller
             })
             ->editColumn('assigneddriver.range', function($user) {
                 if(isset($user->assigneddriver->range) && $user->assigneddriver->range !="") {
-                    return number_format($user->assigneddriver->range,2,'.','');
+                    return '<span title="'.number_format($user->assigneddriver->range,2,'.','').' miles">'.number_format($user->assigneddriver->range,2,'.','').'</span>';
                 } else {
                     return '-';
                 }
             })
-            ->rawColumns(['action', 'postalcode', 'addedby.name', 'updatedby.name', 'option', 'order_no', 'note'])
+            ->rawColumns(['action', 'postalcode', 'addedby.name', 'updatedby.name', 'option', 'order_no', 'note','assigneddriver.range'])
             ->addIndexColumn()
             ->make(true);
     }
@@ -1097,7 +1097,7 @@ class SalesOrderController extends Controller
                 return $row?->order?->items?->first()?->product?->name ?? '-';
             })
             ->addColumn('distance', function ($row) {
-                return '<span title="' . number_format($row->range, 2, '.', "") . ' miles">' . number_format($row->range, 2, '.', "") . ' miles </span>';
+                return '<span title="' . number_format($row->range, 2, '.', "") . ' miles">' . number_format($row->range, 2, '.', "") . '</span>';
             })
             ->addColumn('location', function ($row) {
                 return ($row?->order?->customer_address_line_1 ?? '-') . ' ' . ($row?->order?->customer_postal_code ?? '');
