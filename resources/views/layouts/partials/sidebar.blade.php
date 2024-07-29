@@ -337,7 +337,7 @@
 
 
 
-    @if(User::isAdmin())
+    @if(auth()->user()->hasPermission('financial-seller-report.view') && auth()->user()->hasPermission('financial-driver-report.view'))
     <li>
         <a data-bs-toggle="collapse" data-bs-target="#collapseCom"
             aria-expanded="{{ request()->is('financial-report*') ? 'true' : 'false' }}"
@@ -360,7 +360,7 @@
             class="collapseMenu collapseWeb collapse {{ request()->is('financial-report*') ? 'show' : '' }}">
             <ul class="p-0 menuList">
 
-                @if(User::isAdmin() || User::isDriver())
+                @if(auth()->user()->hasPermission('financial-driver-report.view'))
                     <li>
                         <a href="{{ route('driver-commission') }}"
                             class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('financial-report/driver') ? 'active' : '' }}">
@@ -387,32 +387,28 @@
             </ul>
         </div>
     </li>
-    @elseif(User::isDriver() || auth()->user()->hasPermission('financial-seller-report.view'))
+    @elseif(auth()->user()->hasPermission('financial-seller-report.view'))
 
-    @if(User::isAdmin() || User::isDriver())
-    <li>
-        <a href="{{ route('driver-commission') }}"
-            class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('financial-report/driver') ? 'active' : '' }}">
-            <div class="icnBx d-flex align-items-center justify-content-center">
-                <i class="fa fa-car text-white" aria-hidden="true"></i>
-            </div>
-            <span class="d-none-add">Financial Report</span>
-        </a>
-    </li>
-    @endif
+        <li>
+            <a href="{{ route('seller-commission') }}"
+                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('financial-report/seller') ? 'active' : '' }}">
+                <div class="icnBx d-flex align-items-center justify-content-center">
+                    <i class="fa fa-user text-white" aria-hidden="true"></i>
+                </div>
+                <span class="d-none-add">Financial Report</span>
+            </a>
+        </li>
+    @elseif(auth()->user()->hasPermission('financial-driver-report.view'))
+        <li>
+            <a href="{{ route('driver-commission') }}"
+                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('financial-report/driver') ? 'active' : '' }}">
+                <div class="icnBx d-flex align-items-center justify-content-center">
+                    <i class="fa fa-user text-white" aria-hidden="true"></i>
+                </div>
+                <span class="d-none-add">Financial Report</span>
+            </a>
+        </li>
 
-    @if(auth()->user()->hasPermission('financial-seller-report.view'))
-    <li>
-        <a href="{{ route('seller-commission') }}"
-            class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('financial-report/seller') ? 'active' : '' }}">
-            <div class="icnBx d-flex align-items-center justify-content-center">
-                <i class="fa fa-user text-white" aria-hidden="true"></i>
-            </div>
-            <span class="d-none-add">Financial Report</span>
-        </a>
-    </li>
-    @endif
-    
     @endif
 
 
