@@ -276,8 +276,8 @@
                 @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 <th>Last Comment</th>
                 @endif
-                <th>Distance (miles)</th>
-                <th style="width: 20%!important;">Status</th>
+                <th style="width: 5%!important;">Distance (miles)</th>
+                <th style="width: 15%!important;">Status</th>
                 <th>Action</th>
             </tr>
         </thead>
