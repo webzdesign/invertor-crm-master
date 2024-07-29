@@ -62,9 +62,9 @@
             <tr>
                 <th>Sr No.</th>
                 <th>Name</th>
+                <th>City</th>
                 <th>Role</th>
                 <th>Email</th>
-                <th>City</th>
                 <th>Status</th>
                 <th>Added By</th>
                 <th>Updated By</th>
@@ -115,15 +115,15 @@
                     data: 'name',
                 },
                 {
+                    data: 'city_id',
+                },
+                {
                     data: 'role.name',
                     orderable: false,
                     searchable: false,
                 },
                 {
                     data: 'email',
-                },
-                {
-                    data: 'city_id',
                 },
                 {
                     data: 'status',
