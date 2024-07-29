@@ -11,7 +11,7 @@
             </div>
             <div class="col-12">
                 <label for="c-gr f-500 f-16 w-100 mb-2"><strong>Customer Phone Number</strong></label> :
-                <span> {{ $order->customer_phone ?? '-' }} </span>
+                <span> {!! ($order->customer_phone !="") ? '<a href="tel:'.trim($order->customer_phone).'">'.$order->customer_phone.'</a>' : '-' !!}</a></span>
             </div>
             @if(!empty(trim($order->customer_facebook)))
             <div class="col-12">
@@ -25,7 +25,7 @@
             </div>
             <div class="col-12">
                 <label for="c-gr f-500 f-16 w-100 mb-2"><strong>Postal Code</strong></label> :
-                <span> {{ $order->customer_postal_code }} </span>
+                <span><a target="_blank" href="https://www.google.com/maps/place/{{ $order->customer_postal_code }}"> {{ $order->customer_postal_code }} </a></span>
             </div>
         </div>
 

@@ -1100,12 +1100,12 @@ class SalesOrderController extends Controller
                 return '<span title="' . number_format($row->range, 2, '.', "") . ' miles">' . number_format($row->range, 2, '.', "") . '</span>';
             })
             ->addColumn('location', function ($row) {
-                return ($row?->order?->customer_address_line_1 ?? '-') . ' ' . ($row?->order?->customer_postal_code ?? '');
+                return ($row?->order?->customer_address_line_1 ?? '-') . ' ' . ('<a target="_blank" href="https://www.google.com/maps/place/'.$row?->order?->customer_postal_code.'">'.$row?->order?->customer_postal_code.'</a>' ?? '');
             })
             ->addColumn('added_by', function ($row) {
                 return $row?->order?->addedby->name ?? '-';
             })
-            ->rawColumns(['distance', 'action', 'order_no'])
+            ->rawColumns(['distance', 'action', 'order_no','location'])
             ->addIndexColumn()
             ->make(true);
     }
