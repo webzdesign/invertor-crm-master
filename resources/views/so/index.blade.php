@@ -264,6 +264,9 @@
                 <th>Sr No.</th>
                 <th>Order No.</th>
                 <th style="width: 5%!important;">Postal Code</th>
+                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))
+                <th style="width: 15%!important;">Allocated To</th>
+                @endif
                 <th>Product</th>
                 <th style="width: 3%!important;">Quantity</th>
                 <th style="width: 3%!important;">Order Amount</th>
@@ -272,9 +275,6 @@
                 @endif
                 @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 <th>Last Comment</th>
-                @endif
-                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))
-                <th style="width: 15%!important;">Allocated To</th>
                 @endif
                 <th>Distance (miles)</th>
                 <th style="width: 20%!important;">Status</th>
@@ -387,6 +387,13 @@
                     orderable: false,
                     searchable: false,
                 },
+                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))
+                {
+                    data: 'allocated_to',
+                    orderable: false,
+                    searchable: false,
+                },
+                @endif
                 {
                     data: 'product',
                     orderable: false,
@@ -408,13 +415,6 @@
                 @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 {
                     data: 'note',
-                    orderable: false,
-                    searchable: false,
-                },
-                @endif
-                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))
-                {
-                    data: 'allocated_to',
                     orderable: false,
                     searchable: false,
                 },
