@@ -164,17 +164,20 @@
 @endsection
 <div class="cards">
     <div class="row m-0 filterColumn">
-
+        @php
+        $isFilter = 0;
+        @endphp
         @if(in_array(1, User::getUserRoles()))
         <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Seller</label>
                 <select name="filterSeller" id="filterSeller" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Seller ---">
                     @forelse($sellers as $sid => $sname)
+                    @if(isset($filterSelectedData->filterSeller) && $filterSelectedData->filterSeller == $sid) @php $isFilter=1; @endphp @endif
                     @if($loop->first)
                     <option value="" selected> --- Select a Seller --- </option>
                     @endif
-                    <option value="{{ $sid }}">{{ $sname }}</option>
+                    <option value="{{ $sid }}" @if(isset($filterSelectedData->filterSeller) && $filterSelectedData->filterSeller == $sid) selected @endif>{{ $sname }}</option>
                     @empty
                     <option value="" selected> --- No Seller Available --- </option>
                     @endforelse
@@ -189,10 +192,11 @@
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Driver</label>
                 <select name="filterDriver" id="filterDriver" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Driver ---">
                     @forelse($drivers as $dname)
+                    @if(isset($filterSelectedData->filterDriver) && $filterSelectedData->filterDriver == $dname['id']) @php $isFilter=1; @endphp @endif
                     @if($loop->first)
                     <option value="" selected> --- Select a Driver --- </option>
                     @endif
-                    <option value="{{ $dname['id'] }}">{{ $dname['name'] }}</option>
+                    <option value="{{ $dname['id'] }}" @if(isset($filterSelectedData->filterDriver) && $filterSelectedData->filterDriver == $dname['id']) selected @endif>{{ $dname['name'] }}</option>
                     @empty
                     <option value="" selected> --- No Driver Available --- </option>
                     @endforelse
@@ -204,12 +208,17 @@
         <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Status</label>
+                @php
+                $filterStatus = (isset($filterSelectedData->filterStatus) && $filterSelectedData->filterStatus != null && $filterSelectedData->filterStatus != '' ) ? explode('-',$filterSelectedData->filterStatus) : [];
+
+                @endphp
                 <select name="filterStatus[]" id="filterStatus" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Status ---" multiple>
                     @forelse($statuses as $sid => $sname)
                     {{-- @if($loop->first)
                     <option value="" selected> --- Select a Status --- </option>
                     @endif --}}
-                    <option value="{{ $sid }}">{{ $sname }}</option>
+                    @if(!empty($filterStatus) && in_array($sid,$filterStatus)) @php $isFilter=1; @endphp @endif
+                    <option value="{{ $sid }}" @if(!empty($filterStatus) && in_array($sid,$filterStatus)) selected @endif>{{ $sname }}</option>
                     @empty
                     <option value="" selected> --- No Status Available --- </option>
                     @endforelse
@@ -222,10 +231,11 @@
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Product</label>
                 <select name="filterProduct" id="filterProduct" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Product ---">
                     @forelse($products as $pid => $pname)
+                    @if(isset($filterSelectedData->filterProduct) && $filterSelectedData->filterProduct == $pid) @php $isFilter=1; @endphp @endif
                     @if($loop->first)
                     <option value="" selected> --- Select a Product --- </option>
                     @endif
-                    <option value="{{ $pid }}">{{ $pname }}</option>
+                    <option value="{{ $pid }}" @if(isset($filterSelectedData->filterProduct) && $filterSelectedData->filterProduct == $pid) selected @endif>{{ $pname }}</option>
                     @empty
                     <option value="" selected> --- No Product Available --- </option>
                     @endforelse
@@ -236,25 +246,24 @@
         <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">From Delivery Date</label>
-                <input readonly type="text" id="filterFrom" name="filterFrom"
-                     class="form-control"
-                    placeholder="From date">
+                @if(isset($filterSelectedData->filterFrom) && $filterSelectedData->filterFrom !="") @php $isFilter=1; @endphp @endif
+
+                <input readonly type="text" id="filterFrom" name="filterFrom" class="form-control" placeholder="From date" value="{{ (isset($filterSelectedData->filterFrom) && $filterSelectedData->filterFrom !="") ? $filterSelectedData->filterFrom : null}}">
             </div>
         </div>
 
         <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">To Delivery Date</label>
-                <input readonly type="text" id="filterTo" name="filterTo"
-                     class="form-control"
-                    placeholder="To date">
+                @if(isset($filterSelectedData->filterTo) && $filterSelectedData->filterTo !="") @php $isFilter=1; @endphp @endif
+                <input readonly type="text" id="filterTo" name="filterTo" class="form-control" placeholder="To date" value="{{ (isset($filterSelectedData->filterTo) && $filterSelectedData->filterTo !="") ? $filterSelectedData->filterTo : null}}">
             </div>
         </div>
 
         <div class="col-xl-3 col-sm-4 position-relative">
             <div class="form-group mb-0">
                 <label class="c-gr f-500 f-14 w-100 mb-1 d-none-500">&nbsp;</label>
-                <button class="btn-default f-500 f-14 clearData" style="display:none;"><i class="fa fa-remove" aria-hidden="true"></i> Clear filters</button>
+                <button class="btn-default f-500 f-14 clearData" @if($isFilter==0) style="display:none;" @endif><i class="fa fa-remove" aria-hidden="true"></i> Clear filters</button>
             </div>
         </div>
     </div>
