@@ -105,7 +105,9 @@
 <script>
 
 $(document).ready(function(){
-
+    $('#order_del_date').click(function(){
+        $('#order_del_date').datepicker('show');
+    })
     $.validator.addMethod('minSalesPrice', function (value, element) {
         let bool = true;
         let validatorThisProduct = $(`#product`);

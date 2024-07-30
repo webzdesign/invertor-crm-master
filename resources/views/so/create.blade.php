@@ -534,7 +534,9 @@
             $(document).on('change', '.m-quantity, .m-price', function (event) {
                 calculateAmount($(this).data('indexid'));
             });
-
+            $('#order_del_date').click(function(){
+                $('#order_del_date').datepicker('show');
+            })
             $('#order_del_date').datepicker({
                 format: 'dd-mm-yyyy',
                 autoclose: true,

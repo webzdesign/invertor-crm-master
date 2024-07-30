@@ -87,7 +87,7 @@
                             @endif
                         </div>
                     </div>
-    
+
                     <div class="col-md-4 col-sm-12">
                         <div class="form-group">
                             <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code : <span class="text-danger">*</span></label>
@@ -107,7 +107,7 @@
                             @endif
                         </div>
                     </div>
-                    
+
                     <div>
                         <div class="col-md-12">
                             <div
@@ -172,7 +172,7 @@
                                                                 }
                                                             @endphp
                                                             @forelse ($cats as $product)
-                                                            <option value="{{ $product->id }}" data-availablestock="{{ $product->stockin->sum('qty') ?? 0 }}" 
+                                                            <option value="{{ $product->id }}" data-availablestock="{{ $product->stockin->sum('qty') ?? 0 }}"
                                                             @if(isset($htmlAttributes[$product->id])) data-baseprice="{{ $htmlAttributes[$product->id]['baseprice'] }}" data-minsalesprice="{{ $htmlAttributes[$product->id]['minsalesprice'] }}" data-defcomprice="{{ $htmlAttributes[$product->id]['defcomprice'] }}" @endif
                                                             @if($product->id == $item->product_id) selected @endif > {{ $product->name }} </option>
                                                             @empty
@@ -181,7 +181,7 @@
                                                         </select>
                                                     </div>
                                                 </td>
-                                                
+
                                                 <td style="">
                                                     <div style="min-width: 200px;">
                                                         <input type="number" data-indexid="{{ $key }}" name="quantity[{{ $key }}]" id="quantity-{{ $key }}" class="form-control m-quantity" value="{{ $item->qty }}" style="background:#ffffff">
@@ -284,7 +284,7 @@
                                             <tr>
                                                 <td></td>
                                                 <td></td>
-                                                <td> 
+                                                <td>
                                                     <div style="min-width: 200px;">
                                                         <input type="number" class="form-control mt-quantity" style="background:#efefef" value="{{ $so->items->sum('qty') }}" readonly>
                                                     </div>
@@ -344,7 +344,7 @@
 <script src="{{ asset('assets/js/intel.min.js') }}"></script>
     <script>
         $(document).ready(function() {
-            
+
             const input = document.querySelector('#customer-phone');
             const errorMap = ["Phone number is invalid.", "Invalid country code", "Too short", "Too long"];
 
@@ -362,7 +362,7 @@
             }, function (result, element) {
                     return errorMap[iti.getValidationError()] || errorMap[0];
             });
-            
+
             $.validator.addMethod('minSalesPrice', function (value, element) {
                 let bool = true;
                 let validatorThisIndex = $(element).data('indexid');
@@ -387,7 +387,7 @@
                 if (result) {
                     return `Minimum sales price must be atleast ${minSP}.`;
                 }
-                
+
                 return "Select a product.";
             });
 
@@ -435,14 +435,14 @@
                     messages: {
                         required: "Select a category."
                     }
-                }); 
+                });
 
                 cloned.find('.m-product').rules('add', {
                     required: true,
                     messages: {
                         required: "Select a product."
                     }
-                }); 
+                });
 
                 cloned.find('.m-quantity').rules('add', {
                     required: true,
@@ -453,7 +453,7 @@
                         digits: "Enter valid format.",
                         min: "Quantity can\'t be less than 1.",
                     }
-                }); 
+                });
 
                 cloned.find('.m-price').rules('add', {
                     required: true,
@@ -465,14 +465,14 @@
                         number: "Enter valid format.",
                         min: "Price can\'t be less than 0.",
                     }
-                }); 
+                });
 
             });
 
 
             $(document).on('click', '.removeRow', function(event) {
                 if ($('.upsertable tr').length > 1) {
-                    $(this).closest("tr").remove();                    
+                    $(this).closest("tr").remove();
                 }
 
                 let iid = $(this).parent().parent().prev().find('.m-remarks').data('indexid');
@@ -493,7 +493,7 @@
                 if (isNaN(price) || price == '') {
                     price = 0;
                 }
-                
+
                 let total = (parseFloat(price) * parseInt(quantity));
 
                 $(`#amount-${indexId}`).val(total.toFixed(2));
@@ -594,7 +594,9 @@
                 calculateAmount($(this).data('indexid'));
             });
 
-
+            $('#order_del_date').click(function(){
+                $('#order_del_date').datepicker('show');
+            })
             $('#order_del_date').datepicker({
                 format: 'dd-mm-yyyy',
                 autoclose: true,
@@ -721,7 +723,7 @@
                         required: "Enter price.",
                         number: "Enter valid format.",
                         min: "Price can\'t be less than 0.",
-                    }                        
+                    }
                     @endforelse
                 },
                 errorPlacement: function(error, element) {
