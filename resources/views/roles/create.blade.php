@@ -38,14 +38,29 @@
                         <textarea name="description" id="description" class="form-control" placeholder="Enter role description">{{ old('description') }}</textarea>
                     </div>
                 </div>
+                <div class="col-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Activation : </label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="is_user_activation" id="is_user_activation_0" value="1">
+                            <label class="form-check-label" for="is_user_activation_0">
+                                Need activation
+                            </label>
+                          </div>
+                          <div class="form-check">
+                            <input class="form-check-input" type="radio" name="is_user_activation" id="is_user_activation_1" checked value="0">
+                            <label class="form-check-label" for="is_user_activation_1">
+                                Don't need activation
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="cardsBody py-0">
             <label class="c-gr f-500 f-16 w-100 mb-2">Permissions : </label>
             <div class="form-group">
                 <div class="row">
-
-
                     @foreach($permission as $key => $value)
                         <div class="col-xl-3 col-lg-4 col-md-6 mb-3 permission-listing">
                             <div class="PlBox">

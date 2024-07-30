@@ -189,7 +189,34 @@
             }
         });
     });
-
+    $(document).on('click', '#approveswt', function(e) {
+        e.preventDefault();
+        var linkURL = $(this).attr("href");
+        Swal.fire({
+            title: 'Are you sure want to approve?',
+            text: "",
+            icon: 'success',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes'
+        }).then((result) => {
+            if (result.value) {
+                $.ajax({
+                    url: linkURL,
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.status == 200) {
+                            fireSuccessMessage(response.success);
+                            $('.datatableMain').DataTable().ajax.reload();
+                        } else {
+                            fireErrorMessage(response.error);
+                        }
+                    }
+                });
+            }
+        });
+    });
     function fireSuccessMessage(message) {
         Swal.fire('Success', message, 'success');
     }

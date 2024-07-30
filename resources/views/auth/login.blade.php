@@ -89,7 +89,15 @@ function fireErrMessage(message) {
 if (hasSessionError) {
     fireErrMessage("{{ session('error') }}");
 }
+var hasSessionSuccess = "{{session()->has('success') ? true : false}}";
 
+function fireSucMessage(message) {
+    Swal.fire('Success', message, 'success');
+}
+
+if (hasSessionSuccess) {
+    fireSucMessage("{{ session('success') }}");
+}
     $(document).ready(function(){
 
         $("#loginForm").validate({

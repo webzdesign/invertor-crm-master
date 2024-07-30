@@ -47,6 +47,7 @@
                 <th>Role Name</th>
                 <th>Description</th>
                 <th>Status</th>
+                <th width="10% !important">Activation</th>
                 <th>Added By</th>
                 <th>Updated By</th>
                 <th>Action</th>
@@ -98,6 +99,9 @@
                 },
                 {
                     data: 'status',
+                },
+                {
+                    data: 'is_user_activation',
                 },
                 {
                     data: 'addedby.name',

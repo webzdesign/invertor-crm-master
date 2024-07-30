@@ -18,9 +18,15 @@ class StatusChecker
         try {
 
             $isUserRoleActive = true;
+            $isUserRoleActiveValue = 0;
             $user = $request->user()->load('roles');
+           
             if ($user->status == 0 || $user->roles->contains('status', 0)) {
                 $isUserRoleActive = false;
+                $isUserRoleActiveValue = 1;
+            } else if($user->status == 2) {
+                $isUserRoleActive = false;
+                $isUserRoleActiveValue = 2;
             }
 
             if($isUserRoleActive){
@@ -29,7 +35,12 @@ class StatusChecker
 
                 $email = $request->user()->email;
                 auth()->logout();
-                return redirect()->route('login')->withErrors(['email' => 'Your account has been disabled. Please contact the administrator.'])->withInput(['email' => $email]);
+                if($isUserRoleActiveValue == 1) {
+                    return redirect()->route('login')->withErrors(['email' => 'Your account has been disabled. Please contact the administrator.'])->withInput(['email' => $email]);
+                } else {
+                    return redirect()->route('login')->withErrors(['email' => 'Your account approval is pending. Please contact the administrator.'])->withInput(['email' => $email]);
+                }
+
             }
 
         } catch (\Exception $e) {

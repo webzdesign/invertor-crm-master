@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Builder;
+// use App\Models\Scopes\ApprovedScope;
+
 
 class User extends Authenticatable
 {
@@ -38,6 +41,18 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+
+
+    protected static function booted()
+    {
+        static::addGlobalScope('ApprovedScope', function (Builder $builder) {
+
+            $builder->where('status', '!=',2);
+
+        });
+
+    }
+
     protected function casts(): array
     {
         return [
@@ -83,7 +98,7 @@ class User extends Authenticatable
         if (in_array(1,auth()->user()->roles->pluck("id")->all())) {
             return (bool) true;
         } else {
-            $rolePermissions = User::select('permissions.slug', 'users.id')
+            $rolePermissions = User::withoutGlobalScope('ApprovedScope')->select('permissions.slug', 'users.id')
                                     ->join('user_roles', 'users.id', '=', 'user_roles.user_id')
                                     ->join('roles', 'user_roles.role_id', '=', 'roles.id')
                                     ->join('permission_role', 'roles.id', '=', 'permission_role.role_id')
@@ -92,7 +107,7 @@ class User extends Authenticatable
                                     ->pluck('id', 'slug')
                                     ->toArray();
 
-            $userPermissions = User::select('permissions.slug', 'users.id')
+            $userPermissions = User::withoutGlobalScope('ApprovedScope')->select('permissions.slug', 'users.id')
                                     ->join('user_permissions', 'users.id', '=', 'user_permissions.user_id')
                                     ->join('permissions', 'user_permissions.permission_id', '=', 'permissions.id')
                                     ->where('users.id', auth()->user()->id)

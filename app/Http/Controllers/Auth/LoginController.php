@@ -4,6 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class LoginController extends Controller
 {
@@ -35,5 +40,35 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+    }
+    public function login(Request $request): RedirectResponse
+    {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+
+        $validate_admin = User::withoutGlobalScope('ApprovedScope')->where('email',$request->email)->first();
+        if ($validate_admin && Hash::check($request->password, $validate_admin->password)) {
+            if($validate_admin->status == 2){
+                return back()->withErrors([
+                    'email' => 'Your account approval is pending. Please contact the administrator.',
+                ])->onlyInput('email');
+            } else if($validate_admin->status == 0) {
+                return back()->withErrors([
+                    'email' => 'Your account has been disabled. Please contact the administrator.',
+                ])->onlyInput('email');
+            }
+        }
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+
+            return redirect()->intended('dashboard');
+        }
+        return back()->withErrors([
+            'email' => 'Credentials does not match.',
+        ])->onlyInput('email');
+
     }
 }

@@ -95,7 +95,14 @@ class RoleController extends Controller
                     return "<span class='badge bg-danger'>Inactive</span>";
                 }
             })
-            ->rawColumns(['action', 'status', 'addedby.name', 'updatedby.name'])
+            ->editColumn("is_user_activation", function($users) {
+                if ($users->is_user_activation == 1) {
+                    return "<i class='fa fa-check-circle-o text-success'></i> Need activation";
+                } else {
+                    return "<i class='fa fa-times-circle text-danger'></i> Don't need activation";
+                }
+            })
+            ->rawColumns(['action', 'status', 'addedby.name', 'updatedby.name','is_user_activation'])
             ->addIndexColumn()
             ->make(true);
     }
@@ -132,6 +139,7 @@ class RoleController extends Controller
         $role->slug = Str::slug($request->name,"-");
         $role->description = $request->description;
         $role->added_by = auth()->User()->id;
+        $role->is_user_activation = $request->is_user_activation;
         $role->save();
 
         $role->permissions()->sync($request->permission);
@@ -206,6 +214,7 @@ class RoleController extends Controller
         $role->name = $request->name;
         $role->description = $request->description;
         $role->updated_by = auth()->User()->id;
+        $role->is_user_activation = $request->is_user_activation;
         $role->save();
 
         $role->permissions()->detach();

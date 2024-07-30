@@ -21,6 +21,7 @@ use App\Models\Role;
 use App\Models\UserAssignRole;
 
 
+
 class UserController extends Controller
 {
     protected $moduleName = 'Users';
@@ -50,7 +51,7 @@ class UserController extends Controller
             return view('users.index', compact('moduleName', 'roles'));
         }
 
-        $users = User::with(['roles', 'addedby', 'updatedby'])->whereHas('role', function ($builder) use ($Assignrole) {
+        $users = User::with(['roles', 'addedby', 'updatedby'])->withoutGlobalScope('ApprovedScope')->whereHas('role', function ($builder) use ($Assignrole) {
             $builder->where('roles.id', '!=', '4');
             if(isset($Assignrole) && !empty($Assignrole)) {
                 $builder->whereIn('roles.id', $Assignrole);
@@ -93,7 +94,7 @@ class UserController extends Controller
                 }
                 return $roleName;
             })
-            ->addColumn('action', function ($users) {
+            ->addColumn('action', function ($users) use ($roleids){
 
                 $variable = $users;
 
@@ -108,8 +109,11 @@ class UserController extends Controller
                     $action .= view('buttons.view', compact('variable', 'url'));
                 }
                 if (auth()->user()->hasPermission("users.activeinactive")) {
-                    if ($users->id !== auth()->user()->id) {
+                    if ($users->id !== auth()->user()->id && $users->status != 2) {
                         $url = route("users.activeinactive", encrypt($variable->id));
+                        $action .= view('buttons.status', compact('variable', 'url'));
+                    } else if($users->status == 2 && in_array('1',$roleids)){
+                        $url = route("users.approve", encrypt($variable->id));
                         $action .= view('buttons.status', compact('variable', 'url'));
                     }
                 }
@@ -126,6 +130,8 @@ class UserController extends Controller
             ->editColumn("status",function($users) {
                 if ($users->status == 1) {
                     return "<span class='badge bg-success'>Active</span>";
+                } else if ($users->status == 2) {
+                    return "<span class='badge bg-warning'>Pending</span>";
                 } else {
                     return "<span class='badge bg-danger'>Inactive</span>";
                 }
@@ -268,7 +274,7 @@ class UserController extends Controller
     {
         $moduleName = 'User';
         $moduleLink = route('users.index');
-        $user = User::with('roles')->where('id', decrypt($id))->first();
+        $user = User::with('roles')->withoutGlobalScope('ApprovedScope')->where('id', decrypt($id))->first();
         $roles = array();
 
         $roleids = auth()->user()->roles->pluck('id')->toArray();
@@ -328,7 +334,7 @@ class UserController extends Controller
 
         try {
 
-            $user = User::find(decrypt($id));
+            $user = User::withoutGlobalScope('ApprovedScope')->find(decrypt($id));
 
             if (in_array('3', $user->roles->pluck('id')->toArray()) && $request->role != '3') {
 
@@ -385,7 +391,7 @@ class UserController extends Controller
                                 $long = $data['results'][0]['geometry']['location']['lng'];
 
                                 if (!empty($lat)) {
-                                    $u = User::find($user->id);
+                                    $u = User::withoutGlobalScope('ApprovedScope')->find($user->id);
                                     $u->lat = $lat;
                                     $u->long = $long;
                                     $u->save();
@@ -462,7 +468,7 @@ class UserController extends Controller
     {
         $moduleName = 'User';
         $moduleLink = route('users.index');
-        $user = User::with('roles')->where('id', decrypt($id))->first();
+        $user = User::with('roles')->withoutGlobalScope('ApprovedScope')->where('id', decrypt($id))->first();
         $roles = Role::active()->get();
 
         $permission = PermissionRole::where('role_id', $user->roles->first()->id)->select('permission_id')->pluck('permission_id')->toArray() ?? [];
@@ -485,7 +491,7 @@ class UserController extends Controller
 
         try {
 
-            $user = User::find(decrypt($id));
+            $user = User::withoutGlobalScope('ApprovedScope')->find(decrypt($id));
 
             if (Deliver::where('user_id', $user->id)->whereIn('status', [0, 1])->exists()) {
                 DB::rollBack();
@@ -508,7 +514,7 @@ class UserController extends Controller
     public function status($id)
     {
         try {
-            $user = User::find(decrypt($id));
+            $user = User::withoutGlobalScope('ApprovedScope')->find(decrypt($id));
 
             if (Deliver::where('user_id', $user->id)->where('status', [0, 1])->exists()) {
                 return response()->json(['error' => 'Can not inactive this driver user at the moment.', 'status' => 500]);
@@ -530,7 +536,7 @@ class UserController extends Controller
     public function checkUserEmail(Request $request)
     {
 
-        $user = User::where('email', trim($request->email));
+        $user = User::withoutGlobalScope('ApprovedScope')->where('email', trim($request->email));
         if(isset($request->role_id) && $request->role_id !="") {
 
             $user->whereHas('role', function ($q)use($request) {
@@ -570,6 +576,7 @@ class UserController extends Controller
     }
 
     public function register(Request $request, $role, $uid = 1) {
+
         try {
 
             if ($request->method() == 'GET') {
@@ -591,8 +598,8 @@ class UserController extends Controller
 
                 try {
                     $role = decrypt($role);
-
-                    if (Role::find($role) !== null && $role != 1 && Role::where('id', $role)->active()->exists()) {
+                    $rolseData = Role::where('id', $role)->active()->first();
+                    if (Role::find($role) !== null && $role != 1 && !empty($rolseData)) {
                         $this->validate($request, [
                             'name' => 'required',
                             'email' => "required|email|unique:users,email,NULL,id,deleted_at,NULL",
@@ -626,6 +633,9 @@ class UserController extends Controller
                             $user->city_id = $request->city;
                             $user->postal_code = $request->postal_code;
                             $user->added_by = decrypt($uid);
+                            if(isset($rolseData->is_user_activation) && $rolseData->is_user_activation==1){
+                                $user->status = 2;
+                            }
                             $user->save();
 
                             $user->roles()->attach([$role]);
@@ -633,7 +643,9 @@ class UserController extends Controller
                             if (auth()->check()) {
                                 auth()->logout();
                             }
-
+                            if(isset($rolseData->is_user_activation) && $rolseData->is_user_activation==1){
+                                return redirect()->route('login')->with('success', 'Your registration has been completed successfully. You will be able to log in once your account has been approved by the administrator.');
+                            }
                             session()->flush();
                             $authenticate = auth()->attempt(['email' => $request->email, 'password' => $request->password]);
                     } else {
@@ -661,6 +673,23 @@ class UserController extends Controller
             }
 
             return $response;
+        }
+    }
+    public function approve($id)
+    {
+        try {
+            $user = User::withoutGlobalScope('ApprovedScope')->find(decrypt($id));
+
+            $user->status = 1 ;
+            $user->save();
+
+            if ($user->status == 1) {
+                return response()->json(['success' => 'User approved successfully.', 'status' => 200]);
+            } else {
+                return response()->json(['success' => 'User not approve. Please try after some time', 'status' => 200]);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
         }
     }
 }

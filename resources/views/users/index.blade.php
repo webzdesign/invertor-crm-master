@@ -45,6 +45,7 @@
                 <select name="filterStatus" id="filterStatus" class="select2 select2-hidden-accessible" data-placeholder="--- Select Status ---">
                     <option value="" selected> --- Select Status --- </option>
                     <option value="1">Active</option>
+                    <option value="2">Pending</option>
                     <option value="0">Inactive</option>
                 </select>
             </div>

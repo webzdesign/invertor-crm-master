@@ -49,6 +49,7 @@ Route::group(["middleware" => "auth"], function () {
         Route::put('users/{id}/update', [UserController::class, 'update'])->name('users.update');
         Route::get('users/{id}/delete', [UserController::class, 'destroy'])->name('users.delete')->middleware('ModuleAccessor:users.delete');
         Route::get('users/{id}/status', [UserController::class, 'status'])->name('users.activeinactive')->middleware('ModuleAccessor:users.activeinactive');
+        Route::get('users/{id}/statusapprove', [UserController::class, 'approve'])->name('users.approve')->middleware('ModuleAccessor:users.activeinactive');
         Route::post('role-permissions', [UserController::class, 'rolePermissions'])->name('role-permissions');
         /** Users **/
 

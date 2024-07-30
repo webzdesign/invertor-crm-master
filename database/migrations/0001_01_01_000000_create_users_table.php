@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->tinyInteger('status')->default(1)->comment('0 = InActive | 1 = Active');
+            $table->tinyInteger('status')->default(1)->comment('0 = InActive | 1 = Active | 2 - Need approval(pending)');
             $table->string('profile')->nullable();
             $table->bigInteger('phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
