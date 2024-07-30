@@ -138,6 +138,12 @@
     span.drivertitle {
         cursor: pointer;
     }
+    .datepicker-orient-bottom{
+        margin-top: 70px;
+    }
+    .datepicker-orient-top{
+        margin-top: 26px;
+    }
 </style>
 @endsection
 
@@ -244,20 +250,36 @@
         </div>
 
         <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
-            <div class="form-group mb-0 mb-10-500">
+            <!-- <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">From Delivery Date</label>
                 @if(isset($filterSelectedData->filterFrom) && $filterSelectedData->filterFrom !="") @php $isFilter=1; @endphp @endif
 
                 <input readonly type="text" id="filterFrom" name="filterFrom" class="form-control" placeholder="From date" value="{{ (isset($filterSelectedData->filterFrom) && $filterSelectedData->filterFrom !="") ? $filterSelectedData->filterFrom : null}}">
+            </div> -->
+
+            <div class="date" id="filterFrom">
+                <label class="c-gr f-500 f-14 w-100 mb-1">From Delivery Date</label>
+                @if(isset($filterSelectedData->filterFrom) && $filterSelectedData->filterFrom !="") @php $isFilter=1; @endphp @endif
+                <input readonly type="text" name="filterFrom" class="form-control" placeholder="From date" value="{{ (isset($filterSelectedData->filterFrom) && $filterSelectedData->filterFrom !="") ? $filterSelectedData->filterFrom : null}}">
+                <span class="input-group-append"></span>
             </div>
+
         </div>
 
         <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
-            <div class="form-group mb-0 mb-10-500">
+            <!-- <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">To Delivery Date</label>
                 @if(isset($filterSelectedData->filterTo) && $filterSelectedData->filterTo !="") @php $isFilter=1; @endphp @endif
                 <input readonly type="text" id="filterTo" name="filterTo" class="form-control" placeholder="To date" value="{{ (isset($filterSelectedData->filterTo) && $filterSelectedData->filterTo !="") ? $filterSelectedData->filterTo : null}}">
+            </div> -->
+
+            <div class="date" id="filterTo">
+                <label class="c-gr f-500 f-14 w-100 mb-1">From Delivery Date</label>
+                @if(isset($filterSelectedData->filterTo) && $filterSelectedData->filterTo !="") @php $isFilter=1; @endphp @endif
+                <input readonly type="text" id="filterTo" name="filterTo" class="form-control" placeholder="To date" value="{{ (isset($filterSelectedData->filterTo) && $filterSelectedData->filterTo !="") ? $filterSelectedData->filterTo : null}}">
+                <span class="input-group-append"></span>
             </div>
+
         </div>
 
         <div class="col-xl-3 col-sm-4 position-relative">
@@ -310,22 +332,28 @@
 <script src="{{ asset('assets/js/responsive.bootstrap5.js') }}"></script>
 <script>
     $(document).ready(function() {
-
+        $('#filterFrom').click(function(){
+            $('#filterFrom').datepicker('show');
+        })
         $('#filterFrom').datepicker({
             format: 'dd-mm-yyyy',
             autoclose: true,
             todayHighlight: true,
-            orientation: "bottom"
+            orientation: "auto",
         }).on('changeDate', function(selected) {
             var minDate = new Date(selected.date.valueOf());
             $('#filterTo').datepicker('setStartDate', minDate);
         });
 
+
+        $('#filterTo').click(function(){
+            $('#filterTo').datepicker('show');
+        })
         $('#filterTo').datepicker({
             format: 'dd-mm-yyyy',
             autoclose: true,
             todayHighlight: true,
-            orientation: "bottom"
+            orientation: "auto"
         }).on('changeDate', function(selected) {
             var maxDate = new Date(selected.date.valueOf());
             $('#filterFrom').datepicker('setEndDate', maxDate);
