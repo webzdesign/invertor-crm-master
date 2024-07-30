@@ -16,7 +16,6 @@ class SalesOrderController extends Controller
 
     public function index(Request $request)
     {
-
         if (!$request->ajax()) {
 
             $moduleName = $this->moduleName;
@@ -499,7 +498,7 @@ class SalesOrderController extends Controller
                     $minSalesPrice = Product::msp($request->product);
                     $product = Product::where('id', $request->product)->first();
                     $orderNo = Helper::generateSalesOrderNumber();
-                    $driverDetail = User::whereIn('id',$driverids)->get();
+                    $driverDetail = User::active()->whereIn('id',$driverids)->get();
                     $postalcode = $request->postal_code;
                     $addressline = $request->address_line_1;
                     $enteredPrice = $request->price;
@@ -673,7 +672,7 @@ class SalesOrderController extends Controller
                             $driverrangeData = json_decode($request->range);
                             if(!empty($driverrangeData)) {
                                 foreach($driverrangeData as $driverid=>$range) {
-                                    $driverDetail = User::find($driverid);
+                                    $driverDetail = User::active()->find($driverid);
                                     if(!empty($driverDetail)) {
                                         $driverids[] = $driverid;
                                         Deliver::create([
