@@ -257,6 +257,10 @@
 
         $.fn.dataTable.ext.errMode = 'none';
 
+        $('#date-filter').click(function(){
+            $('#date-filter').datepicker('show');
+        })
+
         var ServerDataTable = $('.seller-commission').DataTable({
             pageLength : 50,
             language: {
