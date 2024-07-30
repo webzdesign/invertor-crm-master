@@ -138,12 +138,7 @@
     span.drivertitle {
         cursor: pointer;
     }
-    .datepicker-orient-bottom{
-        margin-top: 70px;
-    }
-    .datepicker-orient-top{
-        margin-top: 26px;
-    }
+
 </style>
 @endsection
 
