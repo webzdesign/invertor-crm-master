@@ -106,7 +106,9 @@
 @section('script')
 <script>
     $(document).ready(function() {
-
+        $('#filterFrom').click(function(){
+            $('#filterFrom').datepicker('show');
+        })
         $('#filterFrom').datepicker({
             format: 'dd-mm-yyyy',
             autoclose: true,
@@ -116,7 +118,9 @@
             var minDate = new Date(selected.date.valueOf());
             $('#filterTo').datepicker('setStartDate', minDate);
         });
-
+        $('#filterTo').click(function(){
+            $('#filterTo').datepicker('show');
+        })
         $('#filterTo').datepicker({
             format: 'dd-mm-yyyy',
             autoclose: true,
