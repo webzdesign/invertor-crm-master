@@ -42,7 +42,7 @@ class SalesOrderController extends Controller
 
         $po = SalesOrder::with(['items.product', 'addedby', 'updatedby', 'ostatus', 'assigneddriver'])->where(function ($builder) use ($thisUserRoles) {
             if (!in_array(1, $thisUserRoles)) {
-                $builder->where('added_by', auth()->user()->id)
+                $builder->where('added_by', auth()->user()->id)->orWhereIn('added_by',User::where('added_by',auth()->user()->id)->pluck('id')->toArray())
                 ->orWhereHas('driver', fn ($innerBuilder) => $innerBuilder->where('user_id', auth()->user()->id)->whereIn('status', [0, 1]))
                 ->orWhere('responsible_user', auth()->user()->id);
             }
@@ -298,11 +298,15 @@ class SalesOrderController extends Controller
 
             })
             ->addColumn('allocated_to', function ($row) {
+
                 $assigneOrderdriver = Deliver::query()
                 ->with(['user' => function ($query) {
                     $query->selectRaw("id,CONCAT(name, ' - ', city_id) AS driverinfo");
-                }])
-                ->where('so_id', $row->id)
+                }]);
+                if(Deliver::where('so_id', $row->id)->where('status',1)->count() > 0){
+                    $assigneOrderdriver->where('status',1);
+                }
+                $assigneOrderdriver = $assigneOrderdriver->where('so_id', $row->id)
                 ->get()->pluck('user.driverinfo')->toArray();
 
                 return (!empty($assigneOrderdriver) ? implode(', ',$assigneOrderdriver) : '-');

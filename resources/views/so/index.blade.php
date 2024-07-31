@@ -280,9 +280,9 @@
                 <th>Product</th>
                 <th style="width: 3%!important;">Quantity</th>
                 <th style="width: 3%!important;">Order Amount</th>
-                @if(in_array(1, User::getUserRoles()) || in_array(3, User::getUserRoles()))
+                {{-- @if(in_array(1, User::getUserRoles()) || in_array(3, User::getUserRoles())) --}}
                 <th>Added By</th>
-                @endif
+                {{-- @endif --}}
                 @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 <th>Last Comment</th>
                 @endif
@@ -420,13 +420,11 @@
                 {
                     data: 'total',
                 },
-                @if(in_array(1, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 {
                     data: 'addedby.name',
                     orderable: false,
                     searchable: false,
                 },
-                @endif
                 @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(3, User::getUserRoles()))
                 {
                     data: 'note',

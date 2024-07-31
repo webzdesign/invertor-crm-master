@@ -680,7 +680,8 @@ class UserController extends Controller
         try {
             $user = User::withoutGlobalScope('ApprovedScope')->find(decrypt($id));
 
-            $user->status = 1 ;
+            $user->status = 1;
+            $user->approvedDate = now();
             $user->save();
 
             if ($user->status == 1) {
