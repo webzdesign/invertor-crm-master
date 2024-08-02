@@ -1169,10 +1169,7 @@ class SalesOrderStatusController extends Controller
         }
 
         $updatedStatuses = SalesOrderStatus::select('id', 'name')->when(!empty($requestStatus), fn ($builder) => ($builder->where('id', '!=', $requestStatus)))->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
-        if (isset($updatedStatuses[1])) {
-            $updatedStatuses[1] = 'ORDER PLACED';
-        }
-
+        
         if (ManageStatus::where('status_id', $requestStatus)->exists()) {
             return response()->json(['exists' => true, 'data' => ManageStatus::where('status_id', $requestStatus)->first()->toArray(), 'updatedStatuses' => $updatedStatuses]);
         }
