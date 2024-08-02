@@ -266,8 +266,7 @@ class SalesOrderController extends Controller
 
                                     if (empty($alldriverName)) {
                                         $html =  '
-                                        <i class="fa fa-warning" aria-hidden="true" style="color: #dd2d20;font-size:16px;"></i>
-                                        <strong class="text-danger f-12"> No driver found nearby when order was placed </strong>
+                                        <strong>  Order Placed  </strong>
                                         <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
                                         ';
                                     } else {
@@ -318,8 +317,8 @@ class SalesOrderController extends Controller
                 $assigneOrderdriver = $assigneOrderdriver->where('so_id', $row->id)
                 ->get()->pluck('user.driverinfo')->toArray();
 
-                return (!empty($assigneOrderdriver) ? implode(', ',$assigneOrderdriver) : '-');
 
+                return (!empty($assigneOrderdriver) ? implode(', ',$assigneOrderdriver) : '<i class="fa fa-warning" aria-hidden="true" style="color: #dd2d20;font-size:16px;"></i><strong class="text-danger f-12"> No driver found nearby when order was placed </strong>');
             })
             ->editColumn('assigneddriver.range', function($user) {
                 if(isset($user->assigneddriver->range) && $user->assigneddriver->range !="") {
@@ -328,7 +327,7 @@ class SalesOrderController extends Controller
                     return '-';
                 }
             })
-            ->rawColumns(['action', 'postalcode', 'addedby.name', 'updatedby.name', 'option', 'order_no', 'note','assigneddriver.range'])
+            ->rawColumns(['action', 'postalcode', 'addedby.name', 'updatedby.name', 'option', 'order_no', 'note','assigneddriver.range', 'allocated_to'])
             ->addIndexColumn()
             ->make(true);
     }
@@ -1524,6 +1523,13 @@ class SalesOrderController extends Controller
                     'status' => 0
                 ]);
 
+                TriggerLog::create([
+                    'trigger_id' => 0,
+                    'order_id' => $request->order_id,
+                    'type' => 4,
+                    'allocated_driver_id' => implode(',',[$request->driver_id]),
+                ]);
+
                 Deliver::where('id', $driver->id)->update(['status' => 4]);
                 SalesOrder::where('id', $request->order_id)->update(['responsible_user' => $request->driver_id]);
 
@@ -1549,6 +1555,13 @@ class SalesOrderController extends Controller
                         'status' => 0
                     ]);
 
+                    TriggerLog::create([
+                        'trigger_id' => 0,
+                        'order_id' => $request->order_id,
+                        'type' => 4,
+                        'allocated_driver_id' => implode(',',[$request->driver_id]),
+                    ]);
+
                     SalesOrder::where('id', $request->order_id)->update(['responsible_user' => $request->driver_id]);
                     
                     return response()->json(['status' => true, 'message' => 'Driver assigned successfully.']);
@@ -1565,6 +1578,13 @@ class SalesOrderController extends Controller
                         'delivery_location_long' => $thisOrder->long,
                         'range' => Distance::measure($thisUser->lat, $thisUser->long, $thisOrder->lat, $thisOrder->long),
                         'status' => 0
+                    ]);
+
+                    TriggerLog::create([
+                        'trigger_id' => 0,
+                        'order_id' => $request->order_id,
+                        'type' => 4,
+                        'allocated_driver_id' => implode(',',[$request->driver_id]),
                     ]);
     
                     Deliver::where('id', $driver->id)->update(['status' => 4]);
@@ -1584,6 +1604,13 @@ class SalesOrderController extends Controller
                     'delivery_location_long' => $thisOrder->long,
                     'range' => Distance::measure($thisUser->lat, $thisUser->long, $thisOrder->lat, $thisOrder->long),
                     'status' => 0
+                ]);
+
+                TriggerLog::create([
+                    'trigger_id' => 0,
+                    'order_id' => $request->order_id,
+                    'type' => 4,
+                    'allocated_driver_id' => implode(',',[$request->driver_id]),
                 ]);
 
                 SalesOrder::where('id', $request->order_id)->update(['responsible_user' => $request->driver_id]);
