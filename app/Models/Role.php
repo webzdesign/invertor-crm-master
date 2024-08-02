@@ -78,4 +78,9 @@ class Role extends Model
     {
         return $query->where('status', 1);
     }
+
+    public function documents()
+    {
+        return $this->hasMany(RequiredDocument::class, 'role_id');
+    }
 }

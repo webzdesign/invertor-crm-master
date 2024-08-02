@@ -382,4 +382,20 @@ class Helper {
     public static function hash() {
         return sha1(md5(time() . mt_rand(1, 99999999999999999) . uniqid()));
     }
+
+    public static function formatBytes($element) {
+        if ($element == '1024') {
+            return "1 MB";
+        } else if ($element == '10240') {
+            return "10 MB";
+        } else if ($element == '102400') {
+            return "100 MB";
+        } else if ($element == '1024000') {
+            return "1 GB";
+        } else if ($element == '10240000') {
+            return "10 GB";
+        } else {
+            return "10 MB";
+        }
+    }
 }
