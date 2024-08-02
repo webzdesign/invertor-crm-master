@@ -58,6 +58,8 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('roles/create', [RoleController::class, 'create'])->name('roles.create')->middleware('ModuleAccessor:roles.create');
         Route::post('roles/store', [RoleController::class, 'store'])->name('roles.store');
         Route::get('roles/{id}/edit', [RoleController::class, 'edit'])->name('roles.edit')->middleware('ModuleAccessor:roles.edit');
+        Route::get('set-required-documents/{id}', [RoleController::class, 'setDocs'])->name('set-required-documents')->middleware('ModuleAccessor:roles.edit');
+        Route::put('save-required-documents/{id}', [RoleController::class, 'saveDocs'])->name('save-required-documents');
         Route::put('roles/{id}/update', [RoleController::class, 'update'])->name('roles.update');
         Route::get('roles/{id}/view', [RoleController::class, 'show'])->name('roles.view')->middleware('ModuleAccessor:roles.view');
         Route::get('roles/{id}/delete', [RoleController::class, 'destroy'])->name('roles.delete')->middleware('ModuleAccessor:roles.delete');

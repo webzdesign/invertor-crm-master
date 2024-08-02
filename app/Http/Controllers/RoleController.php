@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RoleRequest;
+use App\Models\RequiredDocument;
 use Illuminate\Support\Facades\DB;
 use App\Models\PermissionRole;
 use Illuminate\Http\Request;
@@ -58,6 +59,16 @@ class RoleController extends Controller
                     if (auth()->user()->hasPermission("roles.edit")) {
                         $url = route("roles.edit", encrypt($variable->id));
                         $action .= view('buttons.edit', compact('variable', 'url'));
+
+                        // $action .= '
+                        // <div class="tableCards d-inline-block me-1 pb-0">
+                        //     <div class="editDlbtn">
+                        //         <a data-bs-toggle="tooltip" class="editBtn modal-edit-btn" title="Required document for registration" href="' . (route('set-required-documents', encrypt($variable->id))) . '"> 
+                        //             <i class="fa fa-file-text text-white" aria-hidden="true"></i>
+                        //         </a>
+                        //     </div>
+                        // </div>
+                        // ';
                     }
                 }
 
@@ -288,6 +299,119 @@ class RoleController extends Controller
             return false;
         } else {
             return true;
+        }
+    }
+
+    public function setDocs(Request $request, $id) {
+
+        $moduleName = 'Roles';
+        $role = Role::find(decrypt($id));
+
+        return view('roles.document', compact('moduleName', 'role', 'id'));
+    }
+
+    public function saveDocs(Request $request, $id) {
+
+        $this->validate($request, [
+            'role' => 'required',
+            'document_name.*' => 'required'
+        ], [
+            'role' => 'Select a role.',
+            'document_name.*.required' => 'Enter document name.'
+        ]);
+
+        $role = Role::find(decrypt($id));
+
+        if (RequiredDocument::where('role_id', decrypt($id))->doesntExist() && $role) {
+
+            $names = $request->document_name;
+
+            if (is_array($names)) {
+                $filteredNames = array_filter($request->document_name);
+                if (is_countable($filteredNames) && count($filteredNames) == count($names)) {
+
+                    DB::beginTransaction();
+
+                    try {
+                        foreach ($filteredNames as $key => $name) {
+                            RequiredDocument::create([
+                                'role_id' => $role->id,
+                                'name' => $name,
+                                'description' => $request->document_description[$key] ?? '',
+                                'sequence' => $key,
+                                'allow_only_specific_file_format' => isset($request->allow_only_specific_file_format[$key]) && $request->allow_only_specific_file_format[$key] == 'on' ? true : false,
+                                'allowed_file' => isset($request->doc_type[$key]) ? implode(',', $request->doc_type[$key]) : null,
+                                'maximum_upload_count' => $request->doc_max_file_count[$key] ?? 1,
+                                'maximum_upload_size' => $request->doc_max_file_size[$key] ?? 1024,
+                                'is_required' => isset($request->is_required[$key]) && $request->is_required[$key] == 'on' ? true : false
+                            ]);
+                        }
+
+                        DB::commit();
+                        return redirect()->route('roles.index')->with('success', 'Documents set successfully.');
+
+                    } catch (\Exception $e) {
+                        DB::rollBack();
+                        Helper::logger($e->getMessage());
+                        return redirect()->back()->with('error', Helper::$errorMessage);
+                    }
+
+                }
+            }
+
+            return redirect()->back()->with('error', Helper::$errorMessage);
+        } else if (RequiredDocument::where('role_id', decrypt($id))->exists() && $role) {
+
+            $names = $request->document_name;
+
+            if (is_array($names)) {
+                $filteredNames = array_filter($request->document_name);
+                if (is_countable($filteredNames) && count($filteredNames) == count($names)) {
+
+                    DB::beginTransaction();
+
+                    try {
+                        foreach ($filteredNames as $key => $name) {
+                            if (isset($request->id[$key]) && RequiredDocument::where('id', $request->id[$key])->exists()) {
+                                RequiredDocument::where('id', $request->id[$key])->update([
+                                    'name' => $name,
+                                    'description' => $request->document_description[$key] ?? '',
+                                    'sequence' => $key,
+                                    'allow_only_specific_file_format' => isset($request->allow_only_specific_file_format[$key]) && $request->allow_only_specific_file_format[$key] == 'on' ? true : false,
+                                    'allowed_file' => isset($request->doc_type[$key]) ? implode(',', $request->doc_type[$key]) : null,
+                                    'maximum_upload_count' => $request->doc_max_file_count[$key] ?? 1,
+                                    'maximum_upload_size' => $request->doc_max_file_size[$key] ?? 1024,
+                                    'is_required' => isset($request->is_required[$key]) && $request->is_required[$key] == 'on' ? true : false
+                                ]);
+                            } else {
+                                RequiredDocument::create([
+                                    'role_id' => $role->id,
+                                    'name' => $name,
+                                    'description' => $request->document_description[$key] ?? '',
+                                    'sequence' => $key,
+                                    'allow_only_specific_file_format' => isset($request->allow_only_specific_file_format[$key]) && $request->allow_only_specific_file_format[$key] == 'on' ? true : false,
+                                    'allowed_file' => isset($request->doc_type[$key]) ? implode(',', $request->doc_type[$key]) : null,
+                                    'maximum_upload_count' => $request->doc_max_file_count[$key] ?? 1,
+                                    'maximum_upload_size' => $request->doc_max_file_size[$key] ?? 1024,
+                                    'is_required' => isset($request->is_required[$key]) && $request->is_required[$key] == 'on' ? true : false
+                                ]);
+                            }
+                        }
+
+                        DB::commit();
+                        return redirect()->route('roles.index')->with('success', 'Documents set successfully.');
+
+                    } catch (\Exception $e) {
+                        DB::rollBack();
+                        Helper::logger($e->getMessage() . " LINE NO : " .  $e->getLine());
+                        return redirect()->back()->with('error', Helper::$errorMessage);
+                    }
+
+                }
+            }
+            return redirect()->back()->with('error', Helper::$errorMessage);
+        } else {
+            return redirect()->back()->with('error', Helper::$notFound);
         }
     }
 }
