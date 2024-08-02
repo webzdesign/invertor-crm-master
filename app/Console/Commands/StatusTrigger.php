@@ -2,7 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, SalesOrder, Trigger, ChangeOrderUser, SalesOrderStatus, Deliver};
+use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, SalesOrder, Trigger, ChangeOrderUser, SalesOrderStatus, Deliver, User};
+use Illuminate\Support\Facades\DB;
 use Illuminate\Console\Command;
 use App\Helpers\Helper;
 
@@ -28,7 +29,7 @@ class StatusTrigger extends Command
         
         $iterable = ChangeOrderStatusTrigger::whereHas('trigger', function ($builder) {
             $builder->where('id', '>', 0);
-        })->where('executed', 0)->where(\Illuminate\Support\Facades\DB::raw("DATE_FORMAT(executed_at, '%Y-%m-%d %H:%i')"), '<=', date('Y-m-d H:i')); 
+        })->where('executed', 0)->where(DB::raw("DATE_FORMAT(executed_at, '%Y-%m-%d %H:%i')"), '<=', date('Y-m-d H:i')); 
 
         if (!empty($triggers)) {
             $iterable = $iterable->whereIn('id', $triggers);
@@ -41,6 +42,7 @@ class StatusTrigger extends Command
             if (isset($thisOrder->order_id)) {
 
             $salesOrder = SalesOrder::findOrFail($thisOrder->order_id ?? null);
+            $windowId = \Illuminate\Support\Str::random(30);
             $newStatus = $thisOrder->status_id;
 
                 AddTaskToOrderTrigger::where('order_id', $thisOrder->order_id)->where('status_id', '!=',$newStatus)->where('executed', 0)->delete();
@@ -51,12 +53,12 @@ class StatusTrigger extends Command
                     'orderId' => $thisOrder->order_id,
                     'orderStatus' => $newStatus,
                     'orderOldStatus' => $salesOrder->status,
-                    'windowId' => \Illuminate\Support\Str::random(30),
+                    'windowId' => $windowId,
                     'users' => [Deliver::where('so_id', $salesOrder->id)->where('status', 1)->first()->user_id ?? null, $salesOrder->added_by]
                 ]));
 
-                $fromStatus = SalesOrderStatus::custom()->withTrashed()->where('id', $salesOrder->status)->first();
-                $toStatus = SalesOrderStatus::custom()->withTrashed()->where('id', $newStatus)->first();
+                $fromStatus = SalesOrderStatus::withTrashed()->where('id', $salesOrder->status)->first();
+                $toStatus = SalesOrderStatus::withTrashed()->where('id', $newStatus)->first();
 
                 \App\Models\TriggerLog::create([
                     'trigger_id' => $order->trigger_id,
@@ -211,7 +213,68 @@ class StatusTrigger extends Command
             }
             /** Change Order Status **/
 
+            if ($newStatus == 1) {
+                self::allocateDrivers($order->order_id, $fromStatus->id, $windowId);
             }
+
+            }
+        }
+    }
+
+    private static function allocateDrivers($orderId, $oldStatus, $windowId) {
+        $salesorderInfo = SalesOrder::find($orderId);
+
+        if(!empty($salesorderInfo)) {
+            
+            $salesorderInfo->status = 1;
+            $salesorderInfo->responsible_user = null;
+            $salesorderInfo->save();
+
+            Deliver::where('so_id',$salesorderInfo->id)->delete();
+
+            event(new \App\Events\OrderStatusEvent('order-status-change', [
+                'orderId' => $salesorderInfo->id,
+                'orderStatus' => 1,
+                'orderOldStatus' => $oldStatus,
+                'windowId' => $windowId,
+                'users' => [Deliver::where('so_id', $salesorderInfo->id)->where('status', 1)->first()->user_id ?? null, $salesorderInfo->added_by],
+                'removing' => true
+            ]));
+
+            $driverlist = \App\Http\Controllers\SalesOrderController::againDriverAllocate($salesorderInfo)->getData();
+
+            if($driverlist->status === true && !empty($driverlist->drivers)) {
+
+                $driverids = [];
+                foreach($driverlist->drivers as $driverid=>$driverallocaterang) {
+    
+                    $driverDetail = User::active()->find($driverid);
+    
+                    if(!empty($driverDetail)) {
+                        $driverids[] = $driverid;
+                        Deliver::create([
+                            'user_id' => $driverid,
+                            'so_id' => $salesorderInfo->id,
+                            'added_by' => 1,
+                            'driver_lat' => $driverDetail->lat,
+                            'driver_long' => $driverDetail->long,
+                            'delivery_location_lat' => $salesorderInfo->lat,
+                            'delivery_location_long' => $salesorderInfo->long,
+                            'range' => (isset($driverallocaterang) && $driverallocaterang != '') ? number_format($driverallocaterang,2,'.','') : 0
+                        ]);
+                    }
+    
+                }
+                if(!empty($driverids)) {
+                    \App\Models\TriggerLog::create([
+                        'trigger_id' => 0,
+                        'order_id' => $salesorderInfo->id,
+                        'type' => 4,
+                        'allocated_driver_id' => implode(',',$driverids),
+                    ]);
+                }
+            }
+
         }
     }
 }

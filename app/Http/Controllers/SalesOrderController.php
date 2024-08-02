@@ -23,7 +23,7 @@ class SalesOrderController extends Controller
 
             $sellers = User::whereHas('role', fn ($builder) => ($builder->whereIn('roles.id', [2, 6])))->selectRaw("CONCAT(name, ' - (', email, ')') as name, users.id as id")->pluck('name', 'id')->toArray();
             $drivers = User::whereHas('role', fn ($builder) => ($builder->where('roles.id', [3])))->selectRaw("CONCAT(name, ' - (', email, ')') as name, users.id, users.lat, users.long")->get()->toArray();
-            $statuses = DB::table('sales_order_statuses')->select('name', 'id')->pluck('name', 'id')->toArray();
+            $statuses = SalesOrderStatus::select('name', 'id')->pluck('name', 'id')->toArray();
             $products = Product::select('name', 'id')->pluck('name', 'id')->toArray();
 
             return view('so.index', compact('moduleName', 'sellers', 'drivers', 'statuses', 'products','filterSelectedData'));
@@ -98,7 +98,7 @@ class SalesOrderController extends Controller
             });
         }
         $orderClosedWinStatus = SalesOrderStatus::where('slug', 'closed-win')->first()->id ?? 0;
-        $allStatuses = SalesOrderStatus::custom()->active()->select('id', 'name', 'color')->get();
+        $allStatuses = SalesOrderStatus::active()->select('id', 'name', 'color')->get();
 
         return dataTables()->eloquent($po)
             ->addColumn('total', fn ($row) => $row->price_matched ? ('£' . ($row->sold_amount + $row->driver_amount)) : ('£' . ($row->total())))
@@ -170,7 +170,7 @@ class SalesOrderController extends Controller
                 if ($row->status != '1') {
 
                     $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
-                    $allStatuses = SalesOrderStatus::custom()->active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
+                    $allStatuses = SalesOrderStatus::active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
 
                     if (User::isAdmin() || (!empty($row->responsible_user) && is_numeric($row->responsible_user) && $row->responsible_user == auth()->user()->id)) {
                         if (count($allStatuses) > 0) {
@@ -263,11 +263,20 @@ class SalesOrderController extends Controller
                                     }
                                     $deliveryUser = Deliver::where('so_id', $row->id)->whereIn('status', [0,1])->first()->user_id ?? null;
                                     //. (isset($isRejected->user->name) ? $isRejected->user->name : 'driver') .
-                                    $html =  '
-                                    <i class="fa fa-warning" aria-hidden="true" style="color: #dd2d20;font-size:16px;"></i>
-                                    <strong class="text-danger f-12"> Order was rejected by <span title="'.$alldriverName.'" class="drivertitle"> All drivers</span> </strong>
-                                    <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
-                                    ';
+
+                                    if (empty($alldriverName)) {
+                                        $html =  '
+                                        <i class="fa fa-warning" aria-hidden="true" style="color: #dd2d20;font-size:16px;"></i>
+                                        <strong class="text-danger f-12"> No driver found nearby when order was placed </strong>
+                                        <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
+                                        ';
+                                    } else {
+                                        $html =  '
+                                        <i class="fa fa-warning" aria-hidden="true" style="color: #dd2d20;font-size:16px;"></i>
+                                        <strong class="text-danger f-12"> Order was rejected by <span title="'.$alldriverName.'" class="drivertitle"> All drivers</span> </strong>
+                                        <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
+                                        ';
+                                    }
                                 }
                             }
                         } else {
@@ -1489,10 +1498,16 @@ class SalesOrderController extends Controller
     public function changeDriver(Request $request) {
         if (!empty($request->driver_id) && !empty($request->order_id)) {
 
-            $thisUser = User::where('id', $request->driver_id)->first();
+            $thisUser = User::firstWhere('id', $request->driver_id);
 
             if ($thisUser == null) {
                 return response()->json(['status' => false, 'message' => 'Driver not found.']);
+            }
+
+            $thisOrder = SalesOrder::firstWhere('id', $request->order_id);
+
+            if ($thisOrder == null) {
+                return response()->json(['status' => false, 'message' => 'Order not found.']);
             }
 
             if (Deliver::where('so_id', $request->order_id)->whereIn('status', [0, 1])->exists()) {
@@ -1501,36 +1516,78 @@ class SalesOrderController extends Controller
                     'user_id' => $request->driver_id,
                     'so_id' => $request->order_id,
                     'added_by' => auth()->user()->id,
-                    'driver_lat' => $driver->driver_lat,
-                    'driver_long' => $driver->driver_long,
-                    'delivery_location_lat' => $driver->delivery_location_lat,
-                    'delivery_location_long' => $driver->delivery_location_long,
-                    'range' => Distance::measure($thisUser->lat, $thisUser->long, $driver->delivery_location_lat, $driver->delivery_location_long),
+                    'driver_lat' => $thisUser->lat,
+                    'driver_long' => $thisUser->long,
+                    'delivery_location_lat' => $thisOrder->lat,
+                    'delivery_location_long' => $thisOrder->long,
+                    'range' => Distance::measure($thisUser->lat, $thisUser->long, $thisOrder->lat, $thisOrder->long),
                     'status' => 0
                 ]);
 
                 Deliver::where('id', $driver->id)->update(['status' => 4]);
                 SalesOrder::where('id', $request->order_id)->update(['responsible_user' => $request->driver_id]);
 
-                return response()->json(['status' => true, 'message' => 'Driver added successfully.']);
+                return response()->json(['status' => true, 'message' => 'Driver assigned successfully.']);
             } else if (Deliver::where('so_id', $request->order_id)->where('status', 2)->exists()) {
-                $driver = Deliver::where('so_id', $request->order_id)->where('status', 2)->first();
+
+                $totalOrder = Deliver::where('so_id', $request->order_id)->count();
+                $totalRejected = Deliver::where('so_id', $request->order_id)->where('status', 2)->count();
+
+                if ($totalOrder == $totalRejected) {
+
+                    Deliver::where('so_id', $request->order_id)->where('status', 2)->delete();
+
+                    Deliver::create([
+                        'user_id' => $request->driver_id,
+                        'so_id' => $request->order_id,
+                        'added_by' => auth()->user()->id,
+                        'driver_lat' => $thisUser->lat,
+                        'driver_long' => $thisUser->long,
+                        'delivery_location_lat' => $thisOrder->lat,
+                        'delivery_location_long' => $thisOrder->long,
+                        'range' => Distance::measure($thisUser->lat, $thisUser->long, $thisOrder->lat, $thisOrder->long),
+                        'status' => 0
+                    ]);
+
+                    SalesOrder::where('id', $request->order_id)->update(['responsible_user' => $request->driver_id]);
+                    
+                    return response()->json(['status' => true, 'message' => 'Driver assigned successfully.']);
+
+                } else {
+                    $driver = Deliver::where('so_id', $request->order_id)->where('status', 2)->first();
+                    Deliver::create([
+                        'user_id' => $request->driver_id,
+                        'so_id' => $request->order_id,
+                        'added_by' => auth()->user()->id,
+                        'driver_lat' => $thisUser->lat,
+                        'driver_long' => $thisUser->long,
+                        'delivery_location_lat' => $thisOrder->lat,
+                        'delivery_location_long' => $thisOrder->long,
+                        'range' => Distance::measure($thisUser->lat, $thisUser->long, $thisOrder->lat, $thisOrder->long),
+                        'status' => 0
+                    ]);
+    
+                    Deliver::where('id', $driver->id)->update(['status' => 4]);
+                    SalesOrder::where('id', $request->order_id)->update(['responsible_user' => $request->driver_id]);
+    
+                    return response()->json(['status' => true, 'message' => 'Driver assigned successfully.']);
+                }
+            } else {
+                Deliver::where('so_id', $request->order_id)->delete();
                 Deliver::create([
                     'user_id' => $request->driver_id,
                     'so_id' => $request->order_id,
                     'added_by' => auth()->user()->id,
-                    'driver_lat' => $driver->driver_lat,
-                    'driver_long' => $driver->driver_long,
-                    'delivery_location_lat' => $driver->delivery_location_lat,
-                    'delivery_location_long' => $driver->delivery_location_long,
-                    'range' => Distance::measure($thisUser->lat, $thisUser->long, $driver->delivery_location_lat, $driver->delivery_location_long),
+                    'driver_lat' => $thisUser->lat,
+                    'driver_long' => $thisUser->long,
+                    'delivery_location_lat' => $thisOrder->lat,
+                    'delivery_location_long' => $thisOrder->long,
+                    'range' => Distance::measure($thisUser->lat, $thisUser->long, $thisOrder->lat, $thisOrder->long),
                     'status' => 0
                 ]);
 
-                Deliver::where('id', $driver->id)->update(['status' => 4]);
                 SalesOrder::where('id', $request->order_id)->update(['responsible_user' => $request->driver_id]);
-
-                return response()->json(['status' => true, 'message' => 'Driver added successfully.']);
+                return response()->json(['status' => true, 'message' => 'Driver assigned successfully.']);
             }
 
         }

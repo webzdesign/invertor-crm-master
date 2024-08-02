@@ -496,6 +496,7 @@
                 shouldMove = true;
             }
 
+        
             if (shouldMove && 'element' in data) {
                 let toBeMovedAt = $(`[data-cardparent="${data.orderStatus}"]`);
                 $(toBeMovedAt).append(data.element);
@@ -512,6 +513,16 @@
                 if (data.orderStatus == "{{ $cwStatus }}") {
                     $(toBeMoved).addClass('cw-status-border');
                 }
+            } else if ('orderOldStatus' in data && data.orderStatus == '1' && data.orderOldStatus == '2') {
+                if ($(`[data-cardchild="${data.orderId}"]`).length > 0) {
+                    $(`[data-cardchild="${data.orderId}"]`).remove();
+                }
+                return false;
+            } else if ('removing' in data && data.removing && data.orderStatus == '1') {
+                if ($(`[data-cardchild="${data.orderId}"]`).length > 0) {
+                    $(`[data-cardchild="${data.orderId}"]`).remove();
+                }
+                return false;
             }
         });
 
@@ -1507,6 +1518,9 @@
                                     setTimeout(() => {
                                         location.reload();
                                     }, 500);
+                                } else if (response.responseJSON.status && 'show_message' in response.responseJSON && response.responseJSON.show_message) {
+                                    Swal.fire('', response.responseJSON.message,
+                                    'success');
                                 }
                             }
                         }

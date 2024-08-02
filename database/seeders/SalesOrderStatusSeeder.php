@@ -15,7 +15,7 @@ class SalesOrderStatusSeeder extends Seeder
         $statuses = [
             [
                 'color' => '#00b7db',
-                'name' => 'INCOMING ORDER',
+                'name' => 'ORDER PLACED',
                 'type' => 0,
                 'sequence' => null,
                 'is_static' => 1

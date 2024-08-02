@@ -334,7 +334,7 @@
     var content = `<tr><td class="block-a"><div style="min-width: 200px;width: 100%" class="removable-status"><select name="mstatus[0]" data-indexid="0" id="m-status-0" class="select2 select2-hidden-accessible m-status" style="width:100%" data-placeholder="Select a Status"><option value="" selected> --- Select a Status --- </option></select></div></td><td style="width:100px;"><div class="df-fr-jse" style="min-width: 100px;"><button type="button" class="btn btn-primary addNewRow">+</button> <button type="button" class="btn btn-danger removeRow" tabindex="-1">-</button></div></td></tr>`;
     var statusesHtml = `<option value="" selected> --- Select a Status --- </option>`;
     var allStatuses = {!! json_encode($s) !!};
-    var allStatusesObj = {!! json_encode($statuses) !!};
+    var allStatusesObj = {!! json_encode($statusesOnlyForShow) !!};
     var editingBlock = null;
 
     $(document).ready(function() {

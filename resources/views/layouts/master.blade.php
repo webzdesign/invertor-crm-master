@@ -20,7 +20,7 @@
         <div class="LoaderSec d-none">
             <span class="loader"></span>
         </div>
-        <div class="d-flex">
+        <div class="d-inline-block h-screen w-100">
             @include('layouts.partials.sidebar')
             <div class="d-none d-block-992">
                 <div class="sidebarOverlay d-none"></div>
