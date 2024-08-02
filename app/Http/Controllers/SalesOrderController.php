@@ -683,8 +683,8 @@ class SalesOrderController extends Controller
                                             'user_id' => $driverid,
                                             'so_id' => $soId,
                                             'added_by' => auth()->user()->id,
-                                            'driver_lat' => $request->lat,
-                                            'driver_long' => $request->long,
+                                            'driver_lat' => $driverDetail->lat,
+                                            'driver_long' => $driverDetail->long,
                                             'delivery_location_lat' => $request->lat,
                                             'delivery_location_long' => $request->long,
                                             'range' => $range
@@ -1568,5 +1568,112 @@ class SalesOrderController extends Controller
         }
 
         return response()->json(true);
+    }
+
+    public static function againDriverAllocate($saleorderId){
+
+        $errorWhileSavingLatLong = true;
+        $latFrom = $longFrom = $toLat = $toLong = $range = '';
+
+        $users = User::whereHas('role', function ($builder) {
+            $builder->where('roles.id', 3);
+        })->whereNotNull('lat')->whereNotNull('long')
+        ->active()
+        ->select('id', 'lat', 'long')->get()->toArray();
+
+        try {
+            if (env('GEOLOCATION_API') == 'true') {
+                $key = trim(Setting::first()?->geocode_key);
+
+                $address = trim("{$saleorderId->customer_address_line_1} {$saleorderId->customer_postal_code}");
+                $address = str_replace(' ', '+', $address);
+                $url = "https://maps.googleapis.com/maps/api/geocode/json?address={$address}&key={$key}";
+
+                $data = json_decode(file_get_contents($url), true);
+
+                if ($data['status'] == "OK") {
+                    $lat = $data['results'][0]['geometry']['location']['lat'];
+                    $long = $data['results'][0]['geometry']['location']['lng'];
+
+                    if (!empty($lat)) {
+                        $latFrom = $lat;
+                        $longFrom = $long;
+
+                        $errorWhileSavingLatLong = false;
+                    }
+
+                    AddressLog::create([
+                        'postal_code' => $saleorderId->customer_postal_code,
+                        'address' => $saleorderId->customer_address_line_1,
+                        'lat' => $lat,
+                        'long' => $long,
+                        'added_by' => auth()->user()->id,
+                    ]);
+                }
+            } else {
+                $latFrom = ['22.3011558', '50.383458', '54.495736', '50.953966', '51.043485'];
+                $longFrom = ['70.7602854', '-3.585609', '-2.202220', '-3.755581', '-2.389790'];
+
+                $latFrom = $latFrom[array_rand($latFrom)];
+                $longFrom = $longFrom[array_rand($longFrom)];
+
+                $errorWhileSavingLatLong = false;
+            }
+
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => 'Please provide accurate address.']);
+        }
+
+
+        if ($errorWhileSavingLatLong === false) {
+
+            if (!empty($latFrom) && !empty($longFrom)) {
+
+                if (!empty($users)) {
+                    $getAllDriversDistance = [];
+
+                    foreach ($users as $row) {
+                        $getAllDriversDistance[$row['id']] = Distance::measure($latFrom, $longFrom, $row['lat'], $row['long']);
+                    }
+
+
+                    asort($getAllDriversDistance);
+
+                    $result = self::getDriver($getAllDriversDistance);
+
+                    if ($result['exists']) {
+                        $getNearbyDriver = $result['drivers'];
+                        $driverids = array_keys($getNearbyDriver);
+                    } else {
+                        $isNotAvail = true;
+                        $successdrivers = [];
+                        foreach ($getAllDriversDistance as $tmpDriver => $tmpRange) {
+                            if (PaymentForDelivery::where(fn ($b) => $b->whereNull('driver_id')->orWhere('driver_id', ''))->where('distance', '>=', $tmpRange)->exists()) {
+                                $successdrivers[$tmpDriver] = $tmpRange;
+                            }
+                        }
+                        if(!empty($successdrivers)) {
+                            $getNearbyDriver = $successdrivers;
+                            $driverids = array_keys($getNearbyDriver);
+                            $isNotAvail = false;
+                        }
+                        if ($isNotAvail) {
+                            return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
+                        }
+                    }
+
+                    return response()->json(['status' => true , 'message' => 'Available', 'drivers'=>$getNearbyDriver]);
+
+                } else {
+                    return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
+                }
+
+            } else {
+                return response()->json(['status' => false, 'message' => 'Please provide accurate address.']);
+            }
+
+        } else {
+            return response()->json(['status' => false, 'message' => 'Please provide accurate address.']);
+        }
     }
 }

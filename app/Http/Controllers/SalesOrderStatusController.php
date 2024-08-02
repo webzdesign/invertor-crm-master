@@ -983,7 +983,102 @@ class SalesOrderStatusController extends Controller
                             }
                             //Commission and driver fees
                         }
+                        try {
+                        //again assign driver
+                            if($oldStatus != 1 && $request->status == 2) {
+                                $salesorderInfo = SalesOrder::find($request->order);
+                                if(!empty($salesorderInfo)) {
+                                    $driverlist = SalesOrderController::againDriverAllocate($salesorderInfo)->getData();
 
+                                    if($driverlist->status === true && !empty($driverlist->drivers)) {
+
+                                        $salesorderInfo->status = 1;
+                                        $salesorderInfo->responsible_user = null;
+                                        $salesorderInfo->seller_commission = null;
+                                        $salesorderInfo->price_matched = 0;
+                                        $salesorderInfo->sold_amount = null;
+                                        $salesorderInfo->save();
+
+                                        Deliver::where('so_id',$salesorderInfo->id)->delete();
+
+
+                                        event(new \App\Events\OrderStatusEvent('order-status-change', [
+                                            'orderId' => $salesorderInfo->id,
+                                            'orderStatus' => 1,
+                                            'orderOldStatus' => 2,
+                                            'windowId' => $request->windowId,
+                                            'users' => [Deliver::where('so_id', $salesorderInfo->id)->where('status', 1)->first()->user_id ?? null, $salesorderInfo->added_by]
+                                        ]));
+
+                                        $fromStatusNew = SalesOrderStatus::custom()->withTrashed()->where('id',2)->first();
+                                        $toStatusIncomingOrders = SalesOrderStatus::system()->withTrashed()->where('id',1)->first();
+
+                                        \App\Models\TriggerLog::create([
+                                            'trigger_id' => 0,
+                                            'cron_id' => $salesorderInfo->id,
+                                            'order_id' => $salesorderInfo->id,
+                                            'watcher_id' => auth()->user()->id,
+                                            'next_status_id' => 1,
+                                            'current_status_id' => 2,
+                                            'type' => 2,
+                                            'description' => 'New to Incoming Orders',
+                                            'time_type' => $salesorderInfo->time_type,
+                                            'main_type' => $salesorderInfo->main_type,
+                                            'hour' => $salesorderInfo->hour,
+                                            'minute' => $salesorderInfo->minute,
+                                            'time' => $salesorderInfo->time,
+                                            'executed_at' => $salesorderInfo->executed_at,
+                                            'executed' => 1,
+                                            'from_status' => [
+                                                'name' => $fromStatusNew->name ?? '-',
+                                                'color' => $fromStatusNew->color ?? ''
+                                            ],
+                                            'to_status' => [
+                                                'name' => $toStatusIncomingOrders->name ?? '-',
+                                                'color' => $toStatusIncomingOrders->color ?? ''
+                                            ]
+                                        ]);
+
+                                        $driverids = [];
+                                        foreach($driverlist->drivers as $driverid=>$driverallocaterang) {
+
+                                            $driverDetail = User::active()->find($driverid);
+
+                                            if(!empty($driverDetail)) {
+                                                $driverids[] = $driverid;
+                                                Deliver::create([
+                                                    'user_id' => $driverid,
+                                                    'so_id' => $salesorderInfo->id,
+                                                    'added_by' => auth()->user()->id,
+                                                    'driver_lat' => $driverDetail->lat,
+                                                    'driver_long' => $driverDetail->long,
+                                                    'delivery_location_lat' => $salesorderInfo->lat,
+                                                    'delivery_location_long' => $salesorderInfo->long,
+                                                    'range' => (isset($driverallocaterang) && $driverallocaterang != '') ? number_format($driverallocaterang,2,'.','') : 0
+                                                ]);
+                                            }
+
+                                        }
+                                        if(!empty($driverids)) {
+                                            /*Allocated driver history*/
+                                            \App\Models\TriggerLog::create([
+                                                'trigger_id' => 0,
+                                                'order_id' => $salesorderInfo->id,
+                                                'type' => 4,
+                                                'allocated_driver_id' => implode(',',$driverids),
+                                            ]);
+                                        }
+
+                                    } else {
+                                        DB::rollBack();
+                                        return response()->json(['status' => false, 'message' => $driverlist->message, 'color' => $color, 'text' => $text]);
+                                    }
+
+                                }
+                            }
+                        } catch (\Exception $e) {
+                            Helper::logger($e->getMessage());
+                        }
                         DB::commit();
                         return response()->json(['status' => true, 'message' => 'Status Updated successfully', 'color' => $color, 'text' => $text]);
                     } else {
