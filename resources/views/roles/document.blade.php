@@ -25,6 +25,19 @@
     .note-editing-area {
         padding-bottom: 0px!important;
     }
+
+    .clonable {
+        background: white;
+    }
+
+    .note-editable ul li{
+        list-style: disc!important;
+    }
+
+    .note-editable ol li{
+        list-style: decimal !important;
+    }
+
 </style>
 @endsection
 
@@ -41,6 +54,7 @@
         <input type="hidden" name="id[{{ $key }}]" value="{{ $document->id }}">
         <div class="d-flex mb-3 clonable">
             <div class="PlBox w-100">
+                <div class="sortable-handler-el cursor-pointer text-center mb-2"> <i class="fa fa-sort"></i> </div>
 
                 <textarea name="document_name[{{ $key }}]" class="doc-name" data-indexid="{{ $key }}">{{ $document->name }}</textarea>
                 <div class="mt-2 desc-container @if(empty($document->description)) d-none @endif" id="desc-container-{{ $key }}">
@@ -304,7 +318,9 @@
 
     $(document).ready(function(){
 
-    // $( "#sortable" ).sortable();
+    $( "#sortable" ).sortable({
+        handle: '.sortable-handler-el'
+    });
 
     $(document).on('click', '.addNewRow', function (event) {
 

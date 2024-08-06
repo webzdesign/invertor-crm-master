@@ -398,4 +398,41 @@ class Helper {
             return "10 MB";
         }
     }
+
+    public static $extensionsForDoc = [
+        1 => 'docm|dotm|odt|docx|dotx|text|txt|dot|doc',
+        2 => 'ppt|pptm|ppsm|potm|odp|pptx|ppsx|potx',
+        3 => 'xls|xltm|ods|xlsx|xltx|csv',
+        4 => 'dst|dwf|dwfx|dwg|dws|dwt|dxb|dxf',
+        5 => 'pdf',
+        6 => 'bmp|gif|heic|heif|pjp|jpg|pjpeg|jpeg|jfif|png|tif|ico|webp',
+        7 => '3gpp|3gp2|avi|m4v|mp4|mpg|mpeg|ogm|ogv|mov|webm|m4v|mkv|asx|wm|wmv|wvx|avi',
+        8 => 'flac|mid|mp3|m4a|mp3|opus|oga|ogg|wav|m4a|mid|wav'
+    ];
+
+    public static function returnExtensions($string, $dot = '', $separator = '|') {
+        $extensions = '';
+        
+        if (!empty($string)) {
+            $allowedFileTypes = explode(',', $string);
+            if (count($allowedFileTypes) > 0) {
+                foreach ($allowedFileTypes as $type) {
+                    if (isset(self::$extensionsForDoc[$type]) && !empty(self::$extensionsForDoc[$type])) {
+                        $extensions .= str_replace('|', $separator, self::$extensionsForDoc[$type]) . $separator;
+                    }
+                }
+            }
+        }
+
+        $extensions = rtrim($extensions, $separator);
+        $extensions = explode($separator, $extensions);
+
+        $extensions = array_map(function ($element) use ($dot) {
+            return $dot . $element;
+        }, $extensions);
+
+        $extensions = implode($separator, $extensions);
+
+        return $extensions;
+    }
 }

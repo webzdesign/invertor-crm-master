@@ -81,6 +81,6 @@ class Role extends Model
 
     public function documents()
     {
-        return $this->hasMany(RequiredDocument::class, 'role_id');
+        return $this->hasMany(RequiredDocument::class, 'role_id')->orderBy('sequence', 'ASC');
     }
 }

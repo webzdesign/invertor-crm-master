@@ -60,15 +60,15 @@ class RoleController extends Controller
                         $url = route("roles.edit", encrypt($variable->id));
                         $action .= view('buttons.edit', compact('variable', 'url'));
 
-                        // $action .= '
-                        // <div class="tableCards d-inline-block me-1 pb-0">
-                        //     <div class="editDlbtn">
-                        //         <a data-bs-toggle="tooltip" class="editBtn modal-edit-btn" title="Required document for registration" href="' . (route('set-required-documents', encrypt($variable->id))) . '"> 
-                        //             <i class="fa fa-file-text text-white" aria-hidden="true"></i>
-                        //         </a>
-                        //     </div>
-                        // </div>
-                        // ';
+                        $action .= '
+                        <div class="tableCards d-inline-block me-1 pb-0">
+                            <div class="editDlbtn">
+                                <a data-bs-toggle="tooltip" class="editBtn modal-edit-btn" title="Required document for registration" href="' . (route('set-required-documents', encrypt($variable->id))) . '"> 
+                                    <i class="fa fa-file-text text-white" aria-hidden="true"></i>
+                                </a>
+                            </div>
+                        </div>
+                        ';
                     }
                 }
 
@@ -363,6 +363,7 @@ class RoleController extends Controller
         } else if (RequiredDocument::where('role_id', decrypt($id))->exists() && $role) {
 
             $names = $request->document_name;
+            $shouldKeep = [];
 
             if (is_array($names)) {
                 $filteredNames = array_filter($request->document_name);
@@ -371,32 +372,40 @@ class RoleController extends Controller
                     DB::beginTransaction();
 
                     try {
+                        $sequence = 0;
+
                         foreach ($filteredNames as $key => $name) {
                             if (isset($request->id[$key]) && RequiredDocument::where('id', $request->id[$key])->exists()) {
                                 RequiredDocument::where('id', $request->id[$key])->update([
                                     'name' => $name,
                                     'description' => $request->document_description[$key] ?? '',
-                                    'sequence' => $key,
+                                    'sequence' => $sequence,
                                     'allow_only_specific_file_format' => isset($request->allow_only_specific_file_format[$key]) && $request->allow_only_specific_file_format[$key] == 'on' ? true : false,
                                     'allowed_file' => isset($request->doc_type[$key]) ? implode(',', $request->doc_type[$key]) : null,
                                     'maximum_upload_count' => $request->doc_max_file_count[$key] ?? 1,
                                     'maximum_upload_size' => $request->doc_max_file_size[$key] ?? 1024,
                                     'is_required' => isset($request->is_required[$key]) && $request->is_required[$key] == 'on' ? true : false
                                 ]);
+
+                                $shouldKeep[] = $request->id[$key];
                             } else {
-                                RequiredDocument::create([
+                                $shouldKeep[] = RequiredDocument::create([
                                     'role_id' => $role->id,
                                     'name' => $name,
                                     'description' => $request->document_description[$key] ?? '',
-                                    'sequence' => $key,
+                                    'sequence' => $sequence,
                                     'allow_only_specific_file_format' => isset($request->allow_only_specific_file_format[$key]) && $request->allow_only_specific_file_format[$key] == 'on' ? true : false,
                                     'allowed_file' => isset($request->doc_type[$key]) ? implode(',', $request->doc_type[$key]) : null,
                                     'maximum_upload_count' => $request->doc_max_file_count[$key] ?? 1,
                                     'maximum_upload_size' => $request->doc_max_file_size[$key] ?? 1024,
                                     'is_required' => isset($request->is_required[$key]) && $request->is_required[$key] == 'on' ? true : false
-                                ]);
+                                ])->id;
                             }
+
+                            $sequence++;
                         }
+
+                        RequiredDocument::where('role_id', $role->id)->whereNotIn('id', $shouldKeep)->delete();
 
                         DB::commit();
                         return redirect()->route('roles.index')->with('success', 'Documents set successfully.');

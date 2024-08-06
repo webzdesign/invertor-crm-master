@@ -7,16 +7,19 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link href="{{ asset('assets/css/font-awesome.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/main.css?time=') . time() }}" rel="stylesheet">
     <link href="{{ asset('assets/css/responsive.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/select2.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/css/intel.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
         label.error {
             color: #ff0a22;
             font-size: 15px;
             font-family: 'Roboto Regular' !important;
+            word-break: break-word!important;
         }
         .btn-primary{
             height: 40px !important;
@@ -25,7 +28,7 @@
             width: 600px;
         }
         .iti__selected-flag {
-        height: 32px!important;
+            height: 32px!important;
         }
         .iti--show-flags {
             width: 100%!important;
@@ -42,7 +45,7 @@
                     </a>
                 </div>
 
-                    <form method="POST" action="{{ $url }}" id="register">
+                    <form method="POST" action="{{ $url }}" id="register" enctype="multipart/form-data">
                         @csrf
 
                         <div class="row">
@@ -144,6 +147,28 @@
                                     </span>
                                 </div>
                             </div>
+
+                            @forelse($documents as $doc)
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="f-500 f-12 mb-2 d-flex align-items-center text-white"> {!! $doc->name !!}
+                                        @if(!empty($doc->description))
+                                        <a data-bs-toggle="tooltip" class="deleteBtn" data-bs-html="true" title="{!! $doc->description !!}">
+                                            <i class='fa fa-info-circle' aria-hidden='true' style="color: #fff;margin-left:5px;"></i>
+                                        </a>
+                                        @endif
+                                    </label>
+                                    <input name="document[{{ $doc->id }}][]" type="file" @if($doc->maximum_upload_count != '1') multiple @endif class="form-control" >
+                                    <span class="text-danger f-400 f-14">
+                                        @error("document[{{ $doc->id }}]")
+                                            {{ $message }}
+                                        @enderror
+                                    </span>
+                                </div>
+                            </div>
+                            @empty
+                            @endif
+
                         </div>
 
 
@@ -158,6 +183,7 @@
     </body>
     </html>
     
+    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('assets/js/jquery3-6-0.min.js') }}"></script>
     <script src="{{ asset('assets/js/jquery-validate.min.js') }}"></script>
     <script src="{{ asset('assets/js/jqueryAdditional.js') }}"></script>
@@ -180,6 +206,8 @@ $(document).ready(function(){
         scaleMobile: 1.00
     })
 
+    $('[data-bs-toggle="tooltip"]').tooltip();
+
     const input = document.querySelector('#phone');
     const errorMap = ["Phone number is invalid.", "Invalid country code", "Too short", "Too long"];
 
@@ -197,6 +225,31 @@ $(document).ready(function(){
     }, function (result, element) {
             return errorMap[iti.getValidationError()] || errorMap[0];
     });
+
+    $.validator.addMethod("fileType", function(value, element, param) {
+        var fileTypes = param.split('|');
+        var files = element.files;
+        for (var i = 0; i < files.length; i++) {
+            var extension = files[i].name.split('.').pop().toLowerCase();
+            if ($.inArray(extension, fileTypes) === -1) {
+                return false;
+            }
+        }
+        return true;
+    }, "Only .png, .jpg, and .jpeg extensions supported");
+
+    $.validator.addMethod("maxFiles", function(value, element, param) {
+        return element.files.length <= param;
+    }, "Maximum 10 files can be uploaded.");
+
+    $.validator.addMethod("fileSizeLimit", function(value, element, param) {
+        var totalSize = 0;
+        var files = element.files;
+        for (var i = 0; i < files.length; i++) {
+            totalSize += files[i].size;
+        }
+        return totalSize <= param;
+    }, "Total file size must not exceed 20 MB");
 
     input.addEventListener('keyup', () => {
         if (iti.isValidNumber()) {
@@ -251,7 +304,23 @@ $(document).ready(function(){
             'postal_code': {
                 required: true,
                 maxlength: 8
-            }
+            },
+            @forelse($documents as $doc)
+             "document[{{ $doc->id }}][]" : {
+                @if($doc->is_required)
+                    required : true,
+                @endif
+                @if($doc->allow_only_specific_file_format)
+                    fileType : "{{ Helper::returnExtensions($doc->allowed_file) }}",
+                    maxFiles : {!! $doc->maximum_upload_count !!},
+                    fileSizeLimit : {!! $doc->maximum_upload_size !!} * 100
+                @else
+                    maxFiles : {!! $doc->maximum_upload_count !!},
+                    fileSizeLimit : {!! $doc->maximum_upload_size !!} * 100
+                @endif
+             },
+            @empty
+            @endforelse
         },
         messages: {
             'name': {
@@ -282,7 +351,23 @@ $(document).ready(function(){
             'postal_code': {
                 required: "Enter postal code.",
                 maxlength: 'Maximum 8 characters allowed for postal code.'
-            }
+            },
+            @forelse($documents as $doc)
+             "document[{{ $doc->id }}][]" : {
+                @if($doc->is_required)
+                    required : "Please upload the specified document.",
+                @endif
+                @if($doc->allow_only_specific_file_format)
+                    fileType : "Only {{ Helper::returnExtensions($doc->allowed_file, '.', ',') }} file formats are supported.",
+                    maxFiles : "Maximum {{ $doc->maximum_upload_count }} files can be uploaded.",
+                    fileSizeLimit : "Maximum {{ Helper::formatBytes($doc->maximum_upload_size) }} size of file can be uploaded."
+                @else
+                    maxFiles : "Maximum {{ $doc->maximum_upload_count }} files can be uploaded.",
+                    fileSizeLimit : "Maximum {{ Helper::formatBytes($doc->maximum_upload_size) }} size of file can be uploaded."
+                @endif
+             },
+            @empty
+            @endforelse
         },
         errorPlacement: function(error, element) {
             error.appendTo(element.parent("div"));

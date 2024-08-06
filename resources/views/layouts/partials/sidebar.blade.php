@@ -41,12 +41,12 @@
                 </svg>
             </a>
             <div id="collapseUM" data-bs-parent="#accordionExample"
-                class="collapseMenu collapseWeb collapse {{ request()->is('users*') || request()->is('roles*') || request()->is('suppliers*') ? 'show' : '' }}">
+                class="collapseMenu collapseWeb collapse {{ request()->is('users*') || request()->is('roles*') || request()->is('suppliers*') || request()->is('set-required-documents*') ? 'show' : '' }}">
                 <ul class="p-0 menuList">
                     @permission('roles.view')
                         <li>
                             <a href="{{ route('roles.index') }}"
-                                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('roles*') ? 'active' : '' }}">
+                                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('roles*') || request()->is('set-required-documents*') ? 'active' : '' }}">
                                 <div class="icnBx d-flex align-items-center justify-content-center">
                                     <i class="fa fa-lock text-white" aria-hidden="true"></i>
                                 </div>

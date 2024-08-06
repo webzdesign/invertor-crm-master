@@ -22,7 +22,7 @@
 @section('content')
 {{ Config::set('app.module',$moduleName) }}
 <h2 class="f-24 f-700 c-36 my-2">Edit {{ $moduleName }}</h2>
-<form action="{{ route('users.update', $id) }}" method="POST" id="addUser"> @csrf @method('PUT')
+<form action="{{ route('users.update', $id) }}" method="POST" id="addUser" enctype="multipart/form-data"> @csrf @method('PUT')
     <div class="cards">
         <div class="cardsBody pb-0">
             <div class="row">
@@ -152,6 +152,30 @@
                     </div>
                 </div>
 
+
+                <div class="required-docs-container row">
+                    @forelse($documents as $doc)
+                    <div class="col-4">
+                        <div class="form-group">
+                            <label class="c-gr f-500 f-16 w-100 mb-2">{!! $doc->name !!} 
+                                @if(!empty($doc->description))
+                                <a data-toggle="tooltip" class="deleteBtn" data-html="true" title="{!! $doc->description !!}">
+                                    <i class='fa fa-info-circle' aria-hidden='true' style="color: black;margin-left:5px;"></i>
+                                </a>
+                                @endif
+                                : @if($doc->is_required) <span class="text-danger">*</span> @endif
+                            </label>
+                            <input name="document[{{ $doc->id }}][]" id="doc-{{ $doc->id }}" type="file" @if($doc->maximum_upload_count != '1') multiple @endif class="form-control">
+                            @foreach ($errors->get("document.{$doc->id}.*") as $error)
+                                <span class="text-danger">{{ $error[0] }}</span>
+                                @break
+                            @endforeach
+                        </div>
+                    </div>
+                    @empty
+                    @endif
+                </div>
+
             </div>
         </div>
 
@@ -224,6 +248,8 @@ $(document).ready(function(){
             return errorMap[iti.getValidationError()] || errorMap[0];
     });
 
+    $('[data-toggle="tooltip"]').tooltip({html:true});
+
     input.addEventListener('keyup', () => {
         if (iti.isValidNumber()) {
             $('#country_dial_code').val(iti.s.dialCode);
@@ -240,6 +266,37 @@ $(document).ready(function(){
             $(this).closest('.permission-listing').find('.permission').prop('checked', false);
         }
     });
+
+    let addRulesToValidation = (allDocs) => {
+        if (Array.isArray(allDocs)) {
+            allDocs.forEach(element => {
+                if ($(`#doc-${element.id}`).length > 0) {
+                    let thisRules = {};
+                    let thisMessages = {};
+
+                    if (element.is_required) {
+                        thisRules['required'] = true;
+                        thisMessages['required'] = 'Please upload the specified document.';
+                    }
+
+                    if (element.allow_only_specific_file_format) {
+                        thisRules['fileType'] = returnExtensions(element.allowed_file);
+                        thisMessages['fileType'] = `Only ${returnExtensions(element.allowed_file, '.', ',')} file formats are supported.`;
+                    }
+
+                    thisRules['maxFiles'] = element.maximum_upload_count;
+                    thisRules['fileSizeLimit'] = element.maximum_upload_size * 100;
+
+                    thisMessages['maxFiles'] = `Maximum ${element.maximum_upload_count} files can be uploaded.`;
+                    thisMessages['fileSizeLimit'] = `Maximum ${formatBytes(element.maximum_upload_count)} size of files can be uploaded.`;
+
+                    thisRules['messages'] = thisMessages;
+
+                    $(`#doc-${element.id}`).rules('add', thisRules);
+                }
+            });
+        }
+    };
 
     $('#role').on('change', function () {
         let rId = $(this).val();
@@ -259,11 +316,15 @@ $(document).ready(function(){
                 success: function (response) {
                     if (response.status) {
                         $('.permissions-container').html(response.html);
+                        $('.required-docs-container').html(response.document_html);
+                        
+                        addRulesToValidation(response.documents);
                     } else {
                         Swal.fire('', response.message, 'error');
                     }
                 },
                 complete: function () {
+                    $('[data-toggle="tooltip"]').tooltip({html:true});
                     $('body').find('.LoaderSec').addClass('d-none');
                     $('button[type="submit"]').attr('disabled', false);
                 }
@@ -326,7 +387,23 @@ $(document).ready(function(){
             'postal_code' : {
                 required: true,
                 maxlength: 8
-            }
+            },
+            @forelse($documents as $doc)
+             "document[{{ $doc->id }}][]" : {
+                @if($doc->is_required)
+                    required : true,
+                @endif
+                @if($doc->allow_only_specific_file_format)
+                    fileType : "{{ Helper::returnExtensions($doc->allowed_file) }}",
+                    maxFiles : {!! $doc->maximum_upload_count !!},
+                    fileSizeLimit : {!! $doc->maximum_upload_size !!} * 100
+                @else
+                    maxFiles : {!! $doc->maximum_upload_count !!},
+                    fileSizeLimit : {!! $doc->maximum_upload_size !!} * 100
+                @endif
+             },
+            @empty
+            @endforelse
         },
         messages : {
             'name' : {
@@ -362,7 +439,23 @@ $(document).ready(function(){
             'postal_code' : {
                 required: 'Enter postal code.',
                 maxlength: 'Maximum 8 characters allowed for postal code.'
-            }
+            },
+            @forelse($documents as $doc)
+             "document[{{ $doc->id }}][]" : {
+                @if($doc->is_required)
+                    required : "Please upload the specified document.",
+                @endif
+                @if($doc->allow_only_specific_file_format)
+                    fileType : "Only {{ Helper::returnExtensions($doc->allowed_file, '.', ',') }} file formats are supported.",
+                    maxFiles : "Maximum {{ $doc->maximum_upload_count }} files can be uploaded.",
+                    fileSizeLimit : "Maximum {{ Helper::formatBytes($doc->maximum_upload_size) }} size of file can be uploaded."
+                @else
+                    maxFiles : "Maximum {{ $doc->maximum_upload_count }} files can be uploaded.",
+                    fileSizeLimit : "Maximum {{ Helper::formatBytes($doc->maximum_upload_size) }} size of file can be uploaded."
+                @endif
+             },
+            @empty
+            @endforelse
         },
         errorPlacement: function(error, element) {
             if ($(element).hasClass('pswd')) {

@@ -9,6 +9,37 @@
     .iti--show-flags {
         width: 100%!important;
     }
+    .border-box-element {
+        border: 1px solid black;
+        border-radius: 10px;
+        word-break: break-all;
+        height: 100px;
+        width: 100px;
+        font-size: smaller;
+        margin-right: 5px;
+    }
+
+    .border-box-element-inner {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .border-box-element-inner i{
+        font-size: 40px;
+    }
+
+    .remove {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        right: -12px;
+        top: -10px;
+        border: none;
+    }
 </style>
 @endsection
 
@@ -112,6 +143,67 @@
             </div>
         </div>
 
+
+        {{-- Documents --}}
+        <div class="cardsBody py-0">
+            <label class="c-gr f-500 f-16 w-100 mb-2">Uploaded Documents</label>
+            <div class="form-group">
+                <div class="row">
+                    @forelse($documents as $key => $doc)
+                    @if(isset($docNames[$key]))
+                        <div class="col-12">
+                            <p> {!! $docNames[$key]['name'] !!} </p>
+                            <div class="form-group">
+                                <div class="row">
+                                    @forelse($doc as $file)
+                                    <div class="border-box-element">
+                                        <a href="{{ asset("storage/documents/{$file->name}") }}" target="_blank" title="{{ $file->name }}">
+                                            <div class="border-box-element-inner">
+                                                @php
+                                                    $ext = explode('.', $file->name);
+                                                    $ext = $ext[1] ?? 'FILE';
+                                                    $ext = strtolower($ext);
+                                                @endphp
+
+                                                @if(in_array($ext, ['docm','dotm','odt','docx','dotx','text','txt','dot','doc']))
+                                                    <i class="fa fa-file-word-o"></i>
+                                                @elseif(in_array($ext, ['ppt','pptm','ppsm','potm','odp','pptx','ppsx','potx']))
+                                                    <i class="fa fa-file-powerpoint-o"></i>
+                                                @elseif(in_array($ext, ['xls','xltm','ods','xlsx','xltx','csv']))
+                                                    <i class="fa fa-file-excel-o"></i>
+                                                @elseif(in_array($ext, ['dst','dwf','dwfx','dwg','dws','dwt','dxb','dxf']))
+                                                    <i class="fa fa-file-photo-o"></i>
+                                                @elseif(in_array($ext, ['pdf']))
+                                                    <i class="fa fa-file-pdf-o"></i>
+                                                @elseif(in_array($ext, ['bmp','gif','heic','heif','pjp','jpg','pjpeg','jpeg','jfif','png','tif','ico','webp']))
+                                                    <i class="fa fa-file-picture-o"></i>
+                                                @elseif(in_array($ext, ['3gpp','3gp2','avi','m4v','mp4','mpg','mpeg','ogm','ogv','mov','webm','m4v','mkv','asx','wm','wmv','wvx','avi']))
+                                                    <i class="fa fa-file-video-o"></i>
+                                                @elseif(in_array($ext, ['flac','mid','mp3','m4a','mp3','opus','oga','ogg','wav','m4a','mid','wav']))
+                                                    <i class="fa fa-file-audio-o"></i>
+                                                @else
+                                                    <i class="fa fa-file"></i>
+                                                @endif
+                                            </div>
+                                        </a>
+                                        <button type="button" class="center remove remove-file bg-danger d-flex align-items-center justify-content-center position-absolute" data-id="{{$file->id}}">
+                                            <i class="fa fa-close" style="color: white;" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                    @empty
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                    @empty
+                    <p> No document found </p>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+        {{-- Documents --}}
+
         <div class="cardsFooter d-flex justify-content-center">
             <a href="{{ route('users.index') }}">
                 <button type="button" class="btn-default f-500 f-14">Cancel</button>
@@ -147,6 +239,42 @@ $(document).ready(function(){
             $('#country_dial_code').val(iti.s.dialCode);
             $('#country_iso_code').val(iti.j);
         }
+    });
+
+    $(document).on('click', '.remove-file', function () {
+      let self = this;
+      let id = this.dataset.id;
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'This document will be deleted!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            var url = "{{ route('remove-user-document') }}"
+            if (result.value) {
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    dataType:'json',
+                    data: {
+                        '_method' : 'DELETE',
+                        'id' : id
+                    },
+                    success: function(response) {
+                        if (response) {
+                            $(self).parent().remove();
+                        } else {
+                            Swal.fire('Error', 'something went wrong.', 'error');
+                        }
+                    }
+                });
+            }
+        });
+
     });
 
 });

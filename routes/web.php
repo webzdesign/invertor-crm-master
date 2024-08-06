@@ -51,6 +51,7 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('users/{id}/status', [UserController::class, 'status'])->name('users.activeinactive')->middleware('ModuleAccessor:users.activeinactive');
         Route::get('users/{id}/statusapprove', [UserController::class, 'approve'])->name('users.approve')->middleware('ModuleAccessor:users.activeinactive');
         Route::post('role-permissions', [UserController::class, 'rolePermissions'])->name('role-permissions');
+        Route::delete('remove-user-document', [UserController::class, 'removeUserDocument'])->name('remove-user-document');
         /** Users **/
 
         /** Roles **/

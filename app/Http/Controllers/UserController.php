@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RequiredDocument;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\UserRequest;
+use App\Models\UserDocumentUpload;
 use App\Models\UserPermission;
 use App\Models\PermissionRole;
 use Illuminate\Http\Request;
@@ -305,7 +307,9 @@ class UserController extends Controller
             $userPermissions = UserPermission::where('user_id', $user->id)->select('permission_id')->pluck('permission_id')->toArray();
         }
 
-        return view('users.edit', compact('moduleName', 'user', 'roles', 'countries', 'states', 'cities', 'id', 'userPermissions', 'permission','moduleLink'));
+        $documents = RequiredDocument::where('role_id', $user->roles->first()->id)->orderBy('sequence', 'ASC')->get();
+
+        return view('users.edit', compact('moduleName', 'user', 'roles', 'countries', 'states', 'cities', 'id', 'userPermissions', 'permission','moduleLink', 'documents'));
     }
 
     public static function addressChanged ($user, $country, $city, $postalcode, $address) {
@@ -330,11 +334,16 @@ class UserController extends Controller
 
     public function update(UserRequest $request, $id)
     {
+        if (!file_exists(storage_path('app/public/documents'))) {
+            mkdir(storage_path('app/public/documents'), 0777, true);
+        }
+
         DB::beginTransaction();
 
         try {
 
             $user = User::withoutGlobalScope('ApprovedScope')->find(decrypt($id));
+            $documents = RequiredDocument::where('role_id', $request->role)->orderBy('sequence', 'ASC')->get();
 
             if (in_array('3', $user->roles->pluck('id')->toArray()) && $request->role != '3') {
 
@@ -358,6 +367,33 @@ class UserController extends Controller
 
                     $user->roles()->sync($request->role);
                     $user->userpermission()->sync($request->permission);
+
+                    if ($request->role != $user->roles->first()->id) {
+                        $deletableDocs = UserDocumentUpload::where('user_id', $user->id)->get();
+                        foreach ($deletableDocs as $deletable) {
+                            if (file_exists(storage_path("app/public/documents/{$deletable->name}"))) {
+                                unlink(storage_path("app/public/documents/{$deletable->name}"));
+                            }
+                            UserDocumentUpload::where('id', $deletable->id)->delete();
+                        }
+                    }
+
+                    foreach ($documents as $document) {
+                        if (isset($request->document[$document->id])) {
+                            foreach ($request->document[$document->id] as $file) {
+                                $name = 'DOC-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
+                                $file->move(storage_path('app/public/documents'), $name);
+        
+                                if (file_exists(storage_path("app/public/documents/{$name}"))) {
+                                    UserDocumentUpload::create([
+                                        'document_id' => $document->id,
+                                        'user_id' => $user->id,
+                                        'name' => $name
+                                    ]);
+                                }
+                            }
+                        }
+                    }
 
                     DB::commit();
 
@@ -444,6 +480,34 @@ class UserController extends Controller
                 $user->roles()->sync($request->role);
                 $user->userpermission()->sync($perm);
 
+                if ($request->role != $user->roles->first()->id) {
+                    $deletableDocs = UserDocumentUpload::where('user_id', $user->id)->get();
+                    foreach ($deletableDocs as $deletable) {
+                        if (file_exists(storage_path("app/public/documents/{$deletable->name}"))) {
+                            unlink(storage_path("app/public/documents/{$deletable->name}"));
+                        }
+                        UserDocumentUpload::where('id', $deletable->id)->delete();
+                    }
+                }
+
+                foreach ($documents as $document) {
+                    if (isset($request->document[$document->id])) {
+
+                        foreach ($request->document[$document->id] as $file) {
+                            $name = 'DOC-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
+                            $file->move(storage_path('app/public/documents'), $name);
+    
+                            if (file_exists(storage_path("app/public/documents/{$name}"))) {
+                                UserDocumentUpload::create([
+                                    'document_id' => $document->id,
+                                    'user_id' => $user->id,
+                                    'name' => $name
+                                ]);
+                            }
+                        }
+                    }
+                }
+
                 DB::commit();
 
                 if ($errorWhileSavingLatLong === false) {
@@ -482,7 +546,12 @@ class UserController extends Controller
             $userPermissions = UserPermission::where('user_id', $user->id)->select('permission_id')->pluck('permission_id')->toArray();
         }
 
-        return view('users.view', compact('moduleName', 'user', 'roles', 'userPermissions', 'permission','moduleLink'));
+        $docNames = RequiredDocument::where('role_id', $user->roles->first()->id)->withTrashed()->get()->keyBy('id')->toArray();
+        $documents = UserDocumentUpload::with(['document' => function ($builder) {
+            return $builder->withTrashed();
+        }])->where('user_id', $user->id)->get()->groupBy('document_id');
+
+        return view('users.view', compact('moduleName', 'user', 'roles', 'userPermissions', 'permission','moduleLink', 'documents', 'docNames'));
     }
 
     public function destroy($id)
@@ -498,6 +567,7 @@ class UserController extends Controller
                 return response()->json(['error' => 'Can not delete this driver user.', 'status' => 500]);
             }
 
+            UserDocumentUpload::where('user_id', $user->id)->delete();
             UserPermission::where('user_id', $user->id)->delete();
             $user->roles()->detach();
             $user->userpermission()->detach();
@@ -569,7 +639,8 @@ class UserController extends Controller
             $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
             $roleId = $role->first()->id ?? 0;
 
-            return response()->json(['status' => true, 'html' => view('users.permissions', compact('permission', 'userPermissions', 'roleId'))->render()]);
+            $documents = RequiredDocument::where('role_id', $request->id)->get();
+            return response()->json(['status' => true, 'html' => view('users.permissions', compact('permission', 'userPermissions', 'roleId'))->render(), 'document_html' => view('users.document-html', compact('documents'))->render(), 'documents' => $documents]);
         }
 
         return response()->json(['status' => false, 'message' => Helper::$notFound]);
@@ -577,83 +648,133 @@ class UserController extends Controller
 
     public function register(Request $request, $role, $uid = 1) {
 
-        try {
+        if ($request->method() == 'GET') {
+            if ($uid == 1) {
+                $uid = encrypt(1);
+            }
 
-            if ($request->method() == 'GET') {
+            $decryptedId = decrypt($role);
 
-                if ($uid == 1) {
-                    $uid = encrypt(1);
+            if (Role::where('id', $decryptedId)->active()->doesntExist()) {
+                return redirect()->route('login')->with('error', 'This link is not valid for registration.');
+            }
+
+            $url = url("register/{$role}/{$uid}");
+            $countries = Helper::getCountriesOrderBy();
+            $documents = RequiredDocument::where('role_id', $decryptedId)->orderBy('sequence', 'ASC')->get();
+
+            return view('auth.register', compact('url', 'countries', 'documents'));
+
+        } else if ($request->method() == 'POST') {
+
+            $role = decrypt($role);
+            $rolseData = Role::where('id', $role)->active()->first();
+            if (Role::find($role) !== null && $role != 1 && !empty($rolseData)) {
+
+                $documents = RequiredDocument::where('role_id', $role)->orderBy('sequence', 'ASC')->get();
+
+                $validations = [
+                    'name' => 'required',
+                    'email' => "required|email|unique:users,email,NULL,id,deleted_at,NULL",
+                    'password' => 'required|min:8|max:16',
+                    'confirm_password' => 'same:password',
+                    'country' => 'required',
+                    'city' => 'required',
+                    'postal_code' => 'required|max:8'
+                ];
+
+                $validationMessages = [
+                    'name.required'        => 'Name is required.',
+                    'email.required'       => 'Email is required.',
+                    'email.email'          => 'Email format is invalid.',
+                    'email.unique'         => 'This email is already exists.',
+                    'password.required'    => 'Create a Password.',
+                    'password.min'         => 'Minimum length should be 8 characters.',
+                    'password.max'         => 'Maximum length should be 16 characters.',
+                    'country.required'     => 'Select a country.',
+                    'city.required'        => 'Enter city.',
+                    'postal_code.required' => 'Enter postal code.',
+                    'postal_code.max'      => 'Maximum 8 characters allowed for postal code.'
+                ];
+
+                foreach ($documents as $document) {
+                    if (isset($request->document[$document->id])) {
+
+                        $isRequired = "";
+                        
+                        if ($document->is_required) {
+                            $isRequired = "required|";
+                            $validationMessages["document.{$document->id}" . '.required'] = "Please upload specified document.";
+                        }
+
+                        $validations["document.{$document->id}"] = "{$isRequired}max:{$document->maximum_upload_count}";
+                        $validationMessages["document.{$document->id}" . '.max'] = "Maximum " . $document->maximum_upload_count . " files can be uploaded.";
+
+                        if ($document->allow_only_specific_file_format) {
+                            $validations["document.{$document->id}" . '.*'] = "file|max:{$document->maximum_upload_size}|mimes:" . Helper::returnExtensions($document->allowed_file, '', ',');
+                            $validationMessages["document.{$document->id}" . '.*.mimes'] = "Only " . Helper::returnExtensions($document->allowed_file, '.', ',') . " file formats are supported.";
+                        } else {
+                            $validations["document.{$document->id}" . '.*'] = "file|max:{$document->maximum_upload_size}";
+                        }
+
+                        $validationMessages["document.{$document->id}" . '.*.file'] = "Please upload specified document.";
+                        $validationMessages["document.{$document->id}" . '.*.max'] = "Maximum " . Helper::formatBytes($document->maximum_upload_size) . " size of file can be uploaded.";
+                    }                                                        
                 }
 
-                $url = url("register/{$role}/{$uid}");
-                $countries = Helper::getCountriesOrderBy();
-
-                if (Role::where('id', decrypt($role))->active()->doesntExist()) {
-                    return redirect()->route('login')->with('error', 'This link is not valid for registration.');
-                }
-
-
-                return view('auth.register', compact('url', 'countries'));
-            } else if ($request->method() == 'POST') {
+                $this->validate($request, $validations, $validationMessages);
 
                 try {
-                    $role = decrypt($role);
-                    $rolseData = Role::where('id', $role)->active()->first();
-                    if (Role::find($role) !== null && $role != 1 && !empty($rolseData)) {
-                        $this->validate($request, [
-                            'name' => 'required',
-                            'email' => "required|email|unique:users,email,NULL,id,deleted_at,NULL",
-                            'password' => 'required|min:8|max:16',
-                            'confirm_password' => 'same:password',
-                            'country' => 'required',
-                            'city' => 'required',
-                            'postal_code' => 'required|max:8'
-                        ], [
-                            'name.required'        => 'Name is required.',
-                            'email.required'       => 'Email is required.',
-                            'email.email'          => 'Email format is invalid.',
-                            'email.unique'         => 'This email is already exists.',
-                            'password.required'    => 'Create a Password.',
-                            'password.min'         => 'Minimum length should be 8 characters.',
-                            'password.max'         => 'Maximum length should be 16 characters.',
-                            'country.required'     => 'Select a country.',
-                            'city.required'        => 'Enter city.',
-                            'postal_code.required' => 'Enter postal code.',
-                            'postal_code.max'      => 'Maximum 8 characters allowed for postal code.'
-                        ]);
 
-                            $user = new User();
-                            $user->name = $request->name;
-                            $user->email = $request->email;
-                            $user->phone = $request->phone;
-                            $user->country_dial_code = $request->country_dial_code;
-                            $user->country_iso_code = $request->country_iso_code;
-                            $user->password = Hash::make($request->password);
-                            $user->country_id = $request->country;
-                            $user->city_id = $request->city;
-                            $user->postal_code = $request->postal_code;
-                            $user->added_by = decrypt($uid);
-                            if(isset($rolseData->is_user_activation) && $rolseData->is_user_activation==1){
-                                $user->status = 2;
-                            }
-                            $user->save();
-
-                            $user->roles()->attach([$role]);
-
-                            if (auth()->check()) {
-                                auth()->logout();
-                            }
-                            if(isset($rolseData->is_user_activation) && $rolseData->is_user_activation==1){
-                                return redirect()->route('login')->with('success', 'Your registration has been completed successfully. You will be able to log in once your account has been approved by the administrator.');
-                            }
-                            session()->flush();
-                            $authenticate = auth()->attempt(['email' => $request->email, 'password' => $request->password]);
-                    } else {
-                        return redirect()->route('login')->with('error', 'This link is not valid for registration.');
+                    $user = new User();
+                    $user->name = $request->name;
+                    $user->email = $request->email;
+                    $user->phone = $request->phone;
+                    $user->country_dial_code = $request->country_dial_code;
+                    $user->country_iso_code = $request->country_iso_code;
+                    $user->password = Hash::make($request->password);
+                    $user->country_id = $request->country;
+                    $user->city_id = $request->city;
+                    $user->postal_code = $request->postal_code;
+                    $user->added_by = decrypt($uid);
+                    if(isset($rolseData->is_user_activation) && $rolseData->is_user_activation==1){
+                        $user->status = 2;
                     }
-                } catch (\Exception $e) {
-                    return redirect()->route('login')->with('error', 'This link is not valid for registration.');
-                }
+                    $user->save();
+
+                    $user->roles()->attach([$role]);
+
+                    if (!file_exists(storage_path('app/public/documents'))) {
+                        mkdir(storage_path('app/public/documents'), 0777, true);
+                    }
+
+                    foreach ($documents as $document) {
+                        if (isset($request->document[$document->id])) {
+                            foreach ($request->document[$document->id] as $file) {
+                                $name = 'DOC-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
+                                $file->move(storage_path('app/public/documents'), $name);
+
+                                if (file_exists(storage_path("app/public/documents/{$name}"))) {
+                                    UserDocumentUpload::create([
+                                        'document_id' => $document->id,
+                                        'user_id' => $user->id,
+                                        'name' => $name
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+
+                    if (auth()->check()) {
+                        auth()->logout();
+                    }
+
+                    if(isset($rolseData->is_user_activation) && $rolseData->is_user_activation == 1){
+                        return redirect()->route('login')->with('success', 'Your registration has been completed successfully. You will be able to log in once your account has been approved by the administrator.');
+                    }
+                    
+                    session()->flush();
+                    $authenticate = auth()->attempt(['email' => $request->email, 'password' => $request->password]);
 
                     if ($authenticate) {
                         return redirect()->intended('dashboard');
@@ -661,19 +782,19 @@ class UserController extends Controller
                         return redirect()->route('login')->with('success', 'Registration was successful.');
                     }
 
+                } catch (\Exception $e) {
+                    Helper::logger($e->getMessage() . ' ' . $e->getLine());
+                    return redirect()->route('login')->with('error', 'This link is not valid for registration.');
+                }
+
             } else {
-                return redirect()->route('login');
-            }
-        } catch(\Exception $e) {
-            Helper::logger($e->getMessage() . ' ' . $e->getLine());
-            $response = redirect()->route('login');
-
-            if (!auth()->check()) {
-                return $response->with('error', 'This link is not valid for registration.');
+                return redirect()->route('login')->with('error', 'This link is not valid for registration.');
             }
 
-            return $response;
+        } else {
+            return redirect()->route('login');
         }
+
     }
     public function approve($id)
     {
@@ -692,5 +813,18 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
         }
+    }
+
+    public function removeUserDocument(Request $request) {
+        $response = false;
+        if ($doc = UserDocumentUpload::find($request->id)) {
+            if (storage_path("app/public/documents/{$doc->name}")) {
+                @unlink(storage_path("app/public/documents/{$doc->name}"));
+                $response = true;
+            }
+            $doc->delete();
+        }
+
+        return response()->json($response);
     }
 }
