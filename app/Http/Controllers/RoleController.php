@@ -342,7 +342,7 @@ class RoleController extends Controller
                                 'allow_only_specific_file_format' => isset($request->allow_only_specific_file_format[$key]) && $request->allow_only_specific_file_format[$key] == 'on' ? true : false,
                                 'allowed_file' => isset($request->doc_type[$key]) ? implode(',', $request->doc_type[$key]) : null,
                                 'maximum_upload_count' => $request->doc_max_file_count[$key] ?? 1,
-                                'maximum_upload_size' => $request->doc_max_file_size[$key] ?? 1024,
+                                'maximum_upload_size' => $request->doc_max_file_size[$key] ?? 10485760,
                                 'is_required' => isset($request->is_required[$key]) && $request->is_required[$key] == 'on' ? true : false
                             ]);
                         }
@@ -383,7 +383,7 @@ class RoleController extends Controller
                                     'allow_only_specific_file_format' => isset($request->allow_only_specific_file_format[$key]) && $request->allow_only_specific_file_format[$key] == 'on' ? true : false,
                                     'allowed_file' => isset($request->doc_type[$key]) ? implode(',', $request->doc_type[$key]) : null,
                                     'maximum_upload_count' => $request->doc_max_file_count[$key] ?? 1,
-                                    'maximum_upload_size' => $request->doc_max_file_size[$key] ?? 1024,
+                                    'maximum_upload_size' => $request->doc_max_file_size[$key] ?? 10485760,
                                     'is_required' => isset($request->is_required[$key]) && $request->is_required[$key] == 'on' ? true : false
                                 ]);
 
@@ -397,7 +397,7 @@ class RoleController extends Controller
                                     'allow_only_specific_file_format' => isset($request->allow_only_specific_file_format[$key]) && $request->allow_only_specific_file_format[$key] == 'on' ? true : false,
                                     'allowed_file' => isset($request->doc_type[$key]) ? implode(',', $request->doc_type[$key]) : null,
                                     'maximum_upload_count' => $request->doc_max_file_count[$key] ?? 1,
-                                    'maximum_upload_size' => $request->doc_max_file_size[$key] ?? 1024,
+                                    'maximum_upload_size' => $request->doc_max_file_size[$key] ?? 10485760,
                                     'is_required' => isset($request->is_required[$key]) && $request->is_required[$key] == 'on' ? true : false
                                 ])->id;
                             }

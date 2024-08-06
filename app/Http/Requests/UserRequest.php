@@ -68,10 +68,12 @@ class UserRequest extends FormRequest
 
                     $validator["document.{$document->id}"] = "{$isRequired}max:{$document->maximum_upload_count}";
 
+                    $mxFileUploadSize = $document->maximum_upload_size / 1024;
+
                     if ($document->allow_only_specific_file_format) {
-                        $validator["document.{$document->id}" . '.*'] = "file|max:{$document->maximum_upload_size}|mimes:" . Helper::returnExtensions($document->allowed_file, '', ',');
+                        $validator["document.{$document->id}" . '.*'] = "file|max:{$mxFileUploadSize}|mimes:" . Helper::returnExtensions($document->allowed_file, '', ',');
                     } else {
-                        $validator["document.{$document->id}" . '.*'] = "file|max:{$document->maximum_upload_size}";
+                        $validator["document.{$document->id}" . '.*'] = "file|max:{$mxFileUploadSize}";
                     }        
                 }                                                        
             }

@@ -63,15 +63,15 @@ function returnExtensions(string, dot = '', separator = '|') {
 }
 
 function formatBytes(string) {
-    if (string == '1024') {
+    if (string == '1048576') {
         return "1 MB";
-    } else if (string == '10240') {
+    } else if (string == '10485760') {
         return "10 MB";
-    } else if (string == '102400') {
+    } else if (string == '104857600') {
         return "100 MB";
-    } else if (string == '1024000') {
+    } else if (string == '1048576000') {
         return "1 GB";
-    } else if (string == '10240000') {
+    } else if (string == '10485760000') {
         return "10 GB";
     } else {
         return "10 MB";

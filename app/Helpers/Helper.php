@@ -384,15 +384,15 @@ class Helper {
     }
 
     public static function formatBytes($element) {
-        if ($element == '1024') {
+        if ($element == '1048576') {
             return "1 MB";
-        } else if ($element == '10240') {
+        } else if ($element == '10485760') {
             return "10 MB";
-        } else if ($element == '102400') {
+        } else if ($element == '104857600') {
             return "100 MB";
-        } else if ($element == '1024000') {
+        } else if ($element == '1048576000') {
             return "1 GB";
-        } else if ($element == '10240000') {
+        } else if ($element == '10485760000') {
             return "10 GB";
         } else {
             return "10 MB";

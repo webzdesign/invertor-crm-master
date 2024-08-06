@@ -313,10 +313,10 @@ $(document).ready(function(){
                 @if($doc->allow_only_specific_file_format)
                     fileType : "{{ Helper::returnExtensions($doc->allowed_file) }}",
                     maxFiles : {!! $doc->maximum_upload_count !!},
-                    fileSizeLimit : {!! $doc->maximum_upload_size !!} * 100
+                    fileSizeLimit : {!! $doc->maximum_upload_size !!}
                 @else
                     maxFiles : {!! $doc->maximum_upload_count !!},
-                    fileSizeLimit : {!! $doc->maximum_upload_size !!} * 100
+                    fileSizeLimit : {!! $doc->maximum_upload_size !!}
                 @endif
              },
             @empty

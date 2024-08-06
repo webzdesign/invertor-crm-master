@@ -128,11 +128,11 @@
                                 <input type="hidden" name="doc_max_file_size[{{ $key }}]" value="{{ $document->maximum_upload_size }}" class="doc-max-file-size" id="doc-max-file-size-{{ $key }}">
                                 <button class="btn dropdown-toggle doc-max-file-size-display" type="button" data-bs-toggle="dropdown" id="doc-max-file-size-display-{{ $key }}" data-indexid="{{ $key }}"> {{ Helper::formatBytes($document->maximum_upload_size) }} </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="{{ $key }}" data-value="1024" @if($document->maximum_upload_size == '1024') style="background: #15283c;color:white;" @endif >1 MB</li>
-                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="{{ $key }}" data-value="10240" @if($document->maximum_upload_size == '10240') style="background: #15283c;color:white;" @endif >10 MB</li>
-                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="{{ $key }}" data-value="102400" @if($document->maximum_upload_size == '102400') style="background: #15283c;color:white;" @endif >100 MB</li>
-                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="{{ $key }}" data-value="1024000" @if($document->maximum_upload_size == '1024000') style="background: #15283c;color:white;" @endif>1 GB</li>
-                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="{{ $key }}" data-value="10240000" @if($document->maximum_upload_size == '10240000') style="background: #15283c;color:white;" @endif>10 GB</li>
+                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="{{ $key }}" data-value="1048576" @if($document->maximum_upload_size == '1048576') style="background: #15283c;color:white;" @endif >1 MB</li>
+                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="{{ $key }}" data-value="10485760" @if($document->maximum_upload_size == '10485760') style="background: #15283c;color:white;" @endif >10 MB</li>
+                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="{{ $key }}" data-value="104857600" @if($document->maximum_upload_size == '104857600') style="background: #15283c;color:white;" @endif >100 MB</li>
+                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="{{ $key }}" data-value="1048576000" @if($document->maximum_upload_size == '1048576000') style="background: #15283c;color:white;" @endif>1 GB</li>
+                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="{{ $key }}" data-value="10485760000" @if($document->maximum_upload_size == '10485760000') style="background: #15283c;color:white;" @endif>10 GB</li>
                                 </ul>
                             </div>
                         </div>
@@ -235,14 +235,14 @@
                         <label class="f-14-500">Maximum file size</label>
                         <div>
                             <div class="dropdown">
-                                <input type="hidden" name="doc_max_file_size[0]" value="10240" class="doc-max-file-size" id="doc-max-file-size-0">
+                                <input type="hidden" name="doc_max_file_size[0]" value="10485760" class="doc-max-file-size" id="doc-max-file-size-0">
                                 <button class="btn dropdown-toggle doc-max-file-size-display" type="button" data-bs-toggle="dropdown" id="doc-max-file-size-display-0" data-indexid="0"> 10 MB </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="0" data-value="1024">1 MB</li>
-                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="0" data-value="10240" style="background: #15283c;color:white;" >10 MB</li>
-                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="0" data-value="102400">100 MB</li>
-                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="0" data-value="1024000">1 GB</li>
-                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="0" data-value="10240000">10 GB</li>
+                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="0" data-value="1048576">1 MB</li>
+                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="0" data-value="10485760" style="background: #15283c;color:white;" >10 MB</li>
+                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="0" data-value="104857600">100 MB</li>
+                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="0" data-value="1048576000">1 GB</li>
+                                    <li class="dropdown-item cursor-pointer file-size-options" data-indexid="0" data-value="10485760000">10 GB</li>
                                 </ul>
                             </div>
                         </div>
@@ -408,7 +408,7 @@
             cloned.find('.doc-max-file-count-display').text('1');
             cloned.find('.doc-max-file-count').val(1);
             cloned.find('.doc-max-file-size-display').text('10 MB');
-            cloned.find('.doc-max-file-size').val(10240);        
+            cloned.find('.doc-max-file-size').val(10485760);        
 
             if (Array.isArray(cloned.find(`.file-type-section`).children().find('input[type="checkbox"]').toArray())) {
                 cloned.find(`.file-type-section`).children().find('input[type="checkbox"]').toArray().forEach(element => {

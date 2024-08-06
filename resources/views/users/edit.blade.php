@@ -285,7 +285,7 @@ $(document).ready(function(){
                     }
 
                     thisRules['maxFiles'] = element.maximum_upload_count;
-                    thisRules['fileSizeLimit'] = element.maximum_upload_size * 100;
+                    thisRules['fileSizeLimit'] = element.maximum_upload_size;
 
                     thisMessages['maxFiles'] = `Maximum ${element.maximum_upload_count} files can be uploaded.`;
                     thisMessages['fileSizeLimit'] = `Maximum ${formatBytes(element.maximum_upload_count)} size of files can be uploaded.`;
@@ -396,10 +396,10 @@ $(document).ready(function(){
                 @if($doc->allow_only_specific_file_format)
                     fileType : "{{ Helper::returnExtensions($doc->allowed_file) }}",
                     maxFiles : {!! $doc->maximum_upload_count !!},
-                    fileSizeLimit : {!! $doc->maximum_upload_size !!} * 100
+                    fileSizeLimit : {!! $doc->maximum_upload_size !!}
                 @else
                     maxFiles : {!! $doc->maximum_upload_count !!},
-                    fileSizeLimit : {!! $doc->maximum_upload_size !!} * 100
+                    fileSizeLimit : {!! $doc->maximum_upload_size !!}
                 @endif
              },
             @empty

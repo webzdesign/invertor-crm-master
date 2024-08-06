@@ -710,11 +710,13 @@ class UserController extends Controller
                         $validations["document.{$document->id}"] = "{$isRequired}max:{$document->maximum_upload_count}";
                         $validationMessages["document.{$document->id}" . '.max'] = "Maximum " . $document->maximum_upload_count . " files can be uploaded.";
 
+                        $mxFileUploadSize = $document->maximum_upload_size / 1024;
+
                         if ($document->allow_only_specific_file_format) {
-                            $validations["document.{$document->id}" . '.*'] = "file|max:{$document->maximum_upload_size}|mimes:" . Helper::returnExtensions($document->allowed_file, '', ',');
+                            $validations["document.{$document->id}" . '.*'] = "file|max:{$mxFileUploadSize}|mimes:" . Helper::returnExtensions($document->allowed_file, '', ',');
                             $validationMessages["document.{$document->id}" . '.*.mimes'] = "Only " . Helper::returnExtensions($document->allowed_file, '.', ',') . " file formats are supported.";
                         } else {
-                            $validations["document.{$document->id}" . '.*'] = "file|max:{$document->maximum_upload_size}";
+                            $validations["document.{$document->id}" . '.*'] = "file|max:{$mxFileUploadSize}";
                         }
 
                         $validationMessages["document.{$document->id}" . '.*.file'] = "Please upload specified document.";
