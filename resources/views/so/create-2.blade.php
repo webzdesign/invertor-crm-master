@@ -159,40 +159,6 @@ $(document).ready(function(){
             }
         });
 
-        input.addEventListener('blur', (e) => {
-            let phNumber = e.target.value;
-
-            if (isNotEmpty(phNumber)) {
-                $.ajax({
-                    url: "{{ route('is-customer-scammer') }}",
-                    type: 'POST',
-                    data: {
-                        customerphone: function () {
-                            return $('#customer-phone').val();
-                        },
-                        country_code: function () {
-                            return $('#country_dial_code').val();
-                        }
-                    },
-                    beforeSend: function () {
-                        $('body').find('.LoaderSec').removeClass('d-none');
-                        $('button[type="submit"]').attr('disabled', true);
-                    },
-                    success: function (resp) {
-                        if (!resp) {
-                            Swal.fire('', 'This customer looks like a scammer.', 'error');
-                            return false;
-                        }
-                    },
-                    complete: function () {
-                        $('body').find('.LoaderSec').addClass('d-none');
-                        $('button[type="submit"]').attr('disabled', false);
-                    }
-
-                });
-            }
-        });
-
         $.validator.addMethod('minSalesPriceM', function (value, element) {
             let bool = true;
             let validatorThisProduct = $(`#mproduct`);
@@ -326,7 +292,27 @@ $(document).ready(function(){
             },
             customerphone: {
                 inttel: true,
-                required: true
+                required: true,
+                remote : {
+                    url: "{{ route('is-customer-scammer') }}",
+                    async: true,
+                    type: 'POST',
+                    data: {
+                        customerphone: function () {
+                            return $('#customer-phone').val();
+                        },
+                        country_code: function () {
+                            return $('#country_dial_code').val();
+                        }
+                    },
+                    complete: function (res) {
+                        if (res.responseJSON) {
+                            $('#form-save-btn').css('display', 'block');
+                        } else {
+                            $('#form-save-btn').css('display', 'none');
+                        }
+                    }
+                }
             },
             customerfb: {
                 url: true
@@ -348,7 +334,8 @@ $(document).ready(function(){
         },
         messages: {
             customerphone: {
-                required: "Enter phone number."
+                required: "Enter phone number.",
+                remote: "You can't register order with this phone number as this phone number is considered as scammer customer."
             },
             order_del_date: {
                 required: "Select order delivery date.",

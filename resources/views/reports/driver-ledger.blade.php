@@ -1,5 +1,15 @@
 @extends('layouts.master')
 
+@section('css')
+<style>
+    #pay-amount {
+        display: none;
+        width: 60px;
+        float:right;
+    }
+</style>
+@endsection
+
 @section('content')
 {{ Config::set('app.module', $moduleName) }}
 @section('create_button')
@@ -21,7 +31,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="2">  <button data-bs-toggle="modal" data-bs-target="#payamount" class="btn btn-sm btn-success" id="pay-amount" style="width: 60px;float:right;"> Pay </button>  </td>
+                <td colspan="2">  <button data-bs-toggle="modal" data-bs-target="#payamount" class="btn btn-sm btn-success" id="pay-amount"> Pay </button>  </td>
                 <td id="bl-total" style="background: #e583a47d;font-weight:600;">0</td>
             </tr>
         </tfoot>
@@ -102,6 +112,10 @@
             ],
             drawCallback: function (data) {
                 $('#bl-total').text(data.json.bl);
+
+                if (data.json.recordcount > 0) {
+                    $('#pay-amount').css('display', 'block');
+                }
             }
         });
 

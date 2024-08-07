@@ -170,6 +170,6 @@
     </div>
 
     <div class="cardsFooter d-flex justify-content-center">
-        <button type="submit" class="btn-primary f-500 f-14">Save</button>
+        <button type="submit" class="btn-primary f-500 f-14" id="form-save-btn">Save</button>
     </div>
 </div>

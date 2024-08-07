@@ -91,6 +91,15 @@ class StatusTrigger extends Command
                 $salesOrder->status = $newStatus;
                 $salesOrder->save();
 
+                //scammer status
+                if ($newStatus == 7) {
+                    \App\Models\ScammerContact::create([
+                        'so_id' => $salesOrder->id,
+                        'dial_code' => str_replace(' ', '', $salesOrder->country_dial_code),
+                        'phone_number' => str_replace(' ', '', $salesOrder->customer_phone)
+                    ]);
+                }
+
             /** TASKS **/
             $currentTime1 = date('Y-m-d H:i:s');
             $y = [];
@@ -262,6 +271,16 @@ class StatusTrigger extends Command
                             'delivery_location_long' => $salesorderInfo->long,
                             'range' => (isset($driverallocaterang) && $driverallocaterang != '') ? number_format($driverallocaterang,2,'.','') : 0
                         ]);
+
+                        \App\Models\Notification::create([
+                            'user_id' => $driverid,
+                            'so_id' => $salesorderInfo->id,
+                            'title' => 'New Order',
+                            'description' => 'ORDER <strong>' . $salesorderInfo->order_no . '</strong> is allocated to you please check the order.',
+                            'link' => 'sales-orders'
+                        ]);
+
+                        event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $driverid, 'content' => "ORDER {$salesorderInfo->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
                     }
     
                 }

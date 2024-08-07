@@ -445,7 +445,6 @@
 
 @section('script')
 <script src="{{ asset('assets/js/toastr.min.js') }}"></script>
-<script src="{{ asset('assets/js/pusher.min.js') }}"></script>
 <script>
     var selectedOpt = null;
     var thisWindowId = uuid();

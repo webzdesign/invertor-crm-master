@@ -129,6 +129,8 @@ class ReportController extends Controller
                 }
             }
 
+            $recordCount = $ledger->count();
+
             return dataTables()->eloquent($ledger)
             ->addColumn('voucher', function ($row) {
                 if ($row->is_approved == 0 && $row->amount_type == 0) {
@@ -162,7 +164,7 @@ class ReportController extends Controller
                     }
                 }
             })
-            ->with(['bl' => Helper::currency(abs($total))])
+            ->with(['bl' => Helper::currency(abs($total)), 'recordcount' => $recordCount])
             ->rawColumns(['voucher', 'crdr', 'me'])
             ->toJson();
 
@@ -374,7 +376,7 @@ class ReportController extends Controller
     public function payAmountToAdmin(Request $request) {
 
         $credit = Transaction::whereIn('amount_type', [0, 2])->whereIn('is_approved', [0, 1])->where('user_id', auth()->user()->id)->credit()->sum('amount');
-        $debit = Transaction::whereIn('amount_type', [0, 2])->where('is_approved', [0, 1])->where('user_id', auth()->user()->id)->debit()->sum('amount');
+        $debit = Transaction::whereIn('amount_type', [0, 2])->where('is_approved', 1)->where('user_id', auth()->user()->id)->debit()->sum('amount');
 
         $remaining = $credit - $debit;
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PaymentForDeliveryController;
 use App\Http\Controllers\SalesOrderStatusController;
 use App\Http\Controllers\ProcurementCostController;
@@ -196,7 +197,7 @@ Route::group(["middleware" => "auth"], function () {
         /** Sales Order Status **/
         Route::match(['GET', 'POST'], 'sales-order-status-list', [SalesOrderStatusController::class, 'list'])->name('sales-order-status-list');
         Route::get('sales-order-status', [SalesOrderStatusController::class, 'index'])->name('sales-order-status')->middleware('ModuleAccessor:sales-order-status.view');
-        Route::post('sales-order-status/sequence', [SalesOrderStatusController::class, 'sequence'])->name('sales-order-status-sequence')->middleware('ModuleAccessor:sales-order-status.edit');
+        Route::post('sales-order-status/sequence', [SalesOrderStatusController::class, 'sequence'])->name('sales-order-status-sequence');
         Route::get('sales-order-status/delete', [SalesOrderStatusController::class, 'delete'])->name('sales-order-status-delete')->middleware('ModuleAccessor:sales-order-status.delete');
         Route::get('sales-order-status/automate', [SalesOrderStatusController::class, 'edit'])->name('sales-order-status-edit')->middleware('ModuleAccessor:sales-order-status.edit');
         Route::post('sales-order-status/update', [SalesOrderStatusController::class, 'update'])->name('sales-order-status-update')->middleware('ModuleAccessor:sales-order-status.edit');
@@ -225,6 +226,12 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('getStates', [Helper::class, 'getStates'])->name('getStates');
         Route::post('getCities', [Helper::class, 'getCities'])->name('getCities');
         /** Common **/
+
+        /** Notification **/
+        Route::get('read-notification/{id}/{url}', [HomeController::class, 'readNotification'])->name('read-notification');
+        Route::get('read-all-notification', [HomeController::class, 'readAllNotification'])->name('read-all-notification');
+        Route::post('get-notification', [HomeController::class, 'getNotification'])->name('get-notification');
+        /** Notification **/
 
         Route::get('settings', [SettingController::class, 'index'])->name('settings');
         Route::put('settings-update', [SettingController::class, 'update'])->name('settings.update');

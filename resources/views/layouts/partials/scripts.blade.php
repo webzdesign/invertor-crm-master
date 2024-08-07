@@ -16,6 +16,7 @@
 <script src="{{ asset('assets/js/lodash.min.js') }}"></script>
 <script src="{{ asset('assets/js/select2_4_0_13.min.js') }}"></script>
 <script src="{{ asset('assets/js/custom.js') }}"></script>
+<script src="{{ asset('assets/js/pusher.min.js') }}"></script>
 
 <script type="text/html" id="searchPannel">
     <input class="form-control f-14" placeholder="Search here">

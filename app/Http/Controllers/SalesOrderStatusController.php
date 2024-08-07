@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\{Stock, Transaction, DriverWallet, PaymentForDelivery, ProcurementCost, SalesOrderProofImages};
+use App\Models\{SalesOrderStatus, SalesOrder, Deliver, Role, ManageStatus, User, SalesOrderItem, Notification};
 use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser, Setting, Trigger, Wallet};
-use App\Models\{SalesOrderStatus, SalesOrder, Deliver, Role, ManageStatus, User, SalesOrderItem};
 use Revolution\Google\Sheets\Facades\Sheets;
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
@@ -293,6 +293,14 @@ class SalesOrderStatusController extends Controller
                 'windowId' => $request->windowId,
                 'users' => [Deliver::where('so_id', $disOrder->id)->where('status', 1)->first()->user_id ?? null, $disOrder->added_by]
             ]));
+
+            if ($request->status == 7) {
+                \App\Models\ScammerContact::create([
+                    'so_id' => $request->order,
+                    'dial_code' => str_replace(' ', '', $disOrder->country_dial_code),
+                    'phone_number' => str_replace(' ', '', $disOrder->customer_phone)
+                ]);
+            }
 
             $fromStatus = SalesOrderStatus::custom()->withTrashed()->where('id', $oldStatus)->first();
             $toStatus = SalesOrderStatus::custom()->withTrashed()->where('id', $request->status)->first();
@@ -589,6 +597,15 @@ class SalesOrderStatusController extends Controller
                         ChangeOrderStatusTrigger::where('order_id', $request->order)->where('status_id', '!=', $request->status)->where('executed', 0)->delete();
 
                         $disOrder = SalesOrder::where('id', $request->order)->first();
+
+                        //scammer status
+                        if ($request->status == 7) {
+                            \App\Models\ScammerContact::create([
+                                'so_id' => $request->order,
+                                'dial_code' => str_replace(' ', '', $disOrder->country_dial_code),
+                                'phone_number' => str_replace(' ', '', $disOrder->customer_phone)
+                            ]);
+                        }
 
                         event(new \App\Events\OrderStatusEvent('order-status-change', [
                             'orderId' => $request->order,
@@ -1002,7 +1019,15 @@ class SalesOrderStatusController extends Controller
                                     'windowId' => $request->windowId,
                                     'users' => [Deliver::where('so_id', $salesorderInfo->id)->where('status', 1)->first()->user_id ?? null, $salesorderInfo->added_by]
                                 ]));
-                                        
+                                
+                                if ($request->status == 7) {
+                                    \App\Models\ScammerContact::create([
+                                        'so_id' => $request->order,
+                                        'dial_code' => str_replace(' ', '', $salesorderInfo->country_dial_code),
+                                        'phone_number' => str_replace(' ', '', $salesorderInfo->customer_phone)
+                                    ]);
+                                }
+
                                 $driverlist = SalesOrderController::againDriverAllocate($salesorderInfo)->getData();
 
                                 if($driverlist->status === true && !empty($driverlist->drivers)) {
@@ -1024,6 +1049,16 @@ class SalesOrderStatusController extends Controller
                                                 'delivery_location_long' => $salesorderInfo->long,
                                                 'range' => (isset($driverallocaterang) && $driverallocaterang != '') ? number_format($driverallocaterang,2,'.','') : 0
                                             ]);
+
+                                            Notification::create([
+                                                'user_id' => $driverid,
+                                                'so_id' => $salesorderInfo->id,
+                                                'title' => 'New Order',
+                                                'description' => 'ORDER <strong>' . $salesorderInfo->order_no . '</strong> is allocated to you please check the order.',
+                                                'link' => 'sales-orders'
+                                            ]);
+
+                                            event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $driverid, 'content' => "ORDER {$salesorderInfo->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
                                         }
                         
                                     }
@@ -1849,6 +1884,7 @@ class SalesOrderStatusController extends Controller
             $order = SalesOrder::where('id', $request->id);
             if ($order->exists()) {
                 Deliver::where('user_id', auth()->user()->id)->where('so_id', $request->id)->where('status', 0)->update(['status' => 2]);
+                Notification::where('user_id', auth()->user()->id)->update(['read' => true]);
                 SalesOrder::where('id', $request->id)->update(['status' => 1]);
 
                 //when change status to new again then we can pick only one and on pick one responsible is automatically assigned
@@ -1884,6 +1920,16 @@ class SalesOrderStatusController extends Controller
                     'delivery_location_long' => $order->long,
                     'range' => Distance::measure($driver->lat, $driver->long, $order->lat, $order->long)
                 ]);
+
+                Notification::create([
+                    'user_id' => $request->driver,
+                    'so_id' => $soId,
+                    'title' => 'New Order',
+                    'description' => 'ORDER <strong>' . $order->order_no . '</strong> is allocated to you please check the order.',
+                    'link' => 'sales-orders'
+                ]);
+
+                event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver, 'content' => "ORDER {$order->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
 
                 SalesOrder::where('id', $soId)->update(['status' => 1]);
 

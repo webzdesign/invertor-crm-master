@@ -52,6 +52,61 @@
                         </li>
                         @endif
 
+                        @if(User::isDriver())
+                        <li class="dropdown middleContent p-0 userMenu">
+                            <a href="javascript:;" data-bs-toggle="dropdown">
+                                <svg width="30" height="30" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.67271 2.41047C4.41402 2.99139 2.7454 5.0408 2.7454 7.48163V10.9722C2.7454 11.294 2.48409 11.5546 2.16424 11.5546C1.52115 11.5546 1 12.0769 1 12.7183C1 13.3609 1.5219 13.8818 2.16639 13.8818H13.7971C14.4413 13.8818 14.9635 13.3597 14.9635 12.7183C14.9635 12.0755 14.4399 11.5546 13.7992 11.5546C13.4782 11.5546 13.2181 11.2959 13.2181 10.9722V7.48163C13.2181 5.04178 11.5497 2.99164 9.29077 2.41047V1.80939C9.29077 1.08448 8.70456 0.5 7.98162 0.5C7.26009 0.5 6.67266 1.0862 6.67266 1.80939L6.67271 2.41047ZM5.94541 14.4638H10.0181C10.0181 15.5885 9.10629 16.5 7.98167 16.5C6.85705 16.5 5.94547 15.5884 5.94547 14.4638H5.94541Z" fill="#fff"></path><defs><linearGradient id="paint0_linear_1622_4667" x1="7.98174" y1="0.5" x2="7.98174" y2="16.5" gradientUnits="userSpaceOnUse"><stop stop-color="#3F189F"></stop><stop offset="1" stop-color="#4C26AA"></stop></linearGradient></defs></svg>
+                            </a>
+
+                            @if($notiCount = Notification::where('user_id', auth()->user()->id)->unseen()->count())
+                                <span class="position-absolute justify-content-center align-items-center text-white badges f-10 f-700 d-flex notificationCount"> {{ $notiCount }} </span>
+                            @endif
+
+                            <ul class="dropdown-menu notificationBody settingWrpr filterDropdownBx py-0 ul-for-noti" style="min-width:300px!important;">
+
+                                <div class="cardsHeader py-2 justify-content-between d-flex align-items-center" style="background-image: linear-gradient(to right bottom, #a53692, #cb367d, #e34765, #ee634c, #ec8335);border-radius: 3px 3px 0 0;">
+                                    <span class="f-18 f-600 f-16-500 text-white f-700 after-span-appendable">Notifications</span>
+                                    @if($notiCount)
+                                    <a href="{{ route('read-all-notification') }}" class="btn btn-primary f-12 btn-sm f-500 f-14-500 text-white f-700 markAllRead">
+                                        Mark all as read
+                                    </a>
+                                    @endif
+                                </div>
+
+                                <div class="cardsBody settingWrpr px-0 py-0 notifiContainer">
+
+                                    @forelse (Notification::where('user_id', auth()->user()->id)->unseen()->get() as $notification)
+                                        <li class="m-0 w-100">
+                                            <a href="{{ route('read-notification', ['id' => $notification->id, 'url' => $notification->link]) }}" >
+                                                <h4 class="f-16 mb-0 f-700 c-19">
+                                                    {{ $notification->title }}
+                                                </h4>
+                                                <p class="f-12 mb-0">
+                                                    {!! $notification->description !!}
+                                                </p>
+                                                @if(date('Y-m-d H:i:s', strtotime($notification->created_at . ' +24 hours')) > date('Y-m-d H:i:s'))
+                                                <p class="f-12 mb-0 text-d-none" style="margin-top: 5px;"> {!! \Carbon\Carbon::parse($notification->created_at)->diffForHumans() !!} </p>
+                                                @else
+                                                <p class="f-12 mb-0 text-d-none" style="margin-top: 5px;"> {!! date('d-m-Y H:i', strtotime($notification->created_at)) !!} </p>
+                                                @endif
+                                            </a>
+                                        </li>
+                                    @empty
+                                        <li class="m-0 w-100">
+                                            <a href="javascript:;" class="text-center">
+                                                <h4 class="f-16 mb-0 f-700 c-19">
+                                                    <i class="fa fa-bell-slash" style="margin-right: 10px;"></i>
+                                                    No notification found
+                                                </h4>
+                                            </a>
+                                        </li>
+                                    @endforelse
+
+                                </div>
+                            </ul>
+                        </li>
+                        @endif
+
                         <li class="dropdown middleContent p-0 userMenu">
                             <a href="javascript:;" data-bs-toggle="dropdown">
                                 <svg width="30" height="30" viewBox="0 0 16 16" fill="none"
@@ -165,4 +220,62 @@
         $(this).css('z-index', zIndex);
         setTimeout(() => $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack'));
     });
+
+    function firePushNotification(bodyContent, referer) {
+        if (Notification.permission !== 'granted') {
+            Notification.requestPermission();
+        } else {
+            const options = {
+                body: bodyContent,
+                dir: 'ltr',
+                image: "{{ asset(Helper::getAppLogo()) . '?time=' . time() }}"
+            };
+
+            const notification = new Notification('Notification', options);
+
+            notification.onclick = function () {
+                window.open(referer);
+            };
+        }
+    }
+
+    $(document).on('DOMContentLoaded', function () {
+        if (Notification) {
+            if (Notification.permission !== 'granted') {
+                Notification.requestPermission();
+            }
+        }
+
+        var pusherNotificationChannel = new Pusher("{{ env('PUSHER_APP_KEY') }}", {
+            cluster: "{{ env('PUSHER_APP_CLUSTER') }}",
+            encrypted: true
+        });
+
+        var notiChannel = pusherNotificationChannel.subscribe('card-trigger');
+        notiChannel.bind('order-allocation-info', function(data) {
+            if ('driver' in data && data.driver == {!! auth()->user()->id !!}) {
+                firePushNotification(data.content, data.link);
+
+                $.ajax({
+                    url: "{{ route('get-notification') }}",
+                    type: 'POST',
+                    data: {
+                        id: "{{ auth()->user()->id }}"
+                    },
+                    success: function (response) {
+                        if (response.status) {
+                            $('.notificationCount').remove();
+                            $('.markAllRead').remove();
+                            $('.notifiContainer').html('');
+
+                            $(`<span class="position-absolute justify-content-center align-items-center text-white badges f-10 f-700 d-flex notificationCount"> ${response.count} </span>`).insertBefore('.ul-for-noti');
+                            $(`<a href="{{ route('read-all-notification') }}" class="btn btn-primary f-12 btn-sm f-500 f-14-500 text-white f-700 markAllRead">Mark all as read</a>`).insertAfter('.after-span-appendable');
+                            $('.notifiContainer').html(response.html);
+                        }
+                    }
+                });
+            }
+        });
+    });
+
 </script>

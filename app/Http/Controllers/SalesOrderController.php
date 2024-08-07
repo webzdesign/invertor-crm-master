@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\{Category, User, Wallet, Bonus, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger, ManageStatus, DriverWallet};
 use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ChangeOrderStatusTrigger, SalesOrderProofImages};
-use App\Models\{PaymentForDelivery, Transaction, TriggerLog, SalesOrderUserFilter};
+use App\Models\{PaymentForDelivery, Transaction, TriggerLog, SalesOrderUserFilter, Notification};
 use App\Helpers\{Helper, Distance};
+use App\Models\ScammerContact;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -697,6 +698,16 @@ class SalesOrderController extends Controller
                                             'delivery_location_long' => $request->long,
                                             'range' => $range
                                         ]);
+
+                                        Notification::create([
+                                            'user_id' => $driverid,
+                                            'so_id' => $soId,
+                                            'title' => 'New Order',
+                                            'description' => 'ORDER <strong>' . $orderNo . '</strong> is allocated to you please check the order.',
+                                            'link' => 'sales-orders'
+                                        ]);
+
+                                        event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $driverid, 'content' => "ORDER {$orderNo} is allocated to you please check the order.", 'link' => url('sales-orders')]));
                                     }
                                 }
                             }
@@ -1523,6 +1534,16 @@ class SalesOrderController extends Controller
                     'status' => 0
                 ]);
 
+                Notification::create([
+                    'user_id' => $request->driver_id,
+                    'so_id' => $request->order_id,
+                    'title' => 'New Order',
+                    'description' => 'ORDER <strong>' . $thisOrder->order_no . '</strong> is allocated to you please check the order.',
+                    'link' => 'sales-orders'
+                ]);
+
+                event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "ORDER {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
+
                 TriggerLog::create([
                     'trigger_id' => 0,
                     'order_id' => $request->order_id,
@@ -1555,6 +1576,16 @@ class SalesOrderController extends Controller
                         'status' => 0
                     ]);
 
+                    Notification::create([
+                        'user_id' => $request->driver_id,
+                        'so_id' => $request->order_id,
+                        'title' => 'New Order',
+                        'description' => 'ORDER <strong>' . $thisOrder->order_no . '</strong> is allocated to you please check the order.',
+                        'link' => 'sales-orders'
+                    ]);
+
+                    event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "ORDER {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
+
                     TriggerLog::create([
                         'trigger_id' => 0,
                         'order_id' => $request->order_id,
@@ -1579,6 +1610,16 @@ class SalesOrderController extends Controller
                         'range' => Distance::measure($thisUser->lat, $thisUser->long, $thisOrder->lat, $thisOrder->long),
                         'status' => 0
                     ]);
+
+                    Notification::create([
+                        'user_id' => $request->driver_id,
+                        'so_id' => $request->order_id,
+                        'title' => 'New Order',
+                        'description' => 'ORDER <strong>' . $thisOrder->order_no . '</strong> is allocated to you please check the order.',
+                        'link' => 'sales-orders'
+                    ]);
+
+                    event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "ORDER {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
 
                     TriggerLog::create([
                         'trigger_id' => 0,
@@ -1605,6 +1646,16 @@ class SalesOrderController extends Controller
                     'range' => Distance::measure($thisUser->lat, $thisUser->long, $thisOrder->lat, $thisOrder->long),
                     'status' => 0
                 ]);
+
+                Notification::create([
+                    'user_id' => $request->driver_id,
+                    'so_id' => $request->order_id,
+                    'title' => 'New Order',
+                    'description' => 'ORDER <strong>' . $thisOrder->order_no . '</strong> is allocated to you please check the order.',
+                    'link' => 'sales-orders'
+                ]);
+
+                event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "ORDER {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
 
                 TriggerLog::create([
                     'trigger_id' => 0,
@@ -1647,11 +1698,15 @@ class SalesOrderController extends Controller
 
     public function isCustomerScammer(Request $request) {
         if (!empty($request->customerphone) && !empty($request->country_code)) {
-            $scammer = SalesOrderStatus::select('id')->where('slug', 'scammer')->first()->id ?? 0;
-            return response()->json(SalesOrder::when($scammer > 0, fn ($builder) => ($builder->where('status', $scammer)) )->where('country_dial_code', trim($request->country_code))->where(DB::raw("REPLACE(`customer_phone`, ' ', '')"), str_replace(' ', '', trim($request->customerphone)))->doesntExist());
+
+            $isScammer = ScammerContact::where('phone_number', str_replace(' ', '', $request->customerphone))
+                        ->where('dial_code', str_replace(' ', '', $request->country_code))
+                        ->count() < 2;
+
+            return response()->json($isScammer);
         }
 
-        return response()->json(true);
+        return response()->json(false);
     }
 
     public static function againDriverAllocate($saleorderId){

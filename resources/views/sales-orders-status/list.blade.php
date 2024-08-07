@@ -310,7 +310,6 @@
 <script src="{{ asset('assets/js/dataTables.responsive.js') }}"></script>
 <script src="{{ asset('assets/js/responsive.bootstrap5.js') }}"></script>
 <script src="{{ asset('assets/js/toastr.min.js') }}"></script>
-<script src="{{ asset('assets/js/pusher.min.js') }}"></script>
 <script>
 
     toastr.options = {

@@ -64,6 +64,13 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
+            if (in_array(3, auth()->user()->roles->pluck('id')->toArray())) {
+                if (auth()->user()->hasPermission('sales-orders.view')) {
+                    return redirect()->route('sales-orders.index');                    
+                }
+                return redirect()->intended('dashboard');
+            }
+
             return redirect()->intended('dashboard');
         }
         return back()->withErrors([
