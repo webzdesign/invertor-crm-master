@@ -295,7 +295,7 @@ class SalesOrderStatusController extends Controller
             ]));
 
             if ($request->status == 7) {
-                \App\Models\ScammerContact::create([
+                \App\Models\ScammerContact::updateOrCreate([
                     'so_id' => $request->order,
                     'dial_code' => str_replace(' ', '', $disOrder->country_dial_code),
                     'phone_number' => str_replace(' ', '', $disOrder->customer_phone)
@@ -600,7 +600,7 @@ class SalesOrderStatusController extends Controller
 
                         //scammer status
                         if ($request->status == 7) {
-                            \App\Models\ScammerContact::create([
+                            \App\Models\ScammerContact::updateOrCreate([
                                 'so_id' => $request->order,
                                 'dial_code' => str_replace(' ', '', $disOrder->country_dial_code),
                                 'phone_number' => str_replace(' ', '', $disOrder->customer_phone)
@@ -1021,7 +1021,7 @@ class SalesOrderStatusController extends Controller
                                 ]));
                                 
                                 if ($request->status == 7) {
-                                    \App\Models\ScammerContact::create([
+                                    \App\Models\ScammerContact::updateOrCreate([
                                         'so_id' => $request->order,
                                         'dial_code' => str_replace(' ', '', $salesorderInfo->country_dial_code),
                                         'phone_number' => str_replace(' ', '', $salesorderInfo->customer_phone)

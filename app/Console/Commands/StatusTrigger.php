@@ -93,7 +93,7 @@ class StatusTrigger extends Command
 
                 //scammer status
                 if ($newStatus == 7) {
-                    \App\Models\ScammerContact::create([
+                    \App\Models\ScammerContact::updateOrCreate([
                         'so_id' => $salesOrder->id,
                         'dial_code' => str_replace(' ', '', $salesOrder->country_dial_code),
                         'phone_number' => str_replace(' ', '', $salesOrder->customer_phone)
