@@ -110,6 +110,13 @@
                 </div>
                 @endif
 
+                <div class="col-sm-12 col-md-3">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Added by</label>
+                        <input class="form-control"  placeholder="" type="text" value="{{ $so->addedby->name ?? '-' }}" readonly style="background:#efefef">
+                    </div>
+                </div>
+
                 <div>
                     <div class="col-md-12">
                         <div
