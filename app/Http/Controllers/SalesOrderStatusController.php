@@ -1367,7 +1367,11 @@ class SalesOrderStatusController extends Controller
 
         if ($order->exists()) {
             $order = $order->first();
-            $logs = \App\Models\TriggerLog::where('order_id', $order->id)->orderBy('id', 'DESC')->get();
+            $logs = \App\Models\TriggerLog::with([
+                'watcher' => fn ($builder) => ($builder->withTrashed()),
+                'user' => fn ($builder) => ($builder->withTrashed()),
+                'assigneddriver' => fn ($builder) => ($builder->withTrashed())
+            ])->where('order_id', $order->id)->orderBy('id', 'DESC')->get();
             return response()->json(['status' => true, 'view' => view('sales-orders-status.order-details', compact('order', 'logs'))->render()]);
         }
 

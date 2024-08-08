@@ -1051,7 +1051,11 @@ class SalesOrderController extends Controller
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $so = SalesOrder::find(decrypt($id));
         $driverDetails = Deliver::with('user')->where('so_id', decrypt($id))->whereIn('status', [1,3])->first();//0,
-        $logs = TriggerLog::where('order_id', $so->id)->whereIn('type', [2, 4])->orderBy('id', 'ASC')->get();
+        $logs = TriggerLog::with([
+            'watcher' => fn ($builder) => ($builder->withTrashed()),
+            'user' => fn ($builder) => ($builder->withTrashed()),
+            'assigneddriver' => fn ($builder) => ($builder->withTrashed())
+        ])->where('order_id', $so->id)->whereIn('type', [2, 4])->orderBy('id', 'ASC')->get();
 
         return view('so.view', compact('moduleName', 'categories', 'so', 'moduleLink', 'driverDetails', 'logs'));
     }

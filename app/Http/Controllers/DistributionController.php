@@ -25,12 +25,16 @@ class DistributionController extends Controller
 
             $drivers = User::whereHas('role', function ($builder) {
                 $builder->where('roles.id', 3);
-            })->selectRaw("id, CONCAT(name, ' - (', email, ')') as name")->pluck('name', 'id')->toArray();
+            })->selectRaw("id, CONCAT(name, ' - (', email, ')') as name")->withTrashed()->pluck('name', 'id')->toArray();
 
             return view('distribution.index', compact('moduleName', 'drivers', 'types'));
         }
 
-        $distribution = Distribution::query();
+        $distribution = Distribution::with(['items.fromdriver' => function ($builder) {
+            return $builder->withTrashed();
+        }, 'items.todriver' => function ($builder) {
+            return $builder->withTrashed();
+        }]);
 
         if ($request->has('filterType') && !empty(trim($request->filterType))) {
             $distribution = $distribution->where('type', trim($request->filterType));
@@ -603,7 +607,12 @@ class DistributionController extends Controller
     {
         $moduleName = 'View Assigned Stock';
 
-        $d = Distribution::with('docs')->where('id', decrypt($id))->with('items')->first();
+        $d = Distribution::with(['docs', 'items.fromdriver' => function ($builder) {
+            return $builder->withTrashed();
+        }, 'items.todriver' => function ($builder) {
+            return $builder->withTrashed();
+        }])->where('id', decrypt($id))->with('items')->first();
+
         $types = self::$types;
 
         return view('distribution.view', compact('moduleName', 'd', 'types'));

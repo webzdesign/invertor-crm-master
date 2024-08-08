@@ -594,7 +594,7 @@ class ReportController extends Controller
 
         return dataTables()->eloquent($drivers)
         ->addColumn('driver', function ($row) {
-            $driverDeatils = Transaction::with('user')->where('user_id', '!=', 1)->where('transaction_id', $row->transaction_id)->first();
+            $driverDeatils = Transaction::with(['user' => fn ($builder) => ($builder->withTrashed())])->where('user_id', '!=', 1)->where('transaction_id', $row->transaction_id)->first();
             return (!empty($driverDeatils) ? $driverDeatils->user->name." - ".$driverDeatils->user->city_id : '-');
         })
         ->addColumn('date', function ($row) {
