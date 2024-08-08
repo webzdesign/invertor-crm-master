@@ -744,7 +744,10 @@ class UserController extends Controller
                     }
                     $user->save();
 
+                    $rolePerm = PermissionRole::where('role_id', $role)->select('permission_id')->pluck('permission_id')->toArray();
+
                     $user->roles()->attach([$role]);
+                    $user->userpermission()->sync($rolePerm);
 
                     if (!file_exists(storage_path('app/public/documents'))) {
                         mkdir(storage_path('app/public/documents'), 0777, true);
