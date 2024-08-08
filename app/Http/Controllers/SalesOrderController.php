@@ -310,7 +310,7 @@ class SalesOrderController extends Controller
 
                 $assigneOrderdriver = Deliver::query()
                 ->with(['user' => function ($query) {
-                    $query->selectRaw("id,CONCAT(name, ' - ', city_id) AS driverinfo");
+                    $query->selectRaw("id,CONCAT(name, ' - ', city_id) AS driverinfo")->withTrashed();
                 }]);
                 if(Deliver::where('so_id', $row->id)->where('status',1)->count() > 0){
                     $assigneOrderdriver->where('status',1);
@@ -1050,7 +1050,7 @@ class SalesOrderController extends Controller
         $moduleLink = route('sales-orders.index');
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $so = SalesOrder::find(decrypt($id));
-        $driverDetails = Deliver::with('user')->where('so_id', decrypt($id))->whereIn('status', [1,3])->first();//0,
+        $driverDetails = Deliver::with(['user' => fn ($builder) => ($builder->withTrashed())])->where('so_id', decrypt($id))->whereIn('status', [1,3])->first();//0,
         $logs = TriggerLog::with([
             'watcher' => fn ($builder) => ($builder->withTrashed()),
             'user' => fn ($builder) => ($builder->withTrashed()),

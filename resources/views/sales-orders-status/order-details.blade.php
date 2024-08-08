@@ -55,7 +55,7 @@
             </div>
 
             @php
-                $driver = Deliver::with('user')->where('status', 1)->where('so_id', $order->id)->first();
+                $driver = Deliver::with(['user' => fn ($builder) => ($builder->withTrashed())])->where('status', 1)->where('so_id', $order->id)->first();
                 if ($driver !== null) {
                     $driver = $driver->user->name ?? '-';
                 } else {
@@ -90,7 +90,7 @@
                     @if($l->type == 4 && $l->allocated_driver_id !=null && $l->allocated_driver_id !='')
                         @php
                             $driverarray = explode(',',$l->allocated_driver_id);
-                            $allocateddriver = User::whereIn('id', $driverarray)->selectRaw("CONCAT(name,' - ',city_id) as drivedetails")->get()->pluck('drivedetails')->toArray();
+                            $allocateddriver = User::whereIn('id', $driverarray)->selectRaw("CONCAT(name,' - ',city_id) as drivedetails")->withTrashed()->get()->pluck('drivedetails')->toArray();
                             if(!empty($allocateddriver)) {
                                 $allocatedrivesInfo = implode(', ', $allocateddriver);
                             }

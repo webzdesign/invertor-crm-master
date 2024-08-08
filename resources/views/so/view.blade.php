@@ -113,7 +113,7 @@
                 <div class="col-sm-12 col-md-3">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Added by</label>
-                        <input class="form-control"  placeholder="" type="text" value="{{ $so->addedby->name ?? '-' }}" readonly style="background:#efefef">
+                        <input class="form-control"  placeholder="" type="text" value="{{ User::withTrashed()->where('id', $so->added_by)->first()->name ?? '-' }}" readonly style="background:#efefef">
                     </div>
                 </div>
 
@@ -261,7 +261,7 @@
                                         @if($l->type == 4 && $l->allocated_driver_id !=null && $l->allocated_driver_id !='')
                                             @php
                                                 $driverarray = explode(',',$l->allocated_driver_id);
-                                                $allocateddriver = User::whereIn('id', $driverarray)->selectRaw("CONCAT(name,' - ',city_id) as drivedetails")->get()->pluck('drivedetails')->toArray();
+                                                $allocateddriver = User::whereIn('id', $driverarray)->selectRaw("CONCAT(name,' - ',city_id) as drivedetails")->withTrashed()->get()->pluck('drivedetails')->toArray();
                                                 if(!empty($allocateddriver)) {
                                                     $allocatedrivesInfo = implode(', ', $allocateddriver);
                                                 }
