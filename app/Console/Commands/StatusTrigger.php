@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, SalesOrder, Trigger, ChangeOrderUser, SalesOrderStatus, Deliver, User};
+use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, SalesOrder, Trigger, ChangeOrderUser, SalesOrderStatus, Deliver, User, Notification};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Console\Command;
 use App\Helpers\Helper;
@@ -98,6 +98,16 @@ class StatusTrigger extends Command
                         'dial_code' => str_replace(' ', '', $salesOrder->country_dial_code),
                         'phone_number' => str_replace(' ', '', $salesOrder->customer_phone)
                     ]);
+
+                    Notification::create([
+                        'user_id' => $salesOrder->added_by,
+                        'so_id' => $salesOrder->id,
+                        'title' => 'Scammer Order',
+                        'description' => 'Order <strong>' . $salesOrder->order_no . '</strong> does contains same phone number as other active order.',
+                        'link' => 'sales-orders'
+                    ]);
+
+                    event(new \App\Events\OrderStatusEvent('order-allocation-info', ['user' => $salesOrder->added_by, 'content' => 'Order <strong>' . $salesOrder->order_no . '</strong> does contains same phone number as other active order.', 'link' => url('sales-orders')]));
                 }
 
             /** TASKS **/
@@ -272,15 +282,15 @@ class StatusTrigger extends Command
                             'range' => (isset($driverallocaterang) && $driverallocaterang != '') ? number_format($driverallocaterang,2,'.','') : 0
                         ]);
 
-                        \App\Models\Notification::create([
+                        Notification::create([
                             'user_id' => $driverid,
                             'so_id' => $salesorderInfo->id,
                             'title' => 'New Order',
-                            'description' => 'ORDER <strong>' . $salesorderInfo->order_no . '</strong> is allocated to you please check the order.',
+                            'description' => 'Order <strong>' . $salesorderInfo->order_no . '</strong> is allocated to you please check the order.',
                             'link' => 'sales-orders'
                         ]);
 
-                        event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $driverid, 'content' => "ORDER {$salesorderInfo->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
+                        event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $driverid, 'content' => "Order {$salesorderInfo->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
                     }
     
                 }
@@ -291,6 +301,17 @@ class StatusTrigger extends Command
                         'type' => 4,
                         'allocated_driver_id' => implode(',',$driverids),
                     ]);
+                } else {
+
+                    Notification::create([
+                        'user_id' => $salesorderInfo->added_by,
+                        'so_id' => $salesorderInfo->id,
+                        'title' => 'No drivers found',
+                        'description' => 'We cannot accept your order <strong>' . $salesorderInfo->order_no . '</strong> because order location does not falls inside driver\'s delivery zone.',
+                        'link' => 'sales-orders'
+                    ]);
+
+                    event(new \App\Events\OrderStatusEvent('order-allocation-info', ['user' => $salesorderInfo->added_by, 'content' => 'We cannot accept your order <strong>' . $salesorderInfo->order_no . '</strong> because order location does not falls inside driver\'s delivery zone.', 'link' => url('sales-orders')]));
                 }
             }
 

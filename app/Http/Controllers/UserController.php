@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BankDetail;
 use App\Models\RequiredDocument;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -569,6 +570,7 @@ class UserController extends Controller
 
             UserDocumentUpload::where('user_id', $user->id)->delete();
             UserPermission::where('user_id', $user->id)->delete();
+            BankDetail::where('user_id', $user->id)->delete();
             $user->roles()->detach();
             $user->userpermission()->detach();
             $user->delete();

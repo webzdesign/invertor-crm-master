@@ -18,6 +18,14 @@
     .iti--show-flags {
         width: 100%!important;
     }
+
+    #address_line_1 {
+        height: 34px;
+        resize: auto;
+        overflow-y: hidden;
+        max-width: -webkit-fill-available;
+        padding-top: 5px;
+    }
 </style>
 @endsection
 
@@ -28,7 +36,7 @@
         <div class="cardsBody pb-0">
             <div class="row">
 
-                <div class="col-md-4 col-sm-12">
+                <div class="col-md-3 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Product : <span class="text-danger">*</span></label>
                         <select name="product" id="product" class="product select2-hidden-accessible m-product" style="width:100%" data-placeholder="Select a Product">
@@ -45,7 +53,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 col-sm-12">
+                <div class="col-md-3 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Price : <span class="text-danger">*</span></label>
                         <input type="text" name="price" id="price" class="form-control" placeholder="Enter price">
@@ -53,7 +61,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 col-sm-12">
+                <div class="col-md-3 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Postal Code : <span class="text-danger">*</span></label>
                         <input type="text" name="postal_code" id="postal_code" value="{{ old('postal_code') }}" class="form-control" placeholder="Enter postal code">
@@ -61,10 +69,10 @@
                     </div>
                 </div>
 
-                <div class="col-12">
+                <div class="col-md-3 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">House number : <span class="text-danger">*</span></label>
-                        <textarea name="address_line_1" id="address_line_1" class="form-control" style="height: 60px;">{{ old('address_line_1') }}</textarea>
+                        <textarea name="address_line_1" id="address_line_1" class="form-control">{{ old('address_line_1') }}</textarea>
                         <span class="text-danger error-div d-block eaddress_line_1">{{ $errors->first('address_line_1') }}</span>
                     </div>
                 </div>
@@ -335,7 +343,7 @@ $(document).ready(function(){
         messages: {
             customerphone: {
                 required: "Enter phone number.",
-                remote: "You can't register order with this phone number as this phone number is considered as scammer customer."
+                remote: "We cannot accept your order because this phone number is considered as scammer customer."
             },
             order_del_date: {
                 required: "Select order delivery date.",
@@ -384,9 +392,11 @@ $(document).ready(function(){
                             $('#so-container').empty();
                         }
                     },
-                    complete: function () {
-                        $('body').find('.LoaderSec').addClass('d-none');
-                        $('button[type="submit"]').attr('disabled', false);
+                    complete: function (resp) {
+                        if (!resp.responseJSON.status) {
+                            $('body').find('.LoaderSec').addClass('d-none');
+                            $('button[type="submit"]').attr('disabled', false);
+                        }
                     }
                 });
             }

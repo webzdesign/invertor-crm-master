@@ -47,7 +47,7 @@
                                     @if($loop->first)
                                     <li class="list-group-item inline bg-transparent border-0 p-0 mb-2">
                                         <div class="d-flex justify-content-between">
-                                            <label class="c-gr f-500 f-16 mb-2">{{ $v->model }}</label>
+                                            <label class="c-gr f-500 f-16 mb-2">{{ Helper::spaceBeforeCap($v->model) }}</label>
                                             @if($v->model == 'User') <div id="assign-role" ><i class="fa fa-lock"></i> Assign Role</div> @endif
                                         </div>
                                     </li>

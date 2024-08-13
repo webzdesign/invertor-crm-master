@@ -51,8 +51,7 @@
                             <div class="commission-btn text-white f-700"> Amount Payable : {{ Helper::getDriverBalance() }} </div>
                         </li>
                         @endif
-
-                        @if(User::isDriver())
+                        
                         <li class="dropdown middleContent p-0 userMenu">
                             <a href="javascript:;" data-bs-toggle="dropdown">
                                 <svg width="30" height="30" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.67271 2.41047C4.41402 2.99139 2.7454 5.0408 2.7454 7.48163V10.9722C2.7454 11.294 2.48409 11.5546 2.16424 11.5546C1.52115 11.5546 1 12.0769 1 12.7183C1 13.3609 1.5219 13.8818 2.16639 13.8818H13.7971C14.4413 13.8818 14.9635 13.3597 14.9635 12.7183C14.9635 12.0755 14.4399 11.5546 13.7992 11.5546C13.4782 11.5546 13.2181 11.2959 13.2181 10.9722V7.48163C13.2181 5.04178 11.5497 2.99164 9.29077 2.41047V1.80939C9.29077 1.08448 8.70456 0.5 7.98162 0.5C7.26009 0.5 6.67266 1.0862 6.67266 1.80939L6.67271 2.41047ZM5.94541 14.4638H10.0181C10.0181 15.5885 9.10629 16.5 7.98167 16.5C6.85705 16.5 5.94547 15.5884 5.94547 14.4638H5.94541Z" fill="#fff"></path><defs><linearGradient id="paint0_linear_1622_4667" x1="7.98174" y1="0.5" x2="7.98174" y2="16.5" gradientUnits="userSpaceOnUse"><stop stop-color="#3F189F"></stop><stop offset="1" stop-color="#4C26AA"></stop></linearGradient></defs></svg>
@@ -105,7 +104,6 @@
                                 </div>
                             </ul>
                         </li>
-                        @endif
 
                         <li class="dropdown middleContent p-0 userMenu">
                             <a href="javascript:;" data-bs-toggle="dropdown">
@@ -253,7 +251,7 @@
 
         var notiChannel = pusherNotificationChannel.subscribe('card-trigger');
         notiChannel.bind('order-allocation-info', function(data) {
-            if ('driver' in data && data.driver == {!! auth()->user()->id !!}) {
+            if (('driver' in data && data.driver == {!! auth()->user()->id !!}) || ('user' in data && data.user == {!! auth()->user()->id !!})) {
                 firePushNotification(data.content, data.link);
 
                 $.ajax({

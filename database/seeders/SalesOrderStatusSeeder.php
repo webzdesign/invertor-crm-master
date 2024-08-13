@@ -82,7 +82,14 @@ class SalesOrderStatusSeeder extends Seeder
                 'sequence' => null,
                 'type' => 1,
                 'is_static' => 1
-            ]
+            ],
+            [
+                'color' => '#ff643d',
+                'name' => 'DUPLICATE',
+                'sequence' => null,
+                'type' => 1,
+                'is_static' => 1
+            ],
         ];
 
         foreach ($statuses as $status) {

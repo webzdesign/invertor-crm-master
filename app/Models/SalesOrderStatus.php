@@ -50,7 +50,9 @@ class SalesOrderStatus extends Model
     public function scopeSequence($query) {
         return $query->orderByRaw("
             CASE
-                WHEN slug = 'closed-win' THEN 3
+                WHEN slug = 'closed-win' THEN 5
+                WHEN slug = 'duplicate' THEN 4
+                WHEN slug = 'closed-loss' THEN 3
                 WHEN slug = 'scammer' THEN 2
                 ELSE 1
             END, sequence

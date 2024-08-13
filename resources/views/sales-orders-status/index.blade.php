@@ -351,6 +351,11 @@
         border: 1px solid #4CAF50;
         cursor: help;
     }
+
+    .duplicate-status-border {
+        border: 1px solid #ed8c3a;
+        cursor: help;
+    }
 </style>
 @endsection
 
@@ -401,14 +406,14 @@
 
                     </h3>
                 </div>
-                <div class="card-body-main @if($cwStatus != $status->id) drag-area @endif" data-cardparent="{{ $status->id }}">
+                <div class="card-body-main @if(!in_array($status->id, [$cwStatus, $duplicateStatus])) drag-area @endif" data-cardparent="{{ $status->id }}">
 
                     @if (isset($orders[$status->id]))
                         @foreach ($orders[$status->id] as $order)
-                            <div class="card card-light card-outline mb-2 draggable-card @if($cwStatus != $status->id) portlet @else cw-status-border @endif"
+                            <div class="card card-light card-outline mb-2 draggable-card @if($cwStatus == $status->id) cw-status-border @elseif($duplicateStatus == $status->id) duplicate-status-border @else portlet @endif"
                                 data-cardchild="{{ $order['id'] }}" data-otitle="{{ $order['order_no'] }}" >
                                 <div
-                                    class="card-body bg-white border-0 p-2 d-flex justify-content-between portlet-header">
+                                    class="card-body @if(!in_array($status->id, [$cwStatus, $duplicateStatus])) bg-white @endif border-0 p-2 d-flex justify-content-between portlet-header">
                                     <div>
                                         <p class="color-blue">{{ $order['order_no'] }}</p>
                                         <p class="no-m font-13">
@@ -511,6 +516,8 @@
 
                 if (data.orderStatus == "{{ $cwStatus }}") {
                     $(toBeMoved).addClass('cw-status-border');
+                } else if (data.orderStatus == "{{ $duplicateStatus }}") {
+                    $(toBeMoved).addClass('duplicate-status-border');
                 }
             } else if ('orderOldStatus' in data && data.orderStatus == '1' && data.orderOldStatus == '2') {
                 if ($(`[data-cardchild="${data.orderId}"]`).length > 0) {

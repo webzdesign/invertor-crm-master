@@ -709,7 +709,28 @@ class ReportController extends Controller
     }
 
     public function ibanCheck(Request $request) {
-        return response()->json(BankDetail::where('iban_number', $request->iban_add)->doesntExist());
+        if (self::isValidIBAN($request->iban_add) && BankDetail::where('iban_number', $request->iban_add)->doesntExist()) {
+            return response()->json(true);
+        }
+
+        return response()->json(false);
+    }
+
+    private static function isValidIBAN($iban) {
+        $iban = strtoupper(str_replace(' ', '', $iban));
+        $rearrangedIban = substr($iban, 4) . substr($iban, 0, 4);
+    
+        $numericIban = preg_replace_callback('/[A-Z]/', function($match) {
+            return ord($match[0]) - 55;
+        }, $rearrangedIban);
+
+        if (!preg_match('/^\d+$/', $numericIban)) {
+            return false;
+        }
+
+        $modulus = bcmod($numericIban, '97');
+
+        return $modulus === '1';
     }
 
     public function bankAccountSave(Request $request) {

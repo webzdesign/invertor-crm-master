@@ -18,7 +18,8 @@ class SalesOrderStatusController extends Controller
         $moduleName = 'Sales Order Status';
         $statuses = SalesOrderStatus::sequence()->custom()->orderBy('sequence', 'ASC')->get();
         $colours = ['#99ccff', '#ffcccc', '#ffff99', '#c1c1c1', '#9bffe2', '#f7dd8b', '#c5ffd6'];
-        $cwStatus = SalesOrderStatus::select('id')->where('slug', 'closed-win')->first()->id ?? 0;
+        $cwStatus = SalesOrderStatus::select('id')->firstWhere('slug', 'closed-win')->id ?? 0;
+        $duplicateStatus = SalesOrderStatus::select('id')->firstWhere('slug', 'duplicate')->id ?? 0;
         $orders = [];
 
         foreach ($statuses as $status) {
@@ -48,7 +49,7 @@ class SalesOrderStatusController extends Controller
             }
         }
 
-        return view('sales-orders-status.index', compact('moduleName', 'statuses', 'colours', 'orders', 'cwStatus'));
+        return view('sales-orders-status.index', compact('moduleName', 'statuses', 'colours', 'orders', 'cwStatus', 'duplicateStatus'));
     }
 
     public function edit() {
@@ -300,6 +301,16 @@ class SalesOrderStatusController extends Controller
                     'dial_code' => str_replace(' ', '', $disOrder->country_dial_code),
                     'phone_number' => str_replace(' ', '', $disOrder->customer_phone)
                 ]);
+
+                Notification::create([
+                    'user_id' => $disOrder->added_by,
+                    'so_id' => $disOrder->id,
+                    'title' => 'Scammer Order',
+                    'description' => 'Order <strong>' . $disOrder->order_no . '</strong> does contains same phone number as other active order.',
+                    'link' => 'sales-orders'
+                ]);
+
+                event(new \App\Events\OrderStatusEvent('order-allocation-info', ['user' => $disOrder->added_by, 'content' => 'Order <strong>' . $disOrder->order_no . '</strong> does contains same phone number as other active order.', 'link' => url('sales-orders')]));
             }
 
             $fromStatus = SalesOrderStatus::custom()->withTrashed()->where('id', $oldStatus)->first();
@@ -605,6 +616,16 @@ class SalesOrderStatusController extends Controller
                                 'dial_code' => str_replace(' ', '', $disOrder->country_dial_code),
                                 'phone_number' => str_replace(' ', '', $disOrder->customer_phone)
                             ]);
+
+                            Notification::create([
+                                'user_id' => $disOrder->added_by,
+                                'so_id' => $disOrder->id,
+                                'title' => 'Scammer Order',
+                                'description' => 'Order <strong>' . $disOrder->order_no . '</strong> does contains same phone number as other active order.',
+                                'link' => 'sales-orders'
+                            ]);
+            
+                            event(new \App\Events\OrderStatusEvent('order-allocation-info', ['user' => $disOrder->added_by, 'content' => 'Order <strong>' . $disOrder->order_no . '</strong> does contains same phone number as other active order.', 'link' => url('sales-orders')]));
                         }
 
                         event(new \App\Events\OrderStatusEvent('order-status-change', [
@@ -1026,6 +1047,16 @@ class SalesOrderStatusController extends Controller
                                         'dial_code' => str_replace(' ', '', $salesorderInfo->country_dial_code),
                                         'phone_number' => str_replace(' ', '', $salesorderInfo->customer_phone)
                                     ]);
+
+                                    Notification::create([
+                                        'user_id' => $salesorderInfo->added_by,
+                                        'so_id' => $salesorderInfo->id,
+                                        'title' => 'Scammer Order',
+                                        'description' => 'Order <strong>' . $salesorderInfo->order_no . '</strong> does contains same phone number as other active order.',
+                                        'link' => 'sales-orders'
+                                    ]);
+                    
+                                    event(new \App\Events\OrderStatusEvent('order-allocation-info', ['user' => $salesorderInfo->added_by, 'content' => 'Order <strong>' . $salesorderInfo->order_no . '</strong> does contains same phone number as other active order.', 'link' => url('sales-orders')]));
                                 }
 
                                 $driverlist = SalesOrderController::againDriverAllocate($salesorderInfo)->getData();
@@ -1054,11 +1085,11 @@ class SalesOrderStatusController extends Controller
                                                 'user_id' => $driverid,
                                                 'so_id' => $salesorderInfo->id,
                                                 'title' => 'New Order',
-                                                'description' => 'ORDER <strong>' . $salesorderInfo->order_no . '</strong> is allocated to you please check the order.',
+                                                'description' => 'Order <strong>' . $salesorderInfo->order_no . '</strong> is allocated to you please check the order.',
                                                 'link' => 'sales-orders'
                                             ]);
 
-                                            event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $driverid, 'content' => "ORDER {$salesorderInfo->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
+                                            event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $driverid, 'content' => "Order {$salesorderInfo->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
                                         }
                         
                                     }
@@ -1070,6 +1101,17 @@ class SalesOrderStatusController extends Controller
                                             'type' => 4,
                                             'allocated_driver_id' => implode(',',$driverids),
                                         ]);                        
+                                    } else {
+
+                                        Notification::create([
+                                            'user_id' => $salesorderInfo->added_by,
+                                            'so_id' => $salesorderInfo->id,
+                                            'title' => 'No drivers found',
+                                            'description' => 'We cannot accept your order <strong>' . $salesorderInfo->order_no . '</strong> because order location does not falls inside driver\'s delivery zone.',
+                                            'link' => 'sales-orders'
+                                        ]);
+
+                                        event(new \App\Events\OrderStatusEvent('order-allocation-info', ['user' => $salesorderInfo->added_by, 'content' => 'We cannot accept your order <strong>' . $salesorderInfo->order_no . '</strong> because order location does not falls inside driver\'s delivery zone.', 'link' => url('sales-orders')]));
                                     }
 
                                     DB::commit();
@@ -1198,12 +1240,17 @@ class SalesOrderStatusController extends Controller
     public function getManagedStatus(Request $request) {
         $requestStatus = $request->id;
         $cwStatus = SalesOrderStatus::select('id')->where('slug', 'closed-win')->first()->id ?? 0;
+        $duplicateStatus = SalesOrderStatus::select('id')->where('slug', 'duplicate')->first()->id ?? 0;
 
-        if ($cwStatus == $requestStatus) {
+        if (in_array($requestStatus, [$cwStatus, $duplicateStatus])) {
             return response()->json(['exists' => false, 'updatedStatuses' => []]);
         }
 
-        $updatedStatuses = SalesOrderStatus::select('id', 'name')->when(!empty($requestStatus), fn ($builder) => ($builder->where('id', '!=', $requestStatus)))->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
+        $updatedStatuses = SalesOrderStatus::select('id', 'name')
+                            ->when(!empty($requestStatus), fn ($builder) => ($builder->where('id', '!=', $requestStatus)))
+                            ->orderBy('sequence', 'ASC')
+                            ->pluck('name', 'id')
+                            ->toArray();
         
         if (ManageStatus::where('status_id', $requestStatus)->exists()) {
             return response()->json(['exists' => true, 'data' => ManageStatus::where('status_id', $requestStatus)->first()->toArray(), 'updatedStatuses' => $updatedStatuses]);
@@ -1231,8 +1278,8 @@ class SalesOrderStatusController extends Controller
                 }
             }
 
-            $statuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name', 'color')->get();
-            $possibleStatuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->select('id', 'name')->pluck('name', 'id')->toArray();
+            $statuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->whereNotIn('id', [10, 11])->select('id', 'name', 'color')->get();
+            $possibleStatuses = SalesOrderStatus::whereIn('id', $possibleStatuses)->whereNotIn('id', [10, 11])->select('id', 'name')->pluck('name', 'id')->toArray();
             $cs = $thisStatus->first()->name ?? '';
 
             $view = view('sales-orders-status.status', compact('statuses', 'cs'))->render();
@@ -1674,6 +1721,8 @@ class SalesOrderStatusController extends Controller
         if (!empty($request->id)) {
             $order = SalesOrder::where('id', $request->id);
 
+            DB::beginTransaction();
+
             try {
                 if ($order->exists()) {
 
@@ -1689,6 +1738,190 @@ class SalesOrderStatusController extends Controller
                     Deliver::where('user_id', auth()->user()->id)->where('so_id', $request->id)->where('status', 0)->update(['status' => 1]);
                     Deliver::where('user_id','!=',auth()->user()->id)->where('so_id', $request->id)->delete();
                     SalesOrder::where('id', $request->id)->update(['status' => 2, 'responsible_user' => auth()->user()->id]);
+
+                    $sellerIdOfOrders = $disOrder->added_by ?? '';
+
+                    if (!empty($sellerIdOfOrders)) {
+                        $duplicateOrderStatus = 11;
+
+                        $duplicateValues = [
+                            'country_dial_code' => $disOrder->country_dial_code,
+                            'customer_phone' => $disOrder->customer_phone,
+                            'customer_postal_code' => $disOrder->customer_postal_code,
+                        ];
+
+                        $ordersOfSellers = SalesOrder::where('added_by', $sellerIdOfOrders)
+                                        ->where('id', '!=', $request->id)
+                                        ->whereNotIn('status', [10, 11])
+                                        ->where(function ($qBuilder) use ($duplicateValues) {
+                                            return $qBuilder->where(function ($iqBuilder) use ($duplicateValues) {
+                                                return $iqBuilder->where('country_dial_code', $duplicateValues['country_dial_code'])->where('customer_phone', $duplicateValues['customer_phone']);
+                                            })->orWhere('customer_postal_code', $duplicateValues['customer_postal_code']);
+                                        })
+                                        ->pluck('order_no', 'id')->toArray();
+
+                        $orderIds = !empty($ordersOfSellers) ? array_keys($ordersOfSellers) : [];
+                        $orderNos = !empty($ordersOfSellers) ? array_values($ordersOfSellers) : [];
+
+                        if (!empty($ordersOfSellers)) {
+                            AddTaskToOrderTrigger::whereIn('order_id', $orderIds)->where('executed', 0)->delete();
+                            ChangeOrderUser::whereIn('order_id', $orderIds)->where('executed', 0)->delete();
+                            ChangeOrderStatusTrigger::whereIn('order_id', $orderIds)->where('executed', 0)->delete();
+
+                            foreach ($orderIds as $thisK => $thisoId) {
+
+                                $thisNewOrder = SalesOrder::firstWhere('id', $thisoId);
+
+                                $htmlElement = '<div class="card card-light card-outline mb-2 draggable-card portlet" data-cardchild="' . $thisoId . '" data-otitle="'. ($orderNos[$thisK] ?? '') .'">
+                                    <div class="card-body bg-white border-0 p-2 d-flex justify-content-between portlet-header ui-sortable-handle ui-corner-all">
+                                        <div>
+                                            <p class="color-blue">'. ($orderNos[$thisK] ?? '') .'</p>
+                                            <p class="no-m font-13">
+                                                '. Helper::currency($thisNewOrder->items->sum('amount')) .' </p>
+                                        </div>
+                                        <div class="d-flex align-items-end flex-column">
+                                            <div class="card-date f-12 c-7b">
+                                                '. \Carbon\Carbon::parse($thisNewOrder->date)->diffForHumans() .'
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>';
+            
+                                event(new \App\Events\OrderStatusEvent('order-status-change', [
+                                    'orderId' => $thisoId,
+                                    'orderStatus' => $duplicateOrderStatus,
+                                    'element' => $htmlElement,
+                                    'windowId' => Str::random(30),
+                                    'users' => [auth()->user()->id, $sellerIdOfOrders]
+                                ]));
+
+                                $fromStatus = SalesOrderStatus::withTrashed()->firstWhere('id', $thisNewOrder->status);
+                                $toStatus = SalesOrderStatus::withTrashed()->firstWhere('id', $duplicateOrderStatus);
+
+                                \App\Models\TriggerLog::create([
+                                     'trigger_id' => 0,
+                                     'order_id' => $thisoId,
+                                     'watcher_id' => null,
+                                     'next_status_id' => $thisNewOrder->status,
+                                     'current_status_id' => $duplicateOrderStatus,
+                                     'type' => 2,
+                                     'time_type' => 1,
+                                     'main_type' => 1,
+                                     'hour' => 0,
+                                     'minute' => 0,
+                                     'time' => '+0 seconds',
+                                     'executed_at' => date('Y-m-d H:i:s'),
+                                     'executed' => 1,
+                                     'from_status' => [
+                                        'name' => $fromStatus->name ?? '-',
+                                        'color' => $fromStatus->color ?? ''
+                                     ],
+                                     'to_status' => [
+                                         'name' => $toStatus->name ?? '-',
+                                         'color' => $toStatus->color ?? ''
+                                      ]
+                                ]);
+
+                                    /** TRIGGERS **/
+
+                                    $duplicateOldStatus = SalesOrder::where('id', $thisoId)->select('status')->first()->status;
+
+                                    /** TASKS **/
+                                    $currentTime1 = date('Y-m-d H:i:s');
+                                    $duplicateTasks = [];
+
+                                    try {
+
+                                        $triggers = Trigger::where('type', 1)->where('status_id', $duplicateOrderStatus)->whereIn('action_type', [1, 3]);
+                                        if ($triggers->count() > 0) {
+
+                                            foreach ($triggers->get() as $t) {
+
+                                                $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
+
+                                                $record = AddTaskToOrderTrigger::create([
+                                                    'order_id' => $thisoId,
+                                                    'status_id' => $duplicateOrderStatus,
+                                                    'added_by' => auth()->user()->id,
+                                                    'time' => $t->time,
+                                                    'type' => $t->time_type,
+                                                    'main_type' => $t->action_type,
+                                                    'description' => $t->task_description,
+                                                    'current_status_id' => $duplicateOldStatus,
+                                                    'executed_at' => $currentTime1,
+                                                    'trigger_id' => $t->id
+                                                ]);
+
+                                                if ($t->time_type == 1) {
+                                                    $duplicateTasks[] = $record->id;
+                                                }
+                                            }
+                                        }
+
+                                        (new \App\Console\Commands\TaskTrigger)->handle($duplicateTasks);
+
+                                    } catch (\Exception $e) {
+                                        Helper::logger($e->getMessage());
+                                    }
+
+                                    /** TASKS **/
+
+                                    /** Change User **/
+                                    $currentTime1 = date('Y-m-d H:i:s');
+                                    $duplicateResponsible = [];
+
+                                    try {
+
+                                        $triggers = Trigger::where('type', 3)->where('status_id', $duplicateOrderStatus)->whereIn('action_type', [1, 3]);
+                                        if ($triggers->count() > 0) {
+
+                                            foreach ($triggers->get() as $t) {
+
+                                                $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
+
+                                                $record = ChangeOrderUser::create([
+                                                    'order_id' => $thisoId,
+                                                    'status_id' => $duplicateOrderStatus,
+                                                    'added_by' => auth()->user()->id,
+                                                    'time' => $t->time,
+                                                    'type' => $t->time_type,
+                                                    'main_type' => $t->action_type,
+                                                    'user_id' => $t->user_id,
+                                                    'current_status_id' => $duplicateOldStatus,
+                                                    'executed_at' => $currentTime1,
+                                                    'trigger_id' => $t->id
+                                                ]);
+
+                                                if ($t->time_type == 1) {
+                                                    $duplicateResponsible[] = $record->id;
+                                                }
+                                            }
+                                        }
+
+                                        (new \App\Console\Commands\ChangeUserForOrderTrigger)->handle($duplicateResponsible);
+
+                                    } catch (\Exception $e) {
+                                        Helper::logger($e->getMessage());
+                                    }
+
+                                    /** Change User **/
+
+                                    Notification::create([
+                                        'user_id' => $thisNewOrder->added_by,
+                                        'so_id' => $thisNewOrder->id,
+                                        'title' => 'Duplicate order',
+                                        'description' => 'We cannot accept your order <strong>' . $thisNewOrder->order_no . '</strong> because order contains same information as an active order contains.',
+                                        'link' => 'sales-orders'
+                                    ]);
+
+                                    event(new \App\Events\OrderStatusEvent('order-allocation-info', ['user' => $thisNewOrder->added_by, 'content' => 'We cannot accept your order <strong>' . $thisNewOrder->order_no . '</strong> because order contains same phone number as an active order contains.', 'link' => url('sales-orders')]));
+
+                                SalesOrder::where('id', $thisoId)->update(['status' => $duplicateOrderStatus]);
+                                Deliver::where('so_id', $thisoId)->delete();
+                            }
+                        }
+                    }
+
                     $soId = $disOrder->id;
                     /*Accepted driver history*/
                     \App\Models\TriggerLog::create([
@@ -1871,13 +2104,14 @@ class SalesOrderStatusController extends Controller
                     /** Change order status **/
 
                     DB::commit();
-                    return response()->json(['status' => true, 'message' => 'Accepted order successfully.']);
+                    return response()->json(['status' => true, 'message' => 'Order accepted successfully.']);
                 } else {
                     DB::commit();
                     return response()->json(['status' => false, 'message' => Helper::$notFound]);
                 }
             } catch (\Exception $err) {
                 DB::rollBack();
+                Helper::logger($err->getMessage() . ' LINE NO ' . $err->getLine());
                 return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
             }
         }
@@ -1929,11 +2163,11 @@ class SalesOrderStatusController extends Controller
                     'user_id' => $request->driver,
                     'so_id' => $soId,
                     'title' => 'New Order',
-                    'description' => 'ORDER <strong>' . $order->order_no . '</strong> is allocated to you please check the order.',
+                    'description' => 'Order <strong>' . $order->order_no . '</strong> is allocated to you please check the order.',
                     'link' => 'sales-orders'
                 ]);
 
-                event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver, 'content' => "ORDER {$order->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
+                event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver, 'content' => "Order {$order->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
 
                 SalesOrder::where('id', $soId)->update(['status' => 1]);
 

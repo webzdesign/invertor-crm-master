@@ -2704,7 +2704,7 @@
                 });
 
                 if (isThereAnyCardWithoutName) {
-                    Swal.fire('', 'Provide card a name before you save.', 'error');
+                    Swal.fire('', 'Provide a name to new status before you save.', 'error');
                     return false;
                 } else {
                     let validateTitles = hasDuplicateValues('.title-of-card');

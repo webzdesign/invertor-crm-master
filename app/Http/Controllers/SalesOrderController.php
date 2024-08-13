@@ -318,6 +318,9 @@ class SalesOrderController extends Controller
                 $assigneOrderdriver = $assigneOrderdriver->where('so_id', $row->id)
                 ->get()->pluck('user.driverinfo')->toArray();
 
+                if ($row->status == 11) {
+                    return '-';
+                }
 
                 return (!empty($assigneOrderdriver) ? implode(', ',$assigneOrderdriver) : '<i class="fa fa-warning" aria-hidden="true" style="color: #dd2d20;font-size:16px;"></i><strong class="text-danger f-12"> No driver found nearby when order was placed </strong>');
             })
@@ -502,7 +505,7 @@ class SalesOrderController extends Controller
                             $isNotAvail = false;
                         }
                         if ($isNotAvail) {
-                            return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
+                            return response()->json(['status' => false, 'message' => 'We cannot accept your order because delivery location falls outside from the driver\'s delivery zone.']);
                         }
                     }
 
@@ -519,7 +522,7 @@ class SalesOrderController extends Controller
                     return response()->json(['status' => true , 'message' => 'Available', 'html' => view('so.single-product', compact('product', 'minSalesPrice', 'orderNo', 'category', 'longFrom', 'latFrom', 'driverDetail', 'getNearbyDriver', 'postalcode', 'addressline', 'enteredPrice'))->render()]);
 
                 } else {
-                    return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
+                    return response()->json(['status' => false, 'message' => 'We cannot accept your order because delivery location falls outside from the driver\'s delivery zone.']);
                 }
 
             } else {
@@ -703,11 +706,11 @@ class SalesOrderController extends Controller
                                             'user_id' => $driverid,
                                             'so_id' => $soId,
                                             'title' => 'New Order',
-                                            'description' => 'ORDER <strong>' . $orderNo . '</strong> is allocated to you please check the order.',
+                                            'description' => 'Order <strong>' . $orderNo . '</strong> is allocated to you please check the order.',
                                             'link' => 'sales-orders'
                                         ]);
 
-                                        event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $driverid, 'content' => "ORDER {$orderNo} is allocated to you please check the order.", 'link' => url('sales-orders')]));
+                                        event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $driverid, 'content' => "Order {$orderNo} is allocated to you please check the order.", 'link' => url('sales-orders')]));
                                     }
                                 }
                             }
@@ -1542,11 +1545,11 @@ class SalesOrderController extends Controller
                     'user_id' => $request->driver_id,
                     'so_id' => $request->order_id,
                     'title' => 'New Order',
-                    'description' => 'ORDER <strong>' . $thisOrder->order_no . '</strong> is allocated to you please check the order.',
+                    'description' => 'Order <strong>' . $thisOrder->order_no . '</strong> is allocated to you please check the order.',
                     'link' => 'sales-orders'
                 ]);
 
-                event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "ORDER {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
+                event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "Order {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
 
                 TriggerLog::create([
                     'trigger_id' => 0,
@@ -1584,11 +1587,11 @@ class SalesOrderController extends Controller
                         'user_id' => $request->driver_id,
                         'so_id' => $request->order_id,
                         'title' => 'New Order',
-                        'description' => 'ORDER <strong>' . $thisOrder->order_no . '</strong> is allocated to you please check the order.',
+                        'description' => 'Order <strong>' . $thisOrder->order_no . '</strong> is allocated to you please check the order.',
                         'link' => 'sales-orders'
                     ]);
 
-                    event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "ORDER {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
+                    event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "Order {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
 
                     TriggerLog::create([
                         'trigger_id' => 0,
@@ -1619,11 +1622,11 @@ class SalesOrderController extends Controller
                         'user_id' => $request->driver_id,
                         'so_id' => $request->order_id,
                         'title' => 'New Order',
-                        'description' => 'ORDER <strong>' . $thisOrder->order_no . '</strong> is allocated to you please check the order.',
+                        'description' => 'Order <strong>' . $thisOrder->order_no . '</strong> is allocated to you please check the order.',
                         'link' => 'sales-orders'
                     ]);
 
-                    event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "ORDER {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
+                    event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "Order {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
 
                     TriggerLog::create([
                         'trigger_id' => 0,
@@ -1655,11 +1658,11 @@ class SalesOrderController extends Controller
                     'user_id' => $request->driver_id,
                     'so_id' => $request->order_id,
                     'title' => 'New Order',
-                    'description' => 'ORDER <strong>' . $thisOrder->order_no . '</strong> is allocated to you please check the order.',
+                    'description' => 'Order <strong>' . $thisOrder->order_no . '</strong> is allocated to you please check the order.',
                     'link' => 'sales-orders'
                 ]);
 
-                event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "ORDER {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
+                event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "Order {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
 
                 TriggerLog::create([
                     'trigger_id' => 0,
@@ -1801,14 +1804,14 @@ class SalesOrderController extends Controller
                             $isNotAvail = false;
                         }
                         if ($isNotAvail) {
-                            return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
+                            return response()->json(['status' => false, 'message' => 'We cannot accept your order because delivery location falls outside from the driver\'s delivery zone.']);
                         }
                     }
 
                     return response()->json(['status' => true , 'message' => 'Available', 'drivers'=>$getNearbyDriver]);
 
                 } else {
-                    return response()->json(['status' => false, 'message' => 'No driver is available nearby to deliver.']);
+                    return response()->json(['status' => false, 'message' => 'We cannot accept your order because delivery location falls outside from the driver\'s delivery zone.']);
                 }
 
             } else {
