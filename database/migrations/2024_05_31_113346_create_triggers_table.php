@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('status_id')->comment('current');
             $table->unsignedBigInteger('next_status_id')->comment('next')->nullable();
             $table->integer('sequence')->nullable();
-            $table->tinyInteger('type')->comment('1 = Add Task | 2 = Change Order Status | 3 = Change User');
+            $table->tinyInteger('type')->comment('1 = Add Task | 2 = Change Order Status | 3 = Change User | 4 = twillo notification');
 
             $table->string('time')->default('+1 minutes');
 

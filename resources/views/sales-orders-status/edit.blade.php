@@ -13,6 +13,7 @@
 <form action="{{ route('sales-order-status-update') }}" method="POST" id="cardForm" > @csrf
 
     <div class="d-flex align-items-center justify-content-between filterPanelbtn my-2 flex-wrap" style="display: flex!important;justify-content: flex-end!important;">
+        <button type="button" class="btn-primary f-500 f-14" style="margin-right:10px;" id="add-order-placed-notification"> ADD ORDER PLACE NOTIFICATION </button>
         <button type="submit" class="btn-primary f-500 f-14" style="margin-right:10px;"> SAVE </button>
         <a href="{{ route('sales-order-status') }}" class="btn-default f-500 f-14"> BACK </a>
     </div>
@@ -68,7 +69,7 @@
             @for($i = 0; $i < $maxTriggers; $i++)
                 <div class="cardDrag drag-area {{ $uniqueClass }}" data-uniqueclass="{{ $uniqueClass }}">
                     @if(isset($trigger[$i]))
-                    <div class="card-body text-center custom-p portlet cursor-pointer min-max-height @if($trigger[$i]['type'] == 1) bg-light-green trigger-add-task @elseif($trigger[$i]['type'] == 2) bg-light-grey trigger-change-order-status @elseif($trigger[$i]['type'] == 3) bg-light-grey trigger-change-order-user @endif   "  data-title="{{ $status->name }}"  data-sid="{{ $status->id }}" data-triggerid="{{ $trigger[$i]['id'] }}" 
+                    <div class="card-body text-center custom-p portlet cursor-pointer min-max-height @if($trigger[$i]['type'] == 1) bg-light-green trigger-add-task @elseif($trigger[$i]['type'] == 2) bg-light-grey trigger-change-order-status @elseif($trigger[$i]['type'] == 3) bg-light-grey trigger-change-order-user @elseif($trigger[$i]['type'] == 4) bg-light-grey trigger-twillo-status @endif   "  data-title="{{ $status->name }}"  data-sid="{{ $status->id }}" data-triggerid="{{ $trigger[$i]['id'] }}"
                         @if($trigger[$i]['type'] == 1)
                             data-at-statusid="{{ $trigger[$i]['status_id'] }}"
                             data-at-taskdescription="{{ $trigger[$i]['task_description'] }}"
@@ -97,8 +98,14 @@
                             data-cu-type="{{ $trigger[$i]['type'] }}"
                             data-cu-user-label="{{ isset($trigger[$i]['user']['name']) ? $trigger[$i]['user']['name'] : '' }}"
                         @endif
+
+                        data-sequence={{$i}}
                         >
                         <div class="d-flex flex-row portlet-header">
+                            @php
+                            $twillodata = \App\Models\TwilloMessageNotification::where('id',$trigger[$i]['twillo_notification_id'])->first();
+
+                            @endphp
                             @if($trigger[$i]['type'] == 1)
                             <img src="{{ asset('assets/images/completed.png') }}" class="width-35" />
                             <div class="w-100">
@@ -125,11 +132,11 @@
                                 @endif
                                 </div>
                                 <div class="text-start">
-                                    <span class="f-12 d-flex align-items-center"> 
+                                    <span class="f-12 d-flex align-items-center">
                                         <strong>Task:
-                                            <span class="ms-1 trigger-box-label-task-description" title="{{ $trigger[$i]['task_description'] }}"> 
-                                                {{( Str::of(strip_tags($trigger[$i]['task_description']))->limit(20) )}} 
-                                            </span> 
+                                            <span class="ms-1 trigger-box-label-task-description" title="{{ $trigger[$i]['task_description'] }}">
+                                                {{( Str::of(strip_tags($trigger[$i]['task_description']))->limit(20) )}}
+                                            </span>
                                         </strong>
                                         <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy"></i>
                                     </span>
@@ -172,8 +179,8 @@
                                 </div>
                                 <div class="text-start">
                                     <strong class="f-12">Change status:</strong>
-                                    <span class="status-lbl f-10 trigger-box-label-task-ns" title="{{ $trigger[$i]['nextstatus']['name'] }}" style="background: {{ $trigger[$i]['nextstatus']['color'] }};color:{{ Helper::generateTextColor($trigger[$i]['nextstatus']['color']) }};text-transform:uppercase;"> 
-                                        {{( Str::of(strip_tags($trigger[$i]['nextstatus']['name']))->limit(12) )}} 
+                                    <span class="status-lbl f-10 trigger-box-label-task-ns" title="{{ $trigger[$i]['nextstatus']['name'] }}" style="background: {{ $trigger[$i]['nextstatus']['color'] }};color:{{ Helper::generateTextColor($trigger[$i]['nextstatus']['color']) }};text-transform:uppercase;">
+                                        {{( Str::of(strip_tags($trigger[$i]['nextstatus']['name']))->limit(12) )}}
                                     </span>
                                     <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy"></i>
                                 </div>
@@ -214,7 +221,7 @@
                                 @endif
                                 </div>
                                 <div class="text-start">
-                                    <span class="f-12 d-flex align-items-center"> 
+                                    <span class="f-12 d-flex align-items-center">
                                         <strong class="lbl-for-show-selected-resp-user"> @if($trigger[$i]['user_id'] == '1') DRIVER @else SELLER @endif IS RESPONSIBLE </strong>
                                     <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy"></i>
                                     </span>
@@ -230,11 +237,35 @@
                                     <input type="hidden" data-type="3" class="trigger-saver-input-edit_id" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][edit_id]" value="{{ $trigger[$i]['id'] }}" />
                                 </div>
                             </div>
+                            @elseif($trigger[$i]['type'] == 4 && !empty($twillodata))
+
+                            <img src="{{ asset('assets/images/edit.png') }}" class="width-35" />
+                            <div class="w-100">
+                                <div class="f-12 text-start trigger-box-label-timetype">
+                                    {{substr($twillodata->message,0,70)}}@if(strlen($twillodata->message) > 70 ) ...@endif
+                                </div>
+                                <div class="text-start">
+                                    <span class="f-12 d-flex align-items-center">
+                                        <strong class="lbl-for-show-selected-resp-user"> @if($twillodata->responsibale_user_type == '1') DRIVER @else SELLER @endif NOTIFICATION </strong>
+                                        {{-- <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy"></i> --}}
+                                    </span>
+                                </div>
+                                {{-- <div class="inp-groups">
+                                    <input type="hidden" data-type="3" class="trigger-saver-input" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][status]" value="{{ $status->id }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input-maintype" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][maintype]" value="{{ $trigger[$i]['action_type'] }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input-timetype" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][timetype]" value="{{ $trigger[$i]['time_type'] }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input-hour" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][hour]" value="{{ $trigger[$i]['hour'] }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input-minute" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][minute]" value="{{ $trigger[$i]['minute'] }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input-user" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][user]" value="{{ $trigger[$i]['user_id'] }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input-sequence" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][sequence]" value="{{ $trigger[$i]['sequence'] }}" />
+                                    <input type="hidden" data-type="3" class="trigger-saver-input-edit_id" name="userchange[{{ $status->id }}][{{ $trigger[$i]['sequence'] }}][edit_id]" value="{{ $trigger[$i]['id'] }}" />
+                                </div> --}}
+                            </div>
                             @endif
                         </div>
                     </div>
                     @else
-                    <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="{{ $status->name }}"  data-sid="{{ $status->id }}">
+                    <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="{{ $status->name }}"  data-sid="{{ $status->id }}" data-sequence={{$i}}>
                         <i class="fa fa-plus-circle"></i> &nbsp; Add trigger
                     </div>
                     @endif
@@ -244,12 +275,19 @@
     </div>
     @empty
     @endforelse
-    
+
 </div>
 </form>
 {{-- Board --}}
 
 </div>
+{{--Add order place notification--}}
+@include('sales-orders-status.modal.order-place-notification')
+{{-- Add order place notification--}}
+
+{{--Add order place notification--}}
+@include('sales-orders-status.modal.twillo-notifications')
+{{-- Add order place notification--}}
 
 {{-- Trigger Modal --}}
 @include('sales-orders-status.modal.triggers')
@@ -362,11 +400,11 @@
 
                     $copiedTriggerBlock.attr('data-title', copiedBlockTitle);
                     $copiedTriggerBlock.attr('data-sid', copiedBlockSid);
-                    
+
                     $(event.target).parent().html($copiedTriggerBlock);
 
                     let blockIndex = $copiedTriggerBlock.parent().index();
-                                        
+
                     if ($copiedTriggerBlock.hasClass('trigger-add-task')) {
 
                         let actionType = $copiedTriggerBlock.attr('data-at-actiontype');
@@ -383,7 +421,7 @@
 
                         $copiedTriggerBlock.find('.trigger-saver-input-maintype').attr('name', `task[${copiedBlockSid}][${blockIndex}][maintype]`);
                         $copiedTriggerBlock.find('.trigger-saver-input-maintype').val(actionType);
-                        
+
                         $copiedTriggerBlock.find('.trigger-saver-input-timetype').attr('name', `task[${copiedBlockSid}][${blockIndex}][timetype]`);
                         $copiedTriggerBlock.find('.trigger-saver-input-timetype').val(timeType);
 
@@ -392,10 +430,10 @@
 
                         $copiedTriggerBlock.find('.trigger-saver-input-minute').attr('name', `task[${copiedBlockSid}][${blockIndex}][minute]`);
                         $copiedTriggerBlock.find('.trigger-saver-input-minute').val(minute);
-                    
+
                         $copiedTriggerBlock.find('.trigger-saver-input-desc').attr('name', `task[${copiedBlockSid}][${blockIndex}][desc]`);
                         $copiedTriggerBlock.find('.trigger-saver-input-desc').val(desc);
-                        
+
                     } else if ($copiedTriggerBlock.hasClass('trigger-change-order-user')) {
 
                         let actionType = $copiedTriggerBlock.attr('data-cu-actiontype');
@@ -412,7 +450,7 @@
 
                         $copiedTriggerBlock.find('.trigger-saver-input-maintype').attr('name', `userchange[${copiedBlockSid}][${blockIndex}][maintype]`);
                         $copiedTriggerBlock.find('.trigger-saver-input-maintype').val(actionType);
-                        
+
                         $copiedTriggerBlock.find('.trigger-saver-input-timetype').attr('name', `userchange[${copiedBlockSid}][${blockIndex}][timetype]`);
                         $copiedTriggerBlock.find('.trigger-saver-input-timetype').val(timeType);
 
@@ -466,6 +504,7 @@
             let thisStatus = $(this).attr('data-sid');
             modalTitle = $(this).attr('data-title');
             triggerBlock = this;
+            let thissequence = $(this).attr('data-sequence');
 
             if (isNumeric(thisStatus)) {
                 $('#trigger-options-modal').modal('show');
@@ -473,6 +512,7 @@
                 $('#delete-btn-change-status').hide();
                 $('#delete-btn-change-user').hide();
                 $('#performing-status').val(thisStatus);
+                $('#performing-sequence').val(thissequence);
                 performingStatusTitle = modalTitle.toUpperCase();
             }
         });
@@ -597,7 +637,7 @@
                 action_type: $(this).attr('data-at-actiontype'),
                 type: $(this).attr('data-at-type')
             };
-            
+
             $('#editing-add-task').val('1');
             $('#add-task').modal('show');
             $('#add-task').find('#modal-title-add-task').text(thisTitle);
@@ -629,7 +669,7 @@
             } else {
                 dropdownText += ` After moved or created in this status`;
             }
-            
+
             $('.status-dropdown-toggle-inner').find('span').text(dropdownText);
 
             let selectedEle = $('.status-dropdown-menu-inner').find(`.no-btn:eq(${dt.action_type - 1})`);
@@ -669,7 +709,7 @@
             let thisTrigger = $(this).attr('data-triggerid');
             let thisTitle = $(this).attr('data-title');
             let thisstatus = $(this).parent().parent().attr('data-thisstatus');
-            editingBlock = this;   
+            editingBlock = this;
 
             let dt = {
                 status_id: $(this).attr('data-cs-statusid'),
@@ -774,7 +814,7 @@
 
         $(document).on('click', function(event) {
             var target = $(event.target);
-            
+
             if (!target.parents().hasClass("status-dropdown-inner") && !$('.status-dropdown-menu-inner').hasClass('auto-hide') && $('.dropdown-menu-inner-sub').css('display') == 'none') {
                 $(".status-dropdown-inner .status-dropdown-menu-inner").hide();
                 $(".status-dropdown-inner .status-dropdown-toggle-inner").removeClass("active");
@@ -904,7 +944,7 @@
 
             let hour = $('#add-task-hour').val();
             let minute = $('#add-task-minute').val();
-            
+
             if ($(`.opt-${parent}`).length > 0) {
                 let timestamp = '';
 
@@ -924,7 +964,7 @@
                 $('#manage-order-time-for-add-task').val(type)
                 $(`.opt-${parent}`).attr('data-selchild', type);
             }
-            
+
             $('.selectable-inner').css('background', '#fff');
             $('.status-dropdown-menu-inner').addClass('auto-hide');
             $(this).css('background', selectedColorBg);
@@ -949,7 +989,7 @@
                 $('#manage-order-time-for-add-task').val('1');
                 $('#manage-order-type-for-add-task').val('1');
                 $('#manage-order-status-for-add-task').val(null);
-                
+
                 $('#add-task-hour').val(null).css('border-color', '#000');
                 $('#add-task-minute').val(null).css('border-color', '#000');
 
@@ -1044,7 +1084,7 @@
 
                         $(editingBlock).find('.trigger-saver-input-maintype').attr('name', `task[${formData.atstatus}][${index}][maintype]`);
                         $(editingBlock).find('.trigger-saver-input-maintype').val(formData.attype);
-                        
+
                         $(editingBlock).find('.trigger-saver-input-timetype').attr('name', `task[${formData.atstatus}][${index}][timetype]`);
                         $(editingBlock).find('.trigger-saver-input-timetype').val(formData.attime);
 
@@ -1053,7 +1093,7 @@
 
                         $(editingBlock).find('.trigger-saver-input-minute').attr('name', `task[${formData.atstatus}][${index}][minute]`);
                         $(editingBlock).find('.trigger-saver-input-minute').val(formData.add_task_minute);
-                        
+
                         $(editingBlock).find('.trigger-saver-input-sequence').attr('name', `task[${formData.atstatus}][${index}][sequence]`);
                         $(editingBlock).find('.trigger-saver-input-sequence').val(index);
 
@@ -1066,7 +1106,7 @@
                         $(editingBlock).attr('data-at-hour', formData.add_task_hour);
                         $(editingBlock).attr('data-at-minute', formData.add_task_minute);
                         $(editingBlock).attr('data-at-actiontype', formData.attype);
-                        
+
                         let timeString = ``;
                         let dropdownText = '';
 
@@ -1089,13 +1129,13 @@
                         }
 
                         dropdownText += timeString;
-                        
+
                         $(editingBlock).find('.trigger-box-label-task-description').html(formData.task_desc.length > 20 ? formData.task_desc.substring(0, 20) + '...' : formData.task_desc);
                         $(editingBlock).find('.trigger-box-label-task-description').attr('title', formData.task_desc);
                         $(editingBlock).find('.trigger-box-label-timetype').html(dropdownText);
 
                         $('#add-task').modal('hide');
-                        
+
                     } else {
                         if ($(triggerBlock).length > 0 && $(triggerBlock).parent().parent().parent().hasAttr('data-mainstatus')) {
                             let input = `<div class="inp-groups"><input type="hidden" data-type="1" class="trigger-saver-input" name="task[${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}][${$(triggerBlock).parent().index()}][status]" value="${$(triggerBlock).parent().parent().parent().attr('data-mainstatus')}" />
@@ -1227,7 +1267,7 @@
                 $('#manage-order-time-for-change-lead-stage').val('1');
                 $('#manage-order-type-for-change-lead-stage').val('1');
                 $('#manage-order-status-for-change-lead-stage').val(null);
-                
+
                 $('#change-stage-hour').val(null).css('border-color', '#000');
                 $('#change-stage-minute').val(null).css('border-color', '#000');
 
@@ -1305,7 +1345,7 @@
 
             let hour = $('#change-stage-hour').val();
             let minute = $('#change-stage-minute').val();
-            
+
             if ($(`.opt-2-${parent}`).length > 0) {
                 let timestamp = '';
 
@@ -1325,7 +1365,7 @@
                 $('#manage-order-time-for-change-lead-stage').val(type)
                 $(`.opt-2-${parent}`).attr('data-selchild', type);
             }
-            
+
             $('.status-dropdown-menu-inner').addClass('auto-hide');
 
             $('.selectable-inner-2').css('background', '#fff');
@@ -1349,7 +1389,7 @@
 
             let hour = $('#change-stage-hour').val();
             let minute = $('#change-stage-minute').val();
-            
+
             if ($(`.opt-2-${parent}`).length > 0) {
                 let timestamp = '';
 
@@ -1369,7 +1409,7 @@
                 $('#manage-order-time-for-add-task').val(type)
                 $(`.opt-2-${parent}`).attr('data-selchild', type);
             }
-            
+
             $('.selectable-inner-2').css('background', '#fff');
             $('.status-dropdown-menu-inner-2').addClass('auto-hide');
             $(this).css('background', selectedColorBg);
@@ -1542,7 +1582,7 @@
 
                         $(editingBlock).find('.trigger-saver-input-maintype').attr('name', `statuschange[${formData.clid}][${index}][maintype]`);
                         $(editingBlock).find('.trigger-saver-input-maintype').val(formData.cltype);
-                        
+
                         $(editingBlock).find('.trigger-saver-input-timetype').attr('name', `statuschange[${formData.clid}][${index}][timetype]`);
                         $(editingBlock).find('.trigger-saver-input-timetype').val(formData.cltime);
 
@@ -1551,7 +1591,7 @@
 
                         $(editingBlock).find('.trigger-saver-input-minute').attr('name', `statuschange[${formData.clid}][${index}][minute]`);
                         $(editingBlock).find('.trigger-saver-input-minute').val(formData.change_stage_minute);
-                        
+
                         $(editingBlock).find('.trigger-saver-input-sequence').attr('name', `statuschange[${formData.clid}][${index}][sequence]`);
                         $(editingBlock).find('.trigger-saver-input-sequence').val(index);
 
@@ -1564,7 +1604,7 @@
                         $(editingBlock).attr('data-cs-hour', formData.change_stage_hour);
                         $(editingBlock).attr('data-cs-minute', formData.change_stage_minute);
                         $(editingBlock).attr('data-cs-actiontype', formData.cltype);
-                        
+
                         let timeString = ``;
                         let dropdownText = '';
 
@@ -1587,7 +1627,7 @@
                         }
 
                         dropdownText += timeString;
-                        
+
                         let statusDispName = $(editingBlock).attr('data-cs-status-text');
                         $(editingBlock).find('.trigger-box-label-task-ns').text(statusDispName.length > 12 ? statusDispName.substring(0, 20) + '...' : statusDispName);
                         $(editingBlock).find('.trigger-box-label-task-ns').attr('title', statusDispName);
@@ -1617,7 +1657,7 @@
                                     if (element.id == formData.clstatus) {
                                         statusName = element.name;
                                         statusColor = element.color;
-                                    }                                
+                                    }
                                 });
                             }
 
@@ -1703,14 +1743,14 @@
                     type += `After moved or created in this status`
                 }
 
-                type += `${getTypes(data.time, data.hour, data.minute)} 
+                type += `${getTypes(data.time, data.hour, data.minute)}
                     </div>
                         <div class="text-start">
-                            <span class="f-12 d-flex align-items-center"> 
+                            <span class="f-12 d-flex align-items-center">
                                 <strong>Task:
                                     <span class="ms-1 trigger-box-label-task-description" title="${data.description}" >
-                                        ${data.description.length > 20 ? (data.description.substring(0, 20) + '...') : data.description} 
-                                    </span> 
+                                        ${data.description.length > 20 ? (data.description.substring(0, 20) + '...') : data.description}
+                                    </span>
                                 </strong>
                                 <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy" ></i>
                             </span>
@@ -1727,12 +1767,12 @@
                     type += `After moved or created in this status`
                 }
 
-                type += `${getTypes(data.time, data.hour, data.minute)} 
-                    </div> 
+                type += `${getTypes(data.time, data.hour, data.minute)}
+                    </div>
                         <div class="text-start">
                                 <strong class="f-12">Change status: </strong>
-                                <span class="status-lbl f-10 trigger-box-label-task-ns" style="background: ${data.bg};color:${data.color};text-transform:uppercase;" title="${data.status}"> 
-                                    ${data.status.length > 12 ? data.status.substring(0, 12) + '...' : data.status} 
+                                <span class="status-lbl f-10 trigger-box-label-task-ns" style="background: ${data.bg};color:${data.color};text-transform:uppercase;" title="${data.status}">
+                                    ${data.status.length > 12 ? data.status.substring(0, 12) + '...' : data.status}
                                 </span>
                                 <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy"></i>
                         </div>${input}
@@ -1748,13 +1788,13 @@
                     type += `After moved or created in this status`
                 }
 
-                type += `${getTypes(data.time, data.hour, data.minute)} 
+                type += `${getTypes(data.time, data.hour, data.minute)}
                 </div>
-                    <div class="text-start"> 
-                        <span class="f-12 d-flex align-items-center"> 
-                            <strong class="lbl-for-show-selected-resp-user"> ${data.user == 1 ? 'DRIVER' : 'SELLER'} IS RESPONSIBLE </strong> 
+                    <div class="text-start">
+                        <span class="f-12 d-flex align-items-center">
+                            <strong class="lbl-for-show-selected-resp-user"> ${data.user == 1 ? 'DRIVER' : 'SELLER'} IS RESPONSIBLE </strong>
                             <i class="fa fa-copy copy-task pos-abs-0 f-14" title="Copy"></i>
-                        </span> 
+                        </span>
                         </div>${input}
                     </div>
                 </div>`;
@@ -1846,7 +1886,7 @@
                         <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="${$(ui.item).attr('data-title')}"  data-sid="${$(ui.item).attr('data-sid')}">
                             <i class="fa fa-plus-circle"></i> &nbsp; Add trigger
                         </div>`;
-                        
+
                         $(ui.sender).html(triggerBtn)
 
                         $(ui.item).find('.trigger-saver-input').attr('name', `${prefix}[${thisStatus}][${index}][status]`);
@@ -1863,7 +1903,7 @@
 
                         $(ui.item).find('.trigger-saver-input-minute').attr('name', `${prefix}[${thisStatus}][${index}][minute]`);
                         $(ui.item).find('.trigger-saver-input-minute').val($(ui.item).find('.trigger-saver-input-minute').val());
-                        
+
                         $(ui.item).find('.trigger-saver-input-sequence').attr('name', `${prefix}[${thisStatus}][${index}][sequence]`);
                         $(ui.item).find('.trigger-saver-input-sequence').val(index);
 
@@ -1882,10 +1922,10 @@
                             $(ui.item).find('.trigger-saver-input-user').attr('name', `${prefix}[${thisStatus}][${index}][user]`);
                             $(ui.item).find('.trigger-saver-input-user').val($(ui.item).find('.trigger-saver-input-user').val());
                         }
-                        
+
                     }
                 }
-                
+
                 $('.layover-container').removeClass('dragOverlay');
             },
             deactivate: function (event, ui) {
@@ -1924,7 +1964,7 @@
 
                 $(ui.item).find('.trigger-saver-input-minute').attr('name', `${prefix}[${thisStatus}][${index}][minute]`);
                 $(ui.item).find('.trigger-saver-input-minute').val($(ui.item).find('.trigger-saver-input-minute').val());
-                
+
                 $(ui.item).find('.trigger-saver-input-sequence').attr('name', `${prefix}[${thisStatus}][${index}][sequence]`);
                 $(ui.item).find('.trigger-saver-input-sequence').val(index);
 
@@ -1943,7 +1983,7 @@
                     $(ui.item).find('.trigger-saver-input-user').attr('name', `${prefix}[${thisStatus}][${index}][user]`);
                     $(ui.item).find('.trigger-saver-input-user').val($(ui.item).find('.trigger-saver-input-user').val());
                 }
-                
+
             }
         }
 
@@ -1959,7 +1999,7 @@
         document.addEventListener('mousemove', (e) => {
             const mouseX = e.clientX;
             const mouseY = e.clientY;
-            
+
             customCursor.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
         });
 
@@ -2020,7 +2060,7 @@
                 $('#manage-order-id-for-change-user').val(null);
                 $('#manage-order-time-for-change-user').val('1');
                 $('#manage-order-type-for-change-user').val('1');
-                
+
                 $('#change-user-hour').val(null).css('border-color', '#000');
                 $('#change-user-minute').val(null).css('border-color', '#000');
 
@@ -2105,7 +2145,7 @@
 
             let hour = $('#change-user-hour').val();
             let minute = $('#change-user-minute').val();
-            
+
             if ($(`.opt-3-${parent}`).length > 0) {
                 let timestamp = '';
 
@@ -2125,7 +2165,7 @@
                 $('#manage-order-time-for-change-user').val(type)
                 $(`.opt-3-${parent}`).attr('data-selchild', type);
             }
-            
+
             $('.status-dropdown-menu-inner-3').addClass('auto-hide');
 
             $('.selectable-inner-3').css('background', '#fff');
@@ -2149,7 +2189,7 @@
 
             let hour = $('#change-user-hour').val();
             let minute = $('#change-user-minute').val();
-            
+
             if ($(`.opt-3-${parent}`).length > 0) {
                 let timestamp = '';
 
@@ -2169,7 +2209,7 @@
                 $('#manage-order-time-for-change-user').val(type)
                 $(`.opt-3-${parent}`).attr('data-selchild', type);
             }
-            
+
             $('.selectable-inner-3').css('background', '#fff');
             $('.status-dropdown-menu-inner-3').addClass('auto-hide');
             $(this).css('background', selectedColorBg);
@@ -2195,7 +2235,7 @@
             let thisTrigger = $(this).attr('data-triggerid');
             let thisTitle = $(this).attr('data-title');
             let thisstatus = $(this).parent().parent().attr('data-thisstatus');
-            editingBlock = this;   
+            editingBlock = this;
 
             let dt = {
                 status_id: $(this).attr('data-cu-statusid'),
@@ -2368,7 +2408,7 @@
 
                         $(editingBlock).find('.trigger-saver-input-maintype').attr('name', `userchange[${formData.cuid}][${index}][maintype]`);
                         $(editingBlock).find('.trigger-saver-input-maintype').val(formData.cutype);
-                        
+
                         $(editingBlock).find('.trigger-saver-input-timetype').attr('name', `userchange[${formData.cuid}][${index}][timetype]`);
                         $(editingBlock).find('.trigger-saver-input-timetype').val(formData.cutime);
 
@@ -2377,7 +2417,7 @@
 
                         $(editingBlock).find('.trigger-saver-input-minute').attr('name', `userchange[${formData.cuid}][${index}][minute]`);
                         $(editingBlock).find('.trigger-saver-input-minute').val(formData.change_user_minute);
-                        
+
                         $(editingBlock).find('.trigger-saver-input-sequence').attr('name', `userchange[${formData.cuid}][${index}][sequence]`);
                         $(editingBlock).find('.trigger-saver-input-sequence').val(index);
 
@@ -2390,7 +2430,7 @@
                         $(editingBlock).attr('data-cu-hour', formData.change_user_hour);
                         $(editingBlock).attr('data-cu-minute', formData.change_user_minute);
                         $(editingBlock).attr('data-cu-actiontype', formData.cutype);
-                        
+
                         let timeString = ``;
                         let dropdownText = '';
 
@@ -2413,7 +2453,7 @@
                         }
 
                         dropdownText += timeString;
-                        
+
                         let statusDispName = $('#change-user-name-label').val();
                         $(editingBlock).find('.trigger-box-label-timetype').html(dropdownText);
                         $(editingBlock).find('.change-user-trigger-user-label').text(statusDispName.length > 10 ? statusDispName.substring(0, 10) + '...' : statusDispName);
@@ -2547,7 +2587,7 @@
             let that = $(this);
 
             if (thisId == '' || thisId == null) {
-                return true;                
+                return true;
             }
 
             $('.m-status').not(this).each(function (index, element) {
@@ -2580,7 +2620,7 @@
                     messages: {
                         required: "Select a status."
                     }
-                }); 
+                });
             }
         });
 
@@ -2601,7 +2641,7 @@
             });
 
 
-            cloned.find('label.error').remove();            
+            cloned.find('label.error').remove();
             $('.upsertable').append(cloned.get(0));
 
             cloned.find('.m-status').rules('add', {
@@ -2609,7 +2649,7 @@
                 messages: {
                     required: "Select a status."
                 }
-            }); 
+            });
 
         });
 
@@ -2647,7 +2687,7 @@
                             resetModal();
                         } else if (response.status == false) {
                             // Swal.fire('', Object.values(response.messages).flat().toString(), 'error');
-                            Swal.fire('', 'Something went wrong. Please try again.', 'error');                            
+                            Swal.fire('', 'Something went wrong. Please try again.', 'error');
                         } else {
                             Swal.fire('', 'Something went wrong. Please try again.', 'error');
                         }
@@ -2835,6 +2875,215 @@
 
         })
 
+        $(document).on('click', '#add-order-placed-notification', function () {
+            $('#delete-btn-change-user-notification').hide();
+            $('#order-place-notification').modal('show');
+        });
+        $('#orderplacenotifiction').validate({
+            rules: {
+                // user: {
+                //     required: true
+                // },
+                allocate_notification: {
+                    required: true
+                },
+                accept_notification: {
+                    required: true
+                }
+            },
+            messages: {
+                // user: {
+                //     required: "Select a user."
+                // },
+                allocate_notification: {
+                    required: "Please add order allocate notification to driver."
+                },
+                accept_notification: {
+                    required: "Please add order accept notification to driver."
+                }
+            },
+            errorPlacement: function(error, element) {
+
+                error.appendTo(element.parent("div"));
+
+            }
+        });
+        $(document).on('click', '#twillo-notification-modal', function () {
+
+            let thisStatus = $('#performing-status').val();
+            let thissequence = $('#performing-sequence').val();
+
+            $.ajax({
+                url : "{{ route('sales-order-responsible-user') }}",
+                type : "POST",
+                beforeSend: function() {
+                    $('body').find('.LoaderSec').removeClass('d-none');
+                },
+                success: function (response) {
+                    $('#trigger-options-modal').modal('hide');
+                    $("#change-user-picker-notification-error,#message-error").text("");
+                    $("#message").val("");
+                    $(`#change-user-picker-notification`).empty().append(response.users);
+                    $(`#change-user-picker-notification`).select2({
+                        dropdownParent: $('#twillo-notification'),
+                        width: '100%',
+                        placeholder: "Select a user"
+                    });
+                    $('#twillo-notification').find('#modal-title-twillo-notification').text(performingStatusTitle);
+                    $('#twillo-notification').find('#status_id').val(thisStatus);
+                    $('#twillo-notification').find('#sequence').val(thissequence);
+                    $('#delete-btn-change-user-twillo-notification').hide();
+                    $('#twillo-notification').modal('show');
+
+                },
+                complete: function () {
+                    $('body').find('.LoaderSec').addClass('d-none');
+                    $(".status-dropdown-inner-3 .status-dropdown-menu-inner-3").hide();
+                }
+            });
+
+        });
     });
+    $('#twillonotifiction').validate({
+        rules: {
+            user: {
+                required: true,
+                remote: {
+                    url: "{{ url('twillo-notification/check') }}",
+                    type: "POST",
+                    async: false,
+                    data: {
+                        status_id: function() {
+                            return $("#twillo-notification").find('#status_id').val();
+                        },
+                        user_id: function () {
+                            return $("#twillo-notification").find('#change-user-picker-notification').val();
+                        },
+                        id: function () {
+                            return $("#twillo-notification").find('#id').val();
+                        }
+                    }
+                }
+            },
+            message: {
+                required: true
+            }
+        },
+        messages: {
+            user: {
+                required: "Select a user.",
+                remote: "A notification has already been added for this user in the current status."
+            },
+            message: {
+                required: "Please enter message."
+            }
+
+        },
+        errorPlacement: function(error, element) {
+
+            error.appendTo(element.parent("div"));
+
+        }
+    });
+
+    $(document).on('click', '.trigger-twillo-status', function () {
+
+        if ($(event.target).hasClass('copy-task')) {
+            return false;
+        }
+        let thissequence = $(this).attr('data-sequence');
+        let thisTrigger = $(this).attr('data-triggerid');
+        let thisTitle = $(this).attr('data-title');
+        let thisstatus = $(this).parent().parent().attr('data-thisstatus');
+        editingBlock = this;
+
+        $.ajax({
+            url: "{{ route('sales-order-responsible-user') }}",
+            type: 'POST',
+            data: {
+                id: thisstatus,
+                trigger: thisTrigger
+            },
+            beforeSend: function() {
+                $('body').find('.LoaderSec').removeClass('d-none');
+            },
+            success: function(response) {
+                /** Show Update Modal **/
+
+                $('#trigger-options-modal').modal('hide');
+                $("#change-user-picker-notification-error,#message-error").text("");
+                $("#message").val("");
+
+                $(`#change-user-picker-notification`).empty().append(response.users);
+                $(`#change-user-picker-notification`).select2({
+                    dropdownParent: $('#twillo-notification'),
+                    width: '100%',
+                    placeholder: "Select a user"
+                });
+                $('#twillo-notification').find('#modal-title-twillo-notification').text(thisTitle);
+                $('#twillo-notification').find('#status_id').val(thisstatus);
+                $('#twillo-notification').find('#sequence').val(thissequence);
+                $('#twillo-notification').find('#twillo_trigger_id').val(thisTrigger);
+                $('#delete-btn-change-user-twillo-notification').hide();
+                $('#twillo-notification').modal('show');
+
+                if (response.addedData.notification.id > 0) {
+                    $('#delete-btn-change-user-twillo-notification').show();
+                } else {
+                    $('#delete-btn-change-user-twillo-notification').hide();
+                }
+                $('#twillo-notification').find("#message").val(response.addedData.notification.message);
+                $('#twillo-notification').find("#id").val(response.addedData.notification.id);
+
+                /** Show Update Modal **/
+            },
+            complete: function() {
+                $('body').find('.LoaderSec').addClass('d-none');
+                $(".status-dropdown-inner-3 .status-dropdown-menu-inner-3").hide();
+            }
+        });
+    });
+    $(document).on('click', '#delete-btn-change-user-twillo-notification', function () {
+
+        if ($(event.target).hasClass('copy-task')) {
+            return false;
+        }
+        let notification_id = $('#twillo-notification').find("#id").val();
+        let thisTitle= $('#twillo-notification').find("#modal-title-twillo-notification").text();
+        let thisStatus = $('#twillo-notification').find("#status_id").val();
+        let thissequence = $('#twillo-notification').find("#sequence").val();
+
+        $.ajax({
+            url: "{{ route('twillo-notification-remove') }}",
+            type: 'POST',
+            data: {
+                id: notification_id,
+            },
+            beforeSend: function() {
+                $('body').find('.LoaderSec').removeClass('d-none');
+            },
+            success: function(response) {
+
+                if (response && $(editingBlock).length > 0) {
+                    $('#twillo-notification').find("#id").val("");
+                    $('#twillo-notification').find("#modal-title-twillo-notification").text("");
+                    $('#twillo-notification').find("#status_id").val("");
+                    $('#twillo-notification').find("#sequence").val("");
+                    $('#twillo-notification').find("#twillo_trigger_id").val("");
+                    let triggerBtn = `
+                    <div class="card-body text-center d-flex align-items-center justify-content-center custom-p cursor-pointer opener min-max-height" data-title="${thisTitle}"  data-sid="${thisStatus}" data-sequence="${thissequence}">
+                        <i class="fa fa-plus-circle"></i> &nbsp; Add trigger
+                    </div>`;
+                    $(editingBlock).parent().html(triggerBtn);
+                    $('#twillo-notification').modal('hide');
+                }
+            },
+            complete: function() {
+                $('body').find('.LoaderSec').addClass('d-none');
+                $(".status-dropdown-inner-3 .status-dropdown-menu-inner-3").hide();
+            }
+        });
+    });
+
 </script>
 @endsection

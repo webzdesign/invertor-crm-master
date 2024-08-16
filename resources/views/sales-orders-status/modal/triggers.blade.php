@@ -3,6 +3,7 @@
         <div class="modal-content">
             <div class="modal-body">
                 <input type="hidden" id="performing-status" />
+                <input type="hidden" id="performing-sequence" />
                 <div class="row">
 
                     <div class="col-6">
@@ -42,6 +43,15 @@
                         </div>
                     </div>
 
+                    <div class="col-12">
+                        <div class="form-group">
+                            <div class="box" id="twillo-notification-modal">
+                            {{-- <div class="box" id="change-user-btn"> --}}
+                                <img src="{{ asset('assets/images/notification.png') }}" alt="Twillo Notification">
+                                <div> Add Twillo Notification </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

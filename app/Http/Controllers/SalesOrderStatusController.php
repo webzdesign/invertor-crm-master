@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{Stock, Transaction, DriverWallet, PaymentForDelivery, ProcurementCost, SalesOrderProofImages};
 use App\Models\{SalesOrderStatus, SalesOrder, Deliver, Role, ManageStatus, User, SalesOrderItem, Notification};
-use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser, Setting, Trigger, Wallet};
+use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser, Setting, Trigger, Wallet,TwilloMessageNotification};
 use Revolution\Google\Sheets\Facades\Sheets;
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
@@ -61,7 +61,16 @@ class SalesOrderStatusController extends Controller
         $roles = Role::active()->select('id', 'name')->whereIn('id', [1, 2, 3])->pluck('name', 'id')->toArray();
         $maxTriggers = Setting::first()->triggers_per_status ?? 10;
 
-        return view('sales-orders-status.edit', compact('moduleName', 'statuses', 'colours', 'roles', 's', 'maxTriggers', 'statusesOnlyForShow'));
+        $allocate_notificationorders = TwilloMessageNotification::where('status_id',1)->where('responsibale_user_type',1)->first();
+        $allocate_notification = $accept_notification = null;
+        if(!empty($allocate_notificationorders)) {
+            $allocate_notification = $allocate_notificationorders->message;
+        }
+        $accept_notificationorders = TwilloMessageNotification::where('status_id',1)->where('responsibale_user_type',2)->first();
+        if(!empty($accept_notificationorders)) {
+            $accept_notification = $accept_notificationorders->message;
+        }
+        return view('sales-orders-status.edit', compact('moduleName', 'statuses', 'colours', 'roles', 's', 'maxTriggers', 'statusesOnlyForShow','allocate_notification','accept_notification'));
     }
 
     public function update(Request $request) {
@@ -234,7 +243,7 @@ class SalesOrderStatusController extends Controller
                 if (is_array($toNotBeDeleted)) {
 
                     if (count($toNotBeDeleted) > 0) {
-                        $ids = Trigger::whereNotIn('id', $toNotBeDeleted)->select('id')->pluck('id')->toArray();
+                        $ids = Trigger::whereNotIn('id', $toNotBeDeleted)->where('type','!=',4)->select('id')->pluck('id')->toArray();
                         $ids = Trigger::whereIn('id', $ids)->select('id')->pluck('id')->toArray();
 
                         if (count($ids) > 0) {
@@ -245,12 +254,12 @@ class SalesOrderStatusController extends Controller
                             Trigger::whereIn('id', $ids)->delete();
                         }
                     } else if (empty($toNotBeDeleted)) {
-                            $ids = Trigger::select('id')->pluck('id')->toArray();
+                            $ids = Trigger::select('id')->where('type','!=',4)->pluck('id')->toArray();
                             AddTaskToOrderTrigger::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
                             ChangeOrderStatusTrigger::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
                             ChangeOrderUser::where('executed', 0)->whereIn('trigger_id', $ids)->delete();
 
-                            Trigger::whereIn('id', $ids)->delete();
+                            Trigger::whereIn('id', $ids)->where('type','!=',4)->delete();
                     }
                 }
 
@@ -624,7 +633,7 @@ class SalesOrderStatusController extends Controller
                                 'description' => 'Order <strong>' . $disOrder->order_no . '</strong> does contains same phone number as other active order.',
                                 'link' => 'sales-orders'
                             ]);
-            
+
                             event(new \App\Events\OrderStatusEvent('order-allocation-info', ['user' => $disOrder->added_by, 'content' => 'Order <strong>' . $disOrder->order_no . '</strong> does contains same phone number as other active order.', 'link' => url('sales-orders')]));
                         }
 
@@ -1026,13 +1035,13 @@ class SalesOrderStatusController extends Controller
                             $salesorderInfo = SalesOrder::find($request->order);
 
                             if(!empty($salesorderInfo)) {
-                                
+
                                 $salesorderInfo->status = 1;
                                 $salesorderInfo->responsible_user = null;
                                 $salesorderInfo->save();
-                    
+
                                 Deliver::where('so_id',$salesorderInfo->id)->delete();
-                    
+
                                 event(new \App\Events\OrderStatusEvent('order-status-change', [
                                     'orderId' => $salesorderInfo->id,
                                     'orderStatus' => 1,
@@ -1040,7 +1049,7 @@ class SalesOrderStatusController extends Controller
                                     'windowId' => $request->windowId,
                                     'users' => [Deliver::where('so_id', $salesorderInfo->id)->where('status', 1)->first()->user_id ?? null, $salesorderInfo->added_by]
                                 ]));
-                                
+
                                 if ($request->status == 7) {
                                     \App\Models\ScammerContact::updateOrCreate([
                                         'so_id' => $request->order,
@@ -1055,7 +1064,7 @@ class SalesOrderStatusController extends Controller
                                         'description' => 'Order <strong>' . $salesorderInfo->order_no . '</strong> does contains same phone number as other active order.',
                                         'link' => 'sales-orders'
                                     ]);
-                    
+
                                     event(new \App\Events\OrderStatusEvent('order-allocation-info', ['user' => $salesorderInfo->added_by, 'content' => 'Order <strong>' . $salesorderInfo->order_no . '</strong> does contains same phone number as other active order.', 'link' => url('sales-orders')]));
                                 }
 
@@ -1065,9 +1074,9 @@ class SalesOrderStatusController extends Controller
 
                                     $driverids = [];
                                     foreach($driverlist->drivers as $driverid=>$driverallocaterang) {
-                        
+
                                         $driverDetail = User::active()->find($driverid);
-                        
+
                                         if(!empty($driverDetail)) {
                                             $driverids[] = $driverid;
                                             Deliver::create([
@@ -1091,7 +1100,7 @@ class SalesOrderStatusController extends Controller
 
                                             event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $driverid, 'content' => "Order {$salesorderInfo->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
                                         }
-                        
+
                                     }
                                     if(!empty($driverids)) {
                                         /*Allocated driver history*/
@@ -1100,7 +1109,7 @@ class SalesOrderStatusController extends Controller
                                             'order_id' => $salesorderInfo->id,
                                             'type' => 4,
                                             'allocated_driver_id' => implode(',',$driverids),
-                                        ]);                        
+                                        ]);
                                     } else {
 
                                         Notification::create([
@@ -1116,7 +1125,7 @@ class SalesOrderStatusController extends Controller
 
                                     DB::commit();
                                     return response()->json(['status' => true, 'message' => empty($driverids) ? 'Status updated successfully but couldn\'t found driver nearby' : 'Status updated successfully', 'color' => $color, 'text' => $text]);
-                        
+
                                 } else {
                                     DB::commit();
                                     return response()->json(['status' => true, 'message' => 'Status updated successfully but couldn\'t found driver nearby', 'color' => $color, 'text' => $text]);
@@ -1251,7 +1260,7 @@ class SalesOrderStatusController extends Controller
                             ->orderBy('sequence', 'ASC')
                             ->pluck('name', 'id')
                             ->toArray();
-        
+
         if (ManageStatus::where('status_id', $requestStatus)->exists()) {
             return response()->json(['exists' => true, 'data' => ManageStatus::where('status_id', $requestStatus)->first()->toArray(), 'updatedStatuses' => $updatedStatuses]);
         }
@@ -1507,7 +1516,17 @@ class SalesOrderStatusController extends Controller
         $users = "<option value='' selected> Select a user </option>";
 
         if ($request->has('trigger') && !empty($request->trigger)) {
-            $selectedUser = Trigger::where('id', $request->trigger)->first()->user_id ?? null;
+
+            $triggerData = Trigger::where('id', $request->trigger)->first();
+
+            $selectedUser = $triggerData->user_id ?? null;
+
+            if(isset($triggerData->type) && $triggerData->type == 4 && $triggerData->twillo_notification_id !="") {
+                $notification = TwilloMessageNotification::find($triggerData->twillo_notification_id);
+                if(!empty($notification)) {
+                    $addedData = ['notification' => $notification];
+                }
+            }
         }
 
         $users .= "<option value='1' " . ($selectedUser == 1 ? 'selected' : '') . " data-name='DRIVER' data-label='DRIVER' > DRIVER </option>
@@ -1786,7 +1805,7 @@ class SalesOrderStatusController extends Controller
                                         </div>
                                     </div>
                                 </div>';
-            
+
                                 event(new \App\Events\OrderStatusEvent('order-status-change', [
                                     'orderId' => $thisoId,
                                     'orderStatus' => $duplicateOrderStatus,
@@ -2177,4 +2196,109 @@ class SalesOrderStatusController extends Controller
 
         return redirect()->back()->with('error', Helper::$errorMessage);
     }
+
+    public static function orderPlaceNotificationSave(Request $request){
+        $updatestatus = false;
+        if(isset($request->allocate_notification)) {
+            if(TwilloMessageNotification::where(['status_id'=>1,"responsibale_user_type"=>1])->count() > 0) {
+                TwilloMessageNotification::where(['status_id'=>1,"responsibale_user_type"=>1])->update(['message'=>$request->allocate_notification,'updated_by'=>auth()->user()->id]);
+                $updatestatus = true;
+            } else {
+                TwilloMessageNotification::create([
+                    'status_id' => 1,
+                    'responsibale_user_type' => 1,
+                    'message' => $request->allocate_notification,
+                    'added_by' => auth()->user()->id
+                ]);
+            }
+        }
+        if(isset($request->accept_notification)) {
+            if(TwilloMessageNotification::where(['status_id'=>1,"responsibale_user_type"=>2])->count() > 0) {
+                TwilloMessageNotification::where(['status_id'=>1,"responsibale_user_type"=>2])->update(['message'=>$request->accept_notification,'updated_by'=>auth()->user()->id]);
+                $updatestatus = true;
+            } else {
+                TwilloMessageNotification::create([
+                    'status_id' => 1,
+                    'responsibale_user_type' => 2,
+                    'message' => $request->accept_notification,
+                    'added_by' => auth()->user()->id
+                ]);
+            }
+        }
+        if($updatestatus) {
+            return redirect()->back()->with('success', 'Update order place twillo notification successfully.');
+        } else {
+            return redirect()->back()->with('success', 'Add order place twillo notification successfully.');
+        }
+
+    }
+
+    public static function twilloNotificationSave(Request $request){
+        $updatestatus = false;
+        if(isset($request->message)) {
+            if($request->twillo_trigger_id !="" && $request->twillo_trigger_id !=null) {
+                $triggerdata = Trigger::find($request->twillo_trigger_id);
+                if(!empty($triggerdata)) {
+                    $notification = TwilloMessageNotification::find($triggerdata->twillo_notification_id);
+                    $notification->status_id = $request->status_id;
+                    $notification->responsibale_user_type = $request->user;
+                    $notification->updated_by = auth()->user()->id;
+                    $notification->message = $request->message;
+                    $notification->save();
+
+                    $triggerdata->user_id = $request->user;
+                    $triggerdata->save();
+
+                } else {
+                    return redirect()->back()->with('error', 'Invalid trigger id.');
+                }
+
+                $updatestatus = true;
+            } else {
+                $createnotification = TwilloMessageNotification::create([
+                    'status_id' => $request->status_id,
+                    'responsibale_user_type' => $request->user,
+                    'message' => $request->message,
+                    'added_by' => auth()->user()->id
+                ]);
+
+                Trigger::create([
+                    'status_id' => $request->status_id,
+                    'user_id' => $request->user,
+                    'sequence' => $request->sequence,
+                    'type' => 4,
+                    'time' => '+0 seconds',
+                    'action_type' => 3,
+                    'added_by' => auth()->user()->id,
+                    "twillo_notification_id"=>$createnotification->id
+                ]);
+            }
+        }
+        if($updatestatus) {
+            return redirect()->back()->with('success', 'Update twillo notification successfully.');
+        } else {
+            return redirect()->back()->with('success', 'Add twillo notification successfully.');
+        }
+    }
+    public static function twilloNotificationCheck(Request $request) {
+
+        $notification = TwilloMessageNotification::where('status_id', trim($request->status_id))->where('responsibale_user_type', trim($request->user_id));
+
+        if ($request->has('id') && !empty(trim($request->id))) {
+            $notification = $notification->where('id', '!=', $request->id);
+        }
+
+        return response()->json($notification->doesntExist());
+    }
+
+    public static function twilloNotificationRemove(Request $request) {
+        if(isset($request->id) && $request->id !="") {
+            Trigger::where('twillo_notification_id',$request->id)->delete();
+            TwilloMessageNotification::where('id',$request->id)->delete();
+            return response()->json(true);
+        } else {
+            return response()->json(false);
+        }
+    }
+
 }

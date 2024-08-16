@@ -127,7 +127,7 @@ class Helper {
 
     public static function generateSalesOrderNumber () {
         $orderNo = 0;
-        
+
         if (SalesOrder::withTrashed()->orderBy('id', 'DESC')->first() !== null) {
             $orderNo = SalesOrder::withTrashed()->orderBy('id', 'DESC')->first()->id;
         }
@@ -364,7 +364,7 @@ class Helper {
             if ($diff->s > 0) {
                 $diffString .= '+' . $diff->s . ' seconds ';
             }
-            
+
             $diffString = trim($diffString);
         }
 
@@ -412,7 +412,7 @@ class Helper {
 
     public static function returnExtensions($string, $dot = '', $separator = '|') {
         $extensions = '';
-        
+
         if (!empty($string)) {
             $allowedFileTypes = explode(',', $string);
             if (count($allowedFileTypes) > 0) {
@@ -434,5 +434,51 @@ class Helper {
         $extensions = implode($separator, $extensions);
 
         return $extensions;
+    }
+
+    public static function sendTwilioMsg($tonumber=null,$messageId=null) {
+
+        try {
+            $setting=Setting::select('twilioFromNumber','twilioAuthToken','twilioUrl','twilioAccountSid')->first();
+
+            // Twilio credentials
+            if($setting) {
+                $twilioAccountSid = $setting->twilioAccountSid;
+                $twilioAuthToken = $setting->twilioAuthToken;
+                $notification = TwilloMessageNotification::find($messageId);
+                $to = 'whatsapp:+919510048278';
+                $from = "whatsapp:{$setting->twilioFromNumber}";
+
+                $body = $notification->message ?? "Notificatin from e-bike";
+
+                $url = "{$setting->twilioUrl}" . $twilioAccountSid . "/Messages.json";
+
+                $ch = curl_init($url);
+
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_setopt($ch, CURLOPT_USERPWD, $twilioAccountSid . ':' . $twilioAuthToken);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+                    'To' => $to,
+                    'From' => $from,
+                    'Body' => $body
+                ]));
+
+                $response = curl_exec($ch);
+
+                if (curl_errno($ch)) {
+                    echo 'Error:' . curl_error($ch);
+                } else {
+                    dd($response);exit;
+                    //{"account_sid": "AC72c2c1239889f864f8c3621ccdaeb719", "api_version": "2010-04-01", "body": "Hello from Twilio WhatsApp API Testing With Developer!", "date_created": "Wed, 14 Aug 2024 12:08:41 +0000", "date_sent": null, "date_updated": "Wed, 14 Aug 2024 12:08:41 +0000", "direction": "outbound-api", "error_code": null, "error_message": null, "from": "whatsapp:+14155238886", "messaging_service_sid": null, "num_media": "0", "num_segments": "1", "price": null, "price_unit": null, "sid": "SMcd04f021bd7ee79d1d8b0a12a822d0d0", "status": "queued", "subresource_uris": {"media": "/2010-04-01/Accounts/AC72c2c1239889f864f8c3621ccdaeb719/Messages/SMcd04f021bd7ee79d1d8b0a12a822d0d0/Media.json"}, "to": "whatsapp:+918160213921", "uri": "/2010-04-01/Accounts/AC72c2c1239889f864f8c3621ccdaeb719/Messages/SMcd04f021bd7ee79d1d8b0a12a822d0d0.json"}
+                }
+                curl_close($ch);
+            }
+
+        } catch (\Exception $e) {
+            dd($e->getMessage());
+        }
     }
 }

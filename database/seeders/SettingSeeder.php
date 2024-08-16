@@ -12,7 +12,7 @@ class SettingSeeder extends Seeder
     public function run(): void
     {
         \App\Models\Setting::firstOrCreate(
-        [
+            ['id' =>1],[
             'id' => 1,
             'title' => 'E-Bike-CRM',
             'favicon' => null,

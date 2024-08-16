@@ -220,6 +220,11 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('accept-the-order-from-driver', [SalesOrderStatusController::class, 'acceptOrder'])->name('accept-the-order-from-driver');
         Route::post('reject-the-order-from-driver', [SalesOrderStatusController::class, 'rejectOrder'])->name('reject-the-order-from-driver');
         Route::post('assign-new-driver/{order_id}', [SalesOrderStatusController::class, 'reassignDriverToOrder'])->name('assign-new-driver');
+        Route::post('order-place-notification-save', [SalesOrderStatusController::class, 'orderPlaceNotificationSave'])->name('order-place-notification-save');
+        Route::post('twillo-notification-save', [SalesOrderStatusController::class, 'twilloNotificationSave'])->name('twillo-notification-save');
+        Route::post('twillo-notification-remove', [SalesOrderStatusController::class, 'twilloNotificationRemove'])->name('twillo-notification-remove');
+        Route::post('twillo-notification/check', [SalesOrderStatusController::class, 'twilloNotificationCheck'])->name('twillo-notification-check');
+
         /** Sales Order Status **/
 
         /** Common **/

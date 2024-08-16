@@ -242,7 +242,7 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 }
 
 #change-stage-minute,
-#add-task-minute, 
+#add-task-minute,
 #change-user-minute {
     width: 67px;
     margin-left: 10px;
@@ -335,13 +335,13 @@ input[type="color"]::-webkit-color-swatch-wrapper {
     border-left: 1px solid #dbdbdb !important;
 }
 
-#delete-btn-change-status, #delete-btn-add-task, #delete-btn-change-user {
+#delete-btn-change-status, #delete-btn-add-task, #delete-btn-change-user, #delete-btn-change-user-twillo-notification {
     min-width: 45px;
     background: #dd2d20!important;
     border: none!important;
 }
-    
-#delete-btn-change-status > i, #delete-btn-add-task > i, #delete-btn-change-user > i {
+
+#delete-btn-change-status > i, #delete-btn-add-task > i, #delete-btn-change-user > i, #delete-btn-change-user-twillo-notification > i {
     color: white!important;
 }
 

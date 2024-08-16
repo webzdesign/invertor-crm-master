@@ -28,7 +28,10 @@ class SettingController extends Controller
             'logo' => 'file|mimes:png,jpg,jpeg,webp|max:2048',
             'favicon' => 'file|mimes:ico|max:1024',
             'geocode' => 'required',
-            'gsheetid' => 'required'
+            'gsheetid' => 'required',
+            'twilioAccountSid' => 'required',
+            'twilioAuthToken' => 'required',
+            'twilioUrl' => 'required'
         ],[
             'name.required' => 'Name is required',
             'logo.file' => 'Upload a valid image file.',
@@ -39,9 +42,11 @@ class SettingController extends Controller
             'favicon.mimes' => 'Favicon must be .ico',
             'favicon.max' => 'Favicon size is exceeded. Maximum 1MB',
 
-
             'geocode.required' => 'Enter geocode API key',
-            'gsheetid.required' => 'Enter google sheet id'
+            'gsheetid.required' => 'Enter google sheet id',
+            'twilioAccountSid' => 'Twilio account id is required',
+            'twilioAuthToken' => 'Twilio auth token is required',
+            'twilioUrl' => 'Twilio url is required'
         ]);
 
         if (!file_exists(public_path('assets/images'))) {
@@ -63,7 +68,7 @@ class SettingController extends Controller
                 if (!empty($settings->logo)) {
                     if(file_exists(public_path("assets/images/{$settings->logo}"))) {
                         unlink(public_path("assets/images/{$settings->logo}"));
-                    }                    
+                    }
                 }
 
                 $settings->logo = $name;
@@ -77,7 +82,7 @@ class SettingController extends Controller
                 if (!empty($settings->favicon)) {
                     if(file_exists(public_path("assets/images/{$settings->favicon}"))) {
                         unlink(public_path("assets/images/{$settings->favicon}"));
-                    }                    
+                    }
                 }
 
                 $settings->favicon = $name;
@@ -87,6 +92,10 @@ class SettingController extends Controller
             $settings->title = $request->name;
             $settings->geocode_key = $request->geocode;
             $settings->google_sheet_id = $request->gsheetid;
+            $settings->twilioAccountSid = $request->twilioAccountSid;
+            $settings->twilioAuthToken = $request->twilioAuthToken;
+            $settings->twilioUrl = $request->twilioUrl;
+            $settings->twilioFromNumber = $request->twilioFromNumber;
             $settings->save();
 
             DB::commit();

@@ -90,6 +90,42 @@
                         @endif
                     </div>
                 </div>
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2"> Twilio Account Id : <span class="text-danger">*</span></label>
+                        <input type="text" name="twilioAccountSid" id="twilioAccountSid" value="{{ old('twilioAccountSid', $settings->twilioAccountSid) }}" class="form-control" placeholder="Enter Twillo Account ID">
+                        @if ($errors->has('twilioAccountSid'))
+                            <span class="text-danger d-block">{{ $errors->first('twilioAccountSid') }}</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2"> Twilio Auth Token : <span class="text-danger">*</span></label>
+                        <input type="text" name="twilioAuthToken" id="twilioAuthToken" value="{{ old('twilioAuthToken', $settings->twilioAuthToken) }}" class="form-control" placeholder="Enter Twilio Auth Token">
+                        @if ($errors->has('twilioAuthToken'))
+                            <span class="text-danger d-block">{{ $errors->first('twilioAuthToken') }}</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2"> Twilio Url : <span class="text-danger">*</span></label>
+                        <input type="url" name="twilioUrl" id="twilioUrl" value="{{ old('twilioUrl', $settings->twilioUrl) }}" class="form-control" placeholder="Enter Twilio Url">
+                        @if ($errors->has('twilioUrl'))
+                            <span class="text-danger d-block">{{ $errors->first('twilioUrl') }}</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="col-md-6 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2"> Twilio From Number : <span class="text-danger">*</span></label>
+                        <input type="text" name="twilioFromNumber" id="twilioFromNumber" value="{{ old('twilioFromNumber', $settings->twilioFromNumber) }}" class="form-control" placeholder="Enter Twilio From Number">
+                        @if ($errors->has('twilioFromNumber'))
+                            <span class="text-danger d-block">{{ $errors->first('twilioFromNumber') }}</span>
+                        @endif
+                    </div>
+                </div>
 
             </div>
         </div>
@@ -165,6 +201,18 @@ $(document).ready(function(){
             favicon: {
                 favext: 'ico',
                 favlim: 1024 * 1024
+            },
+            twilioAccountSid: {
+                required: true
+            },
+            twilioAuthToken: {
+                required: true
+            },
+            twilioUrl: {
+                required: true
+            },
+            twilioFromNumber: {
+                required: true
             }
         },
         messages: {
@@ -176,6 +224,18 @@ $(document).ready(function(){
             },
             gsheetid: {
                 required: "Google sheet id is required"
+            },
+            twilioAccountSid: {
+                required: "Twilio account id is required"
+            },
+            twilioAuthToken: {
+                required: "Twilio auth token is required"
+            },
+            twilioUrl: {
+                required: "Twilio url is required"
+            },
+            twilioFromNumber: {
+                required: "Twilio from number is required"
             }
         }
     });
