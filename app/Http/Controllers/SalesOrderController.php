@@ -687,6 +687,7 @@ class SalesOrderController extends Controller
                         if($request->range !="") {
                             $driverrangeData = json_decode($request->range);
                             if(!empty($driverrangeData)) {
+                                $driverphonenumber = [];
                                 foreach($driverrangeData as $driverid=>$range) {
                                     $driverDetail = User::active()->find($driverid);
                                     if(!empty($driverDetail)) {
@@ -709,9 +710,14 @@ class SalesOrderController extends Controller
                                             'description' => 'Order <strong>' . $orderNo . '</strong> is allocated to you please check the order.',
                                             'link' => 'sales-orders'
                                         ]);
+                                        $driverphonenumber[$driverDetail->id] = $driverDetail->country_dial_code.$driverDetail->phone;
 
                                         event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $driverid, 'content' => "Order {$orderNo} is allocated to you please check the order.", 'link' => url('sales-orders')]));
                                     }
+                                }
+
+                                if(!empty($driverphonenumber)) {
+                                    Helper::sendTwilioMsg($driverphonenumber,1,1,$soId);
                                 }
                             }
                         }
@@ -1520,7 +1526,7 @@ class SalesOrderController extends Controller
             if ($thisUser == null) {
                 return response()->json(['status' => false, 'message' => 'Driver not found.']);
             }
-
+            $driverphonenumber[$thisUser->id] = $thisUser->country_dial_code.$thisUser->phone;
             $thisOrder = SalesOrder::firstWhere('id', $request->order_id);
 
             if ($thisOrder == null) {
@@ -1529,6 +1535,7 @@ class SalesOrderController extends Controller
 
             if (Deliver::where('so_id', $request->order_id)->whereIn('status', [0, 1])->exists()) {
                 $driver = Deliver::where('so_id', $request->order_id)->whereIn('status', [0, 1])->first();
+
                 Deliver::create([
                     'user_id' => $request->driver_id,
                     'so_id' => $request->order_id,
@@ -1550,6 +1557,10 @@ class SalesOrderController extends Controller
                 ]);
 
                 event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "Order {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
+
+                if(!empty($driverphonenumber)) {
+                    Helper::sendTwilioMsg($driverphonenumber,1,1,$request->order_id);
+                }
 
                 TriggerLog::create([
                     'trigger_id' => 0,
@@ -1593,6 +1604,10 @@ class SalesOrderController extends Controller
 
                     event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "Order {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
 
+                    if(!empty($driverphonenumber)) {
+                        Helper::sendTwilioMsg($driverphonenumber,1,1,$request->order_id);
+                    }
+
                     TriggerLog::create([
                         'trigger_id' => 0,
                         'order_id' => $request->order_id,
@@ -1627,6 +1642,10 @@ class SalesOrderController extends Controller
                     ]);
 
                     event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "Order {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
+
+                    if(!empty($driverphonenumber)) {
+                        Helper::sendTwilioMsg($driverphonenumber,1,1,$request->order_id);
+                    }
 
                     TriggerLog::create([
                         'trigger_id' => 0,
@@ -1663,6 +1682,10 @@ class SalesOrderController extends Controller
                 ]);
 
                 event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver_id, 'content' => "Order {$thisOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
+
+                if(!empty($driverphonenumber)) {
+                    Helper::sendTwilioMsg($driverphonenumber,1,1,$request->order_id);
+                }
 
                 TriggerLog::create([
                     'trigger_id' => 0,

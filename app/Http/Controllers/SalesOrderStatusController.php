@@ -290,11 +290,31 @@ class SalesOrderStatusController extends Controller
 
         if (SalesOrder::where('id', $request->order)->update(['status' => $request->status]) && isset($oldStatus)) {
 
+
             AddTaskToOrderTrigger::where('order_id', $request->order)->where('status_id', '!=',$request->status)->where('executed', 0)->delete();
             ChangeOrderUser::where('order_id', $request->order)->where('status_id', '!=', $request->status)->where('executed', 0)->delete();
             ChangeOrderStatusTrigger::where('order_id', $request->order)->where('status_id', '!=', $request->status)->where('executed', 0)->delete();
 
             $disOrder = SalesOrder::where('id', $request->order)->first();
+
+            $notificationdriverid = $disOrder->assigneddriver->user_id ?? null;
+            if($notificationdriverid !="") {
+                $driverphonenumber = [];
+                $notificationdrivers = User::find($notificationdriverid);
+                $driverphonenumber[$notificationdrivers->id] =  $notificationdrivers->country_dial_code.$notificationdrivers->phone;
+                if(!empty($driverphonenumber)) {
+                    Helper::sendTwilioMsg($driverphonenumber,$request->status,1,$disOrder->id);
+                }
+            }
+            $notificationsellerid = ($disOrder->seller_id !=null) ? $disOrder->seller_id : null;
+            if($notificationsellerid !="") {
+                $sellerphonenumber = [];
+                $notificationsellers = User::find($notificationsellerid);
+                $sellerphonenumber[$notificationsellers->id] = $notificationsellers->country_dial_code.$notificationsellers->phone;
+                if(!empty($sellerphonenumber)) {
+                    Helper::sendTwilioMsg($sellerphonenumber,$request->status,2,$disOrder->id);
+                }
+            }
 
             event(new \App\Events\OrderStatusEvent('order-status-change', [
                 'orderId' => $request->order,
@@ -584,6 +604,7 @@ class SalesOrderStatusController extends Controller
     }
 
     public function status (Request $request) {
+
         $toBeDeleted = [];
         $response = false;
         $message = Helper::$errorMessage;
@@ -617,6 +638,7 @@ class SalesOrderStatusController extends Controller
                         ChangeOrderStatusTrigger::where('order_id', $request->order)->where('status_id', '!=', $request->status)->where('executed', 0)->delete();
 
                         $disOrder = SalesOrder::where('id', $request->order)->first();
+                        $notificationdriverid = $disOrder->assigneddriver->user_id ?? null;
 
                         //scammer status
                         if ($request->status == 7) {
@@ -1073,11 +1095,13 @@ class SalesOrderStatusController extends Controller
                                 if($driverlist->status === true && !empty($driverlist->drivers)) {
 
                                     $driverids = [];
+                                    $driverphonenumber = [];
                                     foreach($driverlist->drivers as $driverid=>$driverallocaterang) {
 
                                         $driverDetail = User::active()->find($driverid);
 
                                         if(!empty($driverDetail)) {
+                                            $driverphonenumber[$driverDetail->id] = $driverDetail->country_dial_code.$driverDetail->phone;
                                             $driverids[] = $driverid;
                                             Deliver::create([
                                                 'user_id' => $driverid,
@@ -1100,7 +1124,9 @@ class SalesOrderStatusController extends Controller
 
                                             event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $driverid, 'content' => "Order {$salesorderInfo->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
                                         }
-
+                                    }
+                                    if(!empty($driverphonenumber)) {
+                                        Helper::sendTwilioMsg($driverphonenumber,1,1,$salesorderInfo->id);
                                     }
                                     if(!empty($driverids)) {
                                         /*Allocated driver history*/
@@ -1138,6 +1164,25 @@ class SalesOrderStatusController extends Controller
                         }
 
 
+
+                        if($notificationdriverid !="") {
+                            $driverphonenumber = [];
+                            $notificationdrivers = User::find($notificationdriverid);
+                            $driverphonenumber[$notificationdrivers->id] = $notificationdrivers->country_dial_code.$notificationdrivers->phone;
+                            if(!empty($driverphonenumber)) {
+                                Helper::sendTwilioMsg($driverphonenumber,$request->status,1,$disOrder->id);
+                            }
+                        }
+                        $notificationsellerid = ($disOrder->seller_id !=null) ? $disOrder->seller_id : null;
+                        if($notificationsellerid !="") {
+                            $sellerphonenumber = [];
+                            $notificationsellers = User::find($notificationsellerid);
+                            $sellerphonenumber[$notificationsellers->id] = $notificationsellers->country_dial_code.$notificationsellers->phone;
+                            if(!empty($sellerphonenumber)) {
+                                Helper::sendTwilioMsg($sellerphonenumber,$request->status,2,$disOrder->id);
+                            }
+                        }
+
                         DB::commit();
                         return response()->json(['status' => true, 'message' => 'Status updated successfully', 'color' => $color, 'text' => $text]);
                     } else {
@@ -1145,7 +1190,7 @@ class SalesOrderStatusController extends Controller
                         return response()->json(['status' => false, 'message' => 'Order not found', 'color' => $color, 'text' => $text]);
                     }
                 } catch (\Exception $err) {
-                    Helper::logger($err->getMessage());
+                    Helper::logger($err->getMessage().$err->getLine());
                     DB::rollBack();
 
                     if (!empty($toBeDeleted)) {
@@ -1759,6 +1804,7 @@ class SalesOrderStatusController extends Controller
                     SalesOrder::where('id', $request->id)->update(['status' => 2, 'responsible_user' => auth()->user()->id]);
 
                     $sellerIdOfOrders = $disOrder->added_by ?? '';
+                    $sellerIdOfsalesOrders = $disOrder->seller_id ?? '';
 
                     if (!empty($sellerIdOfOrders)) {
                         $duplicateOrderStatus = 11;
@@ -2122,6 +2168,19 @@ class SalesOrderStatusController extends Controller
                     }
                     /** Change order status **/
 
+                    if($sellerIdOfsalesOrders != null) {
+                        $userdetails = User::find($sellerIdOfsalesOrders);
+
+                        if(!empty($userdetails)) {
+                            $sellerphonenumber[$userdetails->id] = $userdetails->country_dial_code.$userdetails->phone;
+
+                            if(!empty($sellerphonenumber)) {
+                                Helper::sendTwilioMsg($sellerphonenumber,1,2,$soId);
+                            }
+                        }
+
+                    }
+
                     DB::commit();
                     return response()->json(['status' => true, 'message' => 'Order accepted successfully.']);
                 } else {
@@ -2129,6 +2188,7 @@ class SalesOrderStatusController extends Controller
                     return response()->json(['status' => false, 'message' => Helper::$notFound]);
                 }
             } catch (\Exception $err) {
+
                 DB::rollBack();
                 Helper::logger($err->getMessage() . ' LINE NO ' . $err->getLine());
                 return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
@@ -2166,7 +2226,7 @@ class SalesOrderStatusController extends Controller
             if ($order->exists() && $driver->exists()) {
                 $order = $order->first();
                 $driver = $driver->first();
-
+                $driverphonenumber[$driver->id] = $driver->country_dial_code.$driver->phone;
                 Deliver::create([
                     'user_id' => $request->driver,
                     'so_id' => $soId,
@@ -2189,6 +2249,10 @@ class SalesOrderStatusController extends Controller
                 event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $request->driver, 'content' => "Order {$order->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
 
                 SalesOrder::where('id', $soId)->update(['status' => 1]);
+
+                if(!empty($driverphonenumber)) {
+                    Helper::sendTwilioMsg($driverphonenumber,1,1,$soId);
+                }
 
                 return redirect()->back()->with('success', 'Driver assigned successfully');
             }
