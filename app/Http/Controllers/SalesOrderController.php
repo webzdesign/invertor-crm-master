@@ -495,7 +495,7 @@ class SalesOrderController extends Controller
                                 $successdrivers[$tmpDriver] = $tmpRange;
                                 // $getNearbyDriver = $tmpDriver;
                                 // $range = $tmpRange;
-                                // $isNotAvail = false;
+                                $isNotAvail = false;
                                 // break;
                             }
                         }
@@ -1601,7 +1601,7 @@ class SalesOrderController extends Controller
                     ]);
 
                     SalesOrder::where('id', $request->order_id)->update(['responsible_user' => $request->driver_id]);
-                    
+
                     return response()->json(['status' => true, 'message' => 'Driver assigned successfully.']);
 
                 } else {
@@ -1634,10 +1634,10 @@ class SalesOrderController extends Controller
                         'type' => 4,
                         'allocated_driver_id' => implode(',',[$request->driver_id]),
                     ]);
-    
+
                     Deliver::where('id', $driver->id)->update(['status' => 4]);
                     SalesOrder::where('id', $request->order_id)->update(['responsible_user' => $request->driver_id]);
-    
+
                     return response()->json(['status' => true, 'message' => 'Driver assigned successfully.']);
                 }
             } else {
