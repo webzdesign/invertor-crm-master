@@ -112,6 +112,8 @@ $(document).ready(function(){
     const iti = window.intlTelInput(input, {
         initialCountry: "{{ $user->country_iso_code ?? 'gb' }}",
         preferredCountries: ['gb', 'pk'],
+        separateDialCode:true,
+        nationalMode:false,
         utilsScript: "{{ asset('assets/js/intel2.js') }}"
     });
 

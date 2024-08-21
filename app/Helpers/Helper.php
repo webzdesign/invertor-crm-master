@@ -437,105 +437,107 @@ class Helper {
     }
 
     public static function sendTwilioMsg($tonumber=null,$statusid=null,$type=null,$order_id=null) {
+        if (env('GEOLOCATION_API') == 'true') {
+            try {
 
-        try {
+                $setting=Setting::select('twilioFromNumber','twilioAuthToken','twilioUrl','twilioAccountSid')->first();
+                // Twilio credentials
+                if($setting && !empty($tonumber) && $statusid != null && $type !=null) {
 
-            $setting=Setting::select('twilioFromNumber','twilioAuthToken','twilioUrl','twilioAccountSid')->first();
-            // Twilio credentials
-            if($setting && !empty($tonumber) && $statusid != null && $type !=null) {
+                    $twilioAccountSid = $setting->twilioAccountSid;
+                    $twilioAuthToken = $setting->twilioAuthToken;
+                    $url = "{$setting->twilioUrl}" . $twilioAccountSid . "/Messages.json";
 
-                $twilioAccountSid = $setting->twilioAccountSid;
-                $twilioAuthToken = $setting->twilioAuthToken;
-                $url = "{$setting->twilioUrl}" . $twilioAccountSid . "/Messages.json";
+                    $notification = TwilloMessageNotification::where('responsibale_user_type',$type)->where('status_id',$statusid)->first();
 
-                $notification = TwilloMessageNotification::where('responsibale_user_type',$type)->where('status_id',$statusid)->first();
+                    if(!empty($notification)) {
+                        foreach($tonumber as $touserid=>$tophone) {
+                            if($tophone !="") {
+                                $to = 'whatsapp:+918160213921';
+                                // $to = "whatsapp:+{$tophone}";
+                                $from = "whatsapp:{$setting->twilioFromNumber}";
 
-                if(!empty($notification)) {
-                    foreach($tonumber as $touserid=>$tophone) {
-                        if($tophone !="") {
-                            $to = 'whatsapp:+918160213921';
-                            // $to = "whatsapp:+{$tophone}";
-                            $from = "whatsapp:{$setting->twilioFromNumber}";
+                                $body = $notification->message;
 
-                            $body = $notification->message;
+                                $ch = curl_init($url);
 
-                            $ch = curl_init($url);
+                                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                                curl_setopt($ch, CURLOPT_POST, true);
+                                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                                curl_setopt($ch, CURLOPT_USERPWD, $twilioAccountSid . ':' . $twilioAuthToken);
+                                curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+                                    'To' => $to,
+                                    'From' => $from,
+                                    'Body' => $body
+                                ]));
 
-                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                            curl_setopt($ch, CURLOPT_POST, true);
-                            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-                            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                            curl_setopt($ch, CURLOPT_USERPWD, $twilioAccountSid . ':' . $twilioAuthToken);
-                            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-                                'To' => $to,
-                                'From' => $from,
-                                'Body' => $body
-                            ]));
-
-                            $response = curl_exec($ch);
-                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                            if (curl_errno($ch)) {
-                                TwilloNotificationHistory::create([
-                                    'user_id'=>$touserid,
-                                    'to_number'=>'+'.$tophone,
-                                    'from_number'=>$setting->twilioFromNumber,
-                                    'user_type'=>$type,
-                                    'message'=>'Error:' . curl_error($ch),
-                                    'status_id'=>$statusid,
-                                    'order_id'=>$order_id,
-                                    'api_response'=>'Error:' . curl_error($ch)
-                                ]);
-                            } else {
-
-                                if($httpCode == 201 || $httpCode == 200) {
+                                $response = curl_exec($ch);
+                                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                                if (curl_errno($ch)) {
+                                    $error['Error'] = curl_error($ch);
                                     TwilloNotificationHistory::create([
                                         'user_id'=>$touserid,
                                         'to_number'=>'+'.$tophone,
                                         'from_number'=>$setting->twilioFromNumber,
                                         'user_type'=>$type,
-                                        'message'=>$body,
+                                        'message'=>'Error:' . curl_error($ch),
                                         'status_id'=>$statusid,
                                         'order_id'=>$order_id,
-                                        'api_response'=>$response
+                                        'api_response'=>json_encode($error)
                                     ]);
                                 } else {
 
-                                    TwilloNotificationHistory::create([
-                                        'user_id'=> $touserid,
-                                        'to_number'=> '+'.$tophone,
-                                        'from_number'=> $setting->twilioFromNumber,
-                                        'user_type'=> $type,
-                                        'message'=> json_decode($response)->message ?? 'Twilio API encountered an error in its response.',
-                                        'status_id'=> $statusid,
-                                        'order_id'=> $order_id,
-                                        'api_response'=> $response
-                                    ]);
+                                    if($httpCode == 201 || $httpCode == 200) {
+                                        TwilloNotificationHistory::create([
+                                            'user_id'=>$touserid,
+                                            'to_number'=>'+'.$tophone,
+                                            'from_number'=>$setting->twilioFromNumber,
+                                            'user_type'=>$type,
+                                            'message'=>$body,
+                                            'status_id'=>$statusid,
+                                            'order_id'=>$order_id,
+                                            'api_response'=>$response
+                                        ]);
+                                    } else {
+
+                                        TwilloNotificationHistory::create([
+                                            'user_id'=> $touserid,
+                                            'to_number'=> '+'.$tophone,
+                                            'from_number'=> $setting->twilioFromNumber,
+                                            'user_type'=> $type,
+                                            'message'=> json_decode($response)->message ?? 'Twilio API encountered an error in its response.',
+                                            'status_id'=> $statusid,
+                                            'order_id'=> $order_id,
+                                            'api_response'=> $response
+                                        ]);
+                                    }
+                                    //{"account_sid": "AC72c2c1239889f864f8c3621ccdaeb719", "api_version": "2010-04-01", "body": "Hello from Twilio WhatsApp API Testing With Developer!", "date_created": "Wed, 14 Aug 2024 12:08:41 +0000", "date_sent": null, "date_updated": "Wed, 14 Aug 2024 12:08:41 +0000", "direction": "outbound-api", "error_code": null, "error_message": null, "from": "whatsapp:+14155238886", "messaging_service_sid": null, "num_media": "0", "num_segments": "1", "price": null, "price_unit": null, "sid": "SMcd04f021bd7ee79d1d8b0a12a822d0d0", "status": "queued", "subresource_uris": {"media": "/2010-04-01/Accounts/AC72c2c1239889f864f8c3621ccdaeb719/Messages/SMcd04f021bd7ee79d1d8b0a12a822d0d0/Media.json"}, "to": "whatsapp:+918160213921", "uri": "/2010-04-01/Accounts/AC72c2c1239889f864f8c3621ccdaeb719/Messages/SMcd04f021bd7ee79d1d8b0a12a822d0d0.json"}
                                 }
-                                //{"account_sid": "AC72c2c1239889f864f8c3621ccdaeb719", "api_version": "2010-04-01", "body": "Hello from Twilio WhatsApp API Testing With Developer!", "date_created": "Wed, 14 Aug 2024 12:08:41 +0000", "date_sent": null, "date_updated": "Wed, 14 Aug 2024 12:08:41 +0000", "direction": "outbound-api", "error_code": null, "error_message": null, "from": "whatsapp:+14155238886", "messaging_service_sid": null, "num_media": "0", "num_segments": "1", "price": null, "price_unit": null, "sid": "SMcd04f021bd7ee79d1d8b0a12a822d0d0", "status": "queued", "subresource_uris": {"media": "/2010-04-01/Accounts/AC72c2c1239889f864f8c3621ccdaeb719/Messages/SMcd04f021bd7ee79d1d8b0a12a822d0d0/Media.json"}, "to": "whatsapp:+918160213921", "uri": "/2010-04-01/Accounts/AC72c2c1239889f864f8c3621ccdaeb719/Messages/SMcd04f021bd7ee79d1d8b0a12a822d0d0.json"}
+                                curl_close($ch);
                             }
-                            curl_close($ch);
                         }
-                    }
-                } else {
-                    foreach($tonumber as $touserid=>$tophone) {
-                        if($tophone !="") {
-                            TwilloNotificationHistory::create([
-                                'user_id'=>$touserid,
-                                'to_number'=>'+'.$tophone,
-                                'from_number'=>$setting->twilioFromNumber,
-                                'user_type'=>$type,
-                                'message'=>'A notification has not been established for this particular status and type.',
-                                'status_id'=>$statusid,
-                                'order_id'=>$order_id
-                            ]);
+                    } else {
+                        foreach($tonumber as $touserid=>$tophone) {
+                            if($tophone !="") {
+                                TwilloNotificationHistory::create([
+                                    'user_id'=>$touserid,
+                                    'to_number'=>'+'.$tophone,
+                                    'from_number'=>$setting->twilioFromNumber,
+                                    'user_type'=>$type,
+                                    'message'=>'A notification has not been established for this particular status and type.',
+                                    'status_id'=>$statusid,
+                                    'order_id'=>$order_id
+                                ]);
+                            }
                         }
                     }
                 }
+
+            } catch (\Exception $e) {
+                self::logger($e->getMessage());
+
             }
-
-        } catch (\Exception $e) {
-            self::logger($e->getMessage());
-
         }
     }
 }

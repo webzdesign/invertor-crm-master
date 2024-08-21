@@ -337,6 +337,8 @@
             const iti = window.intlTelInput(input, {
                 initialCountry: "{{ $so->country_iso_code ?? 'gb' }}",
                 preferredCountries: ['gb', 'pk'],
+                separateDialCode:true,
+                nationalMode:false,
                 utilsScript: "{{ asset('assets/js/intel2.js') }}"
             });
 

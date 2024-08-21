@@ -157,7 +157,7 @@
                     @forelse($documents as $doc)
                     <div class="col-4">
                         <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">{!! $doc->name !!} 
+                            <label class="c-gr f-500 f-16 w-100 mb-2">{!! $doc->name !!}
                                 @if(!empty($doc->description))
                                 <a data-toggle="tooltip" class="deleteBtn" data-html="true" title="{!! $doc->description !!}">
                                     <i class='fa fa-info-circle' aria-hidden='true' style="color: black;margin-left:5px;"></i>
@@ -236,6 +236,8 @@ $(document).ready(function(){
     const iti = window.intlTelInput(input, {
         initialCountry: "{{ $user->country_iso_code ?? 'gb' }}",
         preferredCountries: ['gb', 'pk'],
+        separateDialCode:true,
+        nationalMode:false,
         utilsScript: "{{ asset('assets/js/intel2.js') }}"
     });
 
@@ -307,7 +309,7 @@ $(document).ready(function(){
                 type: 'POST',
                 data: {
                     id: rId,
-                    user: "{{ $user->id }}"  
+                    user: "{{ $user->id }}"
                 },
                 beforeSend: function () {
                     $('body').find('.LoaderSec').removeClass('d-none');
@@ -317,7 +319,7 @@ $(document).ready(function(){
                     if (response.status) {
                         $('.permissions-container').html(response.html);
                         $('.required-docs-container').html(response.document_html);
-                        
+
                         addRulesToValidation(response.documents);
                     } else {
                         Swal.fire('', response.message, 'error');

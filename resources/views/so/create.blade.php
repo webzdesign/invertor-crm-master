@@ -290,9 +290,11 @@
             const errorMap = ["Phone number is invalid.", "Invalid country code", "Too short", "Too long"];
 
             const iti = window.intlTelInput(input, {
-            initialCountry: "gb",
-            preferredCountries: ['gb', 'pk'],
-            utilsScript: "{{ asset('assets/js/intel2.js') }}"
+                initialCountry: "gb",
+                preferredCountries: ['gb', 'pk'],
+                separateDialCode:true,
+                nationalMode:false,
+                utilsScript: "{{ asset('assets/js/intel2.js') }}"
             });
 
             $.validator.addMethod('inttel', function (value, element) {

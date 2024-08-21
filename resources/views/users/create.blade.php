@@ -192,9 +192,11 @@
             const errorMap = ["Phone number is invalid.", "Invalid country code", "Too short", "Too long"];
 
             const iti = window.intlTelInput(input, {
-            initialCountry: "gb",
-            preferredCountries: ['gb', 'pk'],
-            utilsScript: "{{ asset('assets/js/intel2.js') }}"
+                initialCountry: "gb",
+                separateDialCode:true,
+                nationalMode:false,
+                preferredCountries: ['gb', 'pk'],
+                utilsScript: "{{ asset('assets/js/intel2.js') }}"
             });
 
             $.validator.addMethod('inttel', function (value, element) {
@@ -239,7 +241,7 @@
                         url: "{{ route('role-permissions') }}",
                         type: 'POST',
                         data: {
-                            id: rId     
+                            id: rId
                         },
                         beforeSend: function () {
                             $('body').find('.LoaderSec').removeClass('d-none');

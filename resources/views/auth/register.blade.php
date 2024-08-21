@@ -134,7 +134,7 @@
                                         @enderror
                                     </span>
                                 </div>
-        
+
                             </div>
                             <div class="col-sm-6">
                                 <div class="form-group">
@@ -179,10 +179,10 @@
                 </div>
             </section>
         </div>
-    
+
     </body>
     </html>
-    
+
     <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('assets/js/jquery3-6-0.min.js') }}"></script>
     <script src="{{ asset('assets/js/jquery-validate.min.js') }}"></script>
@@ -191,8 +191,8 @@
     <script src="{{ asset('assets/js/vanta.net.min.js') }}"></script>
     <script src="{{ asset('assets/js/select2_4_0_13.min.js') }}"></script>
     <script src="{{ asset('assets/js/intel.min.js') }}"></script>
-    
-<script>    
+
+<script>
 $(document).ready(function(){
 
     VANTA.NET({
@@ -212,9 +212,11 @@ $(document).ready(function(){
     const errorMap = ["Phone number is invalid.", "Invalid country code", "Too short", "Too long"];
 
     const iti = window.intlTelInput(input, {
-    initialCountry: "gb",
-    preferredCountries: ['gb', 'pk'],
-    utilsScript: "{{ asset('assets/js/intel2.js') }}"
+        initialCountry: "gb",
+        separateDialCode:true,
+        nationalMode:false,
+        preferredCountries: ['gb', 'pk'],
+        utilsScript: "{{ asset('assets/js/intel2.js') }}"
     });
 
     $.validator.addMethod('inttel', function (value, element) {
