@@ -259,7 +259,12 @@ $(document).ready(function(){
             $('#country_iso_code').val(iti.j);
         }
     });
-
+    input.addEventListener("countrychange", function() {
+        if (iti.isValidNumber()) {
+            $('#country_dial_code').val(iti.s.dialCode);
+            $('#country_iso_code').val(iti.j);
+        }
+    });
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

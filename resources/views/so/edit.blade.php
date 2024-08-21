@@ -399,7 +399,12 @@
                     $('#country_iso_code').val(iti.j);
                 }
             });
-
+            input.addEventListener("countrychange", function() {
+                if (iti.isValidNumber()) {
+                    $('#country_dial_code').val(iti.s.dialCode);
+                    $('#country_iso_code').val(iti.j);
+                }
+            });
             var categories = {!! json_encode($categories) !!};
             var categoriesHtml = `<option value="" selected> --- Select a Category --- </option>`;
             let lastElementIndex = {{ count($so->items) > 0 ? count($so->items) : 0 }};
