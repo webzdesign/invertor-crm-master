@@ -18,7 +18,9 @@
                         <div class="col-12 mb-2">
                             <div class="form-group">
                                 <label class="c-gr f-500 f-12 w-100 mb-2"> Notification Message : <span class="text-danger">*</span> </label>
-                                <textarea class="form-control h-25" name="message" id="message"></textarea>
+                                <select class="select2-hidden-accessible twillo-template-notification" name="message" id="message">
+                                </select>
+                                {{-- <textarea class="form-control h-25" name="message" id="message"></textarea> --}}
                             </div>
                         </div>
                         <input type="hidden" name="status_id" id="status_id" >

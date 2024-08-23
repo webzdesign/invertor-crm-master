@@ -53,6 +53,7 @@ class SalesOrderStatusController extends Controller
     }
 
     public function edit() {
+
         $moduleName = 'Sales Order Status';
         $statuses = SalesOrderStatus::sequence()->custom()->orderBy('sequence', 'ASC')->get();
         $statusesOnlyForShow = SalesOrderStatus::sequence()->orderBy('sequence', 'ASC')->get();
@@ -1558,7 +1559,10 @@ class SalesOrderStatusController extends Controller
     }
 
     public function salesOrderResponsibleUser(Request $request) {
+
+
         $selectedUser = null;
+        $templateids = '';
         $addedData = ['user' => null, 'type' => null];
 
         $users = "<option value='' selected> Select a user </option>";
@@ -1571,12 +1575,28 @@ class SalesOrderStatusController extends Controller
 
             if(isset($triggerData->type) && $triggerData->type == 4 && $triggerData->twillo_notification_id !="") {
                 $notification = TwilloMessageNotification::find($triggerData->twillo_notification_id);
+
                 if(!empty($notification)) {
-                    $addedData = ['notification' => $notification];
+                    $templateids = $notification->template_id;
+                    $addedData['notification'] = $notification;
                 }
             }
         }
+        if(isset($request->moduletype) && $request->moduletype =='twillo') {
 
+            $templatedata = TwilloTemplate::where('templatestatus','approved')->get(['contentsid','templatename']);
+            $templates = "<option value='' selected> Select a template </option>";
+            if(!empty($templatedata)) {
+                foreach($templatedata as $template) {
+                    $selectdrop = '';
+                    if($template->contentsid == $templateids) {
+                        $selectdrop = 'selected';
+                    }
+                    $templates .='<option value="'.$template->contentsid.'"  '.$selectdrop.'>'.$template->templatename.'</option>';
+                }
+            }
+            $addedData['templates'] = $templates;
+        }
         $users .= "<option value='1' " . ($selectedUser == 1 ? 'selected' : '') . " data-name='DRIVER' data-label='DRIVER' > DRIVER </option>
         <option value='2' " . ($selectedUser == 2 ? 'selected' : '') . " data-name='SELLER' data-label='SELLER' > SELLER </option>";
 
@@ -2310,7 +2330,7 @@ class SalesOrderStatusController extends Controller
                     $notification->status_id = $request->status_id;
                     $notification->responsibale_user_type = $request->user;
                     $notification->updated_by = auth()->user()->id;
-                    $notification->message = $request->message;
+                    $notification->template_id = $request->message;
                     $notification->save();
 
                     $triggerdata->user_id = $request->user;
@@ -2325,7 +2345,7 @@ class SalesOrderStatusController extends Controller
                 $createnotification = TwilloMessageNotification::create([
                     'status_id' => $request->status_id,
                     'responsibale_user_type' => $request->user,
-                    'message' => $request->message,
+                    'template_id' => $request->message,
                     'added_by' => auth()->user()->id
                 ]);
 

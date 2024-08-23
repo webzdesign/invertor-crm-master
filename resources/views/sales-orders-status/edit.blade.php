@@ -238,11 +238,17 @@
                                 </div>
                             </div>
                             @elseif($trigger[$i]['type'] == 4 && !empty($twillodata))
-
+                            @php
+                            $message = $twillodata->template_id;
+                            if(isset($twillodata->twillotemplate->response) && !empty($twillodata->twillotemplate->response)){
+                                $messagedata = json_decode($twillodata->twillotemplate->response);
+                                $message = $messagedata->types->{"twilio/text"}->body ?? $twillodata->template_id;
+                            }
+                            @endphp
                             <img src="{{ asset('assets/images/edit.png') }}" class="width-35" />
                             <div class="w-100">
                                 <div class="f-12 text-start trigger-box-label-timetype">
-                                    {{substr($twillodata->message,0,70)}}@if(strlen($twillodata->message) > 70 ) ...@endif
+                                    {{substr($message,0,70)}}@if(strlen($message) > 70 ) ...@endif
                                 </div>
                                 <div class="text-start">
                                     <span class="f-12 d-flex align-items-center">
@@ -2922,18 +2928,28 @@
             $.ajax({
                 url : "{{ route('sales-order-responsible-user') }}",
                 type : "POST",
+                data: {
+                    moduletype: 'twillo',
+                },
                 beforeSend: function() {
                     $('body').find('.LoaderSec').removeClass('d-none');
                 },
                 success: function (response) {
+
                     $('#trigger-options-modal').modal('hide');
                     $("#change-user-picker-notification-error,#message-error").text("");
-                    $("#message").val("");
+                    // $("#message").val("");
                     $(`#change-user-picker-notification`).empty().append(response.users);
+                    $(`#message`).empty().append(response.addedData.templates);
                     $(`#change-user-picker-notification`).select2({
                         dropdownParent: $('#twillo-notification'),
                         width: '100%',
                         placeholder: "Select a user"
+                    });
+                    $(`#message`).select2({
+                        dropdownParent: $('#twillo-notification'),
+                        width: '100%',
+                        placeholder: "Select a template"
                     });
                     $('#twillo-notification').find('#modal-title-twillo-notification').text(performingStatusTitle);
                     $('#twillo-notification').find('#status_id').val(thisStatus);
@@ -2981,7 +2997,7 @@
                 remote: "A notification has already been added for this user in the current status."
             },
             message: {
-                required: "Please enter message."
+                required: "Select a template."
             }
 
         },
@@ -3008,7 +3024,8 @@
             type: 'POST',
             data: {
                 id: thisstatus,
-                trigger: thisTrigger
+                trigger: thisTrigger,
+                moduletype: 'twillo'
             },
             beforeSend: function() {
                 $('body').find('.LoaderSec').removeClass('d-none');
@@ -3018,13 +3035,18 @@
 
                 $('#trigger-options-modal').modal('hide');
                 $("#change-user-picker-notification-error,#message-error").text("");
-                $("#message").val("");
 
                 $(`#change-user-picker-notification`).empty().append(response.users);
+                $(`#message`).empty().append(response.addedData.templates);
                 $(`#change-user-picker-notification`).select2({
                     dropdownParent: $('#twillo-notification'),
                     width: '100%',
                     placeholder: "Select a user"
+                });
+                $(`#message`).select2({
+                    dropdownParent: $('#twillo-notification'),
+                    width: '100%',
+                    placeholder: "Select a template"
                 });
                 $('#twillo-notification').find('#modal-title-twillo-notification').text(thisTitle);
                 $('#twillo-notification').find('#status_id').val(thisstatus);
@@ -3038,7 +3060,7 @@
                 } else {
                     $('#delete-btn-change-user-twillo-notification').hide();
                 }
-                $('#twillo-notification').find("#message").val(response.addedData.notification.message);
+                // $('#twillo-notification').find("#message").val(response.addedData.notification.message);
                 $('#twillo-notification').find("#id").val(response.addedData.notification.id);
 
                 /** Show Update Modal **/

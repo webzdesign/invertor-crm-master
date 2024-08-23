@@ -9,4 +9,9 @@ class TwilloMessageNotification extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
+    public function twillotemplate()
+    {
+        return $this->belongsTo(TwilloTemplate::class, 'template_id', 'contentsid');
+    }
 }
