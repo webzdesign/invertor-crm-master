@@ -854,6 +854,7 @@
 
         $(document).on({
             mouseenter: function() {
+
                 if ($('#custom-cursor').css('display') != 'none') {
 
                     if ($('#custom-cursor').find('.trigger-change-order-status').length > 0) {
@@ -1825,7 +1826,7 @@
             over: function(event, ui) {
                 var $this = $(this);
 
-                if ($this.children().hasClass('trigger-add-task') || $this.children().hasClass('trigger-change-order-status') || $this.children().hasClass('trigger-change-order-user')) {
+                if ($this.children().hasClass('trigger-add-task') || $this.children().hasClass('trigger-change-order-status') || $this.children().hasClass('trigger-change-order-user') || $this.children().hasClass('trigger-twillo-status')) {
                     $(ui.sender).sortable('cancel');
 
                         /** REASSIGN DATA **/
@@ -1833,14 +1834,14 @@
                         /** REASSIGN DATA **/
 
                     $('.layover-container').removeClass('dragOverlay');
-                    if ($(ui.sender).find('.trigger-change-order-status').length > 0 || $(ui.sender).find('.trigger-add-task').length > 0 || $(ui.sender).find('.trigger-change-order-user').length > 0) {
+                    if ($(ui.sender).find('.trigger-change-order-status').length > 0 || $(ui.sender).find('.trigger-add-task').length > 0 || $(ui.sender).find('.trigger-change-order-user').length > 0 || $(ui.sender).find('.trigger-twillo-status').length > 0) {
                         if ($(ui.sender).find('.opener').length > 0) {
                             $(ui.sender).find('.opener').remove();
                         }
                     }
                 }
 
-                if ($(ui.item).hasClass('trigger-change-order-status')) {
+                if ($(ui.item).hasClass('trigger-change-order-status') || $(ui.item).hasClass('trigger-twillo-status')) {
                     let thisClass = $(ui.item).parent().attr('data-uniqueclass');
                     let statusContainer = $(ui.item).parent().parent();
 
@@ -1862,7 +1863,7 @@
                             /** REASSIGN DATA **/
 
                             $('.layover-container').removeClass('dragOverlay');
-                            if ($(ui.sender).find('.trigger-change-order-status').length > 0 || $(ui.sender).find('.trigger-add-task').length > 0 || $(ui.sender).find('.trigger-change-order-user').length > 0) {
+                            if ($(ui.sender).find('.trigger-change-order-status').length > 0 || $(ui.sender).find('.trigger-add-task').length > 0 || $(ui.sender).find('.trigger-change-order-user').length > 0 || $(ui.sender).find('.trigger-twillo-status').length > 0) {
                             if ($(ui.sender).find('.opener').length > 0) {
                                 $(ui.sender).find('.opener').remove();
                             }
