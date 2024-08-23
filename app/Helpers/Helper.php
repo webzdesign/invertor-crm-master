@@ -437,6 +437,7 @@ class Helper {
     }
 
     public static function sendTwilioMsg($tonumber=null,$statusid=null,$type=null,$order_id=null) {
+
         if (env('GEOLOCATION_API') == 'true') {
             try {
 
@@ -451,9 +452,11 @@ class Helper {
                     $notification = TwilloMessageNotification::where('responsibale_user_type',$type)->where('status_id',$statusid)->first();
 
                     if(!empty($notification)) {
+
                         foreach($tonumber as $touserid=>$tophone) {
                             if($tophone !="") {
                                 // $to = 'whatsapp:+918160213921';
+                                $tophone = str_replace(' ','',$tophone);
                                 $to = "whatsapp:+{$tophone}";
                                 $from = "whatsapp:{$setting->twilioFromNumber}";
 
@@ -494,7 +497,7 @@ class Helper {
                                             'to_number'=>'+'.$tophone,
                                             'from_number'=>$setting->twilioFromNumber,
                                             'user_type'=>$type,
-                                            'message'=>$body,
+                                            'message'=>$ContentSid,
                                             'status_id'=>$statusid,
                                             'order_id'=>$order_id,
                                             'api_response'=>$response
