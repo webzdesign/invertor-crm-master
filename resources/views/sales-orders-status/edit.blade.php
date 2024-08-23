@@ -376,6 +376,12 @@
     var editingBlock = null;
 
     $(document).ready(function() {
+        $(`#allocate_notification, #accept_notification`).select2({
+            dropdownParent: $('#orderplacenotifiction'),
+            width: '100%',
+            allowClear: true,
+            placeholder: "Select a Template"
+        });
 
         $.validator.setDefaults({
             ignore: []
@@ -2896,10 +2902,10 @@
                 //     required: "Select a user."
                 // },
                 allocate_notification: {
-                    required: "Please add order allocate notification to driver."
+                    required: "Please select template for order allocate notification to driver."
                 },
                 accept_notification: {
-                    required: "Please add order accept notification to driver."
+                    required: "Please select template for order accept notification to driver."
                 }
             },
             errorPlacement: function(error, element) {
@@ -3083,6 +3089,7 @@
                 $(".status-dropdown-inner-3 .status-dropdown-menu-inner-3").hide();
             }
         });
+
     });
 
 </script>

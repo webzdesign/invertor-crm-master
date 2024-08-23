@@ -108,7 +108,7 @@
                         @endif
                     </div>
                 </div>
-                <div class="col-md-6 col-sm-12">
+                <div class="col-md-4 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2"> Twilio Url : <span class="text-danger">*</span></label>
                         <input type="url" name="twilioUrl" id="twilioUrl" value="{{ old('twilioUrl', $settings->twilioUrl) }}" class="form-control" placeholder="Enter Twilio Url">
@@ -117,7 +117,7 @@
                         @endif
                     </div>
                 </div>
-                <div class="col-md-6 col-sm-12">
+                <div class="col-md-4 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2"> Twilio From Number : <span class="text-danger">*</span></label>
                         <input type="text" name="twilioFromNumber" id="twilioFromNumber" value="{{ old('twilioFromNumber', $settings->twilioFromNumber) }}" class="form-control" placeholder="Enter Twilio From Number">
@@ -126,7 +126,15 @@
                         @endif
                     </div>
                 </div>
-
+                <div class="col-md-4 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2"> Twilio Template Url : <span class="text-danger">*</span></label>
+                        <input type="url" name="twilloTemplateUrl" id="twilloTemplateUrl" value="{{ old('twilloTemplateUrl', $settings->twilloTemplateUrl) }}" class="form-control" placeholder="Enter Twilio template Url">
+                        @if ($errors->has('twilloTemplateUrl'))
+                            <span class="text-danger d-block">{{ $errors->first('twilloTemplateUrl') }}</span>
+                        @endif
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -213,6 +221,9 @@ $(document).ready(function(){
             },
             twilioFromNumber: {
                 required: true
+            },
+            twilloTemplateUrl:{
+                required: true
             }
         },
         messages: {
@@ -236,6 +247,9 @@ $(document).ready(function(){
             },
             twilioFromNumber: {
                 required: "Twilio from number is required"
+            },
+            twilloTemplateUrl: {
+                required: "Twilio template url is required"
             }
         }
     });

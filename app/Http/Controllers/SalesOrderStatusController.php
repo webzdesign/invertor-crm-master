@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{Stock, Transaction, DriverWallet, PaymentForDelivery, ProcurementCost, SalesOrderProofImages};
 use App\Models\{SalesOrderStatus, SalesOrder, Deliver, Role, ManageStatus, User, SalesOrderItem, Notification};
-use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser, Setting, Trigger, Wallet,TwilloMessageNotification};
+use App\Models\{ChangeOrderStatusTrigger, AddTaskToOrderTrigger, ChangeOrderUser, Setting, Trigger, Wallet,TwilloMessageNotification,TwilloTemplate};
 use Revolution\Google\Sheets\Facades\Sheets;
 use App\Helpers\{Helper, Distance};
 use Illuminate\Support\Facades\DB;
@@ -64,13 +64,16 @@ class SalesOrderStatusController extends Controller
         $allocate_notificationorders = TwilloMessageNotification::where('status_id',1)->where('responsibale_user_type',1)->first();
         $allocate_notification = $accept_notification = null;
         if(!empty($allocate_notificationorders)) {
-            $allocate_notification = $allocate_notificationorders->message;
+            $allocate_notification = $allocate_notificationorders->template_id;
         }
         $accept_notificationorders = TwilloMessageNotification::where('status_id',1)->where('responsibale_user_type',2)->first();
         if(!empty($accept_notificationorders)) {
-            $accept_notification = $accept_notificationorders->message;
+            $accept_notification = $accept_notificationorders->template_id;
         }
-        return view('sales-orders-status.edit', compact('moduleName', 'statuses', 'colours', 'roles', 's', 'maxTriggers', 'statusesOnlyForShow','allocate_notification','accept_notification'));
+        $twillotemplate = TwilloTemplate::where('templatestatus','approved')->get(['templatename','contentsid']);
+
+
+        return view('sales-orders-status.edit', compact('moduleName', 'statuses', 'colours', 'roles', 's', 'maxTriggers', 'statusesOnlyForShow','allocate_notification','accept_notification','twillotemplate'));
     }
 
     public function update(Request $request) {
@@ -2265,26 +2268,26 @@ class SalesOrderStatusController extends Controller
         $updatestatus = false;
         if(isset($request->allocate_notification)) {
             if(TwilloMessageNotification::where(['status_id'=>1,"responsibale_user_type"=>1])->count() > 0) {
-                TwilloMessageNotification::where(['status_id'=>1,"responsibale_user_type"=>1])->update(['message'=>$request->allocate_notification,'updated_by'=>auth()->user()->id]);
+                TwilloMessageNotification::where(['status_id'=>1,"responsibale_user_type"=>1])->update(['template_id'=>$request->allocate_notification,'updated_by'=>auth()->user()->id]);
                 $updatestatus = true;
             } else {
                 TwilloMessageNotification::create([
                     'status_id' => 1,
                     'responsibale_user_type' => 1,
-                    'message' => $request->allocate_notification,
+                    'template_id' => $request->allocate_notification,
                     'added_by' => auth()->user()->id
                 ]);
             }
         }
         if(isset($request->accept_notification)) {
             if(TwilloMessageNotification::where(['status_id'=>1,"responsibale_user_type"=>2])->count() > 0) {
-                TwilloMessageNotification::where(['status_id'=>1,"responsibale_user_type"=>2])->update(['message'=>$request->accept_notification,'updated_by'=>auth()->user()->id]);
+                TwilloMessageNotification::where(['status_id'=>1,"responsibale_user_type"=>2])->update(['template_id'=>$request->accept_notification,'updated_by'=>auth()->user()->id]);
                 $updatestatus = true;
             } else {
                 TwilloMessageNotification::create([
                     'status_id' => 1,
                     'responsibale_user_type' => 2,
-                    'message' => $request->accept_notification,
+                    'template_id' => $request->accept_notification,
                     'added_by' => auth()->user()->id
                 ]);
             }

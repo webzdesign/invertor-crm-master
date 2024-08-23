@@ -31,7 +31,8 @@ class SettingController extends Controller
             'gsheetid' => 'required',
             'twilioAccountSid' => 'required',
             'twilioAuthToken' => 'required',
-            'twilioUrl' => 'required'
+            'twilioUrl' => 'required',
+            'twilloTemplateUrl' => 'required'
         ],[
             'name.required' => 'Name is required',
             'logo.file' => 'Upload a valid image file.',
@@ -46,7 +47,8 @@ class SettingController extends Controller
             'gsheetid.required' => 'Enter google sheet id',
             'twilioAccountSid' => 'Twilio account id is required',
             'twilioAuthToken' => 'Twilio auth token is required',
-            'twilioUrl' => 'Twilio url is required'
+            'twilioUrl' => 'Twilio url is required',
+            'twilloTemplateUrl' => 'Twilio template url is required'
         ]);
 
         if (!file_exists(public_path('assets/images'))) {
@@ -95,6 +97,7 @@ class SettingController extends Controller
             $settings->twilioAccountSid = $request->twilioAccountSid;
             $settings->twilioAuthToken = $request->twilioAuthToken;
             $settings->twilioUrl = $request->twilioUrl;
+            $settings->twilloTemplateUrl = $request->twilloTemplateUrl;
             $settings->twilioFromNumber = $request->twilioFromNumber;
             $settings->save();
 

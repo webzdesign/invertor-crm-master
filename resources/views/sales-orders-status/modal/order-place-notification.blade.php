@@ -19,13 +19,29 @@
                         <div class="col-12 mb-2">
                             <div class="form-group">
                                 <label class="c-gr f-500 f-12 w-100 mb-2"> ORDER ALLOCATE NOTIFICATION TO DRIVER : <span class="text-danger">*</span> </label>
-                                <textarea class="form-control h-25" name="allocate_notification" id="allocate_notification">{{$allocate_notification}}</textarea>
+                                <select name="allocate_notification" id="allocate_notification" class="select2-hidden-accessible">
+                                    <option value=""></option>
+                                    @if(!empty($twillotemplate))
+                                        @foreach($twillotemplate as $template)
+                                        <option value="{{$template->contentsid}}" @if($allocate_notification == $template->contentsid) selected @endif>{{$template->templatename}}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                                {{-- <textarea class="form-control h-25" name="allocate_notification" id="allocate_notification">{{$allocate_notification}}</textarea> --}}
                             </div>
                         </div>
                         <div class="col-12 mb-2">
                             <div class="form-group">
                                 <label class="c-gr f-500 f-12 w-100 mb-2"> ORDER ACCEPT NOTIFICATION TO SELLER : <span class="text-danger">*</span> </label>
-                                <textarea class="form-control h-25" name="accept_notification" id="accept_notification">{{$accept_notification}}</textarea>
+                                {{-- <textarea class="form-control h-25" name="accept_notification" id="accept_notification">{{$accept_notification}}</textarea> --}}
+                                <select name="accept_notification" id="accept_notification" class="select2-hidden-accessible">
+                                    <option value=""></option>
+                                    @if(!empty($twillotemplate))
+                                        @foreach($twillotemplate as $template)
+                                        <option value="{{$template->contentsid}}" @if($accept_notification == $template->contentsid) selected @endif>{{$template->templatename}}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
                             </div>
                         </div>
                     </div>

@@ -446,18 +446,18 @@ class Helper {
 
                     $twilioAccountSid = $setting->twilioAccountSid;
                     $twilioAuthToken = $setting->twilioAuthToken;
-                    $url = "{$setting->twilioUrl}" . $twilioAccountSid . "/Messages.json";
+                    $url = "{$setting->twilioUrl}/" . $twilioAccountSid . "/Messages.json";
 
                     $notification = TwilloMessageNotification::where('responsibale_user_type',$type)->where('status_id',$statusid)->first();
 
                     if(!empty($notification)) {
                         foreach($tonumber as $touserid=>$tophone) {
                             if($tophone !="") {
-                                $to = 'whatsapp:+918160213921';
-                                // $to = "whatsapp:+{$tophone}";
+                                // $to = 'whatsapp:+918160213921';
+                                $to = "whatsapp:+{$tophone}";
                                 $from = "whatsapp:{$setting->twilioFromNumber}";
 
-                                $body = $notification->message;
+                                $ContentSid = $notification->template_id;
 
                                 $ch = curl_init($url);
 
@@ -469,7 +469,7 @@ class Helper {
                                 curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
                                     'To' => $to,
                                     'From' => $from,
-                                    'Body' => $body
+                                    'ContentSid' => $ContentSid
                                 ]));
 
                                 $response = curl_exec($ch);
