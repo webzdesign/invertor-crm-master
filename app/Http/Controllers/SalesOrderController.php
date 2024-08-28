@@ -478,8 +478,6 @@ class SalesOrderController extends Controller
                     foreach ($users as $row) {
                         $getAllDriversDistance[$row['id']] = Distance::measure($latFrom, $longFrom, $row['lat'], $row['long']);
                     }
-
-
                     asort($getAllDriversDistance);
 
                     $result = self::getDriver($getAllDriversDistance);
@@ -499,6 +497,7 @@ class SalesOrderController extends Controller
                                 // break;
                             }
                         }
+
                         if(!empty($successdrivers)) {
                             $getNearbyDriver = $successdrivers;
                             $driverids = array_keys($getNearbyDriver);
@@ -543,6 +542,11 @@ class SalesOrderController extends Controller
                 $paymentForDelivery = PaymentForDelivery::where('driver_id', $driverid)->where('distance', '>=', $driverdetials);
                 if($paymentForDelivery->exists()) {
                     $successDrivers[$driverid] = $driverdetials;
+                } else {
+                    $avaragepaymentForDelivery = PaymentForDelivery::where(fn ($b) => $b->whereNull('driver_id')->orWhere('driver_id', ''))->where('distance', '>=', $driverdetials);
+                    if($avaragepaymentForDelivery->exists()){
+                        $successDrivers[$driverid] = $driverdetials;
+                    }
                 }
             }
         }
