@@ -455,10 +455,14 @@ class Helper {
 
                         foreach($tonumber as $touserid=>$tophone) {
                             if($tophone !="") {
+                                $salesorders = SalesOrder::where('id',$order_id)->first();
                                 // $to = 'whatsapp:+918160213921';
                                 $tophone = str_replace(' ','',$tophone);
                                 $to = "whatsapp:+{$tophone}";
                                 $from = "whatsapp:{$setting->twilioFromNumber}";
+                                $contentVariables = json_encode([
+                                    "1" => $salesorders->customer_postal_code ?? '',
+                                ]);
 
                                 $ContentSid = $notification->template_id;
 
@@ -472,11 +476,13 @@ class Helper {
                                 curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
                                     'To' => $to,
                                     'From' => $from,
-                                    'ContentSid' => $ContentSid
+                                    'ContentSid' => $ContentSid,
+                                    "contentVariables" => $contentVariables
                                 ]));
 
                                 $response = curl_exec($ch);
                                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                            
                                 if (curl_errno($ch)) {
                                     $error['Error'] = curl_error($ch);
                                     TwilloNotificationHistory::create([
