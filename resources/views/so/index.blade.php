@@ -164,6 +164,7 @@
 </div>
 @endsection
 <div class="cards">
+    @permission("sales-orders.accessfilter")
     <div class="row m-0 filterColumn">
         @php
         $isFilter = 0;
@@ -268,6 +269,7 @@
             </div>
         </div>
     </div>
+    @endpermission
     <table class="datatables-po table datatableMain" style="width: 100%!important;">
         <thead>
             <tr>
@@ -280,6 +282,10 @@
                 <th>Product</th>
                 <th style="width: 3%!important;">Quantity</th>
                 <th style="width: 3%!important;">Order Amount</th>
+                <th>Customer Name</th>
+                <th>Customer Phone Number</th>
+                <th>Customer Address</th>
+                <th>Customer Facebook Link</th>
                 {{-- @if(in_array(1, User::getUserRoles()) || in_array(3, User::getUserRoles())) --}}
                 <th>Added By</th>
                 {{-- @endif --}}
@@ -393,6 +399,10 @@
                     data: 'DT_RowIndex',
                     orderable: false,
                     searchable: false,
+                    // className: "table-cell-edit",
+                    // 'render': function ( data, type, row ) {
+                    //     return "<span>"+DT_RowIndex+"</span>";
+                    // },
                 },
                 {
                     data: 'order_no',
@@ -419,6 +429,21 @@
                 },
                 {
                     data: 'total',
+                },
+                {
+                    data: 'customer_name',
+                },
+                {
+                    data: 'customer_phone',
+
+                },
+                {
+                    data: 'customer_address_line_1',
+                },
+                {
+                    data: 'customer_facebook',
+                    orderable: false,
+                    searchable: false,
                 },
                 {
                     data: 'addedby.name',
@@ -448,6 +473,9 @@
                     searchable: false,
                 }
             ],
+            createdRow: function ( row, data, index ) {
+                $('td', row).eq(0).attr('style','background-color:'+data['statuscolor']);
+            },
             drawCallback: function () {
                 $('#validateDriver').validate({
                     rules: {

@@ -100,6 +100,7 @@ class SalesOrderController extends Controller
         }
         $orderClosedWinStatus = SalesOrderStatus::where('slug', 'closed-win')->first()->id ?? 0;
         $allStatuses = SalesOrderStatus::active()->select('id', 'name', 'color')->get();
+        $allStatusesWithColor = SalesOrderStatus::select('id', 'color')->pluck('color','id')->toArray();
 
         return dataTables()->eloquent($po)
             ->addColumn('total', fn ($row) => $row->price_matched ? ('£' . ($row->sold_amount + $row->driver_amount)) : ('£' . ($row->total())))
@@ -178,7 +179,7 @@ class SalesOrderController extends Controller
 
                             $html =
                             '<div class="status-main button-dropdown position-relative">
-                                <label class="status-label" style="background:' . ($row->ostatus->color ?? '') . ';color:' . (Helper::generateTextColor($row->ostatus->color ?? '')) . ';"> ' . ($row->ostatus->name ?? '') . ' </label>
+                                <label class="status-label dropdown-toggle" style="background:' . ($row->ostatus->color ?? '') . ';color:' . (Helper::generateTextColor($row->ostatus->color ?? '')) . ';"> ' . ($row->ostatus->name ?? '') . ' </label>
                                 <button type="button" class="dropdown-toggle status-opener ms-2 d-inline-flex align-items-center justify-content-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 20 19" fill="none">
                                     <path d="M0.998047 14.613V18.456H4.84105L16.175 7.12403L12.332 3.28103L0.998047 14.613ZM19.147 4.15203C19.242 4.05721 19.3174 3.94458 19.3688 3.82061C19.4202 3.69664 19.4466 3.56374 19.4466 3.42953C19.4466 3.29533 19.4202 3.16243 19.3688 3.03846C19.3174 2.91449 19.242 2.80186 19.147 2.70703L16.747 0.307035C16.6522 0.212063 16.5396 0.136719 16.4156 0.0853128C16.2916 0.0339065 16.1588 0.00744629 16.0245 0.00744629C15.8903 0.00744629 15.7574 0.0339065 15.6335 0.0853128C15.5095 0.136719 15.3969 0.212063 15.302 0.307035L13.428 2.18403L17.271 6.02703L19.147 4.15203Z" fill="#3C3E42"/>
@@ -331,7 +332,30 @@ class SalesOrderController extends Controller
                     return '-';
                 }
             })
-            ->rawColumns(['action', 'postalcode', 'addedby.name', 'updatedby.name', 'option', 'order_no', 'note','assigneddriver.range', 'allocated_to'])
+            ->addColumn('statuscolor', function ($row) use ($allStatusesWithColor){
+                return (isset($allStatusesWithColor[$row->status])) ? $allStatusesWithColor[$row->status] : '';
+            })
+            ->addColumn('telephone', function($row) {
+                if(isset($row->customer_phone) && $row->customer_phone !="") {
+                    return '<a href="tel:'.(isset($row->country_dial_code) ? '+'.$row->country_dial_code:"").str_replace(' ','',$row->customer_phone).'"><i class="fa fa-phone" aria-hidden="true"></i></a>';
+                }
+            })
+            ->editColumn('customer_phone', function($row) {
+                if(isset($row->customer_phone) && $row->customer_phone !="") {
+                    return '<a href="tel:'.(isset($row->country_dial_code) ? '+'.$row->country_dial_code:"").str_replace(' ','',$row->customer_phone).'">'.(isset($row->country_dial_code) ? '+'.$row->country_dial_code:"").str_replace(' ','',$row->customer_phone).'</a>';
+                }else {
+                    return '-';
+                }
+            })
+            ->editColumn('customer_facebook', function($row) {
+                if(isset($row->customer_facebook) && $row->customer_facebook !="") {
+                    return '<a href="'.$row->customer_facebook.'" target="_blank"><i class="fa fa-facebook-official" aria-hidden="true" style="font-size:30px;"></i></a>';
+                } else {
+                    return '-';
+                }
+            })
+
+            ->rawColumns(['action', 'postalcode', 'addedby.name', 'updatedby.name', 'option', 'order_no', 'note','assigneddriver.range', 'allocated_to','customer_phone','customer_facebook','telephone'])
             ->addIndexColumn()
             ->make(true);
     }
