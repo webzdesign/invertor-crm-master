@@ -278,7 +278,7 @@
     <table class="datatables-po table datatableMain" style="width: 100%!important;">
         <thead>
             <tr>
-                <th style="width: 10%!important;">Sr No.</th>
+                <th style="width: 8%!important;">Sr No.</th>
                 <th>Order No.</th>
                 <th style="width: 5%!important;">Postal Code</th>
                 @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))
