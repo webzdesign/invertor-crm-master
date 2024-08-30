@@ -337,8 +337,72 @@ class SalesOrderController extends Controller
             })
             ->addColumn('telephone', function($row) {
                 if(isset($row->customer_phone) && $row->customer_phone !="") {
-                    return '<a href="tel:'.(isset($row->country_dial_code) ? '+'.$row->country_dial_code:"").str_replace(' ','',$row->customer_phone).'"><i class="fa fa-phone" aria-hidden="true"></i></a>';
+                    return '<a href="tel:'.(isset($row->country_dial_code) ? '+'.$row->country_dial_code:"").str_replace(' ','',$row->customer_phone).'" style="color:#000000"><i class="fa fa-phone" aria-hidden="true"></i></a>';
                 }
+            })
+            ->addColumn('fastedit', function($row) use ($allStatuses){
+                $html = "";
+
+                $cwStatus = SalesOrderStatus::select('id')->where('slug', 'closed-win')->first()->id ?? 0;
+
+                if ($row->status != '1') {
+
+                    $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
+                    $allStatuses = SalesOrderStatus::active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
+
+                    if (User::isAdmin() || (!empty($row->responsible_user) && is_numeric($row->responsible_user) && $row->responsible_user == auth()->user()->id)) {
+                        if (count($allStatuses) > 0) {
+                            $html =
+                            '<span class="dropdown-toggle status-opener d-inline-flex align-items-center justify-content-center indexorderchange">
+                                    <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                                </span>
+                                <div class="dropdown-menu status-modal">
+                                    <label class="c-gr f-500 f-14 w-100 mb-2"> STATUS : <span class="text-danger">*</span></label>
+                                    <div class="status-dropdown">';
+
+                                    foreach ($allStatuses as $k => $status) {
+                                        if ($k == 0) {
+                                        $html .= '<button type="button" data-sid="' . $status->id . '" data-oid="' . $row->id . '" style="background:' . $status->color . ';color:' . Helper::generateTextColor($status->color) . ';" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
+                                            <span>' . $status->name . '</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
+                                                <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
+                                            </svg>
+                                        </button>';
+                                        }
+                                    }
+
+                                        $html .= '<div class="status-dropdown-menu">';
+
+                                        foreach ($allStatuses as $status) {
+                                            $html .= '<div class="f-14 cursor-pointer" data-cwstatus="' . $cwStatus . '" data-onumber="' . $row->order_no . '" data-isajax="true" style="background: '. $status->color .';color:' . Helper::generateTextColor($status->color) . ';" data-sid="' . $status->id . '" data-oid="' . $row->id . '" > '. $status->name .' </div>';
+                                        }
+
+                                        $html .= '</div>
+                                    </div>
+
+                                    <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> COMMENT : <span class="text-danger">*</span></label>
+                                    <textarea id="cs-txtar" placeholder="Add a comment" class="form-control" style="height:60px;"> </textarea>
+                                    <label class="cmnt-er-lbl f-12 d-none text-danger"> Add comment to change status </label>
+
+                                    <div class="form-group closedwin-statusupdate">
+                                        <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> FINAL SALES PRICE : <span class="text-danger">*</span></label>
+                                        <input type="text" id="cs-fsp" class="form-control" />
+                                        <label class="fsp-er-lbl f-12 d-none text-danger"> </label>
+
+                                        <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> PRICE CHANGE PROOF : </label>
+                                        <input type="file" multiple id="cs-pcp" class="form-control" />
+                                        <label class="pcp-er-lbl f-12 d-none text-danger"> </label>
+                                    </div>
+
+                                    <div class="status-action-btn mt-2 position-relative -z-1">
+                                        <button data-cwstatus="' . $cwStatus . '" class="status-save-btn btn-primary f-500 f-14 d-inline-block" disabled type="button"> Save </button>
+                                        <button class="refresh-dt hide-dropdown btn-default f-500 f-14 d-inline-block ms-1" type="button"> Cancel </button>
+                                    </div>
+                                </div>';
+                        }
+                    }
+                }
+                return $html;
             })
             ->editColumn('customer_phone', function($row) {
                 if(isset($row->customer_phone) && $row->customer_phone !="") {
@@ -354,9 +418,9 @@ class SalesOrderController extends Controller
                     return '-';
                 }
             })
-
-            ->rawColumns(['action', 'postalcode', 'addedby.name', 'updatedby.name', 'option', 'order_no', 'note','assigneddriver.range', 'allocated_to','customer_phone','customer_facebook','telephone'])
             ->addIndexColumn()
+
+            ->rawColumns(['action', 'postalcode', 'addedby.name', 'updatedby.name', 'option', 'order_no', 'note','assigneddriver.range', 'allocated_to','customer_phone','customer_facebook','telephone','fastedit'])
             ->make(true);
     }
 

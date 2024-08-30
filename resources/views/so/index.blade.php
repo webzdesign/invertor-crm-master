@@ -138,7 +138,12 @@
     span.drivertitle {
         cursor: pointer;
     }
-
+    span.indexorderchange,span.indexorderchange:hover {
+        background: inherit;
+        border: 0px;
+        color: #000000;
+        cursor: pointer;
+}
 </style>
 @endsection
 
@@ -273,7 +278,7 @@
     <table class="datatables-po table datatableMain" style="width: 100%!important;">
         <thead>
             <tr>
-                <th>Sr No.</th>
+                <th style="width: 10%!important;">Sr No.</th>
                 <th>Order No.</th>
                 <th style="width: 5%!important;">Postal Code</th>
                 @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))
@@ -397,12 +402,14 @@
             },
             columns: [{
                     data: 'DT_RowIndex',
+                    // name:'DT_RowIndex',
                     orderable: false,
                     searchable: false,
                     // className: "table-cell-edit",
-                    // 'render': function ( data, type, row ) {
-                    //     return "<span>"+DT_RowIndex+"</span>";
-                    // },
+                    'render': function ( data, type, row , meta) {
+                        var index = +meta.row + +1;
+                        return  '<div class="status-main button-dropdown position-relative">'+index+' '+row['telephone']+row['fastedit']+'</div>';
+                    },
                 },
                 {
                     data: 'order_no',
@@ -475,6 +482,7 @@
             ],
             createdRow: function ( row, data, index ) {
                 $('td', row).eq(0).attr('style','background-color:'+data['statuscolor']);
+                // $('td', row).eq(0).html(+index + +1 +' '+data['telephone']);
             },
             drawCallback: function () {
                 $('#validateDriver').validate({
