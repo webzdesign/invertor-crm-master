@@ -275,6 +275,7 @@
         </div>
     </div>
     @endif
+    <div  class="table-responsive">
     <table class="datatables-po table datatableMain" style="width: 100%!important;">
         <thead>
             <tr>
@@ -305,6 +306,7 @@
         <tbody>
         </tbody>
     </table>
+    </div>
 </div>
 
 @include('so.modal.confirm-order')
@@ -322,6 +324,8 @@
 <script src="{{ asset('assets/js/responsive.bootstrap5.js') }}"></script>
 <script>
     $(document).ready(function() {
+
+
         $('#filterFrom').click(function(){
             $('#filterFrom').datepicker('show');
         })
@@ -355,7 +359,7 @@
             },
             processing: true,
             serverSide: true,
-            responsive: true,
+            // responsive: true,
             language: {
                 search: "_INPUT_",
                 searchPlaceholder: "Search here"
