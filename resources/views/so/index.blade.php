@@ -169,7 +169,7 @@
 </div>
 @endsection
 <div class="cards">
-    {{-- @permission("sales-orders.accessfilter") --}}
+    @if(auth()->user()->hasPermission("sales-orders.accessfilter"))
     <div class="row m-0 filterColumn">
         @php
         $isFilter = 0;
@@ -274,7 +274,7 @@
             </div>
         </div>
     </div>
-    {{-- @endpermission --}}
+    @endif
     <table class="datatables-po table datatableMain" style="width: 100%!important;">
         <thead>
             <tr>

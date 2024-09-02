@@ -78,6 +78,7 @@ class PermissionSeeder extends Seeder
             // ['name' => 'Edit sales orders', 'slug' => 'sales-orders.edit', 'model' => 'SalesOrder', 'description' => 'Can edit sales orders', 'added_by' => 1],
             ['name' => 'View sales orders', 'slug' => 'sales-orders.view', 'model' => 'SalesOrder', 'description' => 'Can view sales orders', 'added_by' => 1],
             ['name' => 'Delete sales orders', 'slug' => 'sales-orders.delete', 'model' => 'SalesOrder', 'description' => 'Can delete sales orders', 'added_by' => 1],
+            ['name' => 'Access to the filter', 'slug' => 'sales-orders.accessfilter', 'model' => 'SalesOrder', 'description' => 'Can access filter sales orders', 'added_by' => 1],
 
             ['name' => 'Add sales order status', 'slug' => 'sales-order-status.create', 'model' => 'SalesOrderStatus', 'description' => 'Can add sales order status', 'added_by' => 1],
             ['name' => 'Edit sales order status', 'slug' => 'sales-order-status.edit', 'model' => 'SalesOrderStatus', 'description' => 'Can edit sales order status', 'added_by' => 1],
@@ -107,7 +108,7 @@ class PermissionSeeder extends Seeder
             }
 
             $toBeDeleted[] = Permission::firstOrCreate(['slug' => $permission['slug']], $permission)->id;
-            
+
         }
 
         if (!empty($toBeDeleted)) {
