@@ -522,6 +522,17 @@
             ServerDataTable.search($(this).val()).draw();
         });
 
+        var pusher = new Pusher("{{ env('PUSHER_APP_KEY') }}", {
+            cluster: "{{ env('PUSHER_APP_CLUSTER') }}",
+            encrypted: true
+        });
+
+        var channel = pusher.subscribe('card-trigger');
+        channel.bind('order-status-change', function(data) {
+            if ($.inArray("{{ auth()->user()->id }}", data.users) === -1) {
+                ServerDataTable.ajax.reload();
+            }
+        });
 
         /** Order History **/
 

@@ -95,7 +95,9 @@ class StatusTrigger extends Command
             if($notificationdriverid !="") {
                 $driverphonenumber = [];
                 $notificationdrivers = User::find($notificationdriverid);
-                $driverphonenumber[$notificationdrivers->id] = $notificationdrivers->country_dial_code.$notificationdrivers->phone;
+                if(!empty($notificationdrivers)) {
+                    $driverphonenumber[$notificationdrivers->id] = $notificationdrivers->country_dial_code.$notificationdrivers->phone;
+                }
                 if(!empty($driverphonenumber)) {
                     Helper::sendTwilioMsg($driverphonenumber,$newStatus,1,$salesOrder->id);
                 }
@@ -104,7 +106,9 @@ class StatusTrigger extends Command
             if($notificationsellerid !="") {
                 $sellerphonenumber = [];
                 $notificationsellers = User::find($notificationsellerid);
-                $sellerphonenumber[$notificationsellers->id] = $notificationsellers->country_dial_code.$notificationsellers->phone;
+                if(!empty($notificationsellers)) {
+                    $sellerphonenumber[$notificationsellers->id] = $notificationsellers->country_dial_code.$notificationsellers->phone;
+                }
                 if(!empty($sellerphonenumber)) {
                     Helper::sendTwilioMsg($sellerphonenumber,$newStatus,2,$salesOrder->id);
                 }
@@ -308,7 +312,9 @@ class StatusTrigger extends Command
                             'description' => 'Order <strong>' . $salesorderInfo->order_no . '</strong> is allocated to you please check the order.',
                             'link' => 'sales-orders'
                         ]);
+
                         $driverphonenumber[$driverDetail->id] = $driverDetail->country_dial_code.$driverDetail->phone;
+
                         event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $driverid, 'content' => "Order {$salesorderInfo->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
                     }
 

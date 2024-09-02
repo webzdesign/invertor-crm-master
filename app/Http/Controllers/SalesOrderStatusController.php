@@ -302,10 +302,13 @@ class SalesOrderStatusController extends Controller
             $disOrder = SalesOrder::where('id', $request->order)->first();
 
             $notificationdriverid = $disOrder->assigneddriver->user_id ?? null;
+
             if($notificationdriverid !="") {
                 $driverphonenumber = [];
                 $notificationdrivers = User::find($notificationdriverid);
-                $driverphonenumber[$notificationdrivers->id] =  $notificationdrivers->country_dial_code.$notificationdrivers->phone;
+                if(!empty($notificationdrivers)) {
+                    $driverphonenumber[$notificationdrivers->id] =  $notificationdrivers->country_dial_code.$notificationdrivers->phone;
+                }
                 if(!empty($driverphonenumber)) {
                     Helper::sendTwilioMsg($driverphonenumber,$request->status,1,$disOrder->id);
                 }
@@ -314,7 +317,9 @@ class SalesOrderStatusController extends Controller
             if($notificationsellerid !="") {
                 $sellerphonenumber = [];
                 $notificationsellers = User::find($notificationsellerid);
-                $sellerphonenumber[$notificationsellers->id] = $notificationsellers->country_dial_code.$notificationsellers->phone;
+                if(!empty($notificationsellers)) {
+                    $sellerphonenumber[$notificationsellers->id] = $notificationsellers->country_dial_code.$notificationsellers->phone;
+                }
                 if(!empty($sellerphonenumber)) {
                     Helper::sendTwilioMsg($sellerphonenumber,$request->status,2,$disOrder->id);
                 }
@@ -1172,7 +1177,10 @@ class SalesOrderStatusController extends Controller
                         if($notificationdriverid !="") {
                             $driverphonenumber = [];
                             $notificationdrivers = User::find($notificationdriverid);
-                            $driverphonenumber[$notificationdrivers->id] = $notificationdrivers->country_dial_code.$notificationdrivers->phone;
+                            if(!empty($notificationdrivers)) {
+                                $driverphonenumber[$notificationdrivers->id] = $notificationdrivers->country_dial_code.$notificationdrivers->phone;
+                            }
+
                             if(!empty($driverphonenumber)) {
                                 Helper::sendTwilioMsg($driverphonenumber,$request->status,1,$disOrder->id);
                             }
@@ -1181,7 +1189,9 @@ class SalesOrderStatusController extends Controller
                         if($notificationsellerid !="") {
                             $sellerphonenumber = [];
                             $notificationsellers = User::find($notificationsellerid);
-                            $sellerphonenumber[$notificationsellers->id] = $notificationsellers->country_dial_code.$notificationsellers->phone;
+                            if(!empty($notificationsellers)) {
+                                $sellerphonenumber[$notificationsellers->id] = $notificationsellers->country_dial_code.$notificationsellers->phone;
+                            }
                             if(!empty($sellerphonenumber)) {
                                 Helper::sendTwilioMsg($sellerphonenumber,$request->status,2,$disOrder->id);
                             }
