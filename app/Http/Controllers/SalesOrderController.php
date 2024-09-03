@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{Category, User, Wallet, Bonus, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger, ManageStatus, DriverWallet};
 use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ChangeOrderStatusTrigger, SalesOrderProofImages};
-use App\Models\{PaymentForDelivery, Transaction, TriggerLog, SalesOrderUserFilter, Notification};
+use App\Models\{PaymentForDelivery, Transaction, TriggerLog, SalesOrderUserFilter, Notification, Role};
 use App\Helpers\{Helper, Distance};
 use App\Models\ScammerContact;
 use Illuminate\Support\Facades\DB;
@@ -18,13 +18,28 @@ class SalesOrderController extends Controller
     public function index(Request $request)
     {
         if (!$request->ajax()) {
+            $UserRoles = auth()->user()->roles->pluck('id')->toArray();
+            $roles = Role::whereIn('id',$UserRoles)->get();
+            $filterstatus = [];
+            if(!empty($roles)) {
+                foreach($roles as $role) {
+                    if(isset($role->filter_status) && $role->filter_status != null && $role->filter_status !="") {
+                        $filterstatus = explode(',',$role->filter_status);
+                    }
+                }
+            }
+            $filterstatus = array_unique($filterstatus);
 
             $moduleName = $this->moduleName;
             $filterSelectedData = (isset(SalesOrderUserFilter::where('user_id',auth()->user()->id)->first()?->filters)) ? json_decode(SalesOrderUserFilter::where('user_id',auth()->user()->id)->first()?->filters) : [];
 
             $sellers = User::whereHas('role', fn ($builder) => ($builder->whereIn('roles.id', [2, 6])))->selectRaw("CONCAT(name, ' - (', email, ')') as name, users.id as id")->pluck('name', 'id')->toArray();
             $drivers = User::whereHas('role', fn ($builder) => ($builder->where('roles.id', [3])))->selectRaw("CONCAT(name, ' - (', email, ')') as name, users.id, users.lat, users.long")->get()->toArray();
-            $statuses = SalesOrderStatus::select('name', 'id')->pluck('name', 'id')->toArray();
+            $statuses = SalesOrderStatus::select('name', 'id');
+            if(!in_array(1,$UserRoles)) {
+                $statuses->whereIn('id',$filterstatus);
+            }
+            $statuses = $statuses->pluck('name', 'id')->toArray();
             $products = Product::select('name', 'id')->pluck('name', 'id')->toArray();
 
             return view('so.index', compact('moduleName', 'sellers', 'drivers', 'statuses', 'products','filterSelectedData'));

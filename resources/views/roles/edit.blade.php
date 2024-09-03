@@ -8,7 +8,7 @@
 @endsection
 @section('css')
 <style>
-    #assign-role{
+    #assign-role,#access-order-status{
         cursor: pointer;
     }
 
@@ -75,11 +75,12 @@
                                                         {{ Helper::spaceBeforeCap($v->model) }}
                                                     </label>
                                                     @if($v->model == 'User') <div id="assign-role" ><i class="fa fa-lock"></i> Assign Role</div> @endif
+                                                    @if($v->model == 'SalesOrder') <div id="access-order-status" ><i class="fa fa-lock"></i> Access Order Status</div> @endif
                                                 </div>
                                             </li>
                                         @endif
                                         <li class="form-check">
-                                            <input type="checkbox" class="form-check-input permission @if($v->model == 'User') user-checked-box @endif" name="permission[]" id="{{ $v->id }}" value="{{ $v->id }}" aria-label="..." @if(in_array($v->id,$rolePermissions)) checked @endif>
+                                            <input type="checkbox" class="form-check-input permission @if($v->model == 'User') user-checked-box @endif @if($v->model == 'SalesOrder' && $v->slug=='sales-orders.accessfilter') access-filter-checked-box @endif" name="permission[]" id="{{ $v->id }}" value="{{ $v->id }}" aria-label="..." @if(in_array($v->id,$rolePermissions)) checked @endif>
                                             <label for="{{ $v->id }}" class="form-check-label mb-0 f-14 f-500 aside-input-checbox">{{ $v->name }}</label>
                                         </li>
                                     @endforeach
@@ -104,6 +105,30 @@
                                 <li class="ml-2 form-check">
                                     <input type="checkbox" class="form-check-input role-premission" name="assign_role_id[]" id="assign_role_id{{ $dataId }}" value="{{ $dataId }}" aria-label="..." @if(in_array($dataId, $userassignrole)) checked @endif >
                                     <label for="assign_role_id{{ $dataId }}" class="form-check-label mb-0 f-14 f-500 aside-input-checbox">{{ $roledata }}</label>
+                                </li>
+                                @endforeach
+                            @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="access-order-status-modal" tabindex="-1" aria-labelledby="role-permission-moda" aria-modal="true" role="dialog">
+            <div class="modal-dialog modal-lg modal-dialog-centered" style="max-width: 700px;">
+                <div class="modal-content">
+                    <div class="modal-header py-2">
+                        <h6 class="modal-title" id="role-permissionTitle"> Assign Access Filter For Sales Orders</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body pb-3">
+                        <div class="row" id="role-permission-content">
+                            <div class="col-md-12">
+                            @if(!empty($statuses))
+                                @foreach($statuses as $statusId=>$statusdata)
+                                <li class="ml-2 form-check">
+                                    <input type="checkbox" class="form-check-input order-status-filter-premission" name="access_order_status_id[]" id="access_order_status_id{{ $statusId }}" value="{{ $statusId }}" aria-label="..." @if(in_array($statusId, $roleaccessfilter)) checked @endif>
+                                    <label for="access_order_status_id{{ $statusId }}" class="form-check-label mb-0 f-14 f-500 aside-input-checbox">{{ $statusdata }}</label>
                                 </li>
                                 @endforeach
                             @endif
@@ -189,6 +214,18 @@ $(document).ready(function(){
 
                 return false;
             }
+            if($('.access-filter-checked-box:checkbox:checked').length > 0 && $('.order-status-filter-premission:checkbox:checked').length < 1){
+                Swal.fire({
+                    title: 'Please select at least one access filter for sales order.',
+                    text: "",
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'Ok'
+                }).then((result) => {
+                    $('#access-order-status').trigger('click');
+                });
+
+                return false;
+            }
             $('button[type="submit"]').attr('disabled', true);
             if(!this.beenSubmitted) {
                 this.beenSubmitted = true;
@@ -203,6 +240,19 @@ $(document).on('click', '#assign-role', function(e) {
     } else {
         Swal.fire({
             title: 'Please select at least one role for user.',
+            text: "",
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Ok'
+        });
+    }
+
+});
+$(document).on('click', '#access-order-status', function(e) {
+    if($('.access-filter-checked-box:checkbox:checked').length > 0) {
+        $('#access-order-status-modal').modal('show');
+    } else {
+        Swal.fire({
+            title: 'Please choose the access to the filter option within the sales orders.',
             text: "",
             confirmButtonColor: '#d33',
             confirmButtonText: 'Ok'

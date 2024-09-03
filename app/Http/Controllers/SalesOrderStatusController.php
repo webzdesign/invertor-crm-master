@@ -126,6 +126,10 @@ class SalesOrderStatusController extends Controller
                             'color' => isset($colors[$key]) ? $colors[$key] : '#bfbfbf',
                             'sequence' => $key + 1
                         ]);
+                        $salesordersstatus = SalesOrderStatus::pluck('id')->toArray();
+                        if(!empty($salesordersstatus)) {
+                            Role::where('slug','admin')->update(['filter_status'=>implode(',',$salesordersstatus)]);
+                        }
                     }
                 }
 
@@ -1657,6 +1661,11 @@ class SalesOrderStatusController extends Controller
                 ManageStatus::where('status_id', $status)->delete();
                 SalesOrderStatus::custom()->where('id', $status)->delete();
 
+                $salesordersstatus = SalesOrderStatus::pluck('id')->toArray();
+                if(!empty($salesordersstatus)) {
+                    Role::where('slug','admin')->update(['filter_status'=>implode(',',$salesordersstatus)]);
+                }
+                
                 foreach (ManageStatus::orWhereRaw('FIND_IN_SET(?, possible_status)', [$status])->get() as $s) {
                     $arr = $s->ps;
 

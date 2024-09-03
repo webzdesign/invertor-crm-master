@@ -13,6 +13,7 @@ use App\Models\UserRole;
 use App\Helpers\Helper;
 use App\Models\Role;
 use App\Models\UserAssignRole;
+use App\Models\SalesOrderStatus;
 
 class RoleController extends Controller
 {
@@ -63,7 +64,7 @@ class RoleController extends Controller
                         $action .= '
                         <div class="tableCards d-inline-block me-1 pb-0">
                             <div class="editDlbtn">
-                                <a data-bs-toggle="tooltip" class="editBtn modal-edit-btn" title="Required document for registration" href="' . (route('set-required-documents', encrypt($variable->id))) . '"> 
+                                <a data-bs-toggle="tooltip" class="editBtn modal-edit-btn" title="Required document for registration" href="' . (route('set-required-documents', encrypt($variable->id))) . '">
                                     <i class="fa fa-file-text text-white" aria-hidden="true"></i>
                                 </a>
                             </div>
@@ -131,9 +132,10 @@ class RoleController extends Controller
             $permission = Permission::whereIn('id', $permission)->get()->groupBy('model');
         }
         $roleDetails = Role::active()->where('id', '!=', '4')->pluck('name','id')->toArray();
+        $statuses = SalesOrderStatus::select('name', 'id')->pluck('name', 'id')->toArray();
         $userassignrole = array();
 
-        return view('roles.create', compact('moduleName', 'permission','moduleLink','roleDetails','userassignrole'));
+        return view('roles.create', compact('moduleName', 'permission','moduleLink','roleDetails','userassignrole','statuses'));
     }
 
     public function store(RoleRequest $request)
@@ -151,6 +153,7 @@ class RoleController extends Controller
         $role->description = $request->description;
         $role->added_by = auth()->User()->id;
         $role->is_user_activation = $request->is_user_activation;
+        $role->filter_status = (isset($request->access_order_status_id) && !empty($request->access_order_status_id)) ? implode(',',$request->access_order_status_id) : null;
         $role->save();
 
         $role->permissions()->sync($request->permission);
@@ -186,7 +189,9 @@ class RoleController extends Controller
         $roleDetails = Role::active()->where('id', '!=', '4')->pluck('name','id')->toArray();
         $assigndata = UserAssignRole::where('main_role_id',$id)->first();
         $userassignrole = (!empty($assigndata)) ? explode(',',$assigndata->assign_role_id) : array();
-        return view('roles.view', compact('moduleName', 'permission', 'rolePermissions', 'role','moduleLink','roleDetails','userassignrole'));
+        $statuses = SalesOrderStatus::select('name', 'id')->pluck('name', 'id')->toArray();
+        $roleaccessfilter = (isset($role->filter_status) && $role->filter_status !=null) ? explode(',',$role->filter_status): array();
+        return view('roles.view', compact('moduleName', 'permission', 'rolePermissions', 'role','moduleLink','roleDetails','userassignrole','statuses','roleaccessfilter'));
     }
 
     public function edit($id)
@@ -207,7 +212,9 @@ class RoleController extends Controller
         $roleDetails = Role::active()->where('id', '!=', '4')->pluck('name','id')->toArray();
         $assigndata = UserAssignRole::where('main_role_id',$id)->first();
         $userassignrole = (!empty($assigndata)) ? explode(',',$assigndata->assign_role_id) : array();
-        return view('roles.edit',compact('moduleName', 'permission', 'rolePermissions', 'role','moduleLink','roleDetails','userassignrole'));
+        $statuses = SalesOrderStatus::select('name', 'id')->pluck('name', 'id')->toArray();
+        $roleaccessfilter = (isset($role->filter_status) && $role->filter_status !=null) ? explode(',',$role->filter_status): array();
+        return view('roles.edit',compact('moduleName', 'permission', 'rolePermissions', 'role','moduleLink','roleDetails','userassignrole','statuses','roleaccessfilter'));
     }
 
     public function update(RoleRequest $request, $id)
@@ -226,6 +233,7 @@ class RoleController extends Controller
         $role->description = $request->description;
         $role->updated_by = auth()->User()->id;
         $role->is_user_activation = $request->is_user_activation;
+        $role->filter_status = (isset($request->access_order_status_id) && !empty($request->access_order_status_id)) ? implode(',',$request->access_order_status_id) : null;
         $role->save();
 
         $role->permissions()->detach();

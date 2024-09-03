@@ -102,5 +102,10 @@ class SalesOrderStatusSeeder extends Seeder
                 'is_static' => $status['is_static']
             ]);
         }
+        $salesordersstatus = \App\Models\SalesOrderStatus::pluck('id')->toArray();
+        if(!empty($salesordersstatus)) {
+            \App\Models\Role::where('slug','admin')->update(['filter_status'=>implode(',',$salesordersstatus)]);
+        }
+
     }
 }
