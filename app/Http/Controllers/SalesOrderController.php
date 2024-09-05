@@ -352,7 +352,7 @@ class SalesOrderController extends Controller
             })
             ->addColumn('telephone', function($row) {
                 if(isset($row->customer_phone) && $row->customer_phone !="") {
-                    return '<a href="tel:'.(isset($row->country_dial_code) ? '+'.$row->country_dial_code:"").str_replace(' ','',$row->customer_phone).'" style="color:#000000"><i class="fa fa-phone" aria-hidden="true"></i></a>';
+                    return '<a href="tel:'.(isset($row->country_dial_code) ? '+'.$row->country_dial_code:"").str_replace(' ','',$row->customer_phone).'" style="color:#fff" class="btn btn-primary btn-sm m-1 mt-0 mb-0"><i class="fa fa-phone" aria-hidden="true"></i></a>';
                 }
             })
             ->addColumn('fastedit', function($row) use ($allStatuses){
@@ -368,11 +368,12 @@ class SalesOrderController extends Controller
                     if (User::isAdmin() || (!empty($row->responsible_user) && is_numeric($row->responsible_user) && $row->responsible_user == auth()->user()->id)) {
                         if (count($allStatuses) > 0) {
                             $html =
-                            '<span class="dropdown-toggle status-opener d-inline-flex align-items-center justify-content-center indexorderchange">
-                                    <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+                            '<span class="dropdown-toggle d-inline-flex align-items-center justify-content-center indexorderchange ml-2" style="color:#fff">
+                            <button class="btn btn-primary btn-sm">
+                                    <i class="fa fa-pencil-square-o" aria-hidden="true"></i></button>
                                 </span>
                                 <div class="dropdown-menu status-modal">
-                                    <label class="c-gr f-500 f-14 w-100 mb-2"> STATUS : <span class="text-danger">*</span></label>
+                                    <label class="c-gr f-500 f-14 w-100"> STATUS : <span class="text-danger">*</span></label>
                                     <div class="status-dropdown">';
 
                                     foreach ($allStatuses as $k => $status) {
