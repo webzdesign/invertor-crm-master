@@ -384,7 +384,7 @@ class UserController extends Controller
                             foreach ($request->document[$document->id] as $file) {
                                 $name = 'DOC-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
                                 $file->move(storage_path('app/public/documents'), $name);
-        
+
                                 if (file_exists(storage_path("app/public/documents/{$name}"))) {
                                     UserDocumentUpload::create([
                                         'document_id' => $document->id,
@@ -497,7 +497,7 @@ class UserController extends Controller
                         foreach ($request->document[$document->id] as $file) {
                             $name = 'DOC-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
                             $file->move(storage_path('app/public/documents'), $name);
-    
+
                             if (file_exists(storage_path("app/public/documents/{$name}"))) {
                                 UserDocumentUpload::create([
                                     'document_id' => $document->id,
@@ -652,10 +652,10 @@ class UserController extends Controller
 
         if ($request->method() == 'GET') {
             if ($uid == 1) {
-                $uid = encrypt(1);
+                $uid = base64_encode(base64_encode(1));
             }
 
-            $decryptedId = decrypt($role);
+            $decryptedId = base64_decode(base64_decode($role));
 
             if (Role::where('id', $decryptedId)->active()->doesntExist()) {
                 return redirect()->route('login')->with('error', 'This link is not valid for registration.');
@@ -669,7 +669,7 @@ class UserController extends Controller
 
         } else if ($request->method() == 'POST') {
 
-            $role = decrypt($role);
+            $role = base64_decode(base64_decode($role));
             $rolseData = Role::where('id', $role)->active()->first();
             if (Role::find($role) !== null && $role != 1 && !empty($rolseData)) {
 
@@ -703,7 +703,7 @@ class UserController extends Controller
                     if (isset($request->document[$document->id])) {
 
                         $isRequired = "";
-                        
+
                         if ($document->is_required) {
                             $isRequired = "required|";
                             $validationMessages["document.{$document->id}" . '.required'] = "Please upload specified document.";
@@ -723,7 +723,7 @@ class UserController extends Controller
 
                         $validationMessages["document.{$document->id}" . '.*.file'] = "Please upload specified document.";
                         $validationMessages["document.{$document->id}" . '.*.max'] = "Maximum " . Helper::formatBytes($document->maximum_upload_size) . " size of file can be uploaded.";
-                    }                                                        
+                    }
                 }
 
                 $this->validate($request, $validations, $validationMessages);
@@ -740,7 +740,7 @@ class UserController extends Controller
                     $user->country_id = $request->country;
                     $user->city_id = $request->city;
                     $user->postal_code = $request->postal_code;
-                    $user->added_by = decrypt($uid);
+                    $user->added_by = base64_decode(base64_decode($uid));
                     if(isset($rolseData->is_user_activation) && $rolseData->is_user_activation==1){
                         $user->status = 2;
                     }
@@ -779,7 +779,7 @@ class UserController extends Controller
                     if(isset($rolseData->is_user_activation) && $rolseData->is_user_activation == 1){
                         return redirect()->route('login')->with('success', 'Your registration has been completed successfully. You will be able to log in once your account has been approved by the administrator.');
                     }
-                    
+
                     session()->flush();
                     $authenticate = auth()->attempt(['email' => $request->email, 'password' => $request->password]);
 

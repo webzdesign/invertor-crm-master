@@ -90,8 +90,8 @@ class RoleController extends Controller
                 }
 
                 if (in_array(1, auth()->user()->roles->pluck('id')->toArray()) && $variable->status == 1) {
-                    $rid = encrypt($variable->id);
-                    $uid = encrypt(auth()->user()->id);
+                    $rid = base64_encode(base64_encode($variable->id));
+                    $uid = base64_encode(base64_encode(auth()->user()->id));
                     $url = url("register/{$rid}/{$uid}");
                     $action .= "<div class='tableCards d-inline-block me-1 pb-0'><div class='editDlbtn'><a data-toggle='tooltip' data-url='{$url}' title='Copy Signup Link' class='deleteBtn copy-register-link' > <i class='fa fa-copy text-white' aria-hidden='true'></i> </a></div></div>";
                 }
