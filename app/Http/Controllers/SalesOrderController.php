@@ -582,7 +582,7 @@ class SalesOrderController extends Controller
                         $getAllDriversDistance[$row['id']] = Distance::measure($latFrom, $longFrom, $row['lat'], $row['long']);
                     }
                     asort($getAllDriversDistance);
-
+                    Helper::logger($getAllDriversDistance);
                     $result = self::getDriver($getAllDriversDistance);
 
                     if ($result['exists']) {
@@ -1914,7 +1914,7 @@ class SalesOrderController extends Controller
 
 
                     asort($getAllDriversDistance);
-                    Helper::logger($getAllDriversDistance);
+
                     $result = self::getDriver($getAllDriversDistance);
 
                     if ($result['exists']) {
