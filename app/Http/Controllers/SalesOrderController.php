@@ -1914,7 +1914,7 @@ class SalesOrderController extends Controller
 
 
                     asort($getAllDriversDistance);
-
+                    Helper::logger($getAllDriversDistance);
                     $result = self::getDriver($getAllDriversDistance);
 
                     if ($result['exists']) {
