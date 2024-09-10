@@ -1,8 +1,8 @@
 @extends('layouts.master')
 
 @section('css')
-<link href="{{ asset('assets/css/dataTables.bootstrap5.css') }}" rel="stylesheet">
-<link href="{{ asset('assets/css/responsive.bootstrap5.css') }}" rel="stylesheet">
+<!-- <link href="{{ asset('assets/css/dataTables.bootstrap5.css') }}" rel="stylesheet">
+<link href="{{ asset('assets/css/responsive.bootstrap5.css') }}" rel="stylesheet"> -->
 <style>
     .color-blue {
         color: #0057a9;
@@ -53,14 +53,12 @@
         min-width: 150px;
     }
     .status-modal{
-        position: absolute;
-        top: 0;
-        left: 0;
+        position: fixed;
         box-shadow: 0 5px 10px 0 rgba(0,0,0, .1);
         box-sizing: border-box;
         padding: 12px;
         border: 1px solid #e8eaeb;
-        width: 100%;
+        width: 200px;
         background: #fff;
         z-index: 9;
     }
@@ -100,9 +98,9 @@
         padding: 3px 6px;
         cursor: pointer;
     }
-    .dataTables_wrapper .col-sm-12{
+    /* .dataTables_wrapper .col-sm-12{
         overflow: inherit;
-    }
+    } */
     .btn-primary:disabled:hover{
         background: #E9EAED !important;
     }
@@ -143,7 +141,10 @@
         border: 0px;
         color: #000000;
         cursor: pointer;
-}
+    }
+    .dropdown-fix.show {
+        display: block !important;
+    }
 </style>
 @endsection
 
@@ -275,7 +276,7 @@
         </div>
     </div>
     @endif
-    <div  class="table-responsive">
+    <div  class="table-responsive table-responsive-datatable">
     <table class="datatables-po table datatableMain" style="width: 100%!important;">
         <thead>
             <tr>
@@ -520,6 +521,162 @@
                 $('[data-bs-toggle="tooltip"]').tooltip();
             }
         });
+
+        // $(document).on('click', function(event) {
+        //     const $target = $(event.target);
+        //     const $dropdowns = $('.dropdown-fix');
+        //     const isDropdownButton = $target.is('.dropdown-button-fix');
+        //     const isInsideDropdown = $target.closest('.dropdown-fix').length > 0;
+
+        //     if (isDropdownButton) {
+        //         const $button = $target;
+        //         const $dropdown = $button.next('.dropdown-fix');
+
+        //         // Close all other dropdowns
+        //         $dropdowns.not($dropdown).removeClass('show');
+
+        //         // Toggle the current dropdown
+        //         if ($dropdown.hasClass('show')) {
+        //             $dropdown.removeClass('show');
+        //         } else {
+        //             $dropdown.addClass('show');
+        //             refreshDropdownPositions();
+        //         }
+        //     } else if (!isInsideDropdown) {
+        //         // Close all dropdowns if clicked outside
+        //         $dropdowns.removeClass('show');
+        //     }
+        // });
+
+        // function refreshDropdownPositions() {
+        //     const $openDropdown = $('.dropdown-fix.show');
+        //     if ($openDropdown.length) {
+        //         const $dropdownButton = $openDropdown.prev('.dropdown-button-fix');
+        //         positionDropdown($dropdownButton, $openDropdown);
+        //     }
+        // }
+
+        // // Function to position the dropdown
+        // function positionDropdown($button, $dropdown) {
+        //     const rect = $button[0].getBoundingClientRect();
+        //     const dropdownHeight = $dropdown.outerHeight();
+        //     const dropdownWidth = $dropdown.outerWidth();
+        //     const spaceBelow = $(window).height() - rect.bottom;
+        //     const spaceAbove = rect.top;
+        //     const spaceRight = $(window).width() - rect.right;
+
+        //     // Set default position to the bottom right of the button
+        //     let top = rect.bottom - 20; // slightly below the button
+        //     let left = rect.right - dropdownWidth;
+
+        //     // Check if there's enough space below, otherwise place it above
+        //     if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+        //         top = rect.top - dropdownHeight + 22; // slightly above the button
+        //     }
+
+        //     // Adjust left positioning if it exceeds the viewport
+        //     if (left + dropdownWidth > $(window).width()) {
+        //         left = $(window).width() - dropdownWidth - 5; // adjust to fit within the viewport
+        //     }
+
+        //     // Apply the calculated position
+        //     $dropdown.css({
+        //         top: `${top}px`,
+        //         left: `${left}px`
+        //     });
+        // }
+        
+        // $('.table-responsive-datatable').on('scroll', function() {
+        //     $('.dropdown-fix').removeClass('show');
+        // });
+
+        // // Listen to the window resize event to reposition dropdowns
+        // $(window).on('resize', refreshDropdownPositions);
+        // $(window).on('scroll', refreshDropdownPositions);
+
+        $(document).on('click', function (event) {
+            const isDropdownButton = $(event.target).hasClass('dropdown-button-fix');
+            const dropdowns = $('.dropdown-fix');
+            const clickedInsideDropdown = $(event.target).closest('.dropdown-fix').length > 0;
+
+            if (isDropdownButton) {
+                const $button = $(event.target);
+                const $dropdown = $button.next('.dropdown-fix');
+
+                // Close all other dropdowns
+                dropdowns.each(function () {
+                    if ($(this).get(0) !== $dropdown.get(0)) {
+                        $(this).removeClass('show');
+                    }
+                });
+
+                // Toggle the current dropdown
+                if ($dropdown.hasClass('show')) {
+                    $dropdown.removeClass('show');
+                } else {
+                    $dropdown.addClass('show');
+                    refreshDropdownPositions();
+                }
+            } else if (!clickedInsideDropdown) {
+                // Close all dropdowns if clicked outside any dropdown
+                dropdowns.removeClass('show');
+            }
+        });
+
+        function refreshDropdownPositions() {
+            const $openDropdown = $('.dropdown-fix.show');
+            if ($openDropdown.length) {
+                const $dropdownButton = $openDropdown.prev('.dropdown-button-fix');
+                const $table = $('.table-responsive-datatable'); // Reference to the table element
+                positionDropdown($dropdownButton, $openDropdown, $table);
+            }
+        }
+
+        // Function to position the dropdown relative to the table
+        function positionDropdown($button, $dropdown, $table) {
+            const buttonRect = $button.get(0).getBoundingClientRect();
+            const dropdownHeight = $dropdown.outerHeight();
+            const dropdownWidth = $dropdown.outerWidth();
+            const tableRect = $table.get(0).getBoundingClientRect(); // Get table dimensions
+        
+            const spaceBelowTable = tableRect.bottom - buttonRect.bottom;
+            const spaceAboveTable = buttonRect.top - tableRect.top;
+            const spaceRightTable = tableRect.right - buttonRect.right;
+            const spaceLeftTable = buttonRect.left - tableRect.left;
+
+            // Set default position to the bottom right of the button
+            let top = buttonRect.bottom - $button.outerHeight(); // slightly below the button
+            let left = buttonRect.left - dropdownWidth + $button.outerWidth(); // Default left position
+
+            // Check if there's enough space below the button inside the table
+            if (spaceBelowTable < dropdownHeight && spaceAboveTable > dropdownHeight) {
+                top = (buttonRect.top - dropdownHeight) + $button.outerHeight();
+            }
+
+            // If no space on the left side and enough space on the right, place it to the right of the button
+            if (left < tableRect.left && spaceRightTable > dropdownWidth) {
+                left = buttonRect.right - $button.outerWidth(); // Position dropdown to the right of the button
+            }
+
+            // If no space on both sides (left and right), adjust to fit within the table's width
+            if (left + dropdownWidth > tableRect.right) {
+                left = tableRect.right - dropdownWidth; // adjust to fit within the table's width                
+            }
+
+            // Apply the calculated position relative to the table
+            $dropdown.css({
+                top: `${top}px`,
+                left: `${left}px`
+            });
+        }
+
+        $('.table-responsive-datatable').on('scroll', function() {
+            $('.dropdown-fix').removeClass('show');
+        });
+
+        // Listen to the window resize and scroll event to reposition dropdowns
+        $(window).on('resize scroll', refreshDropdownPositions);
+
 
         $('#filterInput').html($('#searchPannel').html());
         $('#filterInput > input').keyup(function() {
@@ -946,19 +1103,19 @@
             });
         }
 
-        $(document).on('click', '.dropdown-toggle', function() {
-            var isHidden = $(this).parents(".button-dropdown").children(".dropdown-menu").is(":hidden");
-            $(".button-dropdown .dropdown-menu").hide();
-            $(".button-dropdown .dropdown-toggle").removeClass("active");
+        // $(document).on('click', '.dropdown-toggle', function() {
+        //     var isHidden = $(this).parents(".button-dropdown").children(".dropdown-menu").is(":hidden");
+        //     $(".button-dropdown .dropdown-menu").hide();
+        //     $(".button-dropdown .dropdown-toggle").removeClass("active");
 
-            if (isHidden) {
-                $(this).parents(".button-dropdown").children(".dropdown-menu").toggle()
-                    .parents(".button-dropdown")
-                    .children(".dropdown-toggle").addClass("active");
-            }
+        //     if (isHidden) {
+        //         $(this).parents(".button-dropdown").children(".dropdown-menu").toggle()
+        //             .parents(".button-dropdown")
+        //             .children(".dropdown-toggle").addClass("active");
+        //     }
 
-            $('.cmnt-er-lbl').addClass('d-none');
-        });
+        //     $('.cmnt-er-lbl').addClass('d-none');
+        // });
 
         $(document).on('click', function() {
             var target = $(event.target);

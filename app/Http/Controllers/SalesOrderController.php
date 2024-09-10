@@ -193,14 +193,18 @@ class SalesOrderController extends Controller
                         if (count($allStatuses) > 0) {
 
                             $html =
-                            '<div class="status-main button-dropdown position-relative">
-                                <label class="status-label dropdown-toggle" style="background:' . ($row->ostatus->color ?? '') . ';color:' . (Helper::generateTextColor($row->ostatus->color ?? '')) . ';"> ' . ($row->ostatus->name ?? '') . ' </label>
-                                <button type="button" class="dropdown-toggle status-opener ms-2 d-inline-flex align-items-center justify-content-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 20 19" fill="none">
-                                    <path d="M0.998047 14.613V18.456H4.84105L16.175 7.12403L12.332 3.28103L0.998047 14.613ZM19.147 4.15203C19.242 4.05721 19.3174 3.94458 19.3688 3.82061C19.4202 3.69664 19.4466 3.56374 19.4466 3.42953C19.4466 3.29533 19.4202 3.16243 19.3688 3.03846C19.3174 2.91449 19.242 2.80186 19.147 2.70703L16.747 0.307035C16.6522 0.212063 16.5396 0.136719 16.4156 0.0853128C16.2916 0.0339065 16.1588 0.00744629 16.0245 0.00744629C15.8903 0.00744629 15.7574 0.0339065 15.6335 0.0853128C15.5095 0.136719 15.3969 0.212063 15.302 0.307035L13.428 2.18403L17.271 6.02703L19.147 4.15203Z" fill="#3C3E42"/>
-                                    </svg>
+                            '<div class="status-main button-dropdown">
+                                <button type="button" class="dropdown-button-fix bg-transparent border-0 d-inline-flex align-items-center justify-content-center my-1 mx-auto">
+                                    <label class="status-label pointer-event-none" style="background:' . ($row->ostatus->color ?? '') . ';color:' . (Helper::generateTextColor($row->ostatus->color ?? '')) . ';"> ' . ($row->ostatus->name ?? '') . ' </label>
+                                    <div class="cursor-default">&nbsp;&nbsp;</div>
+                                    <div class="pointer-event-none status-opener">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 20 19" fill="none">
+                                        <path d="M0.998047 14.613V18.456H4.84105L16.175 7.12403L12.332 3.28103L0.998047 14.613ZM19.147 4.15203C19.242 4.05721 19.3174 3.94458 19.3688 3.82061C19.4202 3.69664 19.4466 3.56374 19.4466 3.42953C19.4466 3.29533 19.4202 3.16243 19.3688 3.03846C19.3174 2.91449 19.242 2.80186 19.147 2.70703L16.747 0.307035C16.6522 0.212063 16.5396 0.136719 16.4156 0.0853128C16.2916 0.0339065 16.1588 0.00744629 16.0245 0.00744629C15.8903 0.00744629 15.7574 0.0339065 15.6335 0.0853128C15.5095 0.136719 15.3969 0.212063 15.302 0.307035L13.428 2.18403L17.271 6.02703L19.147 4.15203Z" fill="#3C3E42"/>
+                                        </svg>
+                                    </div>
                                 </button>
-                                <div class="dropdown-menu status-modal">
+
+                                <div class="dropdown-menu status-modal dropdown-fix">
                                     <label class="c-gr f-500 f-14 w-100 mb-2"> STATUS : <span class="text-danger">*</span></label>
                                     <div class="status-dropdown">';
 
@@ -368,11 +372,11 @@ class SalesOrderController extends Controller
                     if (User::isAdmin() || (!empty($row->responsible_user) && is_numeric($row->responsible_user) && $row->responsible_user == auth()->user()->id)) {
                         if (count($allStatuses) > 0) {
                             $html =
-                            '<span class="dropdown-toggle d-inline-flex align-items-center justify-content-center indexorderchange ml-2" style="color:#fff">
-                            <button class="btn btn-primary btn-sm">
-                                    <i class="fa fa-pencil-square-o" aria-hidden="true"></i></button>
-                                </span>
-                                <div class="dropdown-menu status-modal">
+                            '<div class="button-dropdown">
+                                <button class="btn btn-primary btn-sm dropdown-button-fix dropdown-toggle d-inline-flex align-items-center justify-content-center indexorderchange ml-2">
+                                    <i class="fa fa-pencil-square-o pointer-event-none" aria-hidden="true"></i>
+                                </button>
+                                <div class="dropdown-menu status-modal dropdown-fix">
                                     <label class="c-gr f-500 f-14 w-100"> STATUS : <span class="text-danger">*</span></label>
                                     <div class="status-dropdown">';
 
@@ -414,7 +418,8 @@ class SalesOrderController extends Controller
                                         <button data-cwstatus="' . $cwStatus . '" class="status-save-btn btn-primary f-500 f-14 d-inline-block" disabled type="button"> Save </button>
                                         <button class="refresh-dt hide-dropdown btn-default f-500 f-14 d-inline-block ms-1" type="button"> Cancel </button>
                                     </div>
-                                </div>';
+                                </div>
+                            </div>';
                         }
                     }
                 }
