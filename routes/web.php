@@ -145,6 +145,7 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('change-driver', [SalesOrderController::class, 'changeDriver'])->name('change-driver');
         Route::post('get-real-time-commission', [SalesOrderController::class, 'getRealTimeCommission'])->name('get-real-time-commission');
         Route::post('is-customer-scammer', [SalesOrderController::class, 'isCustomerScammer'])->name('is-customer-scammer');
+        Route::get('sales-orders/{id}/confirm', [SalesOrderController::class, 'confirm'])->name('sales-orders.confirm')->middleware('ModuleAccessor:sales-orders.confirm');
         /** Sales Order **/
 
         /** Suppliers **/

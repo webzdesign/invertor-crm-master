@@ -549,4 +549,64 @@ class Helper {
             }
         }
     }
+
+    public static function sendTwilioMessage($tonumber = null, $contentVars = null, $contentSid, $type, $statusid, $order_id)
+    {
+        if (env('GEOLOCATION_API') == 'true') {
+            try {
+                $setting = Setting::select('twilioFromNumber', 'twilioAuthToken', 'twilioUrl', 'twilioAccountSid')->first();
+                
+                if ($setting && !empty($tonumber)) {
+
+                    $twilioAccountSid = $setting->twilioAccountSid;
+                    $twilioAuthToken = $setting->twilioAuthToken;
+
+                    $url = "{$setting->twilioUrl}/" . $twilioAccountSid . "/Messages.json";
+
+                    foreach ($tonumber as $touserid => $tophone) {
+                        if ($tophone != "") {
+                            // $to = 'whatsapp:+918160213921';
+                            $tophone = str_replace(' ','',$tophone);
+                            $to = "whatsapp:+{$tophone}";
+                            $from = "whatsapp:{$setting->twilioFromNumber}";
+                            $contentVariables = json_encode([
+                                "1" => $contentVars ?? '',
+                            ]);
+
+                            $ch = curl_init($url);
+
+                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                            curl_setopt($ch, CURLOPT_POST, true);
+                            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+                            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                            curl_setopt($ch, CURLOPT_USERPWD, $twilioAccountSid . ':' . $twilioAuthToken);
+                            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+                                'To' => $to,
+                                'From' => $from,
+                                'ContentSid' => $contentSid,
+                                "contentVariables" => $contentVariables
+                            ]));
+
+                            $response = curl_exec($ch);
+                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                        
+                            if (curl_errno($ch)) {
+                                $error['Error'] = curl_error($ch);
+                                TwilloNotificationHistory::create(['user_id' => $touserid, 'to_number' => '+'.$tophone, 'from_number' => $setting->twilioFromNumber, 'user_type' => $type, 'message' => 'Error:' . curl_error($ch), 'status_id' => $statusid, 'order_id' => $order_id, 'api_response' => json_encode($error)]);
+                            } else {
+                                if ($httpCode == 201 || $httpCode == 200) {
+                                    TwilloNotificationHistory::create(['user_id' => $touserid, 'to_number' => '+'.$tophone, 'from_number' => $setting->twilioFromNumber, 'user_type' => $type, 'message' => $contentSid, 'status_id' => $statusid, 'order_id' => $order_id, 'api_response' => $response]);
+                                } else {
+                                    TwilloNotificationHistory::create(['user_id' => $touserid, 'to_number' => '+'.$tophone, 'from_number' => $setting->twilioFromNumber, 'user_type' => $type, 'message'=> json_decode($response)->message ?? 'Twilio API encountered an error in its response.', 'status_id' => $statusid, 'order_id' => $order_id,'api_response'=> $response]);
+                                }
+                            }
+                            curl_close($ch);
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                self::logger($e->getMessage());
+            }
+        }
+    }
 }

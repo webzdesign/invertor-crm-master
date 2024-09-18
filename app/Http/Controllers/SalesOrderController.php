@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Category, User, Wallet, Bonus, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger, ManageStatus, DriverWallet};
+use App\Models\{Category, User, Wallet, Bonus, Setting, AddressLog, Deliver, ChangeOrderUser, AddTaskToOrderTrigger, ManageStatus, DriverWallet, DeliverTemp, UserRole};
 use App\Models\{ProcurementCost, SalesOrderStatus, SalesOrderItem, SalesOrder, Product, Stock, ChangeOrderStatusTrigger, SalesOrderProofImages};
 use App\Models\{PaymentForDelivery, Transaction, TriggerLog, SalesOrderUserFilter, Notification, Role};
 use App\Helpers\{Helper, Distance};
@@ -57,7 +57,9 @@ class SalesOrderController extends Controller
         $orderClosedWinStatus = SalesOrderStatus::where('slug', 'closed-win')->first()->id ?? 0;
 
         $po = SalesOrder::with(['items.product', 'addedby', 'updatedby', 'ostatus', 'assigneddriver'])->where(function ($builder) use ($thisUserRoles) {
-            if (!in_array(1, $thisUserRoles)) {
+            if (in_array(5, $thisUserRoles)) {
+                $builder->whereNull('confirm_by')->orWhere('confirm_by', auth()->user()->id);
+            } else if (!in_array(1, $thisUserRoles)) {
                 $builder->where('added_by', auth()->user()->id)->orWhereIn('added_by',User::where('added_by',auth()->user()->id)->pluck('id')->toArray())
                 ->orWhereHas('driver', fn ($innerBuilder) => $innerBuilder->where('user_id', auth()->user()->id)->whereIn('status', [0, 1]))
                 ->orWhere('responsible_user', auth()->user()->id);
@@ -126,6 +128,11 @@ class SalesOrderController extends Controller
                 $action = "";
                 $action .= '<div class="d-flex align-items-center justify-content-center">';
 
+                if (auth()->user()->hasPermission("sales-orders.confirm") && $variable->confirm_status == 0) {
+                    $url = route("sales-orders.confirm", encrypt($variable->id));
+                    $action .= view('buttons.confirm', compact('variable', 'url'));
+                }
+
                 if (auth()->user()->hasPermission("sales-orders.view")) {
                     $url = route("sales-orders.view", encrypt($variable->id));
                     $action .= view('buttons.view', compact('variable', 'url'));
@@ -182,143 +189,147 @@ class SalesOrderController extends Controller
             ->addColumn('option', function ($row) use ($allStatuses) {
                 $html = "";
 
-                $cwStatus = SalesOrderStatus::select('id')->where('slug', 'closed-win')->first()->id ?? 0;
-
-                if ($row->status != '1') {
-
-                    $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
-                    $allStatuses = SalesOrderStatus::active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
-
-                    if (User::isAdmin() || (!empty($row->responsible_user) && is_numeric($row->responsible_user) && $row->responsible_user == auth()->user()->id)) {
-                        if (count($allStatuses) > 0) {
-
-                            $html =
-                            '<div class="status-main button-dropdown">
-                                <button type="button" class="dropdown-button-fix bg-transparent border-0 d-inline-flex align-items-center justify-content-center my-1 mx-auto">
-                                    <label class="status-label pointer-event-none" style="background:' . ($row->ostatus->color ?? '') . ';color:' . (Helper::generateTextColor($row->ostatus->color ?? '')) . ';"> ' . ($row->ostatus->name ?? '') . ' </label>
-                                    <div class="cursor-default">&nbsp;&nbsp;</div>
-                                    <div class="pointer-event-none status-opener">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 20 19" fill="none">
-                                        <path d="M0.998047 14.613V18.456H4.84105L16.175 7.12403L12.332 3.28103L0.998047 14.613ZM19.147 4.15203C19.242 4.05721 19.3174 3.94458 19.3688 3.82061C19.4202 3.69664 19.4466 3.56374 19.4466 3.42953C19.4466 3.29533 19.4202 3.16243 19.3688 3.03846C19.3174 2.91449 19.242 2.80186 19.147 2.70703L16.747 0.307035C16.6522 0.212063 16.5396 0.136719 16.4156 0.0853128C16.2916 0.0339065 16.1588 0.00744629 16.0245 0.00744629C15.8903 0.00744629 15.7574 0.0339065 15.6335 0.0853128C15.5095 0.136719 15.3969 0.212063 15.302 0.307035L13.428 2.18403L17.271 6.02703L19.147 4.15203Z" fill="#3C3E42"/>
-                                        </svg>
-                                    </div>
-                                </button>
-
-                                <div class="dropdown-menu status-modal dropdown-fix">
-                                    <label class="c-gr f-500 f-14 w-100 mb-2"> STATUS : <span class="text-danger">*</span></label>
-                                    <div class="status-dropdown">';
-
-                                    foreach ($allStatuses as $k => $status) {
-                                        if ($k == 0) {
-                                        $html .= '<button type="button" data-sid="' . $status->id . '" data-oid="' . $row->id . '" style="background:' . $status->color . ';color:' . Helper::generateTextColor($status->color) . ';" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
-                                            <span>' . $status->name . '</span>
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
-                                                <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
-                                            </svg>
-                                        </button>';
-                                        }
-                                    }
-
-                                        $html .= '<div class="status-dropdown-menu">';
-
-                                        foreach ($allStatuses as $status) {
-                                            $html .= '<div class="f-14 cursor-pointer" data-cwstatus="' . $cwStatus . '" data-onumber="' . $row->order_no . '" data-isajax="true" style="background: '. $status->color .';color:' . Helper::generateTextColor($status->color) . ';" data-sid="' . $status->id . '" data-oid="' . $row->id . '" > '. $status->name .' </div>';
-                                        }
-
-                                        $html .= '</div>
-                                    </div>
-
-                                    <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> COMMENT : <span class="text-danger">*</span></label>
-                                    <textarea id="cs-txtar" placeholder="Add a comment" class="form-control" style="height:60px;"> </textarea>
-                                    <label class="cmnt-er-lbl f-12 d-none text-danger"> Add comment to change status </label>
-
-                                    <div class="form-group closedwin-statusupdate">
-                                        <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> FINAL SALES PRICE : <span class="text-danger">*</span></label>
-                                        <input type="text" id="cs-fsp" class="form-control" />
-                                        <label class="fsp-er-lbl f-12 d-none text-danger"> </label>
-
-                                        <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> PRICE CHANGE PROOF : </label>
-                                        <input type="file" multiple id="cs-pcp" class="form-control" />
-                                        <label class="pcp-er-lbl f-12 d-none text-danger"> </label>
-                                    </div>
-
-                                    <div class="status-action-btn mt-2 position-relative -z-1">
-                                        <button data-cwstatus="' . $cwStatus . '" class="status-save-btn btn-primary f-500 f-14 d-inline-block" disabled type="button"> Save </button>
-                                        <button class="refresh-dt hide-dropdown btn-default f-500 f-14 d-inline-block ms-1" type="button"> Cancel </button>
-                                    </div>
-                                </div>
-                            </div>';
-
-                        } else {
-                            $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
-                        }
-                    } else  {
-                        if (count($allStatuses) > 0) {
-                            $html .= '<label class="status-lbl trigger-box-label-task-ns" style="background:' . ($row->ostatus->color ?? '#000') . ';color:' . Helper::generateTextColor($row->ostatus->color ?? '#fff') . ';"> ' . ($row->ostatus->name ?? '-') .' </label> ';
-                        } else {
-                            $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
-                        }
-                    }
-
-                    $lastChangedDate = TriggerLog::where('order_id', $row->id)->where('type', 2)->orderBy('id', 'DESC')->first();
-                    if (isset($lastChangedDate->created_at)) {
-                        $html .= " <div class='f-12'> Last changed on : <strong> " . date('d-m-Y H:i', strtotime($lastChangedDate->created_at)) . " </strong> </div>" ;
-                    } else {
-                        $html .= "-";
-                    }
-
+                if ($row->confirm_status == 0) {
+                    $html .= '<strong> New Order </strong><div class="f-12">Waiting for order confirmation</div>';
                 } else {
-                    $totalDeliver = Deliver::where('so_id', $row->id)->count();
-                    $rejectedDriver = Deliver::where('so_id', $row->id)->where('status', 2)->count();
-
-                    if (Deliver::where('so_id', $row->id)->where('status', 0)->doesntExist() && $rejectedDriver == $totalDeliver) {
-                        if (in_array(auth()->user()->roles->first()->id, [1,2,6])) {
-                            $isRejected = Deliver::with('user')->where('so_id', $row->id)->where('status', 2)->get();
-
-                            if ($isRejected != null) {
-                                if (Deliver::with('user')->where('so_id', $row->id)->whereIn('status', [0,1,3])->doesntExist()) {
-                                    $alldriver = Deliver::with('user')->where('so_id', $row->id)->get()->pluck('user.name')->toArray();
-                                    $alldriverName = '';
-                                    if(!empty($alldriver)) {
-                                        $alldriverName = implode(',',$alldriver);
-                                    }
-                                    $deliveryUser = Deliver::where('so_id', $row->id)->whereIn('status', [0,1])->first()->user_id ?? null;
-                                    //. (isset($isRejected->user->name) ? $isRejected->user->name : 'driver') .
-
-                                    if (empty($alldriverName)) {
-                                        $html =  '
-                                        <strong>  Order Placed  </strong>
-                                        <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
-                                        ';
-                                    } else {
-                                        $html =  '
-                                        <i class="fa fa-warning" aria-hidden="true" style="color: #dd2d20;font-size:16px;"></i>
-                                        <strong class="text-danger f-12"> Order was rejected by <span title="'.$alldriverName.'" class="drivertitle"> All drivers</span> </strong>
-                                        <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
-                                        ';
-                                    }
-                                }
-                            }
-                        } else {
-                            $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
-                        }
-                    } else {
-                        if (User::isDriver() && Deliver::where('so_id', $row->id)->where('user_id', auth()->user()->id)->where('status', 0)->exists()) {
-                            $html .= '<button id="driver-approve-the-order" class="btn-primary f-500 f-14 btn-sm bg-success" data-oid="' . $row->id . '"> ACCEPT </button>
-                            <button id="driver-reject-the-order" class="btn-primary f-500 f-14 btn-sm bg-error" data-oid="' . $row->id . '"> REJECT </button>';
-                        } else if (User::isSeller() || User::isSellerManager() || User::isAdmin()) {
-                            $driver = Deliver::with('user')->where('status', 0)->where('so_id', $row->id);
-                            if ($driver->exists()) {
-                                // $deliveryUser = Deliver::where('so_id', $row->id)->whereIn('status', [0,1])->first()->user_id ?? null;
-
-                                return '<strong> Order Placed </strong><div class="f-12">Waiting for driver response</div>';
-                                // <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
+                    $cwStatus = SalesOrderStatus::select('id')->where('slug', 'closed-win')->first()->id ?? 0;
+    
+                    if ($row->status != '1') {
+    
+                        $manageSt = ManageStatus::where('status_id', $row->status)->first()->ps ?? [];
+                        $allStatuses = SalesOrderStatus::active()->whereIn('id', $manageSt)->select('id', 'name', 'color')->get();
+    
+                        if (User::isAdmin() || (!empty($row->responsible_user) && is_numeric($row->responsible_user) && $row->responsible_user == auth()->user()->id)) {
+                            if (count($allStatuses) > 0) {
+    
+                                $html =
+                                '<div class="status-main button-dropdown">
+                                    <button type="button" class="dropdown-button-fix bg-transparent border-0 d-inline-flex align-items-center justify-content-center my-1 mx-auto">
+                                        <label class="status-label pointer-event-none" style="background:' . ($row->ostatus->color ?? '') . ';color:' . (Helper::generateTextColor($row->ostatus->color ?? '')) . ';"> ' . ($row->ostatus->name ?? '') . ' </label>
+                                        <div class="cursor-default">&nbsp;&nbsp;</div>
+                                        <div class="pointer-event-none status-opener">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 20 19" fill="none">
+                                            <path d="M0.998047 14.613V18.456H4.84105L16.175 7.12403L12.332 3.28103L0.998047 14.613ZM19.147 4.15203C19.242 4.05721 19.3174 3.94458 19.3688 3.82061C19.4202 3.69664 19.4466 3.56374 19.4466 3.42953C19.4466 3.29533 19.4202 3.16243 19.3688 3.03846C19.3174 2.91449 19.242 2.80186 19.147 2.70703L16.747 0.307035C16.6522 0.212063 16.5396 0.136719 16.4156 0.0853128C16.2916 0.0339065 16.1588 0.00744629 16.0245 0.00744629C15.8903 0.00744629 15.7574 0.0339065 15.6335 0.0853128C15.5095 0.136719 15.3969 0.212063 15.302 0.307035L13.428 2.18403L17.271 6.02703L19.147 4.15203Z" fill="#3C3E42"/>
+                                            </svg>
+                                        </div>
+                                    </button>
+    
+                                    <div class="dropdown-menu status-modal dropdown-fix">
+                                        <label class="c-gr f-500 f-14 w-100 mb-2"> STATUS : <span class="text-danger">*</span></label>
+                                        <div class="status-dropdown">';
+    
+                                        foreach ($allStatuses as $k => $status) {
+                                            if ($k == 0) {
+                                            $html .= '<button type="button" data-sid="' . $status->id . '" data-oid="' . $row->id . '" style="background:' . $status->color . ';color:' . Helper::generateTextColor($status->color) . ';" class="status-dropdown-toggle d-flex align-items-center justify-content-between f-14">
+                                                <span>' . $status->name . '</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" height="12" width="12" viewBox="0 0 330 330">
+                                                    <path id="XMLID_225_" d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"/>
+                                                </svg>
+                                            </button>';
+                                            }
+                                        }
+    
+                                            $html .= '<div class="status-dropdown-menu">';
+    
+                                            foreach ($allStatuses as $status) {
+                                                $html .= '<div class="f-14 cursor-pointer" data-cwstatus="' . $cwStatus . '" data-onumber="' . $row->order_no . '" data-isajax="true" style="background: '. $status->color .';color:' . Helper::generateTextColor($status->color) . ';" data-sid="' . $status->id . '" data-oid="' . $row->id . '" > '. $status->name .' </div>';
+                                            }
+    
+                                            $html .= '</div>
+                                        </div>
+    
+                                        <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> COMMENT : <span class="text-danger">*</span></label>
+                                        <textarea id="cs-txtar" placeholder="Add a comment" class="form-control" style="height:60px;"> </textarea>
+                                        <label class="cmnt-er-lbl f-12 d-none text-danger"> Add comment to change status </label>
+    
+                                        <div class="form-group closedwin-statusupdate">
+                                            <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> FINAL SALES PRICE : <span class="text-danger">*</span></label>
+                                            <input type="text" id="cs-fsp" class="form-control" />
+                                            <label class="fsp-er-lbl f-12 d-none text-danger"> </label>
+    
+                                            <label class="c-gr f-500 f-14 w-100 mb-2 mt-2"> PRICE CHANGE PROOF : </label>
+                                            <input type="file" multiple id="cs-pcp" class="form-control" />
+                                            <label class="pcp-er-lbl f-12 d-none text-danger"> </label>
+                                        </div>
+    
+                                        <div class="status-action-btn mt-2 position-relative -z-1">
+                                            <button data-cwstatus="' . $cwStatus . '" class="status-save-btn btn-primary f-500 f-14 d-inline-block" disabled type="button"> Save </button>
+                                            <button class="refresh-dt hide-dropdown btn-default f-500 f-14 d-inline-block ms-1" type="button"> Cancel </button>
+                                        </div>
+                                    </div>
+                                </div>';
+    
                             } else {
                                 $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
                             }
-
+                        } else  {
+                            if (count($allStatuses) > 0) {
+                                $html .= '<label class="status-lbl trigger-box-label-task-ns" style="background:' . ($row->ostatus->color ?? '#000') . ';color:' . Helper::generateTextColor($row->ostatus->color ?? '#fff') . ';"> ' . ($row->ostatus->name ?? '-') .' </label> ';
+                            } else {
+                                $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
+                            }
+                        }
+    
+                        $lastChangedDate = TriggerLog::where('order_id', $row->id)->where('type', 2)->orderBy('id', 'DESC')->first();
+                        if (isset($lastChangedDate->created_at)) {
+                            $html .= " <div class='f-12'> Last changed on : <strong> " . date('d-m-Y H:i', strtotime($lastChangedDate->created_at)) . " </strong> </div>" ;
                         } else {
-                            $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
+                            $html .= "-";
+                        }
+    
+                    } else {
+                        $totalDeliver = Deliver::where('so_id', $row->id)->count();
+                        $rejectedDriver = Deliver::where('so_id', $row->id)->where('status', 2)->count();
+    
+                        if (Deliver::where('so_id', $row->id)->where('status', 0)->doesntExist() && $rejectedDriver == $totalDeliver) {
+                            if (in_array(auth()->user()->roles->first()->id, [1,2,6])) {
+                                $isRejected = Deliver::with('user')->where('so_id', $row->id)->where('status', 2)->get();
+    
+                                if ($isRejected != null) {
+                                    if (Deliver::with('user')->where('so_id', $row->id)->whereIn('status', [0,1,3])->doesntExist()) {
+                                        $alldriver = Deliver::with('user')->where('so_id', $row->id)->get()->pluck('user.name')->toArray();
+                                        $alldriverName = '';
+                                        if(!empty($alldriver)) {
+                                            $alldriverName = implode(',',$alldriver);
+                                        }
+                                        $deliveryUser = Deliver::where('so_id', $row->id)->whereIn('status', [0,1])->first()->user_id ?? null;
+                                        //. (isset($isRejected->user->name) ? $isRejected->user->name : 'driver') .
+    
+                                        if (empty($alldriverName)) {
+                                            $html =  '
+                                            <strong>  Order Placed  </strong>
+                                            <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
+                                            ';
+                                        } else {
+                                            $html =  '
+                                            <i class="fa fa-warning" aria-hidden="true" style="color: #dd2d20;font-size:16px;"></i>
+                                            <strong class="text-danger f-12"> Order was rejected by <span title="'.$alldriverName.'" class="drivertitle"> All drivers</span> </strong>
+                                            <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
+                                            ';
+                                        }
+                                    }
+                                }
+                            } else {
+                                $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
+                            }
+                        } else {
+                            if (User::isDriver() && Deliver::where('so_id', $row->id)->where('user_id', auth()->user()->id)->where('status', 0)->exists()) {
+                                $html .= '<button id="driver-approve-the-order" class="btn-primary f-500 f-14 btn-sm bg-success" data-oid="' . $row->id . '"> ACCEPT </button>
+                                <button id="driver-reject-the-order" class="btn-primary f-500 f-14 btn-sm bg-error" data-oid="' . $row->id . '"> REJECT </button>';
+                            } else if (User::isSeller() || User::isSellerManager() || User::isAdmin()) {
+                                $driver = Deliver::with('user')->where('status', 0)->where('so_id', $row->id);
+                                if ($driver->exists()) {
+                                    // $deliveryUser = Deliver::where('so_id', $row->id)->whereIn('status', [0,1])->first()->user_id ?? null;
+    
+                                    return '<strong> Order Placed </strong><div class="f-12">Waiting for driver response</div>';
+                                    // <div class="text-primary cursor-pointer f-12 driver-change-modal-opener" data-deliveryboy="' . $deliveryUser . '" data-oid="' . $row->id . '" data-title="' . $row->order_no . '" > click here to change driver </div>
+                                } else {
+                                    $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
+                                }
+    
+                            } else {
+                                $html = "<strong> " . strtoupper($row->ostatus->name ?? '-') . " </strong>";
+                            }
                         }
                     }
                 }
@@ -339,6 +350,10 @@ class SalesOrderController extends Controller
                 ->get()->pluck('user.driverinfo')->toArray();
 
                 if ($row->status == 11) {
+                    return '-';
+                }
+
+                if ($row->confirm_status == 0) {
                     return '-';
                 }
 
@@ -740,6 +755,7 @@ class SalesOrderController extends Controller
 
                 $so->customer_facebook = $request->customerfb;
                 $so->status = 1;
+                $so->confirm_status = 0;
                 $so->added_by = $userId;
                 $so->save();
 
@@ -795,16 +811,13 @@ class SalesOrderController extends Controller
                         return redirect()->back()->with('error', implode(' <br/> ', $salesPriceErrors));
                     } else {
                         SalesOrderItem::insert($soItems);
-                        $driverids = [];
                         if($request->range !="") {
                             $driverrangeData = json_decode($request->range);
                             if(!empty($driverrangeData)) {
-                                $driverphonenumber = [];
                                 foreach($driverrangeData as $driverid=>$range) {
                                     $driverDetail = User::active()->find($driverid);
                                     if(!empty($driverDetail)) {
-                                        $driverids[] = $driverid;
-                                        Deliver::create([
+                                        DeliverTemp::create([
                                             'user_id' => $driverid,
                                             'so_id' => $soId,
                                             'added_by' => auth()->user()->id,
@@ -814,33 +827,22 @@ class SalesOrderController extends Controller
                                             'delivery_location_long' => $request->long,
                                             'range' => $range
                                         ]);
-
-                                        Notification::create([
-                                            'user_id' => $driverid,
-                                            'so_id' => $soId,
-                                            'title' => 'New Order',
-                                            'description' => 'Order <strong>' . $orderNo . '</strong> is allocated to you please check the order.',
-                                            'link' => 'sales-orders'
-                                        ]);
-                                        $driverphonenumber[$driverDetail->id] = $driverDetail->country_dial_code.$driverDetail->phone;
-
-                                        event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $driverid, 'content' => "Order {$orderNo} is allocated to you please check the order.", 'link' => url('sales-orders')]));
                                     }
                                 }
 
-                                if(!empty($driverphonenumber)) {
-                                    Helper::sendTwilioMsg($driverphonenumber,1,1,$soId);
+                                $operativeManagerIds = UserRole::where('role_id', 5)->pluck('user_id')->toArray();
+                                foreach ($operativeManagerIds as $operativeManagerId) {
+                                    Notification::create([
+                                        'user_id' => $operativeManagerId,
+                                        'so_id' => $soId,
+                                        'title' => 'New Order',
+                                        'description' => 'New order received ('.$request->postal_code.').',
+                                        'link' => 'sales-orders'
+                                    ]);
+
+                                    event(new \App\Events\OrderStatusEvent('order-allocation-info', ['users' => $operativeManagerId, 'user' => $operativeManagerId, 'content' => "New order received ('.$request->postal_code.').", 'link' => url('sales-orders')]));
                                 }
                             }
-                        }
-                        if(!empty($driverids)) {
-                            /*Allocated driver history*/
-                            TriggerLog::create([
-                                'trigger_id' => 0,
-                                'order_id' => $soId,
-                                'type' => 4,
-                                'allocated_driver_id' => implode(',',$driverids),
-                            ]);
                         }
 
                         DB::commit();
@@ -1955,6 +1957,82 @@ class SalesOrderController extends Controller
 
         } else {
             return response()->json(['status' => false, 'message' => 'Please provide accurate address.']);
+        }
+    }
+
+    public static function confirm(Request $request, $id)
+    {
+        DB::beginTransaction();
+        
+        $checkOrder = SalesOrder::where('id', decrypt($id))->lockForUpdate()->first();
+
+        if ($checkOrder) {
+            if ($checkOrder->confirm_status == 0) {
+                $getOrderDelivers = DeliverTemp::where('so_id', $checkOrder->id)->get();
+
+                $driverphonenumber = [];
+                $driverids = [];
+                $driverNames = [];
+                foreach ($getOrderDelivers as $getOrderDeliver) {
+                    Deliver::create(['user_id' => $getOrderDeliver->user_id, 'so_id' => $getOrderDeliver->so_id, 'added_by' => $getOrderDeliver->added_by, 'driver_lat' => $getOrderDeliver->driver_lat, 'driver_long' => $getOrderDeliver->driver_long, 'delivery_location_lat' => $getOrderDeliver->delivery_location_lat, 'delivery_location_long' => $getOrderDeliver->delivery_location_long, 'range' => $getOrderDeliver->range]);
+
+                    Notification::create([
+                        'user_id' => $getOrderDeliver->user_id,
+                        'so_id' => $getOrderDeliver->so_id,
+                        'title' => 'New Order',
+                        'description' => 'Order <strong>'.$checkOrder->order_no.'</strong> is allocated to you please check the order.',
+                        'link' => 'sales-orders'
+                    ]);
+
+                    $driverids[] = $getOrderDeliver->user_id;
+                    $driverphonenumber[$getOrderDeliver->user_id] = $getOrderDeliver->user->country_dial_code.$getOrderDeliver->user->phone;
+                    $driverNames[] = $getOrderDeliver->user->name;
+
+                    event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $getOrderDeliver->user_id, 'content' => "Order {$checkOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
+                }
+
+                if (!empty($driverphonenumber)) {
+                    Helper::sendTwilioMsg($driverphonenumber, 1, 1, $checkOrder->id);
+                }
+
+                if (!empty($driverids)) {
+                    /*Allocated driver history*/
+                    TriggerLog::create([
+                        'trigger_id' => 0,
+                        'order_id' => $checkOrder->id,
+                        'type' => 4,
+                        'allocated_driver_id' => implode(',', $driverids),
+                    ]);
+                }
+
+                /* send msg operative directory */
+                $operativeManagers = UserRole::where('role_id', 5)->get();
+                $operativeManagerPhoneNumber = [];
+                foreach ($operativeManagers as $operativeManager) {
+                    $operativeManagerPhoneNumber[$operativeManager->user_id] = $operativeManager->user->country_dial_code.$operativeManager->user->phone;
+                }
+
+                $newOrderReceivedSID = 'HX80aeaef361411b2f442b543b57187317';
+                Helper::sendTwilioMessage($operativeManagerPhoneNumber, $checkOrder->customer_postal_code, $newOrderReceivedSID, 3, 0, $checkOrder->id);
+
+                $availableDriversSID = 'HXf9a4e95cf4d281db3ee6da6b8fe2a28c';
+                Helper::sendTwilioMessage($operativeManagerPhoneNumber, implode(",", $driverNames), $availableDriversSID, 3, 0, $checkOrder->id);
+
+                $reminderSID = 'HXcf95b3ca7d7959fc221e22df23ba6dd5';
+                Helper::sendTwilioMessage($operativeManagerPhoneNumber, '', $reminderSID, 3, 0, $checkOrder->id);
+
+                /* update order status */
+                SalesOrder::find($checkOrder->id)->update(['confirm_status' => 1, 'confirm_by' => auth()->user()->id]);
+                DeliverTemp::where('so_id', $checkOrder->id)->delete();
+                DB::commit();
+
+                $getUsersIds = User::active()->pluck('id')->toArray();
+                event(new \App\Events\OrderStatusEvent('order-status-change', ['users' => $getUsersIds]));
+
+                return response()->json(['success' => 'Sales order confirmed successfully.', 'status' => 200]);
+            } else {
+                return response()->json(['error' => Helper::$errorMessage, 'status' => 500]);
+            }
         }
     }
 }

@@ -283,7 +283,7 @@
                 <th style="width: 10%!important;">Sr No.</th>
                 <th>Order No.</th>
                 <th style="width: 5%!important;">Postal Code</th>
-                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))
+                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(5, User::getUserRoles()))
                 <th style="width: 15%!important;">Allocated To</th>
                 @endif
                 <th>Product</th>
@@ -424,7 +424,7 @@
                     orderable: false,
                     searchable: false,
                 },
-                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()))
+                @if(in_array(1, User::getUserRoles()) || in_array(2, User::getUserRoles()) || in_array(6, User::getUserRoles()) || in_array(5, User::getUserRoles()))
                 {
                     data: 'allocated_to',
                     orderable: false,
@@ -1404,6 +1404,34 @@
 
         });
 
+        $(document).on('click', '.modal-confirm-btn', function(e) {
+            e.preventDefault();
+            var linkURL = $(this).attr("href");
+            Swal.fire({
+                title: 'Are you sure want to confirm?',
+                text: "As that can't be undone by doing reverse.",
+                icon: 'success',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes'
+            }).then((result) => {
+                if (result.value) {
+                    $.ajax({
+                        url: linkURL,
+                        type: 'GET',
+                        success: function(response) {
+                            if (response.status == 200) {
+                                fireSuccessMessage(response.success);
+                                $('.datatables-po').DataTable().ajax.reload();
+                            } else {
+                                fireErrorMessage(response.error);
+                            }
+                        }
+                    });
+                }
+            });
+        });
     });
 </script>
 @endsection
