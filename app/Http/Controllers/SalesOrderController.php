@@ -814,6 +814,7 @@ class SalesOrderController extends Controller
                         if($request->range !="") {
                             $driverrangeData = json_decode($request->range);
                             if(!empty($driverrangeData)) {
+                                $driverNames = [];
                                 foreach($driverrangeData as $driverid=>$range) {
                                     $driverDetail = User::active()->find($driverid);
                                     if(!empty($driverDetail)) {
@@ -827,6 +828,7 @@ class SalesOrderController extends Controller
                                             'delivery_location_long' => $request->long,
                                             'range' => $range
                                         ]);
+                                        $driverNames[] = $driverDetail->name;
                                     }
                                 }
 
@@ -842,6 +844,22 @@ class SalesOrderController extends Controller
 
                                     event(new \App\Events\OrderStatusEvent('order-allocation-info', ['users' => $operativeManagerId, 'user' => $operativeManagerId, 'content' => "New order received ('.$request->postal_code.').", 'link' => url('sales-orders')]));
                                 }
+
+                                /* send msg operative director */
+                                $operativeManagers = UserRole::where('role_id', 5)->get();
+                                $operativeManagerPhoneNumber = [];
+                                foreach ($operativeManagers as $operativeManager) {
+                                    $operativeManagerPhoneNumber[$operativeManager->user_id] = $operativeManager->user->country_dial_code.$operativeManager->user->phone;
+                                }
+
+                                $newOrderReceivedSID = 'HX80aeaef361411b2f442b543b57187317';
+                                Helper::sendTwilioMessage($operativeManagerPhoneNumber, $request->postal_code, $newOrderReceivedSID, 3, 0, $soId);
+
+                                $availableDriversSID = 'HXf9a4e95cf4d281db3ee6da6b8fe2a28c';
+                                Helper::sendTwilioMessage($operativeManagerPhoneNumber, implode(",", $driverNames), $availableDriversSID, 3, 0, $soId);
+
+                                $reminderSID = 'HXcf95b3ca7d7959fc221e22df23ba6dd5';
+                                Helper::sendTwilioMessage($operativeManagerPhoneNumber, '', $reminderSID, 3, 0, $soId);
                             }
                         }
 
@@ -1986,7 +2004,6 @@ class SalesOrderController extends Controller
 
                     $driverids[] = $getOrderDeliver->user_id;
                     $driverphonenumber[$getOrderDeliver->user_id] = $getOrderDeliver->user->country_dial_code.$getOrderDeliver->user->phone;
-                    $driverNames[] = $getOrderDeliver->user->name;
 
                     event(new \App\Events\OrderStatusEvent('order-allocation-info', ['driver' => $getOrderDeliver->user_id, 'content' => "Order {$checkOrder->order_no} is allocated to you please check the order.", 'link' => url('sales-orders')]));
                 }
@@ -2004,22 +2021,6 @@ class SalesOrderController extends Controller
                         'allocated_driver_id' => implode(',', $driverids),
                     ]);
                 }
-
-                /* send msg operative directory */
-                $operativeManagers = UserRole::where('role_id', 5)->get();
-                $operativeManagerPhoneNumber = [];
-                foreach ($operativeManagers as $operativeManager) {
-                    $operativeManagerPhoneNumber[$operativeManager->user_id] = $operativeManager->user->country_dial_code.$operativeManager->user->phone;
-                }
-
-                $newOrderReceivedSID = 'HX80aeaef361411b2f442b543b57187317';
-                Helper::sendTwilioMessage($operativeManagerPhoneNumber, $checkOrder->customer_postal_code, $newOrderReceivedSID, 3, 0, $checkOrder->id);
-
-                $availableDriversSID = 'HXf9a4e95cf4d281db3ee6da6b8fe2a28c';
-                Helper::sendTwilioMessage($operativeManagerPhoneNumber, implode(",", $driverNames), $availableDriversSID, 3, 0, $checkOrder->id);
-
-                $reminderSID = 'HXcf95b3ca7d7959fc221e22df23ba6dd5';
-                Helper::sendTwilioMessage($operativeManagerPhoneNumber, '', $reminderSID, 3, 0, $checkOrder->id);
 
                 /* update order status */
                 SalesOrder::find($checkOrder->id)->update(['confirm_status' => 1, 'confirm_by' => auth()->user()->id]);
