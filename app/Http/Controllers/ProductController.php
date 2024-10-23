@@ -157,12 +157,12 @@ class ProductController extends Controller
 
     public function store(ProductRequest $request)
     {
-
         $product = new Product();
         $product->unique_number = Helper::generateProductNumber();
         $product->name = $request->name;
         $product->category_id = $request->category;
         $product->description = $request->description;
+        $product->web_sales_price = $request->web_sales_price;
         $product->added_by = auth()->user()->id;
         $product->save();
 
@@ -187,6 +187,7 @@ class ProductController extends Controller
         $product->name = $request->name;
         $product->category_id = $request->category;
         $product->description = $request->description;
+        $product->web_sales_price = $request->web_sales_price;
         $product->updated_by = auth()->user()->id;
         $product->save();
 
