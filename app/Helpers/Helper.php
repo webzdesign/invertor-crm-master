@@ -477,7 +477,7 @@ class Helper {
                                     'To' => $to,
                                     'From' => $from,
                                     'ContentSid' => $ContentSid,
-                                    "contentVariables" => $contentVariables
+                                    "ContentVariables" => $contentVariables
                                 ]));
 
                                 $response = curl_exec($ch);
@@ -584,7 +584,7 @@ class Helper {
                                 'To' => $to,
                                 'From' => $from,
                                 'ContentSid' => $contentSid,
-                                "contentVariables" => $contentVariables
+                                "ContentVariables" => $contentVariables
                             ]));
 
                             $response = curl_exec($ch);
