@@ -160,6 +160,7 @@ class ProductController extends Controller
         $product = new Product();
         $product->unique_number = Helper::generateProductNumber();
         $product->name = $request->name;
+        $product->slug = $request->slug;
         $product->category_id = $request->category;
         $product->description = $request->description;
         $product->web_sales_price = $request->web_sales_price;
@@ -185,6 +186,7 @@ class ProductController extends Controller
     {
         $product = Product::find(decrypt($id));
         $product->name = $request->name;
+        $product->slug = $request->slug;
         $product->category_id = $request->category;
         $product->description = $request->description;
         $product->web_sales_price = $request->web_sales_price;
@@ -262,6 +264,17 @@ class ProductController extends Controller
         $moduleName = 'Product';
         $moduleLink = route('products.index');
         return view('products.images', compact('images', 'moduleName', 'id','moduleLink'));
+    }
+
+    public function checkProductSlug(Request $request)
+    {
+        $product = Product::where('slug', trim($request->slug));
+
+        if ($request->has('id') && !empty(trim($request->id))) {
+            $product = $product->where('id', '!=', decrypt($request->id));
+        }
+
+        return response()->json($product->doesntExist());
     }
 }
 

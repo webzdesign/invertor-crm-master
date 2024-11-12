@@ -62,7 +62,17 @@
                     </div>
                 </div>
 
-                <div class="col-12">
+                <div class="col-md-3 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Product Detail URL : <span class="text-danger">*</span></label>
+                        <input type="text" readonly name="slug" id="slug" value="{{ old('slug', $product->slug) }}" class="form-control" placeholder="Product URL">
+                        @if ($errors->has('slug'))
+                            <span class="text-danger d-block">{{ $errors->first('slug') }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-9">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Product Description : </label>
                         <textarea name="description" class="form-control" id="description" cols="30" rows="10" placeholder="Enter product description">{{ old('description', $product->description) }}</textarea>
@@ -93,6 +103,13 @@ $(document).ready(function(){
         return value.indexOf(" ") < 0; 
     }, "Space are not allowed");
 
+    $('body').on('keyup', '#name', function(e) {
+        var name = $(this).val();
+        var slug = name.replace(/[^a-zA-Z0-9\s\+\-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
+
+        $('body').find('#slug').val(slug);
+    });
+
     $("#addProduct").validate({
         rules: {
             category: {
@@ -100,6 +117,20 @@ $(document).ready(function(){
             },
             name: {
                 required: true,                
+            },
+            slug: {
+                required: true,
+                remote: {
+                    url: "{{ url('checkProductSlug') }}",
+                    type: "POST",
+                    async: false,
+                    data: {
+                        slug: function() {
+                            return $("#slug").val();
+                        },
+                        id: "{{ $id }}"
+                    }
+                }
             },
             unique_number: {
                 noSpace: true,
@@ -131,6 +162,10 @@ $(document).ready(function(){
             },
             name: {
                 required: "Product name is required."
+            },
+            slug: {
+                required: "Slug is required.",
+                remote: "Slug already exists.",
             },
             unique_number: {
                 remote: "This product number is already exists."
