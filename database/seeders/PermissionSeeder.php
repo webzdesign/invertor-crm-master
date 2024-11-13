@@ -96,9 +96,10 @@ class PermissionSeeder extends Seeder
             // ['name' => 'View ledger report', 'slug' => 'ledger-report.view', 'model' => 'Report', 'description' => 'Can view ledger report', 'added_by' => 1],
 
             ['name' => 'View seller report', 'slug' => 'financial-seller-report.view', 'model' => 'FinancialReport', 'description' => 'Can view financial seller report', 'added_by' => 1],
-            ['name' => 'View driver report', 'slug' => 'financial-driver-report.view', 'model' => 'FinancialReport', 'description' => 'Can view financial driver report', 'added_by' => 1]
+            ['name' => 'View driver report', 'slug' => 'financial-driver-report.view', 'model' => 'FinancialReport', 'description' => 'Can view financial driver report', 'added_by' => 1],
             /** Reports **/
 
+            ['name' => 'View contact us', 'slug' => 'contactus.view', 'model' => 'Contact Us', 'description' => 'Can view contact us', 'added_by' => 1],
         ];
 
         $toBeDeleted = $toBeRestored = [];

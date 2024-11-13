@@ -14,6 +14,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\ContactUsController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -242,5 +243,9 @@ Route::group(["middleware" => "auth"], function () {
 
         Route::get('settings', [SettingController::class, 'index'])->name('settings');
         Route::put('settings-update', [SettingController::class, 'update'])->name('settings.update');
+
+        /** contactus **/
+        Route::match(['GET', 'POST'], 'contactus', [ContactUsController::class, 'index'])->name('contactus.index')->middleware('ModuleAccessor:contactus.view');
+        /** contactus **/
     });
 });
