@@ -75,7 +75,7 @@
                 <div class="col-9">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Product Description : </label>
-                        <textarea name="description" class="form-control" id="description" cols="30" rows="10" placeholder="Enter product description">{{ old('description', $product->description) }}</textarea>
+                        <textarea name="description" class="form-control ckeditorField" id="description" cols="30" rows="10" placeholder="Enter product description">{{ old('description', $product->description) }}</textarea>
                         @if ($errors->has('description'))
                             <span class="text-danger d-block">{{ $errors->first('description') }}</span>
                         @endif
@@ -95,6 +95,7 @@
 </form>
 @endsection
 
+<script src="{{ asset('assets/ckeditor/ckeditor.js') }}"></script>
 @section('script')
 <script>
 $(document).ready(function(){
@@ -191,6 +192,13 @@ $(document).ready(function(){
             }
         }
     });
+    $(".ckeditorField").each(function() {
+		CKEDITOR.config.autoParagraph = false;
+		CKEDITOR.replace($(this).attr("id"), {
+			enterMode: CKEDITOR.ENTER_BR,
+			shiftEnterMode: CKEDITOR.ENTER_BR
+		});
+	});
 });
 </script>
 @endsection
