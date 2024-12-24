@@ -163,7 +163,12 @@ class ProductController extends Controller
         $product->slug = $request->slug;
         $product->category_id = $request->category;
         $product->description = $request->description;
-        $product->web_sales_price = $request->web_sales_price;
+        if( !empty($request->web_sales_price) ){
+            $product->web_sales_price = $request->web_sales_price;
+        }
+        if( !empty($request->web_sales_old_price) ){
+            $product->web_sales_old_price = $request->web_sales_old_price;
+        }
         $product->added_by = auth()->user()->id;
         $product->save();
 
@@ -189,7 +194,12 @@ class ProductController extends Controller
         $product->slug = $request->slug;
         $product->category_id = $request->category;
         $product->description = $request->description;
-        $product->web_sales_price = $request->web_sales_price;
+        if( !empty($request->web_sales_price) ){
+            $product->web_sales_price = $request->web_sales_price;
+        }
+        if( !empty($request->web_sales_old_price) ){
+            $product->web_sales_old_price = $request->web_sales_old_price;
+        }
         $product->updated_by = auth()->user()->id;
         $product->save();
 

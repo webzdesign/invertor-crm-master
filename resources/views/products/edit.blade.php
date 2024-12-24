@@ -16,14 +16,14 @@
         <div class="cardsBody pb-0">
             <div class="row">
 
-                <div class="col-md-3 col-sm-12">
+                <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Product Number : </label>
                         <input type="text" name="unique_number" id="unique_number" value="{{ old('unique_number', $product->unique_number) }}" class="form-control" placeholder="Enter product number" readonly>
                     </div>
                 </div>
 
-                <div class="col-md-3 col-sm-12">
+                <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Category : <span class="text-danger">*</span></label>
                         <select name="category" id="category" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Category ---">
@@ -42,7 +42,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 col-sm-12">
+                <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Product Name : <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" value="{{ old('name', $product->name) }}" class="form-control" placeholder="Enter product name">
@@ -52,15 +52,26 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 col-sm-12">
+                <div class="col-md col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Website Sales Price :</label>
-                        <input type="text" name="web_sales_price" id="web_sales_price" value="{{ old('web_sales_price', $product->web_sales_price) }}" class="form-control" placeholder="Enter Website Sales Price">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">New Price :</label>
+                        <input type="text" name="web_sales_price" id="web_sales_price" value="{{ old('web_sales_price', $product->web_sales_price) }}" class="form-control" placeholder="Enter Product Sales Price">
                         @if ($errors->has('web_sales_price'))
                             <span class="text-danger d-block">{{ $errors->first('web_sales_price') }}</span>
                         @endif
                     </div>
                 </div>
+                <div class="col-md col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Old Price :</label>
+                        <input type="text" name="web_sales_old_price" id="web_sales_old_price" value="{{ old('web_sales_old_price', $product->web_sales_old_price) }}" class="form-control" placeholder="Enter Product Old Sales Price">
+                        @if ($errors->has('web_sales_old_price'))
+                            <span class="text-danger d-block">{{ $errors->first('web_sales_old_price') }}</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="row">
 
                 <div class="col-md-3 col-sm-12">
                     <div class="form-group">
@@ -153,6 +164,11 @@ $(document).ready(function(){
                 min: 0
             },
             web_sales_price: {
+                required: true,
+                number: true,
+                min: 0
+            },
+            web_sales_old_price: {
                 number: true,
                 min: 0
             },
@@ -177,6 +193,11 @@ $(document).ready(function(){
                 min: "Price can not be in negative amount."
             },
             web_sales_price: {
+                required: "Website sale price is required.",
+                number: "Enter valid price format.",
+                min: "Price can not be in negative amount."
+            },
+            web_sales_old_price: {
                 number: "Enter valid price format.",
                 min: "Price can not be in negative amount."
             },
