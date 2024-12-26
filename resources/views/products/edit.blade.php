@@ -18,14 +18,14 @@
 
                 <div class="col-md col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Product Number : </label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="unique_number">Product Number : </label>
                         <input type="text" name="unique_number" id="unique_number" value="{{ old('unique_number', $product->unique_number) }}" class="form-control" placeholder="Enter product number" readonly>
                     </div>
                 </div>
 
                 <div class="col-md col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Category : <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="category">Category : <span class="text-danger">*</span></label>
                         <select name="category" id="category" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Category ---">
                             @forelse($categories as $cid => $cname)
                                 @if($loop->first)
@@ -44,7 +44,7 @@
 
                 <div class="col-md col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Product Name : <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="name">Product Name : <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" value="{{ old('name', $product->name) }}" class="form-control" placeholder="Enter product name">
                         @if ($errors->has('name'))
                             <span class="text-danger d-block">{{ $errors->first('name') }}</span>
@@ -54,7 +54,7 @@
 
                 <div class="col-md col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">New Price :</label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="web_sales_price">New Price :</label>
                         <input type="text" name="web_sales_price" id="web_sales_price" value="{{ old('web_sales_price', $product->web_sales_price) }}" class="form-control" placeholder="Enter Product Sales Price">
                         @if ($errors->has('web_sales_price'))
                             <span class="text-danger d-block">{{ $errors->first('web_sales_price') }}</span>
@@ -63,7 +63,7 @@
                 </div>
                 <div class="col-md col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Old Price :</label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="web_sales_old_price">Old Price :</label>
                         <input type="text" name="web_sales_old_price" id="web_sales_old_price" value="{{ old('web_sales_old_price', $product->web_sales_old_price) }}" class="form-control" placeholder="Enter Product Old Sales Price">
                         @if ($errors->has('web_sales_old_price'))
                             <span class="text-danger d-block">{{ $errors->first('web_sales_old_price') }}</span>
@@ -75,10 +75,31 @@
 
                 <div class="col-md-3 col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Product Detail URL : <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="slug">Product Detail URL :</label>
                         <input type="text" readonly name="slug" id="slug" value="{{ old('slug', $product->slug) }}" class="form-control" placeholder="Product URL">
                         @if ($errors->has('slug'))
                             <span class="text-danger d-block">{{ $errors->first('slug') }}</span>
+                        @endif
+                    </div>
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="sku">SKU :</label>
+                        <input type="text" name="sku" id="sku" value="{{ old('sku', $product->sku) }}" class="form-control" placeholder="Product SKU">
+                        @if ($errors->has('sku'))
+                            <span class="text-danger d-block">{{ $errors->first('sku') }}</span>
+                        @endif
+                    </div>
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="gtin">GTIN :</label>
+                        <input type="text" name="gtin" id="gtin" value="{{ old('gtin', $product->gtin) }}" class="form-control" placeholder="Product GTIN">
+                        @if ($errors->has('gtin'))
+                            <span class="text-danger d-block">{{ $errors->first('gtin') }}</span>
+                        @endif
+                    </div>
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="mpn">MPN :</label>
+                        <input type="text" name="mpn" id="mpn" value="{{ old('mpn', $product->mpn) }}" class="form-control" placeholder="Product MPN">
+                        @if ($errors->has('mpn'))
+                            <span class="text-danger d-block">{{ $errors->first('mpn') }}</span>
                         @endif
                     </div>
                 </div>

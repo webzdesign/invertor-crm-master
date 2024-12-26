@@ -161,7 +161,7 @@ class SalesOrderController extends Controller
                 return $action;
             })
             ->addColumn('product', function ($row) {
-                    return $row->items->first()->product->name;
+                    return $row->items->first()->product->name ?? '';
             })
             ->addColumn('note', function ($row) {
                 $note = TriggerLog::where('order_id', $row->id)->where('type', 2)->whereNotNull('description')->where('description', '!=', '')->orderBy('id', 'DESC')->first()->description ?? '-';

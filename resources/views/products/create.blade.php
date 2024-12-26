@@ -81,6 +81,27 @@
                             <span class="text-danger d-block">{{ $errors->first('slug') }}</span>
                         @endif
                     </div>
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="sku">SKU :</label>
+                        <input type="text" name="sku" id="sku" value="{{ old('sku') }}" class="form-control" placeholder="Product SKU">
+                        @if ($errors->has('sku'))
+                            <span class="text-danger d-block">{{ $errors->first('sku') }}</span>
+                        @endif
+                    </div>
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="gtin">GTIN :</label>
+                        <input type="text" name="gtin" id="gtin" value="{{ old('gtin') }}" class="form-control" placeholder="Product GTIN">
+                        @if ($errors->has('gtin'))
+                            <span class="text-danger d-block">{{ $errors->first('gtin') }}</span>
+                        @endif
+                    </div>
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="mpn">MPN :</label>
+                        <input type="text" name="mpn" id="mpn" value="{{ old('mpn') }}" class="form-control" placeholder="Product MPN">
+                        @if ($errors->has('mpn'))
+                            <span class="text-danger d-block">{{ $errors->first('mpn') }}</span>
+                        @endif
+                    </div>
                 </div>
 
                 <div class="col-md-9 col-sm-12">
