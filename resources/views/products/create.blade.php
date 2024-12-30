@@ -135,7 +135,7 @@ $(document).ready(function(){
         return value.indexOf(" ") < 0; 
     }, "Space are not allowed");
 
-    $('body').on('keyup', '#name', function(e) {
+    $('body').on('input', '#name', function(e) {
         var name = $(this).val();
         var slug = name.replace(/[^a-zA-Z0-9\s\+\-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
 
