@@ -89,6 +89,13 @@
                         @endif
                     </div>
                     <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="brand">Brand :</label>
+                        <input type="text" name="brand" id="brand" value="{{ old('brand', $product->brand) }}" class="form-control" placeholder="Product Brand">
+                        @if ($errors->has('brand'))
+                            <span class="text-danger d-block">{{ $errors->first('brand') }}</span>
+                        @endif
+                    </div>
+                    <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="gtin">GTIN :</label>
                         <input type="text" name="gtin" id="gtin" value="{{ old('gtin', $product->gtin) }}" class="form-control" placeholder="Product GTIN">
                         @if ($errors->has('gtin'))

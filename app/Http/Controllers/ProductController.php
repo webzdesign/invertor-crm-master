@@ -166,6 +166,7 @@ class ProductController extends Controller
         $product->web_sales_price = $request->web_sales_price ?? 0;
         $product->web_sales_old_price = $request->web_sales_old_price ?? 0;
         $product->sku = $request->sku ?? '';
+        $product->brand = $request->brand ?? '';
         $product->gtin = $request->gtin ?? '';
         $product->mpn = $request->mpn ?? '';
         $product->added_by = auth()->user()->id;
@@ -196,6 +197,7 @@ class ProductController extends Controller
         $product->web_sales_price = $request->web_sales_price ?? 0;
         $product->web_sales_old_price = $request->web_sales_old_price ?? 0;
         $product->sku = $request->sku ?? '';
+        $product->brand = $request->brand ?? '';
         $product->gtin = $request->gtin ?? '';
         $product->mpn = $request->mpn ?? '';
         $product->updated_by = auth()->user()->id;
