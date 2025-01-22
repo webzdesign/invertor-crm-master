@@ -161,6 +161,8 @@ class ProductController extends Controller
         $product->unique_number = Helper::generateProductNumber();
         $product->name = $request->name;
         $product->slug = $request->slug;
+        $product->slider_title = $request->slider_title;
+        $product->slider_content = $request->slider_content;
         $product->category_id = $request->category;
         $product->description = $request->description;
         $product->web_sales_price = $request->web_sales_price ?? 0;
@@ -192,6 +194,8 @@ class ProductController extends Controller
         $product = Product::find(decrypt($id));
         $product->name = $request->name;
         $product->slug = $request->slug;
+        $product->slider_title = $request->slider_title;
+        $product->slider_content = $request->slider_content;
         $product->category_id = $request->category;
         $product->description = $request->description;
         $product->web_sales_price = $request->web_sales_price ?? 0;

@@ -82,6 +82,20 @@
                         @endif
                     </div>
                     <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="slider_title">Short Title :</label>
+                        <input type="text" name="slider_title" id="slider_title" value="{{ old('slider_title', $product->slider_title) }}" class="form-control" placeholder="Product Short Title">
+                        @if ($errors->has('slider_title'))
+                            <span class="text-danger d-block">{{ $errors->first('slider_title') }}</span>
+                        @endif
+                    </div>
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="slider_content">Short Content :</label>
+                        <input type="text" name="slider_content" id="slider_content" value="{{ old('slider_content', $product->slider_content) }}" class="form-control" placeholder="Product Short Content">
+                        @if ($errors->has('slider_content'))
+                            <span class="text-danger d-block">{{ $errors->first('slider_content') }}</span>
+                        @endif
+                    </div>
+                    <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="sku">SKU :</label>
                         <input type="text" name="sku" id="sku" value="{{ old('sku', $product->sku) }}" class="form-control" placeholder="Product SKU">
                         @if ($errors->has('sku'))

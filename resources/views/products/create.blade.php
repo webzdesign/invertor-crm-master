@@ -44,7 +44,7 @@
 
                 <div class="col-md col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Product Name : <span class="text-danger">*</span></label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="name">Product Name : <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" value="{{ old('name') }}" class="form-control" placeholder="Enter product name">
                         @if ($errors->has('name'))
                             <span class="text-danger d-block">{{ $errors->first('name') }}</span>
@@ -54,7 +54,7 @@
 
                 <div class="col-md col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">New Price : </label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="web_sales_price">New Price : </label>
                         <input type="text" name="web_sales_price" id="web_sales_price" value="{{ old('web_sales_price') }}" class="form-control" placeholder="Enter Product Sales Price">
                         @if ($errors->has('web_sales_price'))
                             <span class="text-danger d-block">{{ $errors->first('web_sales_price') }}</span>
@@ -63,7 +63,7 @@
                 </div>
                 <div class="col-md col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Old Price :</label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="web_sales_old_price">Old Price :</label>
                         <input type="text" name="web_sales_old_price" id="web_sales_old_price" value="{{ old('web_sales_old_price') }}" class="form-control" placeholder="Enter Product Old Sales Price">
                         @if ($errors->has('web_sales_old_price'))
                             <span class="text-danger d-block">{{ $errors->first('web_sales_old_price') }}</span>
@@ -79,6 +79,20 @@
                         <input type="text" readonly name="slug" id="slug" value="{{ old('slug') }}" class="form-control" placeholder="Product URL">
                         @if ($errors->has('slug'))
                             <span class="text-danger d-block">{{ $errors->first('slug') }}</span>
+                        @endif
+                    </div>
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="slider_title">Short Title :</label>
+                        <input type="text" name="slider_title" id="slider_title" value="{{ old('slider_title') }}" class="form-control" placeholder="Product Short Title">
+                        @if ($errors->has('slider_title'))
+                            <span class="text-danger d-block">{{ $errors->first('slider_title') }}</span>
+                        @endif
+                    </div>
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="slider_content">Short Content :</label>
+                        <input type="text" name="slider_content" id="slider_content" value="{{ old('slider_content') }}" class="form-control" placeholder="Product Short Content">
+                        @if ($errors->has('slider_content'))
+                            <span class="text-danger d-block">{{ $errors->first('slider_content') }}</span>
                         @endif
                     </div>
                     <div class="form-group">
