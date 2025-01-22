@@ -133,6 +133,13 @@
                             <span class="text-danger d-block">{{ $errors->first('description') }}</span>
                         @endif
                     </div>
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Shipping & Payment : </label>
+                        <textarea name="shipping_and_payment" class="form-control ckeditorField" id="shipping_and_payment" cols="30" rows="10" placeholder="Enter Shipping & Payment Details">{{ old('shipping_and_payment') }}</textarea>
+                        @if ($errors->has('shipping_and_payment'))
+                            <span class="text-danger d-block">{{ $errors->first('shipping_and_payment') }}</span>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

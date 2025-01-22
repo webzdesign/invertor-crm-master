@@ -165,6 +165,7 @@ class ProductController extends Controller
         $product->slider_content = $request->slider_content;
         $product->category_id = $request->category;
         $product->description = $request->description;
+        $product->shipping_and_payment = $request->shipping_and_payment ?? '';
         $product->web_sales_price = $request->web_sales_price ?? 0;
         $product->web_sales_old_price = $request->web_sales_old_price ?? 0;
         $product->sku = $request->sku ?? '';
@@ -198,6 +199,7 @@ class ProductController extends Controller
         $product->slider_content = $request->slider_content;
         $product->category_id = $request->category;
         $product->description = $request->description;
+        $product->shipping_and_payment = $request->shipping_and_payment ?? '';
         $product->web_sales_price = $request->web_sales_price ?? 0;
         $product->web_sales_old_price = $request->web_sales_old_price ?? 0;
         $product->sku = $request->sku ?? '';
