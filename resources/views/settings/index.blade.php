@@ -135,6 +135,58 @@
                         @endif
                     </div>
                 </div>
+
+                <!-- social icon links -->
+                <div class="col-md-4 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2"> Facebook Url : </label>
+                        <input type="text" name="facebookUrl" id="facebookUrl" value="{{ old('facebookUrl', $settings->facebookUrl) }}" class="form-control" placeholder="Enter Facebook Url">
+                        @if ($errors->has('facebookUrl'))
+                            <span class="text-danger d-block">{{ $errors->first('facebookUrl') }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2"> Linkdin Url : </label>
+                        <input type="text" name="linkdinUrl" id="linkdinUrl" value="{{ old('linkdinUrl', $settings->linkdinUrl) }}" class="form-control" placeholder="Enter Linkdin Url">
+                        @if ($errors->has('linkdinUrl'))
+                            <span class="text-danger d-block">{{ $errors->first('linkdinUrl') }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2"> Instagram Url : </label>
+                        <input type="text" name="instgramUrl" id="instgramUrl" value="{{ old('instgramUrl', $settings->instgramUrl) }}" class="form-control" placeholder="Enter Instagram  Url">
+                        @if ($errors->has('instgramUrl'))
+                            <span class="text-danger d-block">{{ $errors->first('instgramUrl') }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2"> TikTok Url : </label>
+                        <input type="text" name="tiktokUrl" id="tiktokUrl" value="{{ old('tiktokUrl', $settings->tiktokUrl) }}" class="form-control" placeholder="Enter Tiktok Url">
+                        @if ($errors->has('tiktokUrl'))
+                            <span class="text-danger d-block">{{ $errors->first('tiktokUrl') }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2"> Youtube Url : </label>
+                        <input type="text" name="youtubeUrl" id="youtubeUrl" value="{{ old('youtubeUrl', $settings->youtubeUrl) }}" class="form-control" placeholder="Enter Youtube Url">
+                        @if ($errors->has('youtubeUrl'))
+                            <span class="text-danger d-block">{{ $errors->first('youtubeUrl') }}</span>
+                        @endif
+                    </div>
+                </div>
+
             </div>
         </div>
 

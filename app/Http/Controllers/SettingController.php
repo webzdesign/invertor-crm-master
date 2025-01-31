@@ -99,6 +99,13 @@ class SettingController extends Controller
             $settings->twilioUrl = $request->twilioUrl;
             $settings->twilloTemplateUrl = $request->twilloTemplateUrl;
             $settings->twilioFromNumber = $request->twilioFromNumber;
+
+            $settings->facebookUrl = $request->facebookUrl;
+            $settings->linkdinUrl = $request->linkdinUrl;
+            $settings->instgramUrl = $request->instgramUrl;
+            $settings->tiktokUrl = $request->tiktokUrl;
+            $settings->youtubeUrl = $request->youtubeUrl;
+
             $settings->save();
 
             DB::commit();
