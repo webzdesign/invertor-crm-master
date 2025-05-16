@@ -76,7 +76,18 @@
                     </div>
                 </div>
 
-                <div class="col-sm-6">
+                <div class="col-md-4 usernameDiv" style="display:{{ (in_array(7, $user->roles->pluck('id')->toArray())) ? 'block' : 'none' }};">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Username : <span class="text-danger">*</span></label>
+                        <input {{ (in_array(7, $user->roles->pluck('id')->toArray())) ? 'readonly' : '' }} type="text" name="username" id="username" value="{{ old('username', $user->username) }}"
+                            class="form-control" placeholder="Enter username">
+                        @if ($errors->has('username'))
+                            <span class="text-danger d-block">{{ $errors->first('username') }}</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="col-sm-4">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Password : </label>
                         <div class="input-group">
@@ -90,7 +101,7 @@
                     </div>
                 </div>
 
-                <div class="col-sm-6">
+                <div class="col-sm-4">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Confirm Password : </label>
                         <div class="input-group">
@@ -233,6 +244,10 @@ $(document).ready(function(){
     const input = document.querySelector('#phone');
     const errorMap = ["Phone number is invalid.", "Invalid country code", "Too short", "Too long"];
 
+    jQuery.validator.addMethod("noSpace", function(value, element) {
+        return value.trim().indexOf(" ") === -1;
+    }, "Spaces are not allowed in the username.");
+
     const iti = window.intlTelInput(input, {
         initialCountry: "{{ $user->country_iso_code ?? 'gb' }}",
         preferredCountries: ['gb', 'pk'],
@@ -339,6 +354,16 @@ $(document).ready(function(){
         } else {
             $('.permissions-container').html('');
         }
+
+        if (isNumeric(rId)) {
+            if (rId == 7) {
+                $('body').find('.usernameDiv').show();
+            } else {
+                $('body').find('.usernameDiv').hide();
+            }
+        } else {
+            $('body').find('.usernameDiv').hide();
+        }
     });
 
     $('.permission-listing').each(function () {
@@ -352,6 +377,21 @@ $(document).ready(function(){
         rules : {
             'name' : {
                 required: true
+            },
+            'username': {
+                required: true,
+                noSpace: true,
+                remote: {
+                    url: "{{ url('checkUsername') }}",
+                    type: "POST",
+                    async: false,
+                    data: {
+                        username: function() {
+                            return $("#username").val();
+                        },
+                        id : "{{ $id }}"
+                    }
+                }
             },
             'phone': {
                 required: true,

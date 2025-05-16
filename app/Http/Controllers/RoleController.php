@@ -56,7 +56,7 @@ class RoleController extends Controller
                 $action = "";
                 $action .= '<div class="d-flex align-items-center justify-content-center">';
 
-                if (!in_array($roles->id, [1])) {
+                if (!in_array($roles->id, [1,7])) {
                     if (auth()->user()->hasPermission("roles.edit")) {
                         $url = route("roles.edit", encrypt($variable->id));
                         $action .= view('buttons.edit', compact('variable', 'url'));
@@ -73,7 +73,7 @@ class RoleController extends Controller
                     }
                 }
 
-                if (!in_array($roles->id, [1,2,3])) {
+                if (!in_array($roles->id, [1,2,3,7])) {
                     if (auth()->user()->hasPermission("roles.activeinactive")) {
                         $url = route("roles.activeinactive", encrypt($variable->id));
                         $action .= view('buttons.status', compact('variable', 'url'));

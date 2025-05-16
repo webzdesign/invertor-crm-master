@@ -32,7 +32,10 @@ class SettingController extends Controller
             'twilioAccountSid' => 'required',
             'twilioAuthToken' => 'required',
             'twilioUrl' => 'required',
-            'twilloTemplateUrl' => 'required'
+            'twilloTemplateUrl' => 'required',
+            'moldcell_url' => 'required',
+            'moldcell_auth_pbx_key' => 'required',
+            'moldcell_auth_crm_key' => 'required'
         ],[
             'name.required' => 'Name is required',
             'logo.file' => 'Upload a valid image file.',
@@ -48,7 +51,11 @@ class SettingController extends Controller
             'twilioAccountSid' => 'Twilio account id is required',
             'twilioAuthToken' => 'Twilio auth token is required',
             'twilioUrl' => 'Twilio url is required',
-            'twilloTemplateUrl' => 'Twilio template url is required'
+            'twilloTemplateUrl' => 'Twilio template url is required',
+
+            'moldcell_url.required' => 'Moldcell URL is required.',
+            'moldcell_auth_pbx_key.required' => 'Key for authorization in PBX is required,',
+            'moldcell_auth_crm_key.required' => 'Key for authorization in your CRM is required.',
         ]);
 
         if (!file_exists(public_path('assets/images'))) {
@@ -105,6 +112,10 @@ class SettingController extends Controller
             $settings->instgramUrl = $request->instgramUrl;
             $settings->tiktokUrl = $request->tiktokUrl;
             $settings->youtubeUrl = $request->youtubeUrl;
+
+            $settings->moldcell_url = $request->moldcell_url;
+            $settings->moldcell_auth_pbx_key = $request->moldcell_auth_pbx_key;
+            $settings->moldcell_auth_crm_key = $request->moldcell_auth_crm_key;
 
             $settings->save();
 

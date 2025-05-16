@@ -609,4 +609,198 @@ class Helper {
             }
         }
     }
+
+    public static function createMoldcellEmployee($data)
+    {
+        if (env('MOLDCELL_API') == 'true') {
+            try {
+                $setting = Setting::select(['moldcell_url', 'moldcell_auth_pbx_key', 'moldcell_auth_crm_key'])->first();
+
+                $params = [];
+
+                if (!empty($data->username)) {
+                    $params['login'] = $data->username;
+                }
+
+                if (!empty($data->name)) {
+                    $params['name'] = $data->name;
+                }
+
+                if (!empty($data->password)) {
+                    $params['password'] = $data->password;
+                }
+
+                if (!empty($data->email)) {
+                    $params['email'] = $data->email;
+                }
+
+                if (!empty($data->mobile)) {
+                    $params['mobile'] = $data->mobile;
+                }
+
+                $queryString = http_build_query($params);
+
+                $url = $setting->moldcell_url . '/crmapi/v1/users';
+                if (!empty($queryString)) {
+                    $url .= '?' . $queryString;
+                }
+
+                $curl = curl_init();
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL => $url,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'POST',
+                    CURLOPT_HTTPHEADER => array(
+                        'X-API-KEY: '.$setting->moldcell_auth_pbx_key
+                    ),
+                ));
+
+                $response = curl_exec($curl);
+                $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+                curl_close($curl);
+                
+                return (object) ['status' => $httpCode, 'response' => json_decode($response)];
+            } catch (\Exception $e) {
+                return (object) ['status' => 500, 'response' => $e->getMessage()];
+            }
+        }
+    }
+
+    public static function editMoldcellEmployee($data)
+    {
+        if (env('MOLDCELL_API') == 'true') {
+            try {
+                $setting = Setting::select(['moldcell_url', 'moldcell_auth_pbx_key', 'moldcell_auth_crm_key'])->first();
+
+                $params = [];
+
+                if (!empty($data->name)) {
+                    $params['name'] = $data->name;
+                }
+
+                if (!empty($data->password)) {
+                    $params['password'] = $data->password;
+                }
+
+                if (!empty($data->email)) {
+                    $params['email'] = $data->email;
+                }
+
+                if (!empty($data->mobile)) {
+                    $params['mobile'] = $data->mobile;
+                }
+
+                $queryString = http_build_query($params);
+
+                $url = $setting->moldcell_url . '/crmapi/v1/users/' . $data->username;
+                if (!empty($queryString)) {
+                    $url .= '?' . $queryString;
+                }
+
+                $curl = curl_init();
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL => $url,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'PUT',
+                    CURLOPT_HTTPHEADER => array(
+                        'X-API-KEY: '.$setting->moldcell_auth_pbx_key
+                    ),
+                ));
+
+                $response = curl_exec($curl);
+                $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+                curl_close($curl);
+                
+                return (object) ['status' => $httpCode, 'response' => json_decode($response)];
+            } catch (\Exception $e) {
+                return (object) ['status' => 500, 'response' => $e->getMessage()];
+            }
+        }
+    }
+
+    public static function deleteMoldcellEmployee($username)
+    {
+        if (env('MOLDCELL_API') == 'true') {
+            try {
+                $setting = Setting::select(['moldcell_url', 'moldcell_auth_pbx_key', 'moldcell_auth_crm_key'])->first();
+
+                $url = $setting->moldcell_url . '/crmapi/v1/users/' . $username;
+
+                $curl = curl_init();
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL => $url,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'DELETE',
+                    CURLOPT_HTTPHEADER => array(
+                        'X-API-KEY: '.$setting->moldcell_auth_pbx_key
+                    ),
+                ));
+
+                $response = curl_exec($curl);
+                $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+                curl_close($curl);
+                
+                return (object) ['status' => $httpCode, 'response' => json_decode($response)];
+            } catch (\Exception $e) {
+                return (object) ['status' => 500, 'response' => $e->getMessage()];
+            }
+        }
+    }
+
+    public static function MoldcellCallHistory($username)
+    {
+        if (env('MOLDCELL_API') == 'true') {
+            try {
+                $setting = Setting::select(['moldcell_url', 'moldcell_auth_pbx_key', 'moldcell_auth_crm_key'])->first();
+
+                $url = $setting->moldcell_url . '/crmapi/v1/users/' . $username;
+
+                $curl = curl_init();
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL => $url,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'DELETE',
+                    CURLOPT_HTTPHEADER => array(
+                        'X-API-KEY: '.$setting->moldcell_auth_pbx_key
+                    ),
+                ));
+
+                $response = curl_exec($curl);
+                $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+                curl_close($curl);
+                
+                return (object) ['status' => $httpCode, 'response' => json_decode($response)];
+            } catch (\Exception $e) {
+                return (object) ['status' => 500, 'response' => $e->getMessage()];
+            }
+        }
+    }
 }
