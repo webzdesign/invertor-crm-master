@@ -43,7 +43,7 @@ class ProductController extends Controller
         return dataTables()->eloquent($products)
            ->addColumn("hot_product", function($product) {
                 $checked = $product->is_hot ? 'checked' : '';
-                $input = '<input type="checkbox" class="is-hot-product" data-id="'.encrypt($product->id).'" '.$checked.'>';
+                $input = '<input type="checkbox" class="form-check-input is-hot-product" data-id="'.encrypt($product->id).'" '.$checked.'>';
                 return $input;
             })
             ->editColumn('addedby.name', function($category) {
