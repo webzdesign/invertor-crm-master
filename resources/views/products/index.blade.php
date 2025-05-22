@@ -60,7 +60,7 @@
     <table class="datatable-users table datatableMain" style="width: 100%!important;">
         <thead>
             <tr>
-                <th>Sr No.</th>
+                <th>Hot Product</th>
                 <th>Product Number</th>
                 <th width="25%">Product Name</th>
                 <th>Category</th>
@@ -105,8 +105,9 @@
                     },
                 }
             },
-            columns: [{
-                    data: 'DT_RowIndex',
+            columns: [
+                {
+                    data: 'hot_product',
                     orderable: false,
                     searchable: false,
                 },
@@ -171,6 +172,28 @@
             $('body').find('#filterStatus').val('').trigger('change');
             ServerDataTable.ajax.reload();
         });
+
+       $(document).on('click', '.is-hot-product', function () {
+            let dataID = $(this).data('id'); 
+            let isHot = $(this).is(':checked') ? 1 : 0;
+
+            $.ajax({
+                url: '{{route('isHotProduct')}}',
+                method: 'POST',
+                data: {
+                    id: dataID,
+                    is_hot: isHot,
+                },
+                success: function(response) {
+                    console.log('Updated successfully:', response);
+                    ServerDataTable.ajax.reload();
+                },
+                error: function(xhr) {
+                    alert('Error: ' + xhr.responseText);
+                }
+            });
+        });
+
     });
 </script>
 @endsection

@@ -96,6 +96,7 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('product-image/{id}', [ProductController::class, 'saveProductImage'])->name('product-image');
         Route::delete('remove-product-images', [ProductController::class, 'deleteImage'])->name('remove-product-images');
         Route::post('checkProductSlug', [ProductController::class, 'checkProductSlug']);
+        Route::post('/products/is-hot-product', [ProductController::class, 'isHotProduct'])->name('isHotProduct');
         /** Products **/
 
         /** Purchase Order **/

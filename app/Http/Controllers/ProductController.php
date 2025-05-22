@@ -41,6 +41,11 @@ class ProductController extends Controller
         }
 
         return dataTables()->eloquent($products)
+           ->addColumn("hot_product", function($product) {
+                $checked = $product->is_hot ? 'checked' : '';
+                $input = '<input type="checkbox" class="is-hot-product" data-id="'.encrypt($product->id).'" '.$checked.'>';
+                return $input;
+            })
             ->editColumn('addedby.name', function($category) {
                 return "<span data-mdb-toggle='tooltip' title='".date('d-m-Y h:i:s A', strtotime($category->created_at))."'>".$category->addedby->name."</span>";
             })
@@ -94,8 +99,8 @@ class ProductController extends Controller
                     return "<span class='badge bg-danger'>InActive</span>";
                 }
             })
-            ->rawColumns(['action', 'status', 'addedby.name', 'updatedby.name'])
-            ->addIndexColumn()
+            ->rawColumns(['action', 'status', 'addedby.name', 'updatedby.name','hot_product'])
+            // ->addIndexColumn()
             ->make(true);
     }
 
@@ -291,6 +296,24 @@ class ProductController extends Controller
         }
 
         return response()->json($product->doesntExist());
+    }
+
+    public function isHotProduct(Request $request) {
+       
+        if(isset($request->id) && !empty($request->id) && isset($request->is_hot)) {
+            $product = Product::find(decrypt($request->id));
+            
+            if(!empty($product)) {
+                $product->is_hot = $request->is_hot ? 1 : 0;
+                $product->update();
+                
+                return response()->json(['success' => true, 'is_hot' => $product->is_hot]);
+            } else {
+                return response()->json(['success' => false]);
+            }
+        } else {
+            return response()->json(['success' => false]);
+        }
     }
 }
 
