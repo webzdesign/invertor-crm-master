@@ -178,6 +178,7 @@ class ProductController extends Controller
         $product->brand = $request->brand ?? '';
         $product->gtin = $request->gtin ?? '';
         $product->mpn = $request->mpn ?? '';
+        $product->youtube_video_url = $request->youtube_video_url ?? '';
         $product->added_by = auth()->user()->id;
         $product->save();
 
@@ -212,6 +213,7 @@ class ProductController extends Controller
         $product->brand = $request->brand ?? '';
         $product->gtin = $request->gtin ?? '';
         $product->mpn = $request->mpn ?? '';
+        $product->youtube_video_url = $request->youtube_video_url ?? '';
         $product->updated_by = auth()->user()->id;
         $product->save();
 

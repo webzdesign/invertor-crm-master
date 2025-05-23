@@ -123,6 +123,13 @@
                             <span class="text-danger d-block">{{ $errors->first('mpn') }}</span>
                         @endif
                     </div>
+                     <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="youtube_video_url">Youtube Video Url :</label>
+                        <input type="text" name="youtube_video_url" id="youtube_video_url" value="{{ old('youtube_video_url') }}" class="form-control" placeholder="Youtube Video Url">
+                        @if ($errors->has('youtube_video_url'))
+                            <span class="text-danger d-block">{{ $errors->first('youtube_video_url') }}</span>
+                        @endif
+                    </div>
                 </div>
 
                 <div class="col-md-9 col-sm-12">
