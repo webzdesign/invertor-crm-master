@@ -185,11 +185,15 @@
                     is_hot: isHot,
                 },
                 success: function(response) {
-                    console.log('Updated successfully:', response);
-                    ServerDataTable.ajax.reload();
+                    if(response.success == 1) {
+                        ServerDataTable.ajax.reload();
+                    } else {
+                        Swal.fire('Warning', response.message, 'warning');
+                        ServerDataTable.ajax.reload();
+                    }
                 },
                 error: function(xhr) {
-                    alert('Error: ' + xhr.responseText);
+                    console.log('Error: ' + xhr.responseText);
                 }
             });
         });

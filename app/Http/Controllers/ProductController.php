@@ -43,7 +43,8 @@ class ProductController extends Controller
         return dataTables()->eloquent($products)
            ->addColumn("hot_product", function($product) {
                 $checked = $product->is_hot ? 'checked' : '';
-                $input = '<input type="checkbox" class="form-check-input is-hot-product" data-id="'.encrypt($product->id).'" '.$checked.'>';
+                $disabled = $product->status == 0 ? 'disabled' : '';
+                $input = '<input type="checkbox" class="form-check-input is-hot-product" data-id="'.encrypt($product->id).'" '.$checked. ' ' . $disabled .'>';
                 return $input;
             })
             ->editColumn('addedby.name', function($category) {
@@ -301,15 +302,22 @@ class ProductController extends Controller
     public function isHotProduct(Request $request) {
        
         if(isset($request->id) && !empty($request->id) && isset($request->is_hot)) {
-            $product = Product::find(decrypt($request->id));
-            
-            if(!empty($product)) {
-                $product->is_hot = $request->is_hot ? 1 : 0;
-                $product->update();
-                
-                return response()->json(['success' => true, 'is_hot' => $product->is_hot]);
+
+            $isHotProducts = Product::select(['id'])->where('is_hot',1)->where('status',1)->whereNull('deleted_at')->count();
+
+            if($isHotProducts < 15) {
+                $product = Product::find(decrypt($request->id));
+
+                if(!empty($product)) {
+                    $product->is_hot = $request->is_hot ? 1 : 0;
+                    $product->update();
+                    
+                    return response()->json(['success' => true, 'is_hot' => $product->is_hot]);
+                } else {
+                    return response()->json(['success' => false]);
+                }
             } else {
-                return response()->json(['success' => false]);
+                return response()->json(['success' => false, 'message' => 'Maximum 15 products allowed as hot offres.']);
             }
         } else {
             return response()->json(['success' => false]);
