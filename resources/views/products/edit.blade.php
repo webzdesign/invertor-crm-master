@@ -154,6 +154,18 @@
                                     </div>
                                 </div>
                                 @endforeach
+                            @else 
+                                <div class="d-flex flex-wrap mb-2 available_power_capacity-input">
+                                    <input type="text" name="available_power_capacity[0]" class="form-control w-75" id="available_power_capacity" placeholder="Available Power Capacity" value="">
+                                    <div class="input-group-btns ms-2">
+                                        <button type="button" class="btn btn-primary addNewRow">
+                                            +
+                                        </button>
+                                        <button type="button" class="btn btn-danger removeRow">
+                                            -
+                                        </button>
+                                    </div>
+                                </div>
                             @endif
                         </div>
                     </div>
