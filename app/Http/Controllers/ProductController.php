@@ -179,6 +179,8 @@ class ProductController extends Controller
         $product->gtin = $request->gtin ?? '';
         $product->mpn = $request->mpn ?? '';
         $product->youtube_video_url = $request->youtube_video_url ?? '';
+        $product->air_conditioner_capacity = $request->air_conditioner_capacity ?? '';
+        $product->available_power_capacity = (is_array($request->available_power_capacity) && !empty($request->available_power_capacity) ? implode(',',array_filter($request->available_power_capacity)) : '');
         $product->added_by = auth()->user()->id;
         $product->save();
 
@@ -214,6 +216,8 @@ class ProductController extends Controller
         $product->gtin = $request->gtin ?? '';
         $product->mpn = $request->mpn ?? '';
         $product->youtube_video_url = $request->youtube_video_url ?? '';
+        $product->air_conditioner_capacity = $request->air_conditioner_capacity ?? '';
+        $product->available_power_capacity = (is_array($request->available_power_capacity) && !empty($request->available_power_capacity) ? implode(',',array_filter($request->available_power_capacity)) : '');
         $product->updated_by = auth()->user()->id;
         $product->save();
 

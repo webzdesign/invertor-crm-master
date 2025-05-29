@@ -123,12 +123,35 @@
                             <span class="text-danger d-block">{{ $errors->first('mpn') }}</span>
                         @endif
                     </div>
-                     <div class="form-group">
+                    <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="youtube_video_url">Youtube Video Url :</label>
                         <input type="text" name="youtube_video_url" id="youtube_video_url" value="{{ old('youtube_video_url') }}" class="form-control" placeholder="Youtube Video Url">
                         @if ($errors->has('youtube_video_url'))
                             <span class="text-danger d-block">{{ $errors->first('youtube_video_url') }}</span>
                         @endif
+                    </div>
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="air_conditioner_capacity">air conditioner’s capacity :</label>
+                        <input type="text" name="air_conditioner_capacity" id="air_conditioner_capacity" value="{{ old('air_conditioner_capacity') }}" class="form-control" placeholder="Air Conditioner’s Capacity">
+                        @if ($errors->has('air_conditioner_capacity'))
+                            <span class="text-danger d-block">{{ $errors->first('air_conditioner_capacity') }}</span>
+                        @endif
+                    </div>
+                   <div id="capacity-container">
+                        <div class="form-group capacity-group">
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Available Power Capacity :</label>
+                            <div class="d-flex flex-wrap mb-2 available_power_capacity-input">
+                                <input type="text" name="available_power_capacity[0]" class="form-control w-75" id="available_power_capacity" placeholder="Available Power Capacity">
+                                <div class="input-group-btns ms-2">
+                                    <button type="button" class="btn btn-primary addNewRow">
+                                        +
+                                    </button>
+                                    <button type="button" class="btn btn-danger removeRow">
+                                        -
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -271,6 +294,27 @@ $(document).ready(function(){
 			shiftEnterMode: CKEDITOR.ENTER_BR
 		});
 	});
+
+    $(document).on('click', '.addNewRow', function () {
+        let currentGroup = $(this).closest('.available_power_capacity-input');
+        let newGroup = currentGroup.clone();
+
+        newGroup.find('input').val('');
+        
+        let inputLength = $('.available_power_capacity-input').length;
+        newGroup.find('input').attr('name', `available_power_capacity[${inputLength}]`);
+
+        currentGroup.after(newGroup);
+    });
+
+    $(document).on('click', '.removeRow', function () {
+        let allGroups = $('#capacity-container .available_power_capacity-input');
+
+        if (allGroups.length > 1) {
+            $(this).closest('.available_power_capacity-input').remove();
+        }
+    });
+
 });
 </script>
 @endsection
