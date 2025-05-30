@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\InformationPagesController;
 use App\Http\Controllers\PaymentForDeliveryController;
 use App\Http\Controllers\SalesOrderStatusController;
 use App\Http\Controllers\ProcurementCostController;
@@ -248,5 +249,19 @@ Route::group(["middleware" => "auth"], function () {
         /** contactus **/
         Route::match(['GET', 'POST'], 'contactus', [ContactUsController::class, 'index'])->name('contactus.index')->middleware('ModuleAccessor:contactus.view');
         /** contactus **/
+
+        /* information pages */
+        Route::group(['prefix' => 'information'], function () {
+            Route::get('/', [InformationPagesController::class,'index'])->name('information.index')->middleware('ModuleAccessor:information.view');
+            Route::post('/list', [InformationPagesController::class,'informationList'])->name('information.list');
+            Route::post('/store', [InformationPagesController::class,'store'])->name('information.store');
+            Route::get('/create', [InformationPagesController::class,'create'])->name('information.create')->middleware('ModuleAccessor:information.create');
+            Route::get('/{id}/edit', [InformationPagesController::class,'edit'])->name('information.edit')->middleware('ModuleAccessor:information.edit');
+            Route::get('/{id}/view', [InformationPagesController::class,'view'])->name('information.view')->middleware('ModuleAccessor:information.view');
+            Route::post('/{id}/update', [InformationPagesController::class,'update'])->name('information.update');
+            Route::get('/{id}/delete', [InformationPagesController::class,'destroy'])->name('information.delete')->middleware('ModuleAccessor:information.delete');
+            Route::get('/{id}/status', [InformationPagesController::class, 'status'])->name('information.activeinactive')->middleware('ModuleAccessor:information.activeinactive');
+        });
+        /* information pages */
     });
 });

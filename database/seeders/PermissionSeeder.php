@@ -100,6 +100,14 @@ class PermissionSeeder extends Seeder
             /** Reports **/
 
             ['name' => 'View contact us', 'slug' => 'contactus.view', 'model' => 'Contact Us', 'description' => 'Can view contact us', 'added_by' => 1],
+
+            /* information pages */
+            ['name' => 'Add Information', 'slug' => 'information.create', 'model' => 'Information', 'description' => 'Can add Information', 'added_by' => 1],
+            ['name' => 'Edit Information', 'slug' => 'information.edit', 'model' => 'Information', 'description' => 'Can edit Information', 'added_by' => 1],
+            ['name' => 'View Information', 'slug' => 'information.view', 'model' => 'Information', 'description' => 'Can view Information', 'added_by' => 1],
+            ['name' => 'Delete Information', 'slug' => 'information.delete', 'model' => 'Information', 'description' => 'Can delete Information', 'added_by' => 1],
+            ['name' => 'Active/Inactive Information', 'slug' => 'information.activeinactive', 'model' => 'Information', 'description' => 'Can activate or inactive Information', 'added_by' => 1],
+
         ];
 
         $toBeDeleted = $toBeRestored = [];
