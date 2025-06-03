@@ -9,6 +9,7 @@ use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\DistributionController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\SliderController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SettingController;
@@ -263,5 +264,20 @@ Route::group(["middleware" => "auth"], function () {
             Route::get('/{id}/status', [InformationPagesController::class, 'status'])->name('information.activeinactive')->middleware('ModuleAccessor:information.activeinactive');
         });
         /* information pages */
+
+        /* slider */
+        Route::group(['prefix' => 'sliders'], function () {
+            Route::get('/', [SliderController::class,'index'])->name('sliders.index')->middleware('ModuleAccessor:sliders.view');
+            Route::post('/list', [SliderController::class,'sliderList'])->name('sliders.list');
+            Route::post('/store', [SliderController::class,'store'])->name('sliders.store');
+            Route::get('/create', [SliderController::class,'create'])->name('sliders.create')->middleware('ModuleAccessor:sliders.create');
+            Route::get('/{id}/edit', [SliderController::class,'edit'])->name('sliders.edit')->middleware('ModuleAccessor:sliders.edit');
+            Route::post('/{id}/update', [SliderController::class,'update'])->name('sliders.update');
+            Route::get('/{id}/view', [SliderController::class,'view'])->name('sliders.view')->middleware('ModuleAccessor:sliders.view');
+             Route::get('/{id}/delete', [SliderController::class,'destroy'])->name('sliders.delete')->middleware('ModuleAccessor:sliders.delete');
+            Route::get('/{id}/status', [SliderController::class, 'status'])->name('sliders.activeinactive')->middleware('ModuleAccessor:sliders.activeinactive');
+        });
+        /* slider */
+
     });
 });

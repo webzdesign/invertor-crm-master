@@ -150,8 +150,8 @@ class InformationPagesController extends Controller
 
         $infoImg = '';
         if(!empty($request->old_banner)){
-            if (file_exists(storage_path("app/public/information-images-images/{$info->page_banner}"))) {
-                unlink(storage_path("app/public/information-images-images/{$info->page_banner}"));
+            if (file_exists(storage_path("app/public/information-images/{$info->page_banner}"))) {
+                unlink(storage_path("app/public/information-images/{$info->page_banner}"));
             }
         } else {
             $infoImg = $info->page_banner;
@@ -184,8 +184,8 @@ class InformationPagesController extends Controller
 
         if ($info->exists()) {
             if(!empty($info->page_banner)) {
-                if (file_exists(storage_path("app/public/information-images-images/{$info->page_banner}"))) {
-                    unlink(storage_path("app/public/information-images-images/{$info->page_banner}"));
+                if (file_exists(storage_path("app/public/information-images/{$info->page_banner}"))) {
+                    unlink(storage_path("app/public/information-images/{$info->page_banner}"));
                 }
             }
                 

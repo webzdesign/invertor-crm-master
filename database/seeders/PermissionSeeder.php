@@ -108,6 +108,13 @@ class PermissionSeeder extends Seeder
             ['name' => 'Delete Information', 'slug' => 'information.delete', 'model' => 'Information', 'description' => 'Can delete Information', 'added_by' => 1],
             ['name' => 'Active/Inactive Information', 'slug' => 'information.activeinactive', 'model' => 'Information', 'description' => 'Can activate or inactive Information', 'added_by' => 1],
 
+             /* sliders pages */
+            ['name' => 'Add Sliders', 'slug' => 'sliders.create', 'model' => 'Sliders', 'description' => 'Can add Sliders', 'added_by' => 1],
+            ['name' => 'Edit Sliders', 'slug' => 'sliders.edit', 'model' => 'Sliders', 'description' => 'Can edit Sliders', 'added_by' => 1],
+            ['name' => 'View Sliders', 'slug' => 'sliders.view', 'model' => 'Sliders', 'description' => 'Can view Sliders', 'added_by' => 1],
+            ['name' => 'Delete Sliders', 'slug' => 'sliders.delete', 'model' => 'Sliders', 'description' => 'Can delete Sliders', 'added_by' => 1],
+            ['name' => 'Active/Inactive Sliders', 'slug' => 'sliders.activeinactive', 'model' => 'Sliders', 'description' => 'Can activate or inactive Sliders', 'added_by' => 1],
+
         ];
 
         $toBeDeleted = $toBeRestored = [];

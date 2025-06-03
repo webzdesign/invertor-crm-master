@@ -4,13 +4,13 @@
 <li class="f-14 f-400 c-7b">
     /
 </li>
-<li class="f-14 f-400 c-36">Add </li>
+<li class="f-14 f-400 c-36">Edit </li>
 @endsection
 
 @section('content')
 
 {{ Config::set('app.module',$moduleName) }}
-<h2 class="f-24 f-700 c-36 my-2">Add {{ $moduleName }}</h2>
+<h2 class="f-24 f-700 c-36 my-2">Edit {{ $moduleName }}</h2>
 <form action="{{ route('information.update', ['id' => encrypt($info->id)]) }}" method="POST" id="updateInformationPage" enctype="multipart/form-data"> @csrf
     <div class="cards">
         <div class="cardsBody pb-0">
