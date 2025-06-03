@@ -16,69 +16,40 @@
         <div class="cards">
             <div class="cardsBody pb-0">
                 <div class="row">
-                    <div class="col-md-4 col-sm-12">
+                     <div class="col-md-3 col-sm-12">
                         <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2" for="title">Slider Title : <span
+                            <label class="c-gr f-500 f-16 w-100 mb-2" for="product_id">Products : <span
                                     class="text-danger">*</span></label>
-                            <input type="text" name="title" id="title" value="{{ old('title') }}" class="form-control"
-                                placeholder="Slider Title">
-                            @if ($errors->has('title'))
-                                <span class="text-danger d-block">{{ $errors->first('title') }}</span>
+                            <select name="product_id" id="product_id" class="select2 select2-hidden-accessible"
+                                data-placeholder="--- Select a Category ---">
+                                <option value=""> -- Select Option -- </option>
+                                @if (!empty($products) && count($products) > 0)
+                                    @foreach ($products as $key => $product)
+                                        <option value="{{$key}}">{{$product}}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            @if ($errors->has('product_id'))
+                                <span class="text-danger d-block">{{ $errors->first('product_id') }}</span>
                             @endif
                         </div>
-                    </div>
-                     <div class="col-md-4 col-sm-12">
-                            <div class="form-group">
-                                <label class="c-gr f-500 f-16 w-100 mb-2" for="product_id">Products : <span
-                                        class="text-danger">*</span></label>
-                                <select name="product_id" id="product_id" class="select2 select2-hidden-accessible"
-                                    data-placeholder="--- Select a Category ---">
-                                    <option value=""> -- Select Option -- </option>
-                                    @if (!empty($products) && count($products) > 0)
-                                        @foreach ($products as $key => $product)
-                                            <option value="{{$key}}">{{$product}}</option>
-                                        @endforeach
-                                    @endif
-                                </select>
-                                @if ($errors->has('product_id'))
-                                    <span class="text-danger d-block">{{ $errors->first('product_id') }}</span>
-                                @endif
-                            </div>
-                        </div>
-                        <div class="col-md-4 col-sm-12">
-                            <div class="form-group">
-                                <label class="c-gr f-500 f-16 w-100 mb-2">Slider Banner : <span
-                                        class="text-danger">*</span></label>
-                                <input type="file" name="main_image" id="main_image" class="form-control">
-                                <span class="banner-preview position-relative">
-                                    <span
-                                        class="remove-banner text-danger fw-bold align-items-center bg-danger rounded-circle ps-1 pe-1 position-absolute end-0 fs-2"
-                                        style="cursor:pointer; z-index: 2;display:none;"><i class="fa fa-close fs-4"
-                                            style="color: white;" aria-hidden="true"></i></span>
-                                    <img src="" alt="Preview" style="object-fit: cover;height:125px;"
-                                        class="d-none mt-2 w-100 shadow-1-strong rounded">
-                                </span>
-                                @if ($errors->has('main_image'))
-                                    <span class="text-danger d-block">{{ $errors->first('main_image') }}</span>
-                                @endif
-                            </div>
-                        </div>
-
-                    {{-- <div class="col-md-9 col-sm-12">
                         <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">Slider Description : </label>
-                            <textarea name="page_description" class="form-control ckeditorField" id="page_description"
-                                cols="30" rows="10"
-                                placeholder="Enter page description">{{ old('page_description') }}</textarea>
-                            @if ($errors->has('page_description'))
-                            <span class="text-danger d-block">{{ $errors->first('page_description') }}</span>
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Slider Banner : <span
+                                    class="text-danger">*</span></label>
+                            <input type="file" name="main_image" id="main_image" class="form-control">
+                            <span class="banner-preview position-relative">
+                                <span
+                                    class="remove-banner text-danger fw-bold align-items-center bg-danger rounded-circle ps-1 pe-1 position-absolute end-0 fs-2"
+                                    style="cursor:pointer; z-index: 2;display:none;"><i class="fa fa-close fs-4"
+                                        style="color: white;" aria-hidden="true"></i></span>
+                                <img src="" alt="Preview" style="object-fit: cover;height:125px;"
+                                    class="d-none mt-2 w-100 shadow-1-strong rounded">
+                            </span>
+                            @if ($errors->has('main_image'))
+                                <span class="text-danger d-block">{{ $errors->first('main_image') }}</span>
                             @endif
                         </div>
-                    </div> --}}
-                </div>
-                <div class="row">
-                    <div class="col-md-4 col-sm-12">
-                        <div class="gift-img-container">
+                           <div class="gift-img-container">
                             <div class="form-group">
                                 <div class="d-flex flex-wrap mb-2 gift-img-input">
                                     <label class="c-gr f-500 f-16 w-100 mb-2">Slider Gift Images : </label>
@@ -107,6 +78,33 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-9 col-sm-12">
+                        <div class="form-group">
+                            <div class="form-group">
+                                <label class="c-gr f-500 f-16 w-100 mb-2">Slider Title : </label>
+                                <textarea name="title" class="form-control ckeditorField" id="title"
+                                    cols="30" rows="10"
+                                    placeholder="Enter page title">{{ old('title') }}</textarea>
+                                @if ($errors->has('title'))
+                                <span class="text-danger d-block">{{ $errors->first('title') }}</span>
+                                @endif
+                            </div>
+                            @if ($errors->has('title'))
+                                <span class="text-danger d-block">{{ $errors->first('title') }}</span>
+                            @endif
+                        </div>
+                    </div>
+                    {{-- <div class="col-md-9 col-sm-12">
+                        <div class="form-group">
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Slider Description : </label>
+                            <textarea name="page_description" class="form-control ckeditorField_" id="page_description"
+                                cols="30" rows="10"
+                                placeholder="Enter page description">{{ old('page_description') }}</textarea>
+                            @if ($errors->has('page_description'))
+                            <span class="text-danger d-block">{{ $errors->first('page_description') }}</span>
+                            @endif
+                        </div>
+                    </div> --}}
                 </div>
             </div>
 
@@ -125,13 +123,13 @@
     <script>
         $(document).ready(function () {
 
-            // $(".ckeditorField").each(function () {
-            //     CKEDITOR.config.autoParagraph = false;
-            //     CKEDITOR.replace($(this).attr("id"), {
-            //         enterMode: CKEDITOR.ENTER_BR,
-            //         shiftEnterMode: CKEDITOR.ENTER_BR
-            //     });
-            // });
+            $(".ckeditorField").each(function () {
+                CKEDITOR.config.autoParagraph = false;
+                CKEDITOR.replace($(this).attr("id"), {
+                    enterMode: CKEDITOR.ENTER_BR,
+                    shiftEnterMode: CKEDITOR.ENTER_BR
+                });
+            });
 
             $('body').on('input', '#page_title', function (e) {
                 var name = $(this).val();
@@ -144,7 +142,9 @@
                 ignore: [],
                 rules: {
                     title: {
-                        required: true,
+                        required: function (textarea) {
+                            return CKEDITOR.instances['title'].getData().trim() === '';
+                        }
                     },
                     product_id: {
                         required: true,
@@ -177,9 +177,9 @@
                     error.appendTo(element.parent("div"));
                 },
                 submitHandler: function (form) {
-                    // for (instance in CKEDITOR.instances) {
-                    //     CKEDITOR.instances[instance].updateElement();
-                    // }
+                    for (instance in CKEDITOR.instances) {
+                        CKEDITOR.instances[instance].updateElement();
+                    }
                     $('button[type="submit"]').attr('disabled', true);
                     if (!this.beenSubmitted) {
                         this.beenSubmitted = true;

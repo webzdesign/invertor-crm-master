@@ -77,7 +77,8 @@ class InformationPagesController extends Controller
     }
     public function create() {
         $moduleName = $this->moduleName;
-        return view('information.create',compact('moduleName'));
+        $langs = Helper::getMultiLang();
+        return view('information.create',compact('moduleName','langs'));
     }
 
     public function store(Request $request) {
@@ -96,12 +97,15 @@ class InformationPagesController extends Controller
             mkdir(storage_path('app/public/information-images'), 0777, true);
         }
 
-        $infoImg = '';
+        $infoImg = [];
         if ($request->hasFile('page_banner')) {
-            $file = $request->file('page_banner');
-            $name = 'IMAGE-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(storage_path('app/public/information-images'), $name);
-            $infoImg = $name;
+            $files = $request->file('page_banner');
+            foreach ($files as $key => $file) {
+                $name = 'IMAGE-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
+                $file->move(storage_path('app/public/information-images'), $name);
+                $infoImg[$key] = ['image' => $name];
+            }
+            $infoImg = json_encode($infoImg); 
         }
 
         $information = new InformationPages();
@@ -122,16 +126,18 @@ class InformationPagesController extends Controller
         $moduleName = $this->moduleName;
         $id = decrypt($id);
         $info = InformationPages::where('id',$id)->first();
-        return view('information.view',compact('moduleName','info'));
+        $langs = Helper::getMultiLang();
+        return view('information.view',compact('moduleName','info','langs'));
     }
     public function edit($id) {
         $moduleName = $this->moduleName;
         $id = decrypt($id);
         $info = InformationPages::where('id',$id)->first();
-        return view('information.edit',compact('moduleName','info'));
+        $langs = Helper::getMultiLang();
+        return view('information.edit',compact('moduleName','info','langs'));
     }
     public function update(Request $request, $id) {
-        
+      
         $id = decrypt($id);
         $info = InformationPages::find($id);
         Validator::make($request->all(),[
@@ -148,26 +154,37 @@ class InformationPagesController extends Controller
             mkdir(storage_path('app/public/information-images'), 0777, true);
         }
 
-        $infoImg = '';
-        if(!empty($request->old_banner)){
-            if (file_exists(storage_path("app/public/information-images/{$info->page_banner}"))) {
-                unlink(storage_path("app/public/information-images/{$info->page_banner}"));
+        $infoImg = $info->page_banner;
+        $updatedImages = json_decode($infoImg, true) ?? []; // decode existing JSON
+
+        if (!empty($request->old_banner)) {
+            foreach ($request->old_banner as $lang => $val) {
+                if (!empty($val) && isset($updatedImages[$lang]['image'])) {
+                    $imagePath = storage_path("app/public/information-images/{$updatedImages[$lang]['image']}");
+                    
+                    if (file_exists($imagePath)) {
+                        unlink($imagePath);
+                    }
+
+                    unset($updatedImages[$lang]);
+                }
             }
-        } else {
-            $infoImg = $info->page_banner;
         }
 
         if ($request->hasFile('page_banner')) {
-            $file = $request->file('page_banner');
-            $name = 'IMAGE-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(storage_path('app/public/information-images'), $name);
-            $infoImg = $name;
-        }
+            $files = $request->file('page_banner');
+            foreach ($files as $lang => $file) {
+                $name = 'IMAGE-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
+                $file->move(storage_path('app/public/information-images'), $name);
 
+                $updatedImages[$lang] = ['image' => $name];
+            }
+        }
+       
         $info->page_title = $request->page_title;
         $info->slug = $request->slug;
         $info->page_description = $request->page_description;
-        $info->page_banner = $infoImg;
+        $info->page_banner = json_encode($updatedImages);
         $info->updated_by = auth()->user()->id;
         $info->status = 1;
 

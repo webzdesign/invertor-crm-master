@@ -30,18 +30,48 @@
                             <span class="text-danger d-block">{{ $errors->first('slug') }}</span>
                         @endif
                     </div>
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2">Information Page Banner : <span class="text-danger">*</span></label>
-                        <input type="hidden" name="old_banner" id="old_banner" value="{{$info->page_banner}}">
-                        <input type="file" name="page_banner" id="page_banner" class="form-control">
-                        <span class="banner-preview position-relative">
-                            <span class="remove-banner text-danger fw-bold d-flex align-items-center bg-danger rounded-circle ps-1 pe-1 position-absolute end-0 fs-2" style="cursor:pointer; z-index: 2;"><i class="fa fa-close fs-4" style="color: white;" aria-hidden="true"></i></span>
-                            <img src="{{ url('/storage/app/public/information-images/'.$info->page_banner) }}" alt="Preview" style="object-fit: cover;height:125px;" class="mt-2 w-100 shadow-1-strong rounded">
-                        </span>
-                        @if ($errors->has('page_banner'))
-                            <span class="text-danger d-block">{{ $errors->first('page_banner') }}</span>
-                        @endif
-                    </div>
+                    @php
+                        $pageBanners = json_decode($info->page_banner ?? '{}');
+                    @endphp
+
+                    @if (!empty($langs))
+                        @foreach ($langs as $lang)
+                            @php
+                                $image = $pageBanners->$lang->image ?? '';
+                            @endphp
+                            <div class="form-group">
+                                <label class="c-gr f-500 f-16 w-100 mb-2">
+                                    Information Page Banner ({{ strtoupper($lang) }}) : 
+                                    <span class="text-danger">*</span>
+                                </label>
+
+                                <input type="hidden" name="old_banner[{{ $lang }}]" class="old-banner" data-lang="{{ $lang }}" value="">
+
+                                <input 
+                                    type="file" 
+                                    name="page_banner[{{ $lang }}]" 
+                                    class="form-control page-banner-input" 
+                                    data-lang="{{ $lang }}"
+                                >
+
+                                <span class="banner-preview position-relative" data-lang="{{ $lang }}">
+                                    <span class="remove-banner text-danger fw-bold d-flex align-items-center bg-danger rounded-circle ps-1 pe-1 position-absolute end-0 fs-2 {{ $image ? '' : 'd-none' }}" style="cursor:pointer; z-index: 2;">
+                                        <i class="fa fa-close fs-4" style="color: white;" aria-hidden="true"></i>
+                                    </span>
+                                    <img 
+                                        src="{{ $image ? url('/storage/app/public/information-images/' . $image) : '' }}" 
+                                        alt="Preview" 
+                                        style="object-fit: cover; height: 125px;" 
+                                        class="mt-2 w-100 shadow-1-strong rounded {{ $image ? '' : 'd-none' }}"
+                                    >
+                                </span>
+
+                                @if ($errors->has("page_banner.$lang"))
+                                    <span class="text-danger d-block">{{ $errors->first("page_banner.$lang") }}</span>
+                                @endif
+                            </div>
+                        @endforeach
+                    @endif
                 </div>
 
                 <div class="col-md-9 col-sm-12">
@@ -100,17 +130,22 @@ $(document).ready(function(){
                     return CKEDITOR.instances['page_description'].getData().trim() === '';
                 }
             },
+            'page_banner[]' : {
+                required: true,
+            }
         },
         messages: {
             page_title: {
                 required: "Page title is required."
             },
             slug: {
-                required: "Slug is required.",
-                remote: "Slug already exists.",
+                required: "Page url is required.",
             },
             page_description: {
                 required: "Page Description is required.",
+            },
+            'page_banner[]' : {
+                required: "Page banner is required.",
             }
         },
         errorPlacement: function(error, element) {
@@ -130,34 +165,40 @@ $(document).ready(function(){
         }
     });
 
-    $(document).on("change","#page_banner", function() {
+    $(document).on("change", ".page-banner-input", function () {
         const file = this.files[0];
-        const previewImg = $(".banner-preview img");
+        const lang = $(this).data('lang');
+        const previewContainer = $(`.banner-preview[data-lang="${lang}"]`);
+        const previewImg = previewContainer.find("img");
+        const removeBtn = previewContainer.find(".remove-banner");
 
         if (file) {
-            $('.banner-preview').show();
             const reader = new FileReader();
-            reader.onload = function(e) {
-                previewImg
-                    .attr("src", e.target.result)
-                    .removeClass("d-none");
+            reader.onload = function (e) {
+                previewImg.attr("src", e.target.result).removeClass("d-none");
             };
             reader.readAsDataURL(file);
+
+            previewContainer.show();
+            removeBtn.removeClass("d-none");
         } else {
-            previewImg
-                .attr("src", "")
-                .addClass("d-none");
+            previewImg.attr("src", "").addClass("d-none");
+            previewContainer.addClass("d-none");
         }
     });
 
-    $(document).on("click", ".remove-banner", function() {
-        const previewContainer = $(".banner-preview");
-        previewContainer.find("img").attr("src", "");
-        $('#old_banner').val("");
-        $('.banner-preview').hide();
-        $("#page_banner").val("");
+    $(document).on("click", ".remove-banner", function () {
+        const previewContainer = $(this).closest(".banner-preview");
+        const lang = previewContainer.data("lang");
+        const input = $(`.page-banner-input[data-lang="${lang}"]`);
+        const oldBannerInput = $(`.old-banner[data-lang="${lang}"]`);
+        let imgSrc = previewContainer.find("img").attr("src").split('/').pop(); 
+        oldBannerInput.val(imgSrc); 
+        previewContainer.find("img").attr("src", "").addClass("d-none");
+        previewContainer.hide();
+        input.val("");
+        $(this).hide();
     });
-
 });
 </script>
 @endsection

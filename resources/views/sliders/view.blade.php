@@ -4,29 +4,17 @@
     <li class="f-14 f-400 c-7b">
         /
     </li>
-    <li class="f-14 f-400 c-36">Edit </li>
+    <li class="f-14 f-400 c-36">View </li>
 @endsection
 
 @section('content')
 
     {{ Config::set('app.module', $moduleName) }}
-    <h2 class="f-24 f-700 c-36 my-2">Edit {{ $moduleName }}</h2>
+    <h2 class="f-24 f-700 c-36 my-2">View {{ $moduleName }}</h2>
     <div class="cards">
         <div class="cardsBody pb-0">
             <div class="row">
-                <div class="col-md-4 col-sm-12">
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2" for="title">Slider Title : <span
-                                class="text-danger">*</span></label>
-                        <input type="text" name="title" id="title" value="{{ old('title', $slider->title) }}"
-                            class="form-control" placeholder="Slider Title">
-                        @if ($errors->has('title'))
-                            <span class="text-danger d-block">{{ $errors->first('title') }}</span>
-                        @endif
-                    </div>
-                    <input type="hidden" name="remove_images" id="remove_images" value="">
-                </div>
-                <div class="col-md-4 col-sm-12">
+                <div class="col-md-3 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="product_id">Products : <span
                                 class="text-danger">*</span></label>
@@ -47,9 +35,7 @@
                             <span class="text-danger d-block">{{ $errors->first('product_id') }}</span>
                         @endif
                     </div>
-                </div>
-                <div class="col-md-4 col-sm-12">
-                    <div class="form-group">
+                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Slider Banner : <span class="text-danger">*</span></label>
                         <input type="file" name="main_image" id="main_image" class="form-control"
                             value="{{ $slider->main_image }}">
@@ -77,9 +63,16 @@
                         @endif
                     </div>
                 </div>
-
-
-
+                <div class="col-md-9 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2">Slider Title : </label>
+                        <textarea name="title" class="form-control ckeditorField" id="title" cols="30"
+                            rows="10" placeholder="Enter page description">{{ old('title',$slider->title) }}</textarea>
+                        @if ($errors->has('title'))
+                            <span class="text-danger d-block">{{ $errors->first('title') }}</span>
+                        @endif
+                    </div>
+                </div>
                 {{-- <div class="col-md-9 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Slider Description : </label>
