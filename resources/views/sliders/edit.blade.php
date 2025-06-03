@@ -69,11 +69,11 @@
                         <div class="gift-img-container">
                             <div class="form-group">
                                 @if (!empty($slider->gift_images))
-                                    @foreach (explode(',', $slider->gift_images) as $key => $images)
+                                    @foreach (array_filter(explode(',', $slider->gift_images)) as $key => $images)
                                         @if (file_exists(storage_path('app/public/sliders-images/' . $images)))
                                             <div class="d-flex flex-wrap mb-2 gift-img-input">
                                                 <label class="c-gr f-500 f-16 w-100 mb-2">Slider Gift Images : </label>
-                                                <input type="file" name="gift_images[{{$key}}]" id="gift_images"
+                                                <input type="file" name="gift_images[]" id="gift_images"
                                                     class="form-control w-75" value="{{$images}}">
                                                 <div class="input-group-btns ms-2">
                                                     <button type="button" class="btn btn-primary addNewRow" data-index="0">
@@ -100,7 +100,7 @@
                                         @else
                                             <div class="d-flex flex-wrap mb-2 gift-img-input">
                                                 <label class="c-gr f-500 f-16 w-100 mb-2">Slider Gift Images : </label>
-                                                <input type="file" name="gift_images[0]" id="gift_images" class="form-control w-75">
+                                                <input type="file" name="gift_images[]" id="gift_images" class="form-control w-75">
                                                 <div class="input-group-btns ms-2">
                                                     <button type="button" class="btn btn-primary addNewRow" data-index="0">
                                                         +
@@ -127,7 +127,7 @@
                                 @else
                                     <div class="d-flex flex-wrap mb-2 gift-img-input">
                                         <label class="c-gr f-500 f-16 w-100 mb-2">Slider Gift Images : </label>
-                                        <input type="file" name="gift_images[0]" id="gift_images" class="form-control w-75">
+                                        <input type="file" name="gift_images[]" id="gift_images" class="form-control w-75">
                                         <div class="input-group-btns ms-2">
                                             <button type="button" class="btn btn-primary addNewRow" data-index="0">
                                                 +
@@ -375,13 +375,13 @@
                 newGroup.find('input').val('');
                 newGroup.find('.gift-remove-banner').addClass("d-none");
 
-                newGroup.find('input').attr('name', `gift_images[${inputLength}]`);
+                // newGroup.find('input').attr('name', `gift_images[${inputLength}]`);
 
                 currentGroup.after(newGroup);
             });
 
             $(document).on('click', '.removeRow', function () {
-                let allGroups = $('.gift-img-input');
+                let allGroups = $(this).closest('.gift-img-input');
 
                 const src = allGroups.find('.gift-banner-preview img').attr("src");
                 const filename = src ? src.split('/').pop() : null;
@@ -396,8 +396,11 @@
                     }
                 }
 
-                if (allGroups.length > 1) {
+                if ($('.gift-img-input').length > 1) {
                     $(this).closest('.gift-img-input').remove();
+                } else {
+                    allGroups.find('.gift-banner-preview img').addClass("d-none");
+                    allGroups.find('.gift-remove-banner').addClass("d-none");
                 }
             });
 

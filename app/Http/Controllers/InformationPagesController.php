@@ -36,6 +36,23 @@ class InformationPagesController extends Controller
         ->editColumn("page_title", function ($info) {
             return $info->page_title ?? '-';
         })
+       ->editColumn("page_banner", function ($info) {
+            $langs = Helper::getMultiLang();
+            $imgJson = json_decode($info->page_banner);
+            $allImages = [];
+
+            foreach ($langs as $value) {
+                if (!empty($imgJson->$value->image)) {
+                    $imagePath = storage_path('app/public/information-images/' . $imgJson->$value->image);
+                    if (file_exists($imagePath)) {
+                        $url = asset('storage/information-images/' . $imgJson->$value->image);
+                        $allImages[] = '<img src="' . $url . '" alt="page banner" class="p-1" style="height:100px; width:300px;" />';
+                    }
+                }
+            }
+
+            return count($allImages) > 0 ? implode('', $allImages) : '-';
+        })
         ->editColumn("page_description", function ($info) {
             return !empty(trim($info->page_description)) ? $info->page_description : '-';
         })
@@ -71,7 +88,7 @@ class InformationPagesController extends Controller
                 ? "<span class='badge bg-success'>Active</span>"
                 : "<span class='badge bg-danger'>Inactive</span>";
         })
-        ->rawColumns(['action', 'status', 'added_by', 'updated_by', 'page_description', 'page_title'])
+        ->rawColumns(['action', 'status', 'added_by', 'updated_by', 'page_description', 'page_title','page_banner'])
         ->addIndexColumn()
         ->make(true);
     }

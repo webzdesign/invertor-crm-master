@@ -47,6 +47,7 @@
             <tr>
                 <th>Sr No.</th>
                 <th>Page Name</th>
+                <th style="width: 10%">Page Images</th>
                 <th>Status</th>
                 <th>Added By</th>
                 <th>Updated By</th>
@@ -93,6 +94,9 @@
                 },
                 {
                     data: 'page_title',
+                },
+                {
+                    data: 'page_banner'
                 },
                 {
                     data: 'status',

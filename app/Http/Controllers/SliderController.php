@@ -35,7 +35,7 @@ class SliderController extends Controller
             }
         })
         ->editColumn("title", function ($slider) {
-            return $slider->title ?? '-';
+            return strip_tags($slider->title) ?? '-';
         })
         ->editColumn("short_description", function ($slider) {
             return !empty(trim($slider->short_description)) ? $slider->short_description : '-';
@@ -51,7 +51,7 @@ class SliderController extends Controller
        ->editColumn("gift_images", function ($slider) {
             $imagesHtml = '';
             if(!empty($slider->gift_images)) {
-                foreach (explode(',',$slider->gift_images) as $value) {
+                foreach (array_filter(explode(',',$slider->gift_images)) as $value) {
                     $imagePath = storage_path('app/public/sliders-images/' . $value);
                     if (file_exists($imagePath)) {
                         $url = asset('storage/sliders-images/' . $value);

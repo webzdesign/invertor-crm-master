@@ -53,7 +53,7 @@
                             <div class="form-group">
                                 <div class="d-flex flex-wrap mb-2 gift-img-input">
                                     <label class="c-gr f-500 f-16 w-100 mb-2">Slider Gift Images : </label>
-                                    <input type="file" name="gift_images[0]" id="gift_images" class="form-control w-75">
+                                    <input type="file" name="gift_images[]" id="gift_images" class="form-control w-75">
                                     <div class="input-group-btns ms-2">
                                         <button type="button" class="btn btn-primary addNewRow" data-index="0">
                                             +
@@ -260,7 +260,7 @@
                 newGroup.find('input').val('');
                 newGroup.find('.gift-remove-banner').addClass("d-none");
 
-                newGroup.find('input').attr('name', `gift_images[${inputLength}]`);
+                // newGroup.find('input').attr('name', `gift_images[${inputLength}]`);
 
                 currentGroup.after(newGroup);
             });

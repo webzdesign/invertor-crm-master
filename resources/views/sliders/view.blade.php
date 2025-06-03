@@ -89,7 +89,7 @@
                     <div class="gift-img-container">
                         <div class="form-group">
                             @if (!empty($slider->gift_images))
-                                @foreach (explode(',', $slider->gift_images) as $key => $images)
+                                @foreach (array_filter(explode(',', $slider->gift_images)) as $key => $images)
                                     @if (file_exists(storage_path('app/public/sliders-images/' . $images)))
                                         <div class="d-flex flex-wrap mb-2 gift-img-input">
                                             <label class="c-gr f-500 f-16 w-100 mb-2">Slider Gift Images : </label>

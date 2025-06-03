@@ -46,7 +46,7 @@
         <thead>
             <tr>
                 <th>Sr No.</th>
-                <th>Slider Name</th>
+                <th style="width: 15%">Slider Name</th>
                 <th>Mani Image</th>
                 <th>Gift Images</th>
                 <th>Status</th>
