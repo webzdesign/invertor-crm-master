@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BrandsController;
+use App\Http\Controllers\GiftsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InformationPagesController;
 use App\Http\Controllers\PaymentForDeliveryController;
@@ -292,6 +293,17 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('brands/{id}/status', [BrandsController::class, 'status'])->name('brands.activeinactive')->middleware('ModuleAccessor:brands.activeinactive');
         Route::post('checkBrands', [BrandsController::class, 'checkBrands']);
         /** Brands **/
+
+         /** Gifts **/
+        Route::match(['GET', 'POST'], 'gifts', [GiftsController::class, 'index'])->name('gifts.index')->middleware('ModuleAccessor:gifts.view');
+        Route::get('gifts/create', [GiftsController::class, 'create'])->name('gifts.create')->middleware('ModuleAccessor:gifts.create');
+        Route::post('gifts/store', [GiftsController::class, 'store'])->name('gifts.store');
+        Route::get('gifts/{id}/edit', [GiftsController::class, 'edit'])->name('gifts.edit')->middleware('ModuleAccessor:gifts.edit');
+        Route::put('gifts/{id}/update', [GiftsController::class, 'update'])->name('gifts.update');
+        Route::get('gifts/{id}/view', [GiftsController::class, 'show'])->name('gifts.view')->middleware('ModuleAccessor:gifts.view');
+        Route::get('gifts/{id}/delete', [GiftsController::class, 'destroy'])->name('gifts.delete')->middleware('ModuleAccessor:gifts.delete');
+        Route::get('gifts/{id}/status', [GiftsController::class, 'status'])->name('gifts.activeinactive')->middleware('ModuleAccessor:gifts.activeinactive');
+        /** Gifts **/
 
     });
 });

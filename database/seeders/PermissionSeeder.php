@@ -122,6 +122,13 @@ class PermissionSeeder extends Seeder
             ['name' => 'Delete Brands', 'slug' => 'brands.delete', 'model' => 'Brands', 'description' => 'Can delete Brands', 'added_by' => 1],
             ['name' => 'Active/Inactive Brands', 'slug' => 'brands.activeinactive', 'model' => 'Brands', 'description' => 'Can activate or inactive Brands', 'added_by' => 1],
 
+            /* gifts */
+            ['name' => 'Add Gifts', 'slug' => 'gifts.create', 'model' => 'Gifts', 'description' => 'Can add Gifts', 'added_by' => 1],
+            ['name' => 'Edit Gifts', 'slug' => 'gifts.edit', 'model' => 'Gifts', 'description' => 'Can edit Gifts', 'added_by' => 1],
+            ['name' => 'View Gifts', 'slug' => 'gifts.view', 'model' => 'Gifts', 'description' => 'Can view Gifts', 'added_by' => 1],
+            ['name' => 'Delete Gifts', 'slug' => 'gifts.delete', 'model' => 'Gifts', 'description' => 'Can delete Gifts', 'added_by' => 1],
+            ['name' => 'Active/Inactive Gifts', 'slug' => 'gifts.activeinactive', 'model' => 'Gifts', 'description' => 'Can activate or inactive Gifts', 'added_by' => 1],
+
         ];
 
         $toBeDeleted = $toBeRestored = [];

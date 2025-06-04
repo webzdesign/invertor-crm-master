@@ -458,5 +458,17 @@
     </li>
     @endif
 
+     @if(auth()->user()->hasPermission('gifts.view'))
+    <li>
+        <a href="{{ route('gifts.index') }}"
+            class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('gifts*') ? 'active' : '' }}">
+            <div class="icnBx d-flex align-items-center justify-content-center">
+                <i class="fa fa-gift text-white" aria-hidden="true"></i>
+            </div>
+            <span class="d-none-add">Gifts</span>
+        </a>
+    </li>
+    @endif
+
 </ul>
 </aside>

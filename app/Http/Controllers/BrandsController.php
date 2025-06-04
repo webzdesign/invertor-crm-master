@@ -168,10 +168,10 @@ class BrandsController extends Controller
 
         
         $LogoImg = $brand->brand_logo;
+        if (!empty($request->old_image)) {
+            unlink(storage_path('app/public/brands-images/'.$brand->brand_logo));
+        }
         if ($request->hasFile('brand_logo')) {
-            if (!empty($request->old_image)) {
-                unlink(storage_path('app/public/brands-images/'.$brand->brand_logo));
-            }
             $main_file = $request->file('brand_logo');
             $main_name = 'BRAND-LOGO-IMAGE-' . date('YmdHis') . uniqid() . '.' . $main_file->getClientOriginalExtension();
             $main_file->move(storage_path('app/public/brands-images'), $main_name);
@@ -185,7 +185,7 @@ class BrandsController extends Controller
         $brand->updated_by = auth()->user()->id;
         $brand->update();
 
-        return redirect()->route('brands.index')->with('success', 'Category updated successfully.');
+        return redirect()->route('brands.index')->with('success', 'Brand updated successfully.');
     }
 
     public function show($id)
