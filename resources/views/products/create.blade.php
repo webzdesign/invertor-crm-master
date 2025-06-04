@@ -104,7 +104,8 @@
                     </div>
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="brand">Brand :</label>
-                        <input type="text" name="brand" id="brand" value="{{ old('brand') }}" class="form-control" placeholder="Product Brand">
+                        <select name="brand" id="brand" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Brand ---">
+                        </select>
                         @if ($errors->has('brand'))
                             <span class="text-danger d-block">{{ $errors->first('brand') }}</span>
                         @endif
@@ -314,6 +315,40 @@ $(document).ready(function(){
             $(this).closest('.available_power_capacity-input').remove();
         }
     });
+
+    $(document).on('change', '#category', function () {
+        let categoryId = $(this).val();
+
+        if (categoryId) {
+            $.ajax({
+                url: "{{ route('getBrandsByCatgeory') }}",
+                type: "POST",
+                data: {
+                    category_id: categoryId,
+                },
+                success: function (response) {
+                    let brandSelect = $('#brand');
+                    brandSelect.attr('disabled',true);
+                    if (response.success) {
+                        brandSelect.empty(); 
+                        brandSelect.append('<option value="">--- Select a Brands ---</option>');
+                        
+                        $.each(response.brands, function (index, brand) {
+                            brandSelect.append('<option value="' + brand.name + '">' + brand.name + '</option>');
+                        });
+                        
+                        brandSelect.attr('disabled', false).trigger('change');
+                    } else {
+                        console.log(response.message || "No brands found.");
+                    }
+                },
+                error: function () {
+                    console.log("Something went wrong while fetching brands.");
+                }
+            });
+        }
+    });
+
 
 });
 </script>

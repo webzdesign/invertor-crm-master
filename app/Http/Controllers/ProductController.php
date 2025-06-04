@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductRequest;
+use App\Models\Brands;
 use Illuminate\Http\Request;
 use App\Models\ProductImage;
 use App\Models\Category;
@@ -327,6 +328,29 @@ class ProductController extends Controller
             }
         } else {
             return response()->json(['success' => false]);
+        }
+    }
+    public function getBrandsByCatgeory(Request $request){
+
+        if(!empty($request->category_id)){
+            $brands = Brands::where('category_id',$request->category_id)->where('status',1)->get();
+            
+            if(!empty($brands)) {
+                return response()->json([
+                    'success' => 1,
+                    'brands' => $brands
+                ]);
+            } else {
+                return response()->json([
+                    'success' => 0,
+                    'message' => "something went wrong!!" 
+                ]);
+            }
+        } else {
+            return response()->json([
+                'success' => 0,
+                'message' => "something went wrong!!" 
+            ]);
         }
     }
 }

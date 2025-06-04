@@ -86,10 +86,10 @@
 
 
 
-        @if(auth()->user()->hasPermission('categories.view') || auth()->user()->hasPermission('products.view') || auth()->user()->hasPermission('purchase-orders.view') || auth()->user()->hasPermission('distribution.view'))
+        @if(auth()->user()->hasPermission('categories.view') || auth()->user()->hasPermission('products.view') || auth()->user()->hasPermission('purchase-orders.view') || auth()->user()->hasPermission('distribution.view') || auth()->user()->hasPermission('brands.view'))
         <li>
             <a data-bs-toggle="collapse" data-bs-target="#collapsePSM"
-                aria-expanded="{{ request()->is('categories*') || request()->is('products*') || request()->is('purchase-orders*') || request()->is('distribution*')  ? 'true' : 'false' }}"
+                aria-expanded="{{ request()->is('categories*') || request()->is('products*') || request()->is('purchase-orders*') || request()->is('distribution*') || request()->is('brands*')  ? 'true' : 'false' }}"
                 aria-controls="collapsePSM"
                 class="f-400 f-14 text-white cursor-pointer d-flex align-items-center justify-content-between"
                 href="javascript:;">
@@ -106,9 +106,20 @@
                 </svg>
             </a>
             <div id="collapsePSM" data-bs-parent="#accordionExample"
-                class="collapseMenu collapseWeb collapse {{ request()->is('categories*') || request()->is('products*') || request()->is('purchase-orders*') || request()->is('distribution*') ? 'show' : '' }}">
+                class="collapseMenu collapseWeb collapse {{ request()->is('categories*') || request()->is('products*') || request()->is('purchase-orders*') || request()->is('distribution*') || request()->is('brands*') ? 'show' : '' }}">
                 <ul class="p-0 menuList">
 
+                    @permission('brand.view')
+                        <li>
+                            <a href="{{ route('brands.index') }}"
+                                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('brands*') ? 'active' : '' }}">
+                                <div class="icnBx d-flex align-items-center justify-content-center">
+                                    <i class="fa fa-tags text-white" aria-hidden="true"></i>
+                                </div>
+                                <span class="d-none-add">Brands</span>
+                            </a>
+                        </li>
+                    @endpermission
 
                     @permission('categories.view')
                         <li>

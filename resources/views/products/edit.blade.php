@@ -104,7 +104,8 @@
                     </div>
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="brand">Brand :</label>
-                        <input type="text" name="brand" id="brand" value="{{ old('brand', $product->brand) }}" class="form-control" placeholder="Product Brand">
+                        <select name="brand" id="brand" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Brand ---">
+                        </select>
                         @if ($errors->has('brand'))
                             <span class="text-danger d-block">{{ $errors->first('brand') }}</span>
                         @endif
@@ -334,6 +335,50 @@ $(document).ready(function(){
         if (allGroups.length > 1) {
             $(this).closest('.available_power_capacity-input').remove();
         }
+    });
+
+    function changeBrandByCatgeory(categoryId) {
+        let brandSelect = $('#brand');
+        brandSelect.attr('disabled', true).empty().append('<option>Loading...</option>');
+        
+        if (categoryId) {
+            $.ajax({
+                url: "{{ route('getBrandsByCatgeory') }}",
+                type: "POST",
+                data: {
+                    category_id: categoryId,
+                },
+                success: function (response) {
+                    brandSelect.empty();
+                    if (response.success && response.brands.length > 0) {
+                        brandSelect.append('<option value="">--- Select a Brand ---</option>');
+                        $.each(response.brands, function (index, brand) {
+                            let selected = (brand.name == brandName) ? 'selected' : '';
+                            brandSelect.append('<option value="' + brand.name + '" ' + selected + '>' + brand.name + '</option>');
+                        });
+                    } else {
+                        brandSelect.append('<option value="">No brands found</option>');
+                    }
+                    brandSelect.attr('disabled', false).trigger('change');
+                },
+                error: function () {
+                    brandSelect.empty();
+                    brandSelect.attr('disabled', false);
+                }
+            });
+        }
+    }
+
+    let catID = '{{ $product->category_id }}';
+    let brandName = '{{ $product->brand }}';
+
+    if (catID) {
+        changeBrandByCatgeory(catID);
+    }
+
+    $(document).on('change', '#category', function () {
+        let categoryId = $(this).val();
+        changeBrandByCatgeory(categoryId);
     });
 
 });
