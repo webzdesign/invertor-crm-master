@@ -66,7 +66,7 @@
                                 <span class="text-danger d-block">{{ $errors->first('main_image') }}</span>
                             @endif
                         </div>
-                        <div class="gift-img-container">
+                        {{-- <div class="gift-img-container">
                             <div class="form-group">
                                 @if (!empty($slider->gift_images))
                                     @foreach (array_filter(explode(',', $slider->gift_images)) as $key => $images)
@@ -151,19 +151,26 @@
                                     </div>
                                 @endif
                             </div>
-                        </div>
+                        </div> --}}
                     </div>
                     <div class="col-md-9 col-sm-12">
-                        <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">Slider Title : </label>
-                            <textarea name="title" class="form-control ckeditorField" id="title"
-                                cols="30" rows="10"
-                                placeholder="Enter page description">{{ old('title', $slider->title) }}</textarea>
-                            @if ($errors->has('title'))
-                            <span class="text-danger d-block">{{ $errors->first('title') }}</span>
-                            @endif
-                        </div>
+                        @if (!empty($langs))
+                            @foreach ($langs as $lang)
+                                <div class="form-group">
+                                    <label class="c-gr f-500 f-16 w-100 mb-2">Slider Title ( {{ strtoupper($lang) }} ) : 
+                                        <span class="text-danger">*</span></label>
+                                    </label>
+                                    <textarea name="title[{{$lang}}]" class="form-control ckeditorField-{{ $lang }}" id="title_{{$lang}}"
+                                    cols="30" rows="10"
+                                    placeholder="Enter page title {{$lang}}">{{ old('title'.$lang, json_decode($slider->title)->$lang) }}</textarea>
+                                    @if ($errors->has('title'.$lang))
+                                    <span class="text-danger d-block">{{ $errors->first('title'.$lang) }}</span>
+                                    @endif
+                                </div>
+                            @endforeach
+                        @endif
                         <input type="hidden" name="remove_images" id="remove_images" value="">
+                        <input type="hidden" name="existing_image" id="existing_image" value="{{ $slider->main_image }}">
                     </div>
                     {{-- <div class="col-md-9 col-sm-12">
                         <div class="form-group">
@@ -188,17 +195,23 @@
         </div>
     </form>
 @endsection
-
+@if (!empty($langs))
+    <script>
+        let langs = @json($langs);
+    </script>
+@endif
 <script src="{{ asset('assets/ckeditor/ckeditor.js') }}"></script>
 @section('script')
     <script>
         $(document).ready(function () {
 
-            $(".ckeditorField").each(function () {
-                CKEDITOR.config.autoParagraph = false;
-                CKEDITOR.replace($(this).attr("id"), {
-                    enterMode: CKEDITOR.ENTER_BR,
-                    shiftEnterMode: CKEDITOR.ENTER_BR
+             $.each(langs, function(index, lang) {                
+                $(`.ckeditorField-${lang}`).each(function () {
+                    CKEDITOR.config.autoParagraph = false;
+                    CKEDITOR.replace($(this).attr("id"), {
+                        enterMode: CKEDITOR.ENTER_BR,
+                        shiftEnterMode: CKEDITOR.ENTER_BR
+                    });
                 });
             });
 
@@ -209,45 +222,44 @@
                 $('body').find('#slug').val(slug);
             });
 
-            $("#updateSlider").validate({
-                ignore: [],
-                rules: {
-                    title: {
-                        required: function (textarea) {
-                            return CKEDITOR.instances['title'].getData().trim() === '';
-                        }
-                    },
-                    product_id: {
-                        required: true,
-                    },
-                    // short_description: {
-                        // required: function (textarea) {
-                        //     return CKEDITOR.instances['page_description'].getData().trim() === '';
-                        // }
-                    // },
-                    main_image: {
-                        required: function () {
-                            // Check if file input is empty AND no existing image preview is present
-                            const inputVal = $('#main_image').val();
-                            const hasExistingImage = $('.banner-preview img').attr('src') !== '';
-                            return !inputVal && !hasExistingImage;
+            let validationRules = {
+                product_id: {
+                    required: true
+                },
+                main_image: {
+                     required: {
+                        depends: function(element) {
+                            return $('#existing_image').val().trim() === '';
                         }
                     }
                 },
-                messages: {
-                    title: {
-                        required: "Slider title is required."
-                    },
-                    product_id: {
-                        required: "Product is required.",
-                    },
-                    // short_description: {
-                    //     required: "Short Description is required.",
-                    // },
-                    main_image: {
-                        required: "Main banner image is required."
-                    },
+            };
+
+            let validationMessages = {
+                product_id: {
+                    required: "Product is required."
                 },
+                main_image: {
+                    required: "Main image is required."
+                },
+            };
+
+            langs.forEach(function(lang) {
+                validationRules[`title[${lang}]`] = {
+                    required: function () {
+                        return CKEDITOR.instances['title_' + lang].getData().trim() === '';
+                    }
+                };
+
+                validationMessages[`title[${lang}]`] = {
+                    required: `Slider title ( ${lang.toUpperCase()} ) is required.`
+                };
+            });
+
+            $("#updateSlider").validate({
+                ignore: [],
+                rules: validationRules,
+                messages: validationMessages,
                 errorPlacement: function (error, element) {
                     var inputName = element.attr("name");
                     error.appendTo(element.parent("div"));
@@ -294,7 +306,7 @@
 
             $(document).on("click", ".remove-banner", function () {
                 const previewContainer = $(".banner-preview");
-
+                $('#existing_image').val('');
                 const src = previewContainer.find("img").attr("src");
                 const filename = src ? src.split('/').pop() : null;
 

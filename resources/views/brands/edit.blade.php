@@ -49,7 +49,7 @@
                         <input type="file" name="brand_logo" id="brand_logo" class="form-control">
                         <input type="hidden" name="old_image" id="old_image">
                         <input type="hidden" name="existing_image" id="existing_image" value="{{ $brand->brand_logo }}">
-                        @if (!empty($brand->brand_logo) && file_exists(storage_path('app/public/brands-images/' . $brand->brand_logo)))
+                        @if (!empty($brand->brand_logo) && file_exists(filename: storage_path('app/public/brands-images/' . $brand->brand_logo)))
                             <span class="logo-preview position-relative">
                                 <span class="remove-logo text-danger fw-bold align-items-center bg-danger rounded-circle ps-1 pe-1 position-absolute end-0" style="cursor:pointer; z-index: 2;display:;">
                                     <i class="fa fa-close fs-4" style="color: white;" aria-hidden="true"></i>

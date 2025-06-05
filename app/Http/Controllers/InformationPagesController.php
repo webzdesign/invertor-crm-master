@@ -115,12 +115,27 @@ class InformationPagesController extends Controller
         }
 
         $infoImg = [];
-        if ($request->hasFile('page_banner')) {
+        
+        if ($request->hasFile('page_banner') || $request->hasFile('page_banner_mob')) {
             $files = $request->file('page_banner');
-            foreach ($files as $key => $file) {
-                $name = 'IMAGE-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
-                $file->move(storage_path('app/public/information-images'), $name);
-                $infoImg[$key] = ['image' => $name];
+            $mobfiles = $request->file('page_banner_mob');
+            
+            $langs = Helper::getMultiLang();
+
+            foreach ($langs as $lang) {
+                $name = '';
+                if(isset($files[$lang]) && !empty($files[$lang])){
+                    $name = 'IMAGE-' . date('YmdHis') . uniqid() . '.' . $files[$lang]->getClientOriginalExtension();
+                    $files[$lang]->move(storage_path('app/public/information-images'), $name);
+                }
+                
+                $mob_name = '';
+                if(isset($mobfiles[$lang]) && !empty($mobfiles[$lang])) {
+                    $mob_name = 'MOB-IMAGE-' . date('YmdHis') . uniqid() . '.' . $mobfiles[$lang]->getClientOriginalExtension();
+                    $mobfiles[$lang]->move(storage_path('app/public/information-images'), $mob_name);
+                }
+                
+                $infoImg[$lang] = ['image' => $name, 'mob_image' => $mob_name];
             }
             $infoImg = json_encode($infoImg); 
         }
@@ -154,7 +169,9 @@ class InformationPagesController extends Controller
         return view('information.edit',compact('moduleName','info','langs'));
     }
     public function update(Request $request, $id) {
-      
+        // echo '<pre>';
+        // print_r($request->all());
+        // exit;
         $id = decrypt($id);
         $info = InformationPages::find($id);
         Validator::make($request->all(),[
@@ -173,31 +190,63 @@ class InformationPagesController extends Controller
 
         $infoImg = $info->page_banner;
         $updatedImages = json_decode($infoImg, true) ?? []; // decode existing JSON
-
+        
         if (!empty($request->old_banner)) {
             foreach ($request->old_banner as $lang => $val) {
                 if (!empty($val) && isset($updatedImages[$lang]['image'])) {
                     $imagePath = storage_path("app/public/information-images/{$updatedImages[$lang]['image']}");
-                    
+
                     if (file_exists($imagePath)) {
                         unlink($imagePath);
                     }
-
                     unset($updatedImages[$lang]);
+                }
+            }
+        }
+
+        if (!empty($request->old_banner_mob)) {
+            foreach ($request->old_banner_mob as $lang => $val) {
+                if(!empty($val) && isset($updatedImages[$lang]['mob_image'])) {
+                    $mob_imagePath = storage_path("app/public/information-images/{$updatedImages[$lang]['mob_image']}");
+                    if (file_exists($mob_imagePath)) {
+                        unlink($mob_imagePath);
+                    }
+                    unset($updatedImages[$lang]);    
                 }
             }
         }
 
         if ($request->hasFile('page_banner')) {
             $files = $request->file('page_banner');
-            foreach ($files as $lang => $file) {
-                $name = 'IMAGE-' . date('YmdHis') . uniqid() . '.' . $file->getClientOriginalExtension();
-                $file->move(storage_path('app/public/information-images'), $name);
+            $mobfiles = $request->file('page_banner_mob');
+            $langs = Helper::getMultiLang();
 
-                $updatedImages[$lang] = ['image' => $name];
+            foreach ($langs as $lang) {
+                $name = '';
+                if(isset($files[$lang])) {
+                    $name = 'IMAGE-' . date('YmdHis') . uniqid() . '.' . $files[$lang]->getClientOriginalExtension();
+                    $files[$lang]->move(storage_path('app/public/information-images'), $name);
+                }
+
+                $updatedImages[$lang] = array_merge($updatedImages[$lang] ?? [], ['image' => $name]);
             }
         }
-       
+        
+        if($request->hasFile('page_banner_mob')){
+            $mobfiles = $request->file('page_banner_mob');
+            $langs = Helper::getMultiLang();
+
+            foreach ($langs as $lang) {
+                $mob_name = '';
+                if(isset($mobfiles[$lang]) && !empty($mobfiles[$lang])) {
+                    $mob_name = 'MOB-IMAGE-' . date('YmdHis') . uniqid() . '.' . $mobfiles[$lang]->getClientOriginalExtension();
+                    $mobfiles[$lang]->move(storage_path('app/public/information-images'), $mob_name);
+                }
+
+                $updatedImages[$lang] = array_merge($updatedImages[$lang] ?? [], ['mob_image' => $mob_name]);
+            }
+        }
+        
         $info->page_title = $request->page_title;
         $info->slug = $request->slug;
         $info->page_description = $request->page_description;

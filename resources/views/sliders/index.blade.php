@@ -47,8 +47,8 @@
             <tr>
                 <th>Sr No.</th>
                 <th style="width: 15%">Slider Name</th>
+                <th>Product Name</th>
                 <th>Mani Image</th>
-                <th>Gift Images</th>
                 <th>Status</th>
                 <th>Added By</th>
                 <th>Updated By</th>
@@ -97,10 +97,10 @@
                     data: 'title',
                 },
                 {
-                    data: 'main_image',
+                    data: 'product',
                 },
                 {
-                    data: 'gift_images',
+                    data: 'main_image',
                 },
                 {
                     data: 'status',

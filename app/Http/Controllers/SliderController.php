@@ -35,7 +35,12 @@ class SliderController extends Controller
             }
         })
         ->editColumn("title", function ($slider) {
-            return strip_tags($slider->title) ?? '-';
+            $title = json_decode($slider->title);
+            return strip_tags((isset($title->en) ? $title->en : $slider->title )) ?? '-';
+        })
+        ->editColumn("product", function ($slider) {
+            $title = Product::where('id',$slider->product_id)->first();
+            return !empty($title) ? $title->name : '-' ;
         })
         ->editColumn("short_description", function ($slider) {
             return !empty(trim($slider->short_description)) ? $slider->short_description : '-';
@@ -48,22 +53,22 @@ class SliderController extends Controller
             }
             return '-';
         })
-       ->editColumn("gift_images", function ($slider) {
-            $imagesHtml = '';
-            if(!empty($slider->gift_images)) {
-                foreach (array_filter(explode(',',$slider->gift_images)) as $value) {
-                    $imagePath = storage_path('app/public/sliders-images/' . $value);
-                    if (file_exists($imagePath)) {
-                        $url = asset('storage/sliders-images/' . $value);
-                        $imagesHtml .= '<img src="' . $url . '" alt="gift image" style="height:100px; width:100px; padding:10px;" />';
-                    }
-                }
-            } else {
-                $imagesHtml = '-';
-            }
+    //    ->editColumn("gift_images", function ($slider) {
+    //         $imagesHtml = '';
+    //         if(!empty($slider->gift_images)) {
+    //             foreach (array_filter(explode(',',$slider->gift_images)) as $value) {
+    //                 $imagePath = storage_path('app/public/sliders-images/' . $value);
+    //                 if (file_exists($imagePath)) {
+    //                     $url = asset('storage/sliders-images/' . $value);
+    //                     $imagesHtml .= '<img src="' . $url . '" alt="gift image" style="height:100px; width:100px; padding:10px;" />';
+    //                 }
+    //             }
+    //         } else {
+    //             $imagesHtml = '-';
+    //         }
 
-            return $imagesHtml;
-        })
+    //         return $imagesHtml;
+    //     })
         ->addColumn('action', function ($slider) {
             $variable = $slider;
             $action = '<div class="d-flex align-items-center justify-content-center">';
@@ -96,7 +101,7 @@ class SliderController extends Controller
                 ? "<span class='badge bg-success'>Active</span>"
                 : "<span class='badge bg-danger'>Inactive</span>";
         })
-        ->rawColumns(['action', 'status', 'added_by', 'updated_by', 'short_description', 'title', 'main_image','gift_images'])
+        ->rawColumns(['action', 'status', 'added_by', 'updated_by', 'short_description', 'title', 'main_image','product'])
         ->addIndexColumn()
         ->make(true);
     }
@@ -104,23 +109,30 @@ class SliderController extends Controller
         $moduleName = $this->moduleName;
         
         $products = Product::where('status',1)->pluck('name','id');
-
-        return view('sliders.create',compact('moduleName','products'));
+        $langs = Helper::getMultiLang();
+        return view('sliders.create',compact('moduleName','products','langs'));
     }
 
     public function store(Request $request) {
+            
+        $langs = Helper::getMultiLang();
 
-        Validator::make($request->all(),[
-            'title' => 'required',
+        $rules = [
             'product_id' => 'required',
-            // 'short_description' => 'required',
             'main_image' => 'required',
-        ],[
-            'title.required' => 'Slider title is require!',
-            'product_id.required' => 'Product is require!',
-            // 'short_description.required' => 'Short Description is require!',
+        ];
+
+        $messages = [
+            'product_id.required' => 'Product is required!',
             'main_image.required' => 'Main banner image is required!',
-        ]);
+        ];
+
+        foreach ($langs as $lang) {
+            $rules["title.$lang"] = 'required';
+            $messages["title.$lang.required"] = 'Slider title ("' . strtoupper($lang) . '") is required.';
+        }
+
+        Validator::make($request->all(), $rules, $messages);
 
         if (!file_exists(storage_path('app/public/sliders-images'))) {
             mkdir(storage_path('app/public/sliders-images'), 0777, true);
@@ -147,7 +159,7 @@ class SliderController extends Controller
         }
 
         $slider = new Slider();
-        $slider->title = $request->title;
+        $slider->title = json_encode($request->title);
         $slider->product_id = $request->product_id;
         // $slider->sort_description = $request->sort_description;
         $slider->main_image = $mainImg;
@@ -165,29 +177,41 @@ class SliderController extends Controller
         $moduleName = $this->moduleName;
         $id = decrypt($id);
         $slider = Slider::where('id',$id)->first();
-         $products = Product::where('status',1)->pluck('name','id');
-        return view('sliders.view',compact('moduleName','slider','products'));
+        $products = Product::where('status',1)->pluck('name','id');
+        $langs = Helper::getMultiLang();
+        return view('sliders.view',compact('moduleName','slider','products','langs'));
     }
     public function edit($id) {
         $moduleName = $this->moduleName;
         $id = decrypt($id);
         $slider = Slider::where('id',$id)->first();
         $products = Product::where('status',1)->pluck('name','id');
-        return view('sliders.edit',compact('moduleName','slider','products'));
+        $langs = Helper::getMultiLang();
+        return view('sliders.edit',compact('moduleName','slider','products','langs'));
     }
     public function update(Request $request, $id) {
 
+        $langs = Helper::getMultiLang();
+        
+        $rules = [
+            'product_id' => 'required',
+            'main_image' => 'required',
+        ];
+
+        $messages = [
+            'product_id.required' => 'Product is require!',
+            'main_image.required' => 'Main banner image is required!',
+        ];
+
+        foreach ($langs as $lang) {
+            $rules["title.$lang"] = 'required';
+            $messages["title.$lang.required"] = 'Slider title ("' . strtoupper($lang) . '") is required.';
+        }
+
+        Validator::make($request->all(),$rules, $messages);
+
         $id = decrypt($id);
         $slider = Slider::find($id);
-        Validator::make($request->all(),[
-            'page_title' => 'required',
-            'slug' => 'required',
-            'page_description' => 'required'
-        ],[
-            'page_title.required' => 'Page title is require!',
-            'slug.required' => 'Page title is require!',
-            'page_description.required' => 'Page title is require!'
-        ]);
 
         if (!file_exists(storage_path('app/public/information-images'))) {
             mkdir(storage_path('app/public/information-images'), 0777, true);
@@ -237,7 +261,7 @@ class SliderController extends Controller
             }
         }
 
-        $slider->title = $request->title;
+        $slider->title = json_encode($request->title);
         $slider->product_id = $request->product_id;
         // $slider->short_description = $request->short_description;
         $slider->main_image = $mainImg;
