@@ -189,33 +189,34 @@ class InformationPagesController extends Controller
         }
 
         $infoImg = $info->page_banner;
-        $updatedImages = json_decode($infoImg, true) ?? []; // decode existing JSON
+        $updatedImages = json_decode($infoImg, true) ?? []; 
         
         if (!empty($request->old_banner)) {
             foreach ($request->old_banner as $lang => $val) {
-                if (!empty($val) && isset($updatedImages[$lang]['image'])) {
+                if (!empty($val) && isset($updatedImages[$lang]['image']) && !empty($updatedImages[$lang]['image'])) {
                     $imagePath = storage_path("app/public/information-images/{$updatedImages[$lang]['image']}");
 
                     if (file_exists($imagePath)) {
                         unlink($imagePath);
                     }
-                    unset($updatedImages[$lang]);
+                    unset($updatedImages[$lang]['image']);
                 }
             }
         }
 
         if (!empty($request->old_banner_mob)) {
             foreach ($request->old_banner_mob as $lang => $val) {
-                if(!empty($val) && isset($updatedImages[$lang]['mob_image'])) {
+                if(!empty($val) && isset($updatedImages[$lang]['mob_image']) && !empty($updatedImages[$lang]['mob_image'])) {
                     $mob_imagePath = storage_path("app/public/information-images/{$updatedImages[$lang]['mob_image']}");
+               
                     if (file_exists($mob_imagePath)) {
                         unlink($mob_imagePath);
                     }
-                    unset($updatedImages[$lang]);    
+                    unset($updatedImages[$lang]['mob_image']);    
                 }
             }
         }
-
+       
         if ($request->hasFile('page_banner')) {
             $files = $request->file('page_banner');
             $mobfiles = $request->file('page_banner_mob');
@@ -226,6 +227,8 @@ class InformationPagesController extends Controller
                 if(isset($files[$lang])) {
                     $name = 'IMAGE-' . date('YmdHis') . uniqid() . '.' . $files[$lang]->getClientOriginalExtension();
                     $files[$lang]->move(storage_path('app/public/information-images'), $name);
+                } else {
+                    $name = isset($updatedImages[$lang]['image']) ? $updatedImages[$lang]['image'] : '';
                 }
 
                 $updatedImages[$lang] = array_merge($updatedImages[$lang] ?? [], ['image' => $name]);
@@ -241,12 +244,14 @@ class InformationPagesController extends Controller
                 if(isset($mobfiles[$lang]) && !empty($mobfiles[$lang])) {
                     $mob_name = 'MOB-IMAGE-' . date('YmdHis') . uniqid() . '.' . $mobfiles[$lang]->getClientOriginalExtension();
                     $mobfiles[$lang]->move(storage_path('app/public/information-images'), $mob_name);
+                } else {
+                    $mob_name = isset($updatedImages[$lang]['mob_image']) ? $updatedImages[$lang]['mob_image'] : '';
                 }
 
                 $updatedImages[$lang] = array_merge($updatedImages[$lang] ?? [], ['mob_image' => $mob_name]);
             }
         }
-        
+
         $info->page_title = $request->page_title;
         $info->slug = $request->slug;
         $info->page_description = $request->page_description;

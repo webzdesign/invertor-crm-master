@@ -117,7 +117,7 @@
                                         @if($mobimage && file_exists(storage_path('app/public/information-images/'.$mobimage))) 
                                             <span class="banner-preview-mob position-relative" data-lang="{{ $lang }}">
                                                 <span
-                                                    class="remove-banner-mob text-danger fw-bold d-flex align-items-center bg-danger rounded-circle ps-1 pe-1 position-absolute end-0 fs-2 {{ $image ? '' : 'd-none' }}"
+                                                    class="remove-banner-mob text-danger fw-bold d-flex align-items-center bg-danger rounded-circle ps-1 pe-1 position-absolute end-0 fs-2 {{ $image ? '' : '' }}"
                                                     style="cursor:pointer; z-index: 2;">
                                                     <i class="fa fa-close fs-4" style="color: white;" aria-hidden="true"></i>
                                                 </span>
