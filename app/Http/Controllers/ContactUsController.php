@@ -63,7 +63,7 @@ class ContactUsController extends Controller
 
                     return response()->json([
                         'success' => 1,
-                        'data' => $contactus 
+                        'data' => $data 
                     ]);
                 } else {
                     return response()->json([
