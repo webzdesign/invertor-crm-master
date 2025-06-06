@@ -24,7 +24,7 @@ class CallTaskStatusController extends Controller
 {
     public function index(Request $request) {
 
-        $moduleName = 'Sales Order Status';
+        $moduleName = 'Tasks';
         $statuses = CallTaskStatus::sequence()
             ->custom()
             ->orderBy('sequence', 'ASC')
@@ -53,7 +53,7 @@ class CallTaskStatusController extends Controller
 
     public function edit() {
 
-        $moduleName = 'Sales Order Status';
+        $moduleName = 'Tasks';
         $statuses = CallTaskStatus::sequence()->custom()->orderBy('sequence', 'ASC')->get();
         $statusesOnlyForShow = CallTaskStatus::sequence()->orderBy('sequence', 'ASC')->get();
         $s = CallTaskStatus::sequence()->custom()->select('id', 'name')->orderBy('sequence', 'ASC')->pluck('name', 'id')->toArray();
