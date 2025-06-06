@@ -30,5 +30,11 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'moldcell' => [
+        'api_status' => env('MOLDCELL_API', false)
+    ],
+    "timezones" => [
+        "europe_chisinau" => "Europe/Chisinau"
+    ]
 
 ];

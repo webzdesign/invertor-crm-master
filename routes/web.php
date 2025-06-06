@@ -2,6 +2,7 @@
 
 
 use App\Http\Controllers\BrandsController;
+use App\Http\Controllers\CallTaskStatusController;
 use App\Http\Controllers\GiftsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InformationPagesController;
@@ -205,7 +206,7 @@ Route::group(["middleware" => "auth"], function () {
         /** Payment for deliveyr **/
 
         /** Sales Order Status **/
-        /*Route::match(['GET', 'POST'], 'sales-order-status-list', [SalesOrderStatusController::class, 'list'])->name('sales-order-status-list');
+        Route::match(['GET', 'POST'], 'sales-order-status-list', [SalesOrderStatusController::class, 'list'])->name('sales-order-status-list');
         Route::get('sales-order-status', [SalesOrderStatusController::class, 'index'])->name('sales-order-status')->middleware('ModuleAccessor:sales-order-status.view');
         Route::post('sales-order-status/sequence', [SalesOrderStatusController::class, 'sequence'])->name('sales-order-status-sequence');
         Route::get('sales-order-status/delete', [SalesOrderStatusController::class, 'delete'])->name('sales-order-status-delete')->middleware('ModuleAccessor:sales-order-status.delete');
@@ -233,7 +234,7 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('order-place-notification-save', [SalesOrderStatusController::class, 'orderPlaceNotificationSave'])->name('order-place-notification-save');
         Route::post('twillo-notification-save', [SalesOrderStatusController::class, 'twilloNotificationSave'])->name('twillo-notification-save');
         Route::post('twillo-notification-remove', [SalesOrderStatusController::class, 'twilloNotificationRemove'])->name('twillo-notification-remove');
-        Route::post('twillo-notification/check', [SalesOrderStatusController::class, 'twilloNotificationCheck'])->name('twillo-notification-check');*/
+        Route::post('twillo-notification/check', [SalesOrderStatusController::class, 'twilloNotificationCheck'])->name('twillo-notification-check');
 
         /** Sales Order Status **/
 
@@ -307,5 +308,15 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('gifts/{id}/status', [GiftsController::class, 'status'])->name('gifts.activeinactive')->middleware('ModuleAccessor:gifts.activeinactive');
         /** Gifts **/
 
+        /** Task Status **/
+        Route::get('task-status', [CallTaskStatusController::class, 'index'])->name('task-status.index')->middleware('ModuleAccessor:task-status.view');
+        Route::post('task-status/sequence', [CallTaskStatusController::class, 'sequence'])->name('task-status.sequence');
+        Route::get('task-status/automate', [CallTaskStatusController::class, 'edit'])->name('task-status.edit')->middleware('ModuleAccessor:task-status.edit');
+        Route::post('task-status/automate-update', [CallTaskStatusController::class, 'update'])->name('task-status.update')->middleware('ModuleAccessor:task-status.edit');
+        Route::get('task-status/automate/put-task-for-order', [CallTaskStatusController::class, 'putTaskForOrder'])->name('task-status.put-task-for-order')->middleware('ModuleAccessor:task-status.edit');
+        Route::post('task-status/call-history-detail-in-board', [CallTaskStatusController::class, 'callDetailInBoard'])->name('task-status.call-history-detail');
+        Route::delete('task-status/automate/delete-status', [CallTaskStatusController::class, 'delete-status'])->name('task-status.delete-status')->middleware('ModuleAccessor:task-status.edit');
+        /** Task Status **/
+        
     });
 });

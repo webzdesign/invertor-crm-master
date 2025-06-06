@@ -174,18 +174,18 @@
         </li>
         @endif
 
-        @if (auth()->user()->hasPermission('information.view') && auth()->user()->hasPermission('sliders.view') && auth()->user()->hasPermission('gifts.view'))
+        @if(auth()->user()->hasPermission('stock-report.view') || auth()->user()->hasPermission('ledger-report.view'))
         <li>
-            <a data-bs-toggle="collapse" data-bs-target="#collapseCom"
-                aria-expanded="{{ request()->is('information*') || request()->is('sliders*') || request()->is('gifts*') ? 'true' : 'false' }}"
-                aria-controls="collapseCom"
+            <a data-bs-toggle="collapse" data-bs-target="#collapseR"
+                aria-expanded="{{ request()->is('stock-report*') || request()->is('ledger-report*') ? 'true' : 'false' }}"
+                aria-controls="collapseR"
                 class="f-400 f-14 text-white cursor-pointer d-flex align-items-center justify-content-between"
                 href="javascript:;">
                 <div class="d-flex align-items-center">
                     <div class="icnBx d-flex align-items-center justify-content-center">
-                        <i class="fa fa-gear text-white" aria-hidden="true"></i>
+                        <i class="fa fa-file text-white" aria-hidden="true"></i>
                     </div>
-                    <span class="d-none-add">CMS management</span>
+                    <span class="d-none-add">Reports</span>
                 </div>
 
                 <svg class="arrowDown d-none-add me-0" width="10" height="8" viewBox="0 0 10 8"
@@ -193,80 +193,143 @@
                     <path d="M0.612793 1.58594L4.85543 5.82858L9.09807 1.58594" stroke="white"></path>
                 </svg>
             </a>
-            <div id="collapseCom" data-bs-parent="#accordionExample"
-                class="collapseMenu collapseWeb collapse {{ request()->is('information*') || request()->is('sliders*') || request()->is('gifts*') ? 'show' : '' }}">
+            <div id="collapseR" data-bs-parent="#accordionExample"
+                class="collapseMenu collapseWeb collapse {{ request()->is('stock-report*') || request()->is('ledger-report*') ? 'show' : '' }}">
                 <ul class="p-0 menuList">
 
-                    @if(auth()->user()->hasPermission('information.view'))
+                    @permission('stock-report.view')
                         <li>
-                            <a href="{{ route('information.index') }}"
-                                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('information*') ? 'active' : '' }}">
+                            <a href="{{ route('stock-report') }}"
+                                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('stock-report*') ? 'active' : '' }}">
                                 <div class="icnBx d-flex align-items-center justify-content-center">
-                                    <i class="fa fa-file text-white" aria-hidden="true"></i>
+                                    <i class="fa fa-product-hunt text-white" aria-hidden="true"></i>
                                 </div>
-                                <span class="d-none-add">Information Pages</span>
+                                <span class="d-none-add">Stock Report</span>
                             </a>
                         </li>
-                    @endif
+                    @endpermission
 
-                    @if(auth()->user()->hasPermission('sliders.view'))
+                    {{-- @permission('ledger-report.view')
                         <li>
-                            <a href="{{ route('sliders.index') }}"
-                                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('sliders*') ? 'active' : '' }}">
+                            <a href="{{ route('ledger-report') }}"
+                                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('ledger-report*') ? 'active' : '' }}">
                                 <div class="icnBx d-flex align-items-center justify-content-center">
-                                    <i class="fa fa-sliders text-white" aria-hidden="true"></i>
+                                    <i class="fa fa-gbp text-white" aria-hidden="true"></i>
                                 </div>
-                                <span class="d-none-add">Home Page Sliders</span>
+                                <span class="d-none-add">Ledger Report</span>
                             </a>
                         </li>
-                    @endif
-
-                    @if(auth()->user()->hasPermission('gifts.view'))
-                        <li>
-                            <a href="{{ route('gifts.index') }}"
-                                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('gifts*') ? 'active' : '' }}">
-                                <div class="icnBx d-flex align-items-center justify-content-center">
-                                    <i class="fa fa-gift text-white" aria-hidden="true"></i>
-                                </div>
-                                <span class="d-none-add">Gifts</span>
-                            </a>
-                        </li>
-                    @endif
+                    @endpermission --}}
 
                 </ul>
             </div>
         </li>
-    @elseif(auth()->user()->hasPermission('information.view'))
-        <li>
-            <a href="{{ route('information.index') }}"
-                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('information*') ? 'active' : '' }}">
-                <div class="icnBx d-flex align-items-center justify-content-center">
-                    <i class="fa fa-file text-white" aria-hidden="true"></i>
-                </div>
-                <span class="d-none-add">Information Pages</span>
-            </a>
-        </li>
-    @elseif(auth()->user()->hasPermission('sliders.view'))
-        <li>
-            <a href="{{ route('sliders.index') }}"
-                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('sliders*') ? 'active' : '' }}">
-                <div class="icnBx d-flex align-items-center justify-content-center">
-                    <i class="fa fa-sliders text-white" aria-hidden="true"></i>
-                </div>
-                <span class="d-none-add">Home Page Sliders</span>
-            </a>
-        </li>
-    @elseif(auth()->user()->hasPermission('gifts.view'))
-        <li>
-            <a href="{{ route('gifts.index') }}"
-                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('gifts*') ? 'active' : '' }}">
-                <div class="icnBx d-flex align-items-center justify-content-center">
-                    <i class="fa fa-gift text-white" aria-hidden="true"></i>
-                </div>
-                <span class="d-none-add">Gifts</span>
-            </a>
-        </li>
     @endif
+
+        @if(auth()->user()->hasPermission('task-status.view') && !in_array(3, User::getUserRoles()))
+            <li>
+                <a href="{{ route('task-status.index') }}" class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('task-status*') ? 'active' : '' }}">
+                    <div class="icnBx d-flex align-items-center justify-content-center">
+                        <i class="fa fa-plus-square text-white" aria-hidden="true"></i>
+                    </div>
+                    <span class="d-none-add"> Tasks </span>
+                </a>
+            </li>
+        @endif
+
+        @if (auth()->user()->hasPermission('information.view') && auth()->user()->hasPermission('sliders.view') && auth()->user()->hasPermission('gifts.view'))
+            <li>
+                <a data-bs-toggle="collapse" data-bs-target="#collapseCom"
+                    aria-expanded="{{ request()->is('information*') || request()->is('sliders*') || request()->is('gifts*') ? 'true' : 'false' }}"
+                    aria-controls="collapseCom"
+                    class="f-400 f-14 text-white cursor-pointer d-flex align-items-center justify-content-between"
+                    href="javascript:;">
+                    <div class="d-flex align-items-center">
+                        <div class="icnBx d-flex align-items-center justify-content-center">
+                            <i class="fa fa-gear text-white" aria-hidden="true"></i>
+                        </div>
+                        <span class="d-none-add">CMS management</span>
+                    </div>
+
+                    <svg class="arrowDown d-none-add me-0" width="10" height="8" viewBox="0 0 10 8"
+                        fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0.612793 1.58594L4.85543 5.82858L9.09807 1.58594" stroke="white"></path>
+                    </svg>
+                </a>
+                <div id="collapseCom" data-bs-parent="#accordionExample"
+                    class="collapseMenu collapseWeb collapse {{ request()->is('information*') || request()->is('sliders*') || request()->is('gifts*') ? 'show' : '' }}">
+                    <ul class="p-0 menuList">
+
+                        @if(auth()->user()->hasPermission('information.view'))
+                            <li>
+                                <a href="{{ route('information.index') }}"
+                                    class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('information*') ? 'active' : '' }}">
+                                    <div class="icnBx d-flex align-items-center justify-content-center">
+                                        <i class="fa fa-file text-white" aria-hidden="true"></i>
+                                    </div>
+                                    <span class="d-none-add">Information Pages</span>
+                                </a>
+                            </li>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('sliders.view'))
+                            <li>
+                                <a href="{{ route('sliders.index') }}"
+                                    class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('sliders*') ? 'active' : '' }}">
+                                    <div class="icnBx d-flex align-items-center justify-content-center">
+                                        <i class="fa fa-sliders text-white" aria-hidden="true"></i>
+                                    </div>
+                                    <span class="d-none-add">Home Page Sliders</span>
+                                </a>
+                            </li>
+                        @endif
+
+                        @if(auth()->user()->hasPermission('gifts.view'))
+                            <li>
+                                <a href="{{ route('gifts.index') }}"
+                                    class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('gifts*') ? 'active' : '' }}">
+                                    <div class="icnBx d-flex align-items-center justify-content-center">
+                                        <i class="fa fa-gift text-white" aria-hidden="true"></i>
+                                    </div>
+                                    <span class="d-none-add">Gifts</span>
+                                </a>
+                            </li>
+                        @endif
+
+                    </ul>
+                </div>
+            </li>
+        @elseif(auth()->user()->hasPermission('information.view'))
+            <li>
+                <a href="{{ route('information.index') }}"
+                    class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('information*') ? 'active' : '' }}">
+                    <div class="icnBx d-flex align-items-center justify-content-center">
+                        <i class="fa fa-file text-white" aria-hidden="true"></i>
+                    </div>
+                    <span class="d-none-add">Information Pages</span>
+                </a>
+            </li>
+        @elseif(auth()->user()->hasPermission('sliders.view'))
+            <li>
+                <a href="{{ route('sliders.index') }}"
+                    class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('sliders*') ? 'active' : '' }}">
+                    <div class="icnBx d-flex align-items-center justify-content-center">
+                        <i class="fa fa-sliders text-white" aria-hidden="true"></i>
+                    </div>
+                    <span class="d-none-add">Home Page Sliders</span>
+                </a>
+            </li>
+        @elseif(auth()->user()->hasPermission('gifts.view'))
+            <li>
+                <a href="{{ route('gifts.index') }}"
+                    class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('gifts*') ? 'active' : '' }}">
+                    <div class="icnBx d-flex align-items-center justify-content-center">
+                        <i class="fa fa-gift text-white" aria-hidden="true"></i>
+                    </div>
+                    <span class="d-none-add">Gifts</span>
+                </a>
+            </li>
+        @endif
 
     {{-- @if(auth()->user()->hasPermission('procurement-cost.view') || auth()->user()->hasPermission('payment-for-delivery.view'))
     <li>
@@ -382,58 +445,6 @@
         </div>
     </li>
     @endif --}}
-
-    @if(auth()->user()->hasPermission('stock-report.view') || auth()->user()->hasPermission('ledger-report.view'))
-        <li>
-            <a data-bs-toggle="collapse" data-bs-target="#collapseR"
-                aria-expanded="{{ request()->is('stock-report*') || request()->is('ledger-report*') ? 'true' : 'false' }}"
-                aria-controls="collapseR"
-                class="f-400 f-14 text-white cursor-pointer d-flex align-items-center justify-content-between"
-                href="javascript:;">
-                <div class="d-flex align-items-center">
-                    <div class="icnBx d-flex align-items-center justify-content-center">
-                        <i class="fa fa-file text-white" aria-hidden="true"></i>
-                    </div>
-                    <span class="d-none-add">Reports</span>
-                </div>
-
-                <svg class="arrowDown d-none-add me-0" width="10" height="8" viewBox="0 0 10 8"
-                    fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M0.612793 1.58594L4.85543 5.82858L9.09807 1.58594" stroke="white"></path>
-                </svg>
-            </a>
-            <div id="collapseR" data-bs-parent="#accordionExample"
-                class="collapseMenu collapseWeb collapse {{ request()->is('stock-report*') || request()->is('ledger-report*') ? 'show' : '' }}">
-                <ul class="p-0 menuList">
-
-                    @permission('stock-report.view')
-                        <li>
-                            <a href="{{ route('stock-report') }}"
-                                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('stock-report*') ? 'active' : '' }}">
-                                <div class="icnBx d-flex align-items-center justify-content-center">
-                                    <i class="fa fa-product-hunt text-white" aria-hidden="true"></i>
-                                </div>
-                                <span class="d-none-add">Stock Report</span>
-                            </a>
-                        </li>
-                    @endpermission
-
-                    {{-- @permission('ledger-report.view')
-                        <li>
-                            <a href="{{ route('ledger-report') }}"
-                                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('ledger-report*') ? 'active' : '' }}">
-                                <div class="icnBx d-flex align-items-center justify-content-center">
-                                    <i class="fa fa-gbp text-white" aria-hidden="true"></i>
-                                </div>
-                                <span class="d-none-add">Ledger Report</span>
-                            </a>
-                        </li>
-                    @endpermission --}}
-
-                </ul>
-            </div>
-        </li>
-    @endif
 
     {{-- @if(auth()->user()->hasPermission('financial-seller-report.view') && auth()->user()->hasPermission('financial-driver-report.view'))
     <li>

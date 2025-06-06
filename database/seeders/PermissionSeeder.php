@@ -129,6 +129,12 @@ class PermissionSeeder extends Seeder
             ['name' => 'Delete Gifts', 'slug' => 'gifts.delete', 'model' => 'Gifts', 'description' => 'Can delete Gifts', 'added_by' => 1],
             ['name' => 'Active/Inactive Gifts', 'slug' => 'gifts.activeinactive', 'model' => 'Gifts', 'description' => 'Can activate or inactive Gifts', 'added_by' => 1],
 
+            /** Task Status **/
+            ['name' => 'Add task status', 'slug' => 'task-status.create', 'model' => 'MoldcellCallHistory', 'description' => 'Can add task status', 'added_by' => 1],
+            ['name' => 'Edit task status', 'slug' => 'task-status.edit', 'model' => 'MoldcellCallHistory', 'description' => 'Can edit task status', 'added_by' => 1],
+            ['name' => 'View task status', 'slug' => 'task-status.view', 'model' => 'MoldcellCallHistory', 'description' => 'Can view task status', 'added_by' => 1],
+            ['name' => 'Delete task status', 'slug' => 'task-status.delete', 'model' => 'MoldcellCallHistory', 'description' => 'Can delete task status', 'added_by' => 1],
+            /** Task Status **/
         ];
 
         $toBeDeleted = $toBeRestored = [];

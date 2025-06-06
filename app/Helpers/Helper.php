@@ -609,8 +609,41 @@ class Helper {
             }
         }
     }
-
     public static function getMultiLang() {
         return ['en', 'ro', 'ru'];
-    } 
+    }
+    public static function getNumberFormated($number)
+    {
+        $digits = preg_replace('/\D+/', '', $number);
+
+        // Basic validation: must start with valid country code (1-3 digits)
+        // We'll assume country code is 3 digits unless the number is too short
+        for ($i = 1; $i <= 3; $i++) {
+            $countryCode = substr($digits, 0, $i);
+            $rest = substr($digits, $i);
+
+            // Check that rest of number is exactly 8 digits (e.g., Moldova mobile)
+            if (strlen($rest) === 8) {
+                $operator = substr($rest, 0, 2);
+                $part1 = substr($rest, 2, 2);
+                $part2 = substr($rest, 4, 2);
+                $part3 = substr($rest, 6, 2);
+
+                return "+$countryCode ($operator) $part1-$part2-$part3";
+            }
+        }
+
+        return $number;
+    }
+    public static function getSecondsToMinutes($seconds) {
+        try {
+            $minutes = floor($seconds / 60);
+            $remainingSeconds = $seconds % 60;
+            return sprintf('%02d:%02d', $minutes, $remainingSeconds);
+        } catch (\Exception $e) {
+
+        }
+
+        return $seconds;
+    }
 }

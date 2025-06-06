@@ -10,6 +10,7 @@
     <title> {{ Helper::getAppTitle() . ' - ' . config('app.module', 'Module') }} </title>
     @include('layouts.partials.header')
     @yield('css')
+    @stack('css')
 </head>
 
 <body>
