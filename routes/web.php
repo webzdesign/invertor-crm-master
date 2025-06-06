@@ -173,8 +173,8 @@ Route::group(["middleware" => "auth"], function () {
         /** Orders To Deliver (for driver) **/
 
         /** Report **/
-        /* Route::match(['GET', 'POST'], 'stock-report', [ReportController::class, 'stockReport'])->name('stock-report')->middleware('ModuleAccessor:stock-report.view');
-        Route::match(['GET', 'POST'], 'ledger-report', [ReportController::class, 'ledgerReport'])->name('ledger-report')->middleware('ModuleAccessor:ledger-report.view'); */
+        Route::match(['GET', 'POST'], 'stock-report', [ReportController::class, 'stockReport'])->name('stock-report')->middleware('ModuleAccessor:stock-report.view');
+        Route::match(['GET', 'POST'], 'ledger-report', [ReportController::class, 'ledgerReport'])->name('ledger-report')->middleware('ModuleAccessor:ledger-report.view');
         /** Report **/
 
         /** Financial report **/

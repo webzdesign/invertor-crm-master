@@ -383,57 +383,57 @@
     </li>
     @endif --}}
 
-    {{-- @if(auth()->user()->hasPermission('stock-report.view') || auth()->user()->hasPermission('ledger-report.view'))
-    <li>
-        <a data-bs-toggle="collapse" data-bs-target="#collapseR"
-            aria-expanded="{{ request()->is('stock-report*') || request()->is('ledger-report*') ? 'true' : 'false' }}"
-            aria-controls="collapseR"
-            class="f-400 f-14 text-white cursor-pointer d-flex align-items-center justify-content-between"
-            href="javascript:;">
-            <div class="d-flex align-items-center">
-                <div class="icnBx d-flex align-items-center justify-content-center">
-                    <i class="fa fa-file text-white" aria-hidden="true"></i>
+    @if(auth()->user()->hasPermission('stock-report.view') || auth()->user()->hasPermission('ledger-report.view'))
+        <li>
+            <a data-bs-toggle="collapse" data-bs-target="#collapseR"
+                aria-expanded="{{ request()->is('stock-report*') || request()->is('ledger-report*') ? 'true' : 'false' }}"
+                aria-controls="collapseR"
+                class="f-400 f-14 text-white cursor-pointer d-flex align-items-center justify-content-between"
+                href="javascript:;">
+                <div class="d-flex align-items-center">
+                    <div class="icnBx d-flex align-items-center justify-content-center">
+                        <i class="fa fa-file text-white" aria-hidden="true"></i>
+                    </div>
+                    <span class="d-none-add">Reports</span>
                 </div>
-                <span class="d-none-add">Reports</span>
+
+                <svg class="arrowDown d-none-add me-0" width="10" height="8" viewBox="0 0 10 8"
+                    fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0.612793 1.58594L4.85543 5.82858L9.09807 1.58594" stroke="white"></path>
+                </svg>
+            </a>
+            <div id="collapseR" data-bs-parent="#accordionExample"
+                class="collapseMenu collapseWeb collapse {{ request()->is('stock-report*') || request()->is('ledger-report*') ? 'show' : '' }}">
+                <ul class="p-0 menuList">
+
+                    @permission('stock-report.view')
+                        <li>
+                            <a href="{{ route('stock-report') }}"
+                                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('stock-report*') ? 'active' : '' }}">
+                                <div class="icnBx d-flex align-items-center justify-content-center">
+                                    <i class="fa fa-product-hunt text-white" aria-hidden="true"></i>
+                                </div>
+                                <span class="d-none-add">Stock Report</span>
+                            </a>
+                        </li>
+                    @endpermission
+
+                    {{-- @permission('ledger-report.view')
+                        <li>
+                            <a href="{{ route('ledger-report') }}"
+                                class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('ledger-report*') ? 'active' : '' }}">
+                                <div class="icnBx d-flex align-items-center justify-content-center">
+                                    <i class="fa fa-gbp text-white" aria-hidden="true"></i>
+                                </div>
+                                <span class="d-none-add">Ledger Report</span>
+                            </a>
+                        </li>
+                    @endpermission --}}
+
+                </ul>
             </div>
-
-            <svg class="arrowDown d-none-add me-0" width="10" height="8" viewBox="0 0 10 8"
-                fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0.612793 1.58594L4.85543 5.82858L9.09807 1.58594" stroke="white"></path>
-            </svg>
-        </a>
-        <div id="collapseR" data-bs-parent="#accordionExample"
-            class="collapseMenu collapseWeb collapse {{ request()->is('stock-report*') || request()->is('ledger-report*') ? 'show' : '' }}">
-            <ul class="p-0 menuList">
-
-                @permission('stock-report.view')
-                    <li>
-                        <a href="{{ route('stock-report') }}"
-                            class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('stock-report*') ? 'active' : '' }}">
-                            <div class="icnBx d-flex align-items-center justify-content-center">
-                                <i class="fa fa-product-hunt text-white" aria-hidden="true"></i>
-                            </div>
-                            <span class="d-none-add">Stock Report</span>
-                        </a>
-                    </li>
-                @endpermission
-
-                @permission('ledger-report.view')
-                    <li>
-                        <a href="{{ route('ledger-report') }}"
-                            class="d-flex align-items-center text-white f-400 f-14 {{ request()->is('ledger-report*') ? 'active' : '' }}">
-                            <div class="icnBx d-flex align-items-center justify-content-center">
-                                <i class="fa fa-gbp text-white" aria-hidden="true"></i>
-                            </div>
-                            <span class="d-none-add">Ledger Report</span>
-                        </a>
-                    </li>
-                @endpermission
-
-            </ul>
-        </div>
-    </li>
-    @endif --}}
+        </li>
+    @endif
 
     {{-- @if(auth()->user()->hasPermission('financial-seller-report.view') && auth()->user()->hasPermission('financial-driver-report.view'))
     <li>
