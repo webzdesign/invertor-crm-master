@@ -48,6 +48,12 @@ class RoleSeeder extends Seeder
                 'slug' => 'seller-manager',
                 'description' => 'seller manager',
                 'added_by'  => 1
+            ],
+            [
+                'name' => 'Customer',
+                'slug' => 'customer',
+                'description' => 'Customer',
+                'added_by'  => 1
             ]
         ];
 
