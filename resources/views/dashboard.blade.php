@@ -5,7 +5,7 @@
     <div class="row">
 
         @permission('categories.view')
-        <div class="col-xl-3 col-md-6">
+        <div class="col-xl-4 col-md-6">
             <div class="small-box" style="background:#15283c;">
                 <div class="inner">
                     <h3 class="text-white"> {{ Category::count() }} </h3>
@@ -20,7 +20,7 @@
         @endpermission
 
         @permission('products.view')
-        <div class="col-xl-3 col-md-6">
+        <div class="col-xl-4 col-md-6">
             <div class="small-box" style="background:#be3685;">
                 <div class="inner">
                     <h3 class="text-white"> {{ Product::count() }} </h3>
@@ -35,7 +35,7 @@
         @endpermission
 
         @permission('purchase-orders.view')
-        <div class="col-xl-3 col-md-6">
+        <div class="col-xl-4 col-md-6">
             <div class="small-box" style="background:#e95657;">
                 <div class="inner">
                     <h3 class="text-white"> {{ PO::count() }} </h3>
@@ -49,7 +49,7 @@
         </div>
         @endpermission
 
-        @permission('sales-orders.view')
+        {{-- @permission('sales-orders.view')
         <div class="col-xl-3 col-md-6">
             <div class="small-box" style="background:#15283c;">
                 <div class="inner">
@@ -68,7 +68,7 @@
                 <a href="{{ route('sales-orders.index') }}" class="small-box-footer">More info <i class="fa fa-arrow-circle-o-right" aria-hidden="true"></i></a>
             </div>
         </div>
-        @endpermission
+        @endpermission --}}
 
     </div>
 

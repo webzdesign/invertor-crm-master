@@ -27,8 +27,44 @@ class ContactUsController extends Controller
             ->editColumn('created_at', function($contactus) {
                 return date('d-m-Y h:i:s A', strtotime($contactus->created_at));
             })
-            ->rawColumns([])
+            ->editColumn('phone', function($contactus) {
+                return !empty($contactus->country_dial_code) ? '+'.$contactus->country_dial_code.' '.$contactus->phone : $contactus->phone;
+            })
+            ->editColumn('action', function($contactus) {
+                $view = '<div class="tableCards d-inline-block me-1 pb-0">
+                            <div class="editDlbtn">
+                                <a data-bs-toggle="tooltip" title="View" href="javascript:void(0);"  style="background: #4BA64F !important;" class="editBtn modal-view-btn" data-uniqueid="'.encrypt($contactus->id).'"> <i class="text-white fa fa-eye" aria-hidden="true"></i></a>
+                            </div>
+                        </div>';
+
+                return $view;
+            })
+            ->rawColumns(['action'])
             ->addIndexColumn()
             ->make(true);
+    }
+
+    public function detail(Request $request) {
+        $id = decrypt($request->id);
+        if($id) {
+            $contactus = ContactUs::select(['name','email','phone','message','country_dial_code'])->where('id', $id)->first();
+            
+            if(!empty($contactus)) {
+                return response()->json([
+                    'success' => 1,
+                    'data' => $contactus 
+                ]);
+            } else {
+                return response()->json([
+                    'success' => 0,
+                    'message' => 'something went wrong!!'  
+                ]);
+            }
+        } else {
+            return response()->json([
+                'success' => 0,
+                'message' => 'something went wrong!!'  
+            ]);
+        }
     }
 }

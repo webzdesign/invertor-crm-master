@@ -118,16 +118,16 @@ Route::group(["middleware" => "auth"], function () {
         /** Purchase Order **/
 
         /** Distribution System  **/
-        Route::match(['GET', 'POST'], 'distribution', [DistributionController::class, 'index'])->name('distribution.index')->middleware('ModuleAccessor:distribution.view');
+        /* Route::match(['GET', 'POST'], 'distribution', [DistributionController::class, 'index'])->name('distribution.index')->middleware('ModuleAccessor:distribution.view');
         Route::get('distribution/create', [DistributionController::class, 'create'])->name('distribution.create')->middleware('ModuleAccessor:distribution.create');
         Route::post('distribution/store', [DistributionController::class, 'store'])->name('distribution.store');
         Route::get('distribution/{id}/view', [DistributionController::class, 'show'])->name('distribution.view')->middleware('ModuleAccessor:distribution.view');
         Route::post('get-blade-for-distribution', [DistributionController::class, 'getBlade'])->name('get-blade-for-distribution');
-        Route::post('getProducts', [DistributionController::class, 'getProducts'])->name('getProducts');
+        Route::post('getProducts', [DistributionController::class, 'getProducts'])->name('getProducts'); */
         /** Distribution System **/
 
         /** Procurement Cost **/
-        Route::match(['GET', 'POST'], 'procurement-cost', [ProcurementCostController::class, 'index'])->name('procurement-cost.index')->middleware('ModuleAccessor:procurement-cost.view');
+       /* Route::match(['GET', 'POST'], 'procurement-cost', [ProcurementCostController::class, 'index'])->name('procurement-cost.index')->middleware('ModuleAccessor:procurement-cost.view');
         Route::get('procurement-cost/create', [ProcurementCostController::class, 'create'])->name('procurement-cost.create')->middleware('ModuleAccessor:procurement-cost.create');
         Route::post('procurement-cost/store', [ProcurementCostController::class, 'store'])->name('procurement-cost.store');
         Route::get('procurement-cost/{id}/edit', [ProcurementCostController::class, 'edit'])->name('procurement-cost.edit')->middleware('ModuleAccessor:procurement-cost.edit');
@@ -135,11 +135,11 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('procurement-cost/{id}/view', [ProcurementCostController::class, 'show'])->name('procurement-cost.view')->middleware('ModuleAccessor:procurement-cost.view');
         Route::get('procurement-cost/{id}/delete', [ProcurementCostController::class, 'destroy'])->name('procurement-cost.delete')->middleware('ModuleAccessor:procurement-cost.delete');
         Route::get('procurement-cost/{id}/status', [ProcurementCostController::class, 'status'])->name('procurement-cost.activeinactive')->middleware('ModuleAccessor:procurement-cost.activeinactive');
-        Route::post('procurement-cost/check', [ProcurementCostController::class, 'check']);
+        Route::post('procurement-cost/check', [ProcurementCostController::class, 'check']); */
         /** Procurement Cost **/
 
         /** Sales Order **/
-        Route::match(['GET', 'POST'], 'sales-orders', [SalesOrderController::class, 'index'])->name('sales-orders.index')->middleware('ModuleAccessor:sales-orders.view');
+        /* Route::match(['GET', 'POST'], 'sales-orders', [SalesOrderController::class, 'index'])->name('sales-orders.index')->middleware('ModuleAccessor:sales-orders.view');
         Route::get('sales-orders/create', [SalesOrderController::class, 'create'])->name('sales-orders.create')->middleware('ModuleAccessor:sales-orders.create');
         Route::post('sales-orders/store', [SalesOrderController::class, 'store'])->name('sales-orders.store');
         Route::get('sales-orders/{id}/edit', [SalesOrderController::class, 'edit'])->name('sales-orders.edit')->middleware('ModuleAccessor:sales-orders.edit');
@@ -154,7 +154,7 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('change-driver', [SalesOrderController::class, 'changeDriver'])->name('change-driver');
         Route::post('get-real-time-commission', [SalesOrderController::class, 'getRealTimeCommission'])->name('get-real-time-commission');
         Route::post('is-customer-scammer', [SalesOrderController::class, 'isCustomerScammer'])->name('is-customer-scammer');
-        Route::get('sales-orders/{id}/confirm', [SalesOrderController::class, 'confirm'])->name('sales-orders.confirm')->middleware('ModuleAccessor:sales-orders.confirm');
+        Route::get('sales-orders/{id}/confirm', [SalesOrderController::class, 'confirm'])->name('sales-orders.confirm')->middleware('ModuleAccessor:sales-orders.confirm'); */
         /** Sales Order **/
 
         /** Suppliers **/
@@ -169,16 +169,16 @@ Route::group(["middleware" => "auth"], function () {
         /** Suppliers **/
 
         /** Orders To Deliver (for driver) **/
-        Route::match(['GET', 'POST'], 'orders-to-deliver', [SalesOrderController::class, 'ordersToBeDeliverd'])->name('orders-to-deliver')->middleware('ModuleAccessor:orders-to-deliver.view');
+        /* Route::match(['GET', 'POST'], 'orders-to-deliver', [SalesOrderController::class, 'ordersToBeDeliverd'])->name('orders-to-deliver')->middleware('ModuleAccessor:orders-to-deliver.view'); */
         /** Orders To Deliver (for driver) **/
 
         /** Report **/
-        Route::match(['GET', 'POST'], 'stock-report', [ReportController::class, 'stockReport'])->name('stock-report')->middleware('ModuleAccessor:stock-report.view');
-        Route::match(['GET', 'POST'], 'ledger-report', [ReportController::class, 'ledgerReport'])->name('ledger-report')->middleware('ModuleAccessor:ledger-report.view');
+        /* Route::match(['GET', 'POST'], 'stock-report', [ReportController::class, 'stockReport'])->name('stock-report')->middleware('ModuleAccessor:stock-report.view');
+        Route::match(['GET', 'POST'], 'ledger-report', [ReportController::class, 'ledgerReport'])->name('ledger-report')->middleware('ModuleAccessor:ledger-report.view'); */
         /** Report **/
 
         /** Financial report **/
-        Route::match(['GET', 'POST'], 'financial-report/driver', [ReportController::class, 'driverCommission'])->name('driver-commission')->middleware('ModuleAccessor:financial-driver-report.view');
+        /*Route::match(['GET', 'POST'], 'financial-report/driver', [ReportController::class, 'driverCommission'])->name('driver-commission')->middleware('ModuleAccessor:financial-driver-report.view');
         Route::match(['GET', 'POST'], 'financial-report/seller', [ReportController::class, 'sellerCommission'])->name('seller-commission')->middleware('ModuleAccessor:financial-seller-report.view');
         Route::post('pay-amount-to-admin', [ReportController::class, 'payAmountToAdmin'])->name('pay-amount-to-admin');
         Route::post('pay-amount-to-seller', [ReportController::class, 'payAmountToSeller'])->name('pay-amount-to-seller');
@@ -197,15 +197,15 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('withdrwal-details', [ReportController::class, 'withdrwalDetails'])->name('withdrwal-details');
         Route::post('accept-withdrawal-request', [ReportController::class, 'acceptWithdrawalRequest'])->name('accept-withdrawal-request');
         Route::post('reject-withdrawal-request', [ReportController::class, 'rejectWithdrawalRequest'])->name('reject-withdrawal-request');
-        Route::post('seller-withdrawal-reqs-2', [ReportController::class, 'withdrawReqs2'])->name('seller-withdrawal-reqs-2');
+        Route::post('seller-withdrawal-reqs-2', [ReportController::class, 'withdrawReqs2'])->name('seller-withdrawal-reqs-2');*/
         /** Financial report **/
 
         /** Payment for deliveyr **/
-        Route::match(['GET', 'POST'], 'payment-for-delivery', [PaymentForDeliveryController::class, 'index'])->name('payment-for-delivery')->middleware('ModuleAccessor:payment-for-delivery.view');
+        /*Route::match(['GET', 'POST'], 'payment-for-delivery', [PaymentForDeliveryController::class, 'index'])->name('payment-for-delivery')->middleware('ModuleAccessor:payment-for-delivery.view');*/
         /** Payment for deliveyr **/
 
         /** Sales Order Status **/
-        Route::match(['GET', 'POST'], 'sales-order-status-list', [SalesOrderStatusController::class, 'list'])->name('sales-order-status-list');
+        /*Route::match(['GET', 'POST'], 'sales-order-status-list', [SalesOrderStatusController::class, 'list'])->name('sales-order-status-list');
         Route::get('sales-order-status', [SalesOrderStatusController::class, 'index'])->name('sales-order-status')->middleware('ModuleAccessor:sales-order-status.view');
         Route::post('sales-order-status/sequence', [SalesOrderStatusController::class, 'sequence'])->name('sales-order-status-sequence');
         Route::get('sales-order-status/delete', [SalesOrderStatusController::class, 'delete'])->name('sales-order-status-delete')->middleware('ModuleAccessor:sales-order-status.delete');
@@ -233,7 +233,7 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('order-place-notification-save', [SalesOrderStatusController::class, 'orderPlaceNotificationSave'])->name('order-place-notification-save');
         Route::post('twillo-notification-save', [SalesOrderStatusController::class, 'twilloNotificationSave'])->name('twillo-notification-save');
         Route::post('twillo-notification-remove', [SalesOrderStatusController::class, 'twilloNotificationRemove'])->name('twillo-notification-remove');
-        Route::post('twillo-notification/check', [SalesOrderStatusController::class, 'twilloNotificationCheck'])->name('twillo-notification-check');
+        Route::post('twillo-notification/check', [SalesOrderStatusController::class, 'twilloNotificationCheck'])->name('twillo-notification-check');*/
 
         /** Sales Order Status **/
 
@@ -253,6 +253,7 @@ Route::group(["middleware" => "auth"], function () {
 
         /** contactus **/
         Route::match(['GET', 'POST'], 'contactus', [ContactUsController::class, 'index'])->name('contactus.index')->middleware('ModuleAccessor:contactus.view');
+        Route::post( '/contactus/detail', [ContactUsController::class, 'detail'])->name('contactus.detail');
         /** contactus **/
 
         /* information pages */
@@ -295,7 +296,7 @@ Route::group(["middleware" => "auth"], function () {
         Route::post('checkBrands', [BrandsController::class, 'checkBrands']);
         /** Brands **/
 
-         /** Gifts **/
+        /** Gifts **/
         Route::match(['GET', 'POST'], 'gifts', [GiftsController::class, 'index'])->name('gifts.index')->middleware('ModuleAccessor:gifts.view');
         Route::get('gifts/create', [GiftsController::class, 'create'])->name('gifts.create')->middleware('ModuleAccessor:gifts.create');
         Route::post('gifts/store', [GiftsController::class, 'store'])->name('gifts.store');

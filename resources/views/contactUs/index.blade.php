@@ -15,13 +15,54 @@
                 <th width="5%">Sr No.</th>
                 <th width="15%">Name</th>
                 <th width="20%">Email</th>
+                <th width="10%">Mobile Number</th>
                 <th width="20%">Date Time</th>
-                <th width="40%">Message</th>
+                <th width="5%">Action</th>
             </tr>
         </thead>
         <tbody>
         </tbody>
     </table>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="contactDetailModal" tabindex="-1" role="dialog" aria-labelledby="contactDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fs-2" id="contactDetailModalLabel">Contact Details</h5>
+        <button type="button" class="btn close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+            <div class="col-md-12 col-sm-12">
+                <div class="form-group">
+                    <label class="c-gr f-500 f-16 w-100 mb-2" for="cname">Customer Name : </label>
+                    <input type="text" name="cname" id="cname" value="" class="form-control" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="c-gr f-500 f-16 w-100 mb-2" for="cemail">Email : </label>
+                    <input type="text" name="cemail" id="cemail" value="" class="form-control" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="c-gr f-500 f-16 w-100 mb-2" for="cphone">Phone Number : </label>
+                    <input type="text" name="cphone" id="cphone" value="" class="form-control" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="c-gr f-500 f-16 w-100 mb-2" for="cmessage">Message : </label>
+                    <textarea class="w-100 rounded-3" name="cmessage" id="cmessage" rows="6" style="background-color: #e9ecef; padding: 5px 10px;" readonly></textarea>
+                </div>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary close">Close</button>
+        {{-- <button type="button" class="btn btn-primary">Save changes</button> --}}
+      </div>
+    </div>
+  </div>
 </div>
 
 @endsection
@@ -30,6 +71,57 @@
 
 <script>
     $(document).ready(function() {
+
+        $(document).on('click','.modal-view-btn', function() {
+
+            let cID = $(this).data('uniqueid');
+
+            if(cID) {
+                $.ajax({
+                    url: "{{ route('contactus.detail') }}",
+                    type: "POST",
+                    data: { id: cID },
+                    dataType: "json",
+                    success: function (response) {
+                        if(response.success == 1) {
+                            if(response.data.name) {
+                                $('#cname').val(response.data.name);
+                            }
+                            if(response.data.email) {
+                                $('#cemail').val(response.data.email);
+                            }
+                            if(response.data.phone) {
+                                if(response.data.country_dial_code == null){
+                                    $('#cphone').val(`${response.data.phone}`);
+                                } else {
+                                    $('#cphone').val(`+${response.data.country_dial_code} ${response.data.phone}`);
+                                }
+                            }
+                            if(response.data.message) {
+                                $('#cmessage').text(response.data.message);
+                            }
+                            $('#contactDetailModal').modal('show');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Request failed:", status, error);
+                    },
+                });
+            }
+
+        });
+
+        $(document).on('click','.close', function() {
+            $('#contactDetailModal').modal('hide');
+        });
+
+        $('#contactDetailModal').on('hidden.bs.modal', function () {
+            $('#cname').val('');
+            $('#cemail').val('');
+            $('#cphone').val('');
+            $('#cmessage').text('');
+            $('#cmessage').css('height', '');
+        });
 
         var ServerDataTable = $('.datatable-users').DataTable({
             pageLength : 50,
@@ -59,11 +151,14 @@
                     data: 'email',
                 },
                 {
+                    data: 'phone',
+                },               
+                {
                     data: 'created_at',
                 },
                 {
-                    data: 'message',
-                }
+                    data: 'action',
+                },
             ],
         });
 
