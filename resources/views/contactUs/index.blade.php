@@ -101,6 +101,8 @@
                                 $('#cmessage').text(response.data.message);
                             }
                             $('#contactDetailModal').modal('show');
+                        } else {
+                            console.log(response.message);
                         }
                     },
                     error: function (xhr, status, error) {

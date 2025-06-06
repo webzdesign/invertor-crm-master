@@ -45,25 +45,34 @@ class ContactUsController extends Controller
     }
 
     public function detail(Request $request) {
-        $id = decrypt($request->id);
-        if($id) {
-            $contactus = ContactUs::select(['name','email','phone','message','country_dial_code'])->where('id', $id)->first();
-            
-            if(!empty($contactus)) {
-                return response()->json([
-                    'success' => 1,
-                    'data' => $contactus 
-                ]);
+
+        try {
+            $id = decrypt($request->id);
+            if($id) {
+                $contactus = ContactUs::select(['name','email','phone','message','country_dial_code'])->where('id', $id)->first();
+                
+                if(!empty($contactus)) {
+                    return response()->json([
+                        'success' => 1,
+                        'data' => $contactus 
+                    ]);
+                } else {
+                    return response()->json([
+                        'success' => 0,
+                        'message' => 'something went wrong!!'  
+                    ]);
+                }
             } else {
                 return response()->json([
                     'success' => 0,
                     'message' => 'something went wrong!!'  
                 ]);
             }
-        } else {
+        } catch (\Throwable $e) {
+            \Log::info('Contact Us Detail Popup Error -> '. $e->getMessage());
             return response()->json([
                 'success' => 0,
-                'message' => 'something went wrong!!'  
+                'message' => $e->getMessage()  
             ]);
         }
     }
