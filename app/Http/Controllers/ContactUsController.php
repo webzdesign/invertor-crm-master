@@ -52,6 +52,15 @@ class ContactUsController extends Controller
                 $contactus = ContactUs::select(['name','email','phone','message','country_dial_code'])->where('id', $id)->first();
                 
                 if(!empty($contactus)) {
+                    $data = $contactus->toArray();
+
+                    array_walk_recursive($data, function (&$item) {
+                        if (is_string($item)) {
+                            $item = mb_convert_encoding($item, 'UTF-8', 'UTF-8');
+                            $item = preg_replace('/[^\P{C}\n]+/u', '', $item);
+                        }
+                    });
+
                     return response()->json([
                         'success' => 1,
                         'data' => $contactus 
