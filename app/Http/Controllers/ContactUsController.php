@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\ContactUs;
 use App\Helpers\Helper;
-
+use Illuminate\Support\Facades\Log;
 class ContactUsController extends Controller
 {
     protected $moduleName = 'Contact Us';
@@ -78,7 +78,7 @@ class ContactUsController extends Controller
                 ]);
             }
         } catch (\Throwable $e) {
-            \Log::info('Contact Us Detail Popup Error -> '. $e->getMessage());
+            Log::info('Contact Us Detail Popup Error -> '. $e->getMessage());
             return response()->json([
                 'success' => 0,
                 'message' => $e->getMessage()  
