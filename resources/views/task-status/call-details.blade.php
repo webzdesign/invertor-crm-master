@@ -181,7 +181,7 @@
     <hr>
 
     @php
-        $allAddTaskToOrderTrigger = \App\Models\AddTaskToOrderTrigger::with(['mainstatus' => fn ($builder) => $builder->withTrashed()])->where('order_id', $call->id)->withTrashed()->orderBy('id', 'DESC')->get();
+        $allAddTaskToOrderTrigger = \App\Models\CallAddTaskToCallHistoryTrigger::with(['mainstatus' => fn ($builder) => $builder->withTrashed()])->where('call_id', $call->id)->withTrashed()->orderBy('id', 'DESC')->get();
     @endphp
 
     <div class="d-flex align-items-center justify-content-between">
@@ -242,11 +242,11 @@
                         <span class="text-danger this-error f-12 mb-2"></span>
                     </div>
                     <div class="nowrap btn-opts">
-                        <button class="btn btn-outline-success btn-sm py-0 px-1 edit-task" data-tid="{{ $o->id }}" data-oid="{{ $o->order_id }}">
+                        <button class="btn btn-outline-success btn-sm py-0 px-1 edit-task" data-tid="{{ $o->id }}" data-oid="{{ $o->id }}">
                             <i class="fa fa-pencil" aria-hidden="true"></i>
                             Edit
                         </button>
-                        <button class="btn btn-outline-danger btn-sm py-0 px-1 remove-task" data-tid="{{ $o->id }}" data-oid="{{ $o->order_id }}">
+                        <button class="btn btn-outline-danger btn-sm py-0 px-1 remove-task" data-tid="{{ $o->id }}" data-oid="{{ $o->id }}">
                             <i class="fa fa-trash" aria-hidden="true"></i>
                             Delete
                         </button>

@@ -316,6 +316,8 @@ Route::group(["middleware" => "auth"], function () {
         Route::get('task-status/automate/put-task-for-order', [CallTaskStatusController::class, 'putTaskForOrder'])->name('task-status.put-task-for-order')->middleware('ModuleAccessor:task-status.edit');
         Route::post('task-status/call-history-detail-in-board', [CallTaskStatusController::class, 'callDetailInBoard'])->name('task-status.call-history-detail');
         Route::delete('task-status/automate/delete-status', [CallTaskStatusController::class, 'delete-status'])->name('task-status.delete-status')->middleware('ModuleAccessor:task-status.edit');
+        Route::post('save-completion-description-for-call-task', [CallTaskStatusController::class, 'saveDescription'])->name('save-completion-description-for-call-task');
+        Route::post('remove-call-task', [CallTaskStatusController::class, 'removeCallTask'])->name('remove-call-task');
         /** Task Status **/
         
     });

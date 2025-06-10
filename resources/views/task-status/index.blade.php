@@ -1196,11 +1196,21 @@
                 }
             });
 
+            $(document).on('click', '#toggle-task-trigger-list', function (event) {
+                if ($('.actvt-at').hasClass('d-none')) {
+                    $('.actvt-at').removeClass('d-none')
+                    $(this).text('Show less');
+                } else {
+                    $('.actvt-at').not('.show-first-at').addClass('d-none');
+                    $(this).text('Show All');
+                }
+            })
+
             $(document).on('click', '.remove-task', function () {
                 let id = $(this).attr('data-tid');
                 let order = $(this).attr('data-oid');
                 let element = $(this).parent().parent().parent();
-
+                
                 if (id !== '' && order !== '') {
                     Swal.fire({
                         title: 'Are you sure want to delete task?',
@@ -1213,7 +1223,7 @@
                     }).then((result) => {
                         if (result.value) {
                             $.ajax({
-                                url: "{{ route('remove-task') }}",
+                                url: "{{ route('remove-call-task') }}",
                                 type: "POST",
                                 data: {
                                     id: id,
@@ -1281,7 +1291,7 @@
                     }
 
                     $.ajax({
-                        url: "{{ route('save-completion-description-for-task') }}",
+                        url: "{{ route('save-completion-description-for-call-task') }}",
                         type: "POST",
                         data: {
                             id: task,

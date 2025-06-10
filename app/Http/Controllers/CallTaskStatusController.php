@@ -15,6 +15,7 @@ use App\Models\CallTrigger; // DONE
 use App\Models\CallTriggerLog; // DONE
 use App\Models\TwilloMessageNotification;
 use App\Models\TwilloTemplate;
+use Illuminate\Support\Facades\Http;
 
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -581,7 +582,7 @@ class CallTaskStatusController extends Controller
                 'cron_id' => $call->id,
                 'call_id' => $call->id,
                 'watcher_id' => auth()->user()->id,
-                'next_status_id' => $toStatus,
+                'next_status_id' => $toStatus->id,
                 'current_status_id' => $oldStatus,
                 'type' => 2,
                 'time_type' => $call->time_type,
@@ -608,16 +609,16 @@ class CallTaskStatusController extends Controller
             $y = [];
             try {
                 $triggers = CallTrigger::where('type', 1)
-                    ->where('status_id', $toStatus)
+                    ->where('status_id', $toStatus->id)
                     ->whereIn('action_type', [1, 3]);
-
+                
                 if ($triggers->count() > 0) {
                     foreach ($triggers->get() as $t) {
                         $currentTime1 = date('Y-m-d H:i:s', strtotime("{$t->time}"));
 
                         $record = CallAddTaskToCallHistoryTrigger::create([
                             'call_id' => $callId,
-                            'status_id' => $toStatus,
+                            'status_id' => $toStatus->id,
                             'added_by' => auth()->user()->id,
                             'time' => $t->time,
                             'type' => $t->time_type,
@@ -627,7 +628,7 @@ class CallTaskStatusController extends Controller
                             'executed_at' => $currentTime1,
                             'trigger_id' => $t->id
                         ]);
-
+                        
                         if ($t->time_type == 1) {
                             $y[] = $record->id;
                         }
@@ -676,5 +677,26 @@ class CallTaskStatusController extends Controller
             'status' => false,
             'message' => Helper::$errorMessage
         ]);
+    }
+
+    public function saveDescription(Request $request) {
+        if(CallAddTaskToCallHistoryTrigger::where('id', $request->id)->exists()) {
+            CallAddTaskToCallHistoryTrigger::where('id', $request->id)->update([
+                'completed_description' => $request->text,
+                'completed' => true
+            ]);
+            return response()->json(['status' => true, 'message' => 'Call task completed successfully.']);
+        }
+
+        return response()->json(['status' => false, 'message' => Helper::$errorMessage]);
+    }
+    public function removeCallTask(Request $request) {
+        $task = CallAddTaskToCallHistoryTrigger::where('id', $request->id);
+
+        if ($task->exists()) {
+            return response()->json(['status' => $task->delete(), 'message' => 'Task deleted successfully.', 'count' => CallAddTaskToCallHistoryTrigger::where('call_id', $request->order)->where('executed', 1)->count()]);
+        }
+
+        return response()->json(['status' => false, 'message' => 'Call task not found.']);
     }
 }
