@@ -21,6 +21,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ContactUsController;
+use App\Http\Controllers\MoldcellWebhookController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -43,6 +44,8 @@ Route::get('view', function () {
 
 Route::match(['GET', 'POST'], 'register/{role}/{user?}', [UserController::class, 'register']);
 Route::post('checkUserEmail', [UserController::class, 'checkUserEmail']);
+
+Route::post('moldcellWebhook', [MoldcellWebhookController::class, 'handleMoldcellWebhook']);
 
 Route::group(["middleware" => "auth"], function () {
     Route::group(["middleware" => "StatusChecker"], function () {

@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'StatusChecker' => \App\Http\Middleware\StatusChecker::class
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            'moldcellWebhook'
+        ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
