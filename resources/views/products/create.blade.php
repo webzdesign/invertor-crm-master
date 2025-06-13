@@ -318,7 +318,7 @@ $(document).ready(function(){
 
     $(document).on('change', '#category', function () {
         let categoryId = $(this).val();
-
+        
         if (categoryId) {
             $.ajax({
                 url: "{{ route('getBrandsByCatgeory') }}",
@@ -334,7 +334,7 @@ $(document).ready(function(){
                         brandSelect.append('<option value="">--- Select a Brands ---</option>');
                         
                         $.each(response.brands, function (index, brand) {
-                            brandSelect.append('<option value="' + brand.name + '">' + brand.name + '</option>');
+                            brandSelect.append('<option value="' + brand.id + '">' + brand.name + '</option>');
                         });
                         
                         brandSelect.attr('disabled', false).trigger('change');
