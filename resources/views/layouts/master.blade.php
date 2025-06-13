@@ -209,6 +209,64 @@
         </div>
     </div>
     @include('layouts.partials.scripts')
+    <script src="{{ asset('assets/tinymce/tinymce.min.js')}}"></script>
+
+    <script>
+        function initEditor($id){
+            tinymce.init({
+                selector: $id,
+                height: 450,
+                menubar: true,
+                branding: false,
+                //content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+                plugins: [
+                    // 'a11ychecker',
+                    'accordion', 
+                    'advlist', 
+                    'anchor', 
+                    'autolink', 
+                    'autosave',
+                    'charmap', 
+                    'code', 
+                    'codesample', 
+                    'directionality', 
+                    'emoticons', 
+                    // 'exportpdf',
+                    // 'exportword', 
+                    'fullscreen', 
+                    'help', 
+                    'image', 
+                    'importcss', 
+                    // 'importword',
+                    'insertdatetime', 
+                    'link', 
+                    'lists', 
+                    // 'markdown', 
+                    // 'math',
+                    'media', 
+                    'nonbreaking',
+                    'pagebreak', 
+                    'preview', 
+                    'quickbars', 
+                    'save', 
+                    'searchreplace', 
+                    'table',
+                    'visualblocks', 
+                    'visualchars', 
+                    'wordcount'
+                ],
+                toolbar: 'undo redo ' +
+                    'importword exportword exportpdf math ' +
+                    'lineheight outdent indent align forecolor backcolor removeformat ' +
+                    'blocks fontfamily fontsize bold italic underline strikethrough ' +
+                    'numlist bullist link image table media ' +
+                    'charmap emoticons code fullscreen preview save print ' +
+                    'pagebreak anchor codesample ltr rtl',
+                menubar: 'file edit view insert format tools table help'
+            });
+        }        
+    </script>
+
     @yield('script')
 </body>
 

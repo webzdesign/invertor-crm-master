@@ -202,7 +202,7 @@
 </form>
 @endsection
 
-<script src="{{ asset('assets/ckeditor/ckeditor.js') }}"></script>
+{{-- <script src="{{ asset('assets/ckeditor/ckeditor.js') }}"></script> --}}
 @section('script')
 <script>
 $(document).ready(function(){
@@ -310,11 +310,12 @@ $(document).ready(function(){
         }
     });
     $(".ckeditorField").each(function() {
-		CKEDITOR.config.autoParagraph = false;
-		CKEDITOR.replace($(this).attr("id"), {
-			enterMode: CKEDITOR.ENTER_BR,
-			shiftEnterMode: CKEDITOR.ENTER_BR
-		});
+		// CKEDITOR.config.autoParagraph = false;
+		// CKEDITOR.replace($(this).attr("id"), {
+		// 	enterMode: CKEDITOR.ENTER_BR,
+		// 	shiftEnterMode: CKEDITOR.ENTER_BR
+		// });
+        initEditor(`#${$(this).attr("id")}`);
 	});
 
     $(document).on('click', '.addNewRow', function () {

@@ -190,23 +190,24 @@
         </div>
     </div>
 @endsection
+{{-- <script src="{{ asset('assets/ckeditor/ckeditor.js') }}"></script> --}}
+@section('script')
 @if (!empty($langs))
     <script>
         let langs = @json($langs);
     </script>
 @endif
-<script src="{{ asset('assets/ckeditor/ckeditor.js') }}"></script>
-@section('script')
     <script>
         $(document).ready(function () {
 
              $.each(langs, function(index, lang) {                
                 $(`.ckeditorField-${lang}`).each(function () {
-                    CKEDITOR.config.autoParagraph = false;
-                    CKEDITOR.replace($(this).attr("id"), {
-                        enterMode: CKEDITOR.ENTER_BR,
-                        shiftEnterMode: CKEDITOR.ENTER_BR
-                    });
+                    // CKEDITOR.config.autoParagraph = false;
+                    // CKEDITOR.replace($(this).attr("id"), {
+                    //     enterMode: CKEDITOR.ENTER_BR,
+                    //     shiftEnterMode: CKEDITOR.ENTER_BR
+                    // });
+                    initEditor(`#${$(this).attr("id")}`);
                 });
             });
 
@@ -242,7 +243,7 @@
             langs.forEach(function(lang) {
                 validationRules[`title[${lang}]`] = {
                     required: function () {
-                        return CKEDITOR.instances['title_' + lang].getData().trim() === '';
+                        // return CKEDITOR.instances['title_' + lang].getData().trim() === '';
                     }
                 };
 
@@ -260,9 +261,6 @@
                     error.appendTo(element.parent("div"));
                 },
                 submitHandler: function (form) {
-                    for (instance in CKEDITOR.instances) {
-                        CKEDITOR.instances[instance].updateElement();
-                    }
                     $('button[type="submit"]').attr('disabled', true);
                     if (!this.beenSubmitted) {
                         this.beenSubmitted = true;

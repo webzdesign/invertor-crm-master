@@ -154,17 +154,18 @@
         </div>
 @endsection
 
-<script src="{{ asset('assets/ckeditor/ckeditor.js') }}"></script>
+{{-- <script src="{{ asset('assets/ckeditor/ckeditor.js') }}"></script> --}}
 @section('script')
     <script>
         $(document).ready(function () {
 
             $(".ckeditorField").each(function () {
-                CKEDITOR.config.autoParagraph = false;
-                CKEDITOR.replace($(this).attr("id"), {
-                    enterMode: CKEDITOR.ENTER_BR,
-                    shiftEnterMode: CKEDITOR.ENTER_BR
-                });
+                // CKEDITOR.config.autoParagraph = false;
+                // CKEDITOR.replace($(this).attr("id"), {
+                //     enterMode: CKEDITOR.ENTER_BR,
+                //     shiftEnterMode: CKEDITOR.ENTER_BR
+                // });
+                initEditor(`#${$(this).attr("id")}`);
             });
 
             $('body').on('input', '#page_title', function (e) {
@@ -183,11 +184,11 @@
                     slug: {
                         required: true,
                     },
-                    page_description: {
-                        required: function (textarea) {
-                            return CKEDITOR.instances['page_description'].getData().trim() === '';
-                        }
-                    },
+                    // page_description: {
+                    //     required: function (textarea) {
+                    //         // return CKEDITOR.instances['page_description'].getData().trim() === '';
+                    //     }
+                    // },
                     // 'page_banner[]': {
                     //     required: true,
                     // }
@@ -208,13 +209,9 @@
                 },
                 errorPlacement: function (error, element) {
                     var inputName = element.attr("name");
-                    console.log("Input name:", inputName);
                     error.appendTo(element.parent("div"));
                 },
                 submitHandler: function (form) {
-                    for (instance in CKEDITOR.instances) {
-                        CKEDITOR.instances[instance].updateElement();
-                    }
                     $('button[type="submit"]').attr('disabled', true);
                     if (!this.beenSubmitted) {
                         this.beenSubmitted = true;

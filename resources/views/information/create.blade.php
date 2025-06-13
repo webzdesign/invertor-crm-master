@@ -39,7 +39,8 @@
 
                     <div class="col-md-9 col-sm-12">
                         <div class="form-group">
-                            <label class="c-gr f-500 f-16 w-100 mb-2">Page Description : </label>
+                            <label class="c-gr f-500 f-16 w-100 mb-2">Page Description : <span
+                                            class="text-danger">*</span></label>
                             <textarea name="page_description" class="form-control ckeditorField" id="page_description"
                                 cols="30" rows="10"
                                 placeholder="Enter page description">{{ old('page_description') }}</textarea>
@@ -56,7 +57,7 @@
                                 <div class="form-group">
                                     <label class="c-gr f-500 f-16 w-100 mb-2">
                                         Information Page Desktop Banner ({{ strtoupper($lang) }}): <span
-                                            class="text-danger">*</span>
+                                            class="text-danger"></span>
                                     </label>
                                     <input type="file" name="page_banner[{{ $lang }}]" class="form-control page-banner-input"
                                         data-lang="{{ $lang }}">
@@ -84,7 +85,7 @@
                                 <div class="form-group">
                                     <label class="c-gr f-500 f-16 w-100 mb-2">
                                         Information Page Mobile Banner ({{ strtoupper($lang) }}): <span
-                                            class="text-danger">*</span>
+                                            class="text-danger"></span>
                                     </label>
                                     <input type="file" name="page_banner_mob[{{ $lang }}]" class="form-control page-banner-input-mob"
                                         data-lang="{{ $lang }}">
@@ -117,17 +118,18 @@
     </form>
 @endsection
 
-<script src="{{ asset('assets/ckeditor/ckeditor.js') }}"></script>
+{{-- <script src="{{ asset('assets/ckeditor/ckeditor.js') }}"></script> --}}
 @section('script')
     <script>
         $(document).ready(function () {
 
             $(".ckeditorField").each(function () {
-                CKEDITOR.config.autoParagraph = false;
-                CKEDITOR.replace($(this).attr("id"), {
-                    enterMode: CKEDITOR.ENTER_BR,
-                    shiftEnterMode: CKEDITOR.ENTER_BR
-                });
+                // CKEDITOR.config.autoParagraph = false;
+                // CKEDITOR.replace($(this).attr("id"), {
+                //     enterMode: CKEDITOR.ENTER_BR,
+                //     shiftEnterMode: CKEDITOR.ENTER_BR
+                // });
+                initEditor(`#${$(this).attr("id")}`);
             });
 
             $('body').on('input', '#page_title', function (e) {
@@ -148,12 +150,12 @@
                     },
                     page_description: {
                         required: function (textarea) {
-                            return CKEDITOR.instances['page_description'].getData().trim() === '';
+                            return $('#page_description').val() == '';
                         }
                     },
-                    'page_banner[]': {
-                        required: true,
-                    }
+                    // 'page_banner[]': {
+                    //     required: true,
+                    // }
                 },
                 messages: {
                     page_title: {
@@ -165,19 +167,15 @@
                     page_description: {
                         required: "Page Description is required.",
                     },
-                    'page_banner[]': {
-                        required: "Page banner is required.",
-                    }
+                    // 'page_banner[]': {
+                    //     required: "Page banner is required.",
+                    // }
                 },
                 errorPlacement: function (error, element) {
                     var inputName = element.attr("name");
-                    console.log("Input name:", inputName);
                     error.appendTo(element.parent("div"));
                 },
                 submitHandler: function (form) {
-                    for (instance in CKEDITOR.instances) {
-                        CKEDITOR.instances[instance].updateElement();
-                    }
                     $('button[type="submit"]').attr('disabled', true);
                     if (!this.beenSubmitted) {
                         this.beenSubmitted = true;

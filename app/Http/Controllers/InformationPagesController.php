@@ -144,7 +144,7 @@ class InformationPagesController extends Controller
         $information->page_title = $request->page_title;
         $information->slug = $request->slug;
         $information->page_description = $request->page_description;
-        $information->page_banner = $infoImg;
+        $information->page_banner = !empty($infoImg) ? $infoImg : '';
         $information->added_by = auth()->user()->id;
         $information->status = 1;
 
@@ -169,9 +169,6 @@ class InformationPagesController extends Controller
         return view('information.edit',compact('moduleName','info','langs'));
     }
     public function update(Request $request, $id) {
-        // echo '<pre>';
-        // print_r($request->all());
-        // exit;
         $id = decrypt($id);
         $info = InformationPages::find($id);
         Validator::make($request->all(),[
