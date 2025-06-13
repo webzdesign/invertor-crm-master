@@ -176,7 +176,8 @@ class ProductController extends Controller
         $product->web_sales_price = $request->web_sales_price ?? 0;
         $product->web_sales_old_price = $request->web_sales_old_price ?? 0;
         $product->sku = $request->sku ?? '';
-        $product->brand = $request->brand ?? '';
+        $product->brand_id = $request->brand ?? '';
+        // $product->brand = $request->brand ?? '';
         $product->gtin = $request->gtin ?? '';
         $product->mpn = $request->mpn ?? '';
         $product->youtube_video_url = $request->youtube_video_url ?? '';
@@ -213,7 +214,8 @@ class ProductController extends Controller
         $product->web_sales_price = $request->web_sales_price ?? 0;
         $product->web_sales_old_price = $request->web_sales_old_price ?? 0;
         $product->sku = $request->sku ?? '';
-        $product->brand = $request->brand ?? '';
+        $product->brand_id = $request->brand ?? '';
+        // $product->brand = $request->brand ?? '';
         $product->gtin = $request->gtin ?? '';
         $product->mpn = $request->mpn ?? '';
         $product->youtube_video_url = $request->youtube_video_url ?? '';

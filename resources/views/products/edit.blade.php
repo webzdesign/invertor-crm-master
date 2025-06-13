@@ -336,7 +336,7 @@ $(document).ready(function(){
             $(this).closest('.available_power_capacity-input').remove();
         }
     });
-
+    
     function changeBrandByCatgeory(categoryId) {
         let brandSelect = $('#brand');
         brandSelect.attr('disabled', true).empty().append('<option>Loading...</option>');
@@ -353,8 +353,8 @@ $(document).ready(function(){
                     if (response.success && response.brands.length > 0) {
                         brandSelect.append('<option value="">--- Select a Brand ---</option>');
                         $.each(response.brands, function (index, brand) {
-                            let selected = (brand.name == brandName) ? 'selected' : '';
-                            brandSelect.append('<option value="' + brand.name + '" ' + selected + '>' + brand.name + '</option>');
+                            let selected = (brand.id == brandName) ? 'selected' : '';
+                            brandSelect.append('<option value="' + brand.id + '" ' + selected + '>' + brand.name + '</option>');
                         });
                     } else {
                         brandSelect.append('<option value="">No brands found</option>');
@@ -370,7 +370,7 @@ $(document).ready(function(){
     }
 
     let catID = '{{ $product->category_id }}';
-    let brandName = '{{ $product->brand }}';
+    let brandName = '{{ $product->brand_id }}';
 
     if (catID) {
         changeBrandByCatgeory(catID);
