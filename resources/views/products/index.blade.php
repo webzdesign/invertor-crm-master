@@ -200,7 +200,7 @@
         });
 
        $(document).on('click', '.is-hot-product', function () {
-            let dataID = $(this).data('id'); 
+            let dataID = $(this).data('id');
             let isHot = $(this).is(':checked') ? 1 : 0;
 
             $.ajax({
@@ -224,9 +224,10 @@
             });
         });
 
+        const allBrands = @json($brands);
         $(document).on('change', '#filterCategory', function () {
             let categoryId = $(this).val();
-            
+
             if (categoryId) {
                 $.ajax({
                     url: "{{ route('getBrandsByCatgeory') }}",
@@ -238,13 +239,13 @@
                         let brandSelect = $('#filterBrand');
                         brandSelect.attr('disabled',true);
                         if (response.success) {
-                            brandSelect.empty(); 
+                            brandSelect.empty();
                             brandSelect.append('<option value="">--- Select a Brands ---</option>');
-                            
+
                             $.each(response.brands, function (index, brand) {
                                 brandSelect.append('<option value="' + brand.id + '">' + brand.name + '</option>');
                             });
-                            
+
                             brandSelect.attr('disabled', false).trigger('change');
                         } else {
                             console.log(response.message || "No brands found.");
@@ -254,6 +255,19 @@
                         console.log("Something went wrong while fetching brands.");
                     }
                 });
+            } else {
+                let brandSelect = $('#filterBrand');
+
+                brandSelect.attr('disabled',true);
+
+                brandSelect.empty();
+                brandSelect.append('<option value="">--- Select a Brands ---</option>');
+
+                $.each(allBrands, function (index, brand) {
+                    brandSelect.append('<option value="' + brand.id + '">' + brand.name + '</option>');
+                });
+
+                brandSelect.attr('disabled', false).trigger('change');
             }
         });
 
