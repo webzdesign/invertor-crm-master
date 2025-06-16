@@ -43,7 +43,14 @@
             <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Brand</label>
                 <select name="filterBrand" id="filterBrand" class="select2 select2-hidden-accessible" data-placeholder="--- Select Brand ---">
-                    <option value="" selected> --- No Brand Available --- </option>
+                    @forelse($brands as $brand)
+                        @if($loop->first)
+                            <option value="" selected> --- Select Brand --- </option>
+                        @endif
+                            <option value="{{ $brand->id }}">{{ $brand->name }}</option>
+                        @empty
+                            <option value="" selected> --- No Brand Available --- </option>
+                    @endforelse
                 </select>
             </div>
         </div>
