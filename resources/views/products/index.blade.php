@@ -41,6 +41,14 @@
         </div>
         <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
             <div class="form-group mb-0 mb-10-500">
+                <label class="c-gr f-500 f-14 w-100 mb-1">Select Brand</label>
+                <select name="filterBrand" id="filterBrand" class="select2 select2-hidden-accessible" data-placeholder="--- Select Brand ---">
+                    <option value="" selected> --- No Brand Available --- </option>
+                </select>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-4 col-sm-6 position-relative">
+            <div class="form-group mb-0 mb-10-500">
                 <label class="c-gr f-500 f-14 w-100 mb-1">Select Status</label>
                 <select name="filterStatus" id="filterStatus" class="select2 select2-hidden-accessible" data-placeholder="--- Select Status ---">
                     <option value="" selected> --- Select Status --- </option>
@@ -64,6 +72,7 @@
                 <th>Product Number</th>
                 <th width="25%">Product Name</th>
                 <th>Category</th>
+                <th>Brand</th>
                 <th>Status</th>
                 <th>Added By</th>
                 <th>Updated By</th>
@@ -100,6 +109,9 @@
                     filterCategory:function() {
                         return $("#filterCategory").val();
                     },
+                    filterBrand:function() {
+                        return $("#filterBrand").val();
+                    },
                     filterStatus:function() {
                         return $("#filterStatus").val();
                     },
@@ -119,6 +131,11 @@
                 },
                 {
                     data: 'category',
+                    orderable: false,
+                    searchable: false,
+                },
+                {
+                    data: 'brand_name',
                     orderable: false,
                     searchable: false,
                 },
@@ -154,11 +171,12 @@
         });
 
         /* filter Datatable */
-        $('body').on('change', '#filterCategory, #filterStatus', function(e){
+        $('body').on('change', '#filterCategory, #filterBrand, #filterStatus', function(e){
             var filterCategory = $('body').find('#filterCategory').val();
+            var filterBrand = $('body').find('#filterBrand').val();
             var filterStatus = $('body').find('#filterStatus').val();
 
-            if (filterCategory != '' || filterStatus != '') {
+            if (filterCategory != '' || filterStatus != '' || filterBrand != '') {
                 $('body').find('.clearData').show();
             } else {
                 $('body').find('.clearData').hide();
@@ -169,6 +187,7 @@
 
         $('body').on('click', '.clearData', function(e){
             $('body').find('#filterCategory').val('').trigger('change');
+            $('body').find('#filterBrand').val('').trigger('change');
             $('body').find('#filterStatus').val('').trigger('change');
             ServerDataTable.ajax.reload();
         });
@@ -196,6 +215,39 @@
                     console.log('Error: ' + xhr.responseText);
                 }
             });
+        });
+
+        $(document).on('change', '#filterCategory', function () {
+            let categoryId = $(this).val();
+            
+            if (categoryId) {
+                $.ajax({
+                    url: "{{ route('getBrandsByCatgeory') }}",
+                    type: "POST",
+                    data: {
+                        category_id: categoryId,
+                    },
+                    success: function (response) {
+                        let brandSelect = $('#filterBrand');
+                        brandSelect.attr('disabled',true);
+                        if (response.success) {
+                            brandSelect.empty(); 
+                            brandSelect.append('<option value="">--- Select a Brands ---</option>');
+                            
+                            $.each(response.brands, function (index, brand) {
+                                brandSelect.append('<option value="' + brand.id + '">' + brand.name + '</option>');
+                            });
+                            
+                            brandSelect.attr('disabled', false).trigger('change');
+                        } else {
+                            console.log(response.message || "No brands found.");
+                        }
+                    },
+                    error: function () {
+                        console.log("Something went wrong while fetching brands.");
+                    }
+                });
+            }
         });
 
     });

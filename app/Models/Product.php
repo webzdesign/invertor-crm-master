@@ -60,4 +60,9 @@ class Product extends Model
 
         return null;
     }
+
+    public function brand_info()
+    {
+        return $this->belongsTo(Brands::class,'brand_id', 'id');
+    }
 }

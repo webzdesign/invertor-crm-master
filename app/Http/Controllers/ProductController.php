@@ -23,11 +23,12 @@ class ProductController extends Controller
         if (!$request->ajax()) {
             $moduleName = $this->moduleName;
             $categories = Category::all();
+            $brands = Brands::where('status',1)->whereNull('deleted_at')->get();
 
-            return view('products.index', compact('moduleName', 'categories'));
+            return view('products.index', compact('moduleName', 'categories','brands'));
         }
 
-        $products = Product::query();
+        $products = Product::with('brand_info');
 
         if (isset($request->filterStatus)) {
             if ($request->filterStatus != '') {
@@ -41,6 +42,12 @@ class ProductController extends Controller
             }
         }
 
+        if (isset($request->filterBrand)) {
+            if ($request->filterBrand != '') {
+                $products->where('brand_id', $request->filterBrand);
+            }
+        }
+   
         return dataTables()->eloquent($products)
            ->addColumn("hot_product", function($product) {
                 $checked = $product->is_hot ? 'checked' : '';
@@ -59,7 +66,10 @@ class ProductController extends Controller
                 }
             })
             ->addColumn("category", function($product) {
-                return $product->category->name ?? '';
+                return $product->category->name ?? '-';
+            })
+            ->addColumn("brand_name", function($product) {
+                return $product->brand_info->name ?? '-';
             })
             ->editColumn("unique_number", function ($product) {
                 return !empty(trim($product->unique_number)) ? $product->unique_number : '-';
@@ -101,7 +111,7 @@ class ProductController extends Controller
                     return "<span class='badge bg-danger'>InActive</span>";
                 }
             })
-            ->rawColumns(['action', 'status', 'addedby.name', 'updatedby.name','hot_product'])
+            ->rawColumns(['action', 'status', 'addedby.name', 'updatedby.name','hot_product','brand_name'])
             // ->addIndexColumn()
             ->make(true);
     }
