@@ -277,8 +277,6 @@ class MoldcellController extends Controller
                             $fromUser = $users[$phone];
                         }
                         else {
-                            $users[$phone] = $phone;
-
                             $code = Str::substr($phone,0,3);
 
                             $user = new User();
@@ -291,6 +289,7 @@ class MoldcellController extends Controller
                             $user->save();
                             $user->roles()->attach($role);
                             $fromUser = $user->id;
+                            $users[$phone] = $fromUser;
                         }
 
                         $diversion = str_replace(["+"," "], "", $call->diversion);
