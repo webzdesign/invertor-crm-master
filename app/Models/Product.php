@@ -65,4 +65,9 @@ class Product extends Model
     {
         return $this->belongsTo(Brands::class,'brand_id', 'id');
     }
+
+    public function filter_option_info() {
+        return $this->hasMany(ProductCategoryFilters::class,'product_id', 'id');
+    }
+
 }

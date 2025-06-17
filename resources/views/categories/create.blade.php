@@ -100,7 +100,7 @@ $(document).ready(function(){
                         },
                     }
                 },
-            }
+            },
         },
         messages: {
             name: {
@@ -108,11 +108,51 @@ $(document).ready(function(){
                 remote: "This name is already exists.",
             }
         },
+        errorPlacement: function (error, element) {
+            // Place error after the element
+            if (element.hasClass("sectionValue")) {
+                error.insertAfter(element);
+            } else {
+                error.insertAfter(element);
+            }
+        },
+        highlight: function (element) {
+            $(element).addClass('is-invalid');
+        },
+        unhighlight: function (element) {
+            $(element).removeClass('is-invalid');
+        },
         submitHandler:function(form) {
-            $('button[type="submit"]').attr('disabled', true);
             if(!this.beenSubmitted) {
-                this.beenSubmitted = true;
-                form.submit();
+
+                let isValid = true;
+
+                $('.main-filter-section').each(function (i, section) {
+                    let $section = $(section);
+                    let seclectionName = $section.find('input[name="seclection_name[]"]').val();
+
+                    if (seclectionName.trim() !== '') {
+                        $section.find('.main-filter-value-section').each(function () {
+                            let $valueInput = $(this).find('.sectionValue');
+                            if ($valueInput.val().trim() === '') {
+                                isValid = false;
+                                // $valueInput.addClass('is-invalid');
+                                if ($valueInput.next('.invalid-feedback').length === 0) {
+                                    $valueInput.after('<div class="invalid-feedback d-block">Value is required.</div>');
+                                }
+                            } else {
+                                // $valueInput.removeClass('is-invalid');
+                                $valueInput.next('.invalid-feedback').remove();
+                            }
+                        });
+                    }
+                });
+
+                if (isValid) {
+                    this.beenSubmitted = true;
+                    $('button[type="submit"]').attr('disabled', true);
+                    form.submit();
+                }
             }
         }
     });
@@ -128,6 +168,8 @@ $(document).ready(function(){
             $clonedSection.find('.main-filter-value-section').slice(1).remove();
         }
 
+        $clonedSection.find('.invalid-feedback').remove();
+        // $clonedSection.find('input').removeClass('is-invalid');
         $clonedSection.find('input').val('');
         $clonedSection.find('.select2').select2({width: '100%', allowClear: true}).val('').trigger('change').on("load", function(e) {$(this).prop('tabindex',0);}).trigger('load');
         $clonedSection.find('span:nth-child(3)').remove();
@@ -151,6 +193,8 @@ $(document).ready(function(){
     $(document).on('click', '.add-main-filter-value-section', function () {
         let $valueRow = $(this).closest('.main-filter-value-section');
         let $clonedRow = $valueRow.clone();
+        $clonedRow.find('.invalid-feedback').remove();
+        // $clonedRow.find('input').removeClass('is-invalid');
         $clonedRow.find('input').val('');
         $valueRow.after($clonedRow);
     });
