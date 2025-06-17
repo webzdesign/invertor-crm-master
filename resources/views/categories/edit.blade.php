@@ -24,6 +24,130 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+                
+                @if (isset($category->filters) && !$category->filters->isEmpty())
+                   
+                    @foreach ($category->filters as $filterKey => $filter)
+                    <div class="col-12 main-filter-section">
+                            <input type="hidden" name="selection_id" class="selection_id" value="{{ $filter->id }}">
+                            <div class="form-group border rounded-2 p-3">
+                                <label class="c-gr f-500 f-16 w-100 mb-2 border-bottom pb-3">
+                                    Filter Options :
+                                    <span class="btn btn-primary ms-1 add-main-filter-section">+</span>
+                                    <span class="btn btn-danger ms-1 remove-main-filter-section">−</span>
+                                </label>
+
+                                <div class="filter-row pt-3">
+                                    <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label">Name :</label>
+                                        <div class="col-sm-10">
+                                            <input type="hidden" name="selection_filter_id[]" value="{{ $filter->id }}">
+                                            <input type="text" name="seclection_name[]" class="form-control" value="{{ $filter->name }}" placeholder="Enter name">
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label class="col-sm-2 col-form-label">Selection :</label>
+                                        <div class="col-sm-10">
+                                            <select name="selection[]" class="form-control select2" data-placeholder="--- Select a Selection ---">
+                                                <option value="">--- Select a Selection ---</option>
+                                                <option value="0" {{ $filter->selection == 0 ? 'selected' : '' }} >Single</option>
+                                                <option value="1" {{ $filter->selection == 1 ? 'selected' : '' }} >Multiple</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="border-top pt-3">
+
+                                    @if (isset($filter->options) && !$filter->options->isEmpty())
+                                        @foreach ($filter->options as $optionKey => $option)
+                                            
+                                            <div class="filter-row mb-3 main-filter-value-section">
+                                                <div class="row align-items-center">
+                                                    <label class="col-sm-2 col-form-label">Value:</label>
+                                                    <div class="col-sm-9">
+                                                        <input type="hidden" name="filter_options_value_id[{{ $filterKey }}][]" class="filter_options_value_id" value="{{ $option->id }}">
+                                                        <input type="text" name="value[{{ $filterKey }}][]" class="form-control sectionValue" value="{{$option->value}}" placeholder="Enter value">
+                                                    </div>
+                                                    <div class="col-sm-1 text-end">
+                                                        <span class="btn btn-primary me-1 add-main-filter-value-section">+</span>
+                                                        <span class="btn btn-danger remove-main-filter-value-section">−</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        @endforeach
+                                    @else
+                                            <div class="filter-row mb-3 main-filter-value-section">
+                                                <div class="row align-items-center">
+                                                    <label class="col-sm-2 col-form-label">Value:</label>
+                                                    <div class="col-sm-9">
+                                                        <input type="hidden" name="filter_options_value_id[][]" class="filter_options_value_id" value="">
+                                                        <input type="text" name="value[][]" class="form-control sectionValue" value="" placeholder="Enter value">
+                                                    </div>
+                                                    <div class="col-sm-1 text-end">
+                                                        <span class="btn btn-primary me-1 add-main-filter-value-section">+</span>
+                                                        <span class="btn btn-danger remove-main-filter-value-section">−</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                    @endif
+
+                                </div>
+                            </div>
+                        </div>
+
+                    @endforeach
+                @else
+                    <div class="col-12 main-filter-section">
+                        <div class="form-group border rounded-2 p-3">
+                            <label class="c-gr f-500 f-16 w-100 mb-2 border-bottom pb-3">
+                                Filter Options :
+                                <span class="btn btn-primary ms-1 add-main-filter-section">+</span>
+                                <span class="btn btn-danger ms-1 remove-main-filter-section">−</span>
+                            </label>
+
+                            <div class="filter-row pt-3">
+                                <div class="form-group row">
+                                    <label class="col-sm-2 col-form-label">Name :</label>
+                                    <div class="col-sm-10">
+                                        <input type="text" name="seclection_name[]" class="form-control" placeholder="Enter name">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-2 col-form-label">Selection :</label>
+                                    <div class="col-sm-10">
+                                        <select name="selection[]" class="form-control select2" data-placeholder="--- Select a Selection ---">
+                                            <option value="">--- Select a Selection ---</option>
+                                            <option value="0">Single</option>
+                                            <option value="1">Multiple</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-top pt-3">
+                                <div class="filter-row mb-3 main-filter-value-section">
+                                    <div class="row align-items-center">
+                                        <label class="col-sm-2 col-form-label">Value:</label>
+                                        <div class="col-sm-9">
+                                            <input type="text" name="value[0][]" class="form-control sectionValue" placeholder="Enter value">
+                                        </div>
+                                        <div class="col-sm-1 text-end">
+                                            <span class="btn btn-primary me-1 add-main-filter-value-section">+</span>
+                                            <span class="btn btn-danger remove-main-filter-value-section">−</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>        
+                @endif
+                
+            </div>
+            <input type="hidden" name="deleted_selection_id" class="deleted_selection_id" value="">
+            <input type="hidden" name="deleted_values_id" class="deleted_values_id" value="">
         </div>
 
         <div class="cardsFooter d-flex justify-content-center">
@@ -71,6 +195,102 @@ $(document).ready(function(){
             }
         }
     });
+
+    $(document).on('click', '.add-main-filter-section', function () {
+        let $currentSection = $(this).closest('.main-filter-section');
+        let $clonedSection = $currentSection.clone();
+
+        let Srno = $('.main-filter-section').length;
+        $clonedSection.find('.sectionValue').attr('name','value['+Srno+'][]');
+
+        if($clonedSection.find('.main-filter-value-section').length > 1){
+            $clonedSection.find('.main-filter-value-section').slice(1).remove();
+        }
+
+        $clonedSection.find('input').val('');
+        $clonedSection.find('.select2').select2({width: '100%', allowClear: true}).val('').trigger('change').on("load", function(e) {$(this).prop('tabindex',0);}).trigger('load');
+        $clonedSection.find('span:nth-child(3)').remove();
+        $clonedSection.find('span:nth-child(3)').remove();
+        $currentSection.after($clonedSection);
+        $('.select2').select2({
+            width: '100%',
+            allowClear: true
+        }).on("load", function(e) {
+            $(this).prop('tabindex',0);
+        }).trigger('load');
+    });
+
+    let selectionDeletedIds = [];
+    $(document).on('click', '.remove-main-filter-section', function () {
+        let $currentSection = $(this).closest('.main-filter-section');
+        let id = $currentSection.find('.selection_id').val()
+        if ($('.main-filter-section').length > 1) {
+            if(id) {
+                if (id && !selectionDeletedIds.includes(id)) {
+                    selectionDeletedIds.push(id);
+                    $('.deleted_selection_id').val(selectionDeletedIds.join(','));
+                }
+            }
+            $(this).closest('.main-filter-section').remove();
+        }  else {            
+            if(id) {
+                if (id && !selectionDeletedIds.includes(id)) {
+                    selectionDeletedIds.push(id);
+                    $('.deleted_selection_id').val(selectionDeletedIds.join(','));
+                }
+            }
+
+            $currentSection.find('input').val('');
+            $currentSection.find('.select2').select2({width: '100%', allowClear: true}).val('').trigger('change').on("load", function(e) {$(this).prop('tabindex',0);}).trigger('load');
+            $currentSection.find('span:nth-child(3)').remove();
+            $currentSection.find('span:nth-child(3)').remove();
+
+            $('.select2').select2({
+                width: '100%',
+                allowClear: true
+            }).on("load", function(e) {
+                $(this).prop('tabindex',0);
+            }).trigger('load');
+        }
+    });
+
+    $(document).on('click', '.add-main-filter-value-section', function () {
+        let $valueRow = $(this).closest('.main-filter-value-section');
+        let $clonedRow = $valueRow.clone();
+        $clonedRow.find('input').val('');
+        $valueRow.after($clonedRow);
+    });
+
+    let deletedIds = [];
+    $(document).on('click', '.remove-main-filter-value-section', function () {
+        let $section = $(this).closest('.main-filter-section');
+        let $valueSection = $(this).closest('.main-filter-value-section');
+        if ($section.find('.main-filter-value-section').length > 1) {
+           let id = $valueSection.find('.filter_options_value_id').val()
+
+            if(id) {
+                if (id && !deletedIds.includes(id)) {
+                    deletedIds.push(id);
+                    $('.deleted_values_id').val(deletedIds.join(','));
+                }
+            }
+            
+            $(this).closest('.main-filter-value-section').remove();
+        } else {
+            let id = $valueSection.find('.filter_options_value_id').val()
+
+            if(id) {
+                if (id && !deletedIds.includes(id)) {
+                    deletedIds.push(id);
+                    $('.deleted_values_id').val(deletedIds.join(','));
+                }
+            }
+
+            $valueSection.find('.filter_options_value_id').val('');
+            $valueSection.find('.sectionValue').val('');
+        }
+    });
+
 });
 </script>
 @endsection
