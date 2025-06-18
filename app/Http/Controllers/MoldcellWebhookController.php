@@ -10,8 +10,17 @@ class MoldcellWebhookController extends Controller
     public function handleMoldcellWebhook(Request $request)
     {
         $data = $request->all();
+        
+        /* add log */
+        Log::info(['Call Details => '], $data);
 
-        Log::info(['Call Details => '],$data);
+        /* call redirect */
+        if (isset($data['phone']) && $data['phone'] == 919904196933) {
+
+            Log::info(['Call Redirect => '], ['919904196933']);
+
+            return response()->json(['contact_name' => 'Gasper Mariana', 'responsible' => 709]);
+        }
 
         return response()->json(['status' => 'ok']);
     }
