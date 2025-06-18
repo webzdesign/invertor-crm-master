@@ -227,12 +227,16 @@ class PurchaseOrderController extends Controller
                 $poItemForStock = [];
 
                 foreach ($request->product as $key => $product) {
+
+                    $Pqty = intval($request->quantity[$key]) ?? 0;
+                    PurchaseOrder::setProductIsHot($product, $Pqty);
+
                     $poItems[] = [
                         'po_id' => $poId,
                         'category_id' => $request->category[$key] ?? '',
                         'product_id' => $product,
                         'price' => floatval($request->price[$key]) ?? 0,
-                        'qty' => intval($request->quantity[$key]) ?? 0,
+                        'qty' => $Pqty,
                         'amount' => (floatval($request->amount[$key])) ?? 0,
                         'remarks' => $request->remarks[$key] ?? '',
                         'added_by' => $userId,
@@ -243,7 +247,7 @@ class PurchaseOrderController extends Controller
                         'product_id' => $product,
                         'type' => 0,
                         'date' => now(),
-                        'qty' => intval($request->quantity[$key]) ?? 0,
+                        'qty' => $Pqty,
                         'added_by' => $userId,
                         'form' => 1,
                         'form_record_id' => $poId,

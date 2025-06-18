@@ -38,4 +38,39 @@ class PurchaseOrder extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public static function setProductIsHot($productID, $productQty){
+        
+        $isHotProducts = Product::select(['id'])->where('is_hot',1)->where('status',1)->whereNull('deleted_at')->get();
+
+        if($isHotProducts->count() < 15) {
+            $product = Product::find($productID);
+            if(!empty($product)) {
+                $product->is_hot = 1;
+                $product->update();
+            }
+        } else {
+            $hotProductIds = $isHotProducts->pluck('id')->toArray();
+
+            $minQty = PurchaseOrderItem::whereIn('product_id', $hotProductIds)->min('qty');
+
+            if ($minQty !== null && $productQty > $minQty) {
+                $lowQtyProducts = PurchaseOrderItem::whereIn('product_id', $hotProductIds)
+                    ->where('qty', $minQty)->orderBy('product_id','ASC')
+                    ->first();
+
+                Product::where('id', $lowQtyProducts->product_id)->update(['is_hot' => 0]);
+
+                Product::find($productID)?->update(['is_hot' => 1]);
+            } else {
+                if($isHotProducts->count() < 15) {
+                    $product = Product::find($productID);
+                    if(!empty($product)) {
+                        $product->is_hot = 1;
+                        $product->update();
+                    }
+                }       
+            }
+        }
+    }
 }

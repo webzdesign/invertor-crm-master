@@ -384,10 +384,24 @@ class ProductController extends Controller
         if(isset($request->id) && !empty($request->id) && isset($request->is_hot)) {
 
             $isHotProducts = Product::select(['id'])->where('is_hot',1)->where('status',1)->whereNull('deleted_at')->count();
-
-            if($isHotProducts < 15) {
+            if($request->is_hot == 1) {
+                if($isHotProducts < 15) {
+                    $product = Product::find(decrypt($request->id));
+    
+                    if(!empty($product)) {
+                        $product->is_hot = $request->is_hot ? 1 : 0;
+                        $product->update();
+                        
+                        return response()->json(['success' => true, 'is_hot' => $product->is_hot]);
+                    } else {
+                        return response()->json(['success' => false]);
+                    }
+                } else {
+                    return response()->json(['success' => false, 'message' => 'Maximum 15 products allowed as hot offres.']);
+                }
+            } else {
                 $product = Product::find(decrypt($request->id));
-
+    
                 if(!empty($product)) {
                     $product->is_hot = $request->is_hot ? 1 : 0;
                     $product->update();
@@ -396,8 +410,6 @@ class ProductController extends Controller
                 } else {
                     return response()->json(['success' => false]);
                 }
-            } else {
-                return response()->json(['success' => false, 'message' => 'Maximum 15 products allowed as hot offres.']);
             }
         } else {
             return response()->json(['success' => false]);
