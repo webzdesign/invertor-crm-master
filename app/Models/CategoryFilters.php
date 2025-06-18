@@ -3,15 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 
-class Category extends Model
+class CategoryFilters extends Model
 {
     use HasFactory, SoftDeletes;
 
-    public $guarded = [];
+    protected $table = 'category_filters';
+
+    protected $guarded = [];
 
     public function addedby()
     {
@@ -25,19 +26,13 @@ class Category extends Model
         ]);
     }
 
-    public function product()
+    public function category()
     {
-        return $this->hasMany(Product::class);
+        return $this->belongsTo(Category::class, 'category_id');
     }
 
-    public function scopeActive($query)
+    public function options()
     {
-        return $query->where('status', 1);
+        return $this->hasMany(CategoryFilterOptions::class, 'category_filter_id', 'id');
     }
-
-     public function filters()
-    {
-        return $this->hasMany(CategoryFilters::class, 'category_id', 'id');
-    }
-
 }

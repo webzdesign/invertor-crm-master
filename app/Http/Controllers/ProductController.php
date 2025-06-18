@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductRequest;
 use App\Models\Brands;
+use App\Models\CategoryFilters;
+use App\Models\ProductCategoryFilters;
 use Illuminate\Http\Request;
 use App\Models\ProductImage;
 use App\Models\Category;
@@ -174,6 +176,10 @@ class ProductController extends Controller
 
     public function store(ProductRequest $request)
     {
+
+        $category_filter_id = $request->input('category_filter_id');
+        $category_filter_option_id = $request->input('category_filter_option_id');
+        
         $product = new Product();
         $product->unique_number = Helper::generateProductNumber();
         $product->name = $request->name;
@@ -196,6 +202,29 @@ class ProductController extends Controller
         $product->added_by = auth()->user()->id;
         $product->save();
 
+        if(isset($product->id) && !empty($product->id)) {
+            $productID = $product->id;
+
+            if(isset($category_filter_id) && !empty($category_filter_id)) {
+                foreach ($category_filter_id as $catFilterkey => $filterValue) {
+                    if(isset($category_filter_option_id[$catFilterkey])){
+                        $optionIds = is_array($category_filter_option_id[$catFilterkey])
+                        ? array_filter($category_filter_option_id[$catFilterkey])
+                        : [$category_filter_option_id[$catFilterkey]];
+                        
+                        foreach ($optionIds as $optionId) {
+                            $product_category_filter = new ProductCategoryFilters();
+                            $product_category_filter->product_id = $productID;
+                            $product_category_filter->category_filter_id = $filterValue;
+                            $product_category_filter->category_filter_option_id = $optionId;
+                            $product_category_filter->save();
+                        }
+                    }
+                }
+            }
+        }
+
+
         return redirect()->route('products.index')->with('success', 'Product added successfully.');
     }
 
@@ -204,7 +233,7 @@ class ProductController extends Controller
         $did = decrypt($id);
         $moduleLink = route('products.index');
         $moduleName = 'Product';
-        $product = Product::with(['images'])->where('id', $did)->first();
+        $product = Product::with(['filter_option_info','images'])->where('id', $did)->first();
         $categories = Category::active()->select('id', 'name')->pluck('name', 'id')->toArray();
         $images = ProductImage::select('id', 'name')->where('product_id', $did)->get();
 
@@ -213,6 +242,9 @@ class ProductController extends Controller
 
     public function update(ProductRequest $request, $id)
     {
+        $category_filter_id = $request->input('category_filter_id');
+        $category_filter_option_id = $request->input('category_filter_option_id');
+
         $product = Product::find(decrypt($id));
         $product->name = $request->name;
         $product->slug = $request->slug;
@@ -234,6 +266,35 @@ class ProductController extends Controller
         $product->updated_by = auth()->user()->id;
         $product->save();
 
+        if(isset($product->id) && !empty($product->id)) {
+            $productID = $product->id;
+
+            $deleteProductFilterOption = ProductCategoryFilters::where('product_id',$productID);
+            if($deleteProductFilterOption->exists()) {
+                $deleteProductFilterOption->delete();
+            }
+
+            if(isset($category_filter_id) && !empty($category_filter_id)) {
+                foreach ($category_filter_id as $catFilterkey => $filterValue) {
+
+                    if(isset($category_filter_option_id[$catFilterkey])) {
+                        $optionIds = is_array($category_filter_option_id[$catFilterkey])
+                        ? array_filter($category_filter_option_id[$catFilterkey])
+                        : [$category_filter_option_id[$catFilterkey]];
+                        
+                        
+                        foreach ($optionIds as $optionId) {
+                            $product_category_filter = new ProductCategoryFilters();
+                            $product_category_filter->product_id = $productID;
+                            $product_category_filter->category_filter_id = $filterValue;
+                            $product_category_filter->category_filter_option_id = $optionId;
+                            $product_category_filter->save();
+                        }
+                    }
+                }
+            }
+        }
+
         return redirect()->route('products.index')->with('success', 'Product updated successfully.');
     }
 
@@ -242,7 +303,7 @@ class ProductController extends Controller
         $did = decrypt($id);
         $moduleLink = route('products.index');
         $moduleName = 'Product';
-        $product = Product::with(['images'])->where('id', $did)->first();
+        $product = Product::with(['filter_option_info','images'])->where('id', $did)->first();
 
         return view('products.view', compact('moduleName', 'product','moduleLink'));
     }
@@ -347,10 +408,13 @@ class ProductController extends Controller
         if(!empty($request->category_id)){
             $brands = Brands::where('category_id',$request->category_id)->where('status',1)->get();
             
-            if(!empty($brands)) {
+            $filters = CategoryFilters::with(['options'])->where('category_id', $request->category_id)->get(); 
+
+            if(!empty($brands) && !empty($filters)) {
                 return response()->json([
                     'success' => 1,
-                    'brands' => $brands
+                    'brands' => $brands,
+                    'filters_options' => $filters
                 ]);
             } else {
                 return response()->json([

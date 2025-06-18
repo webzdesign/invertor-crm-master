@@ -145,7 +145,7 @@
                                 @foreach (explode(',',$product->available_power_capacity) as $capacitykey => $capacity) 
                                 <div class="d-flex flex-wrap mb-2 available_power_capacity-input">
                                     <input type="text" name="available_power_capacity[{{$capacitykey}}]" class="form-control w-75" id="available_power_capacity" placeholder="Available Power Capacity" value="{{$capacity}}">
-                                    <div class="input-group-btns ms-2">
+                                    <div class="input-group-btns ms-1">
                                         <button type="button" class="btn btn-primary addNewRow">
                                             +
                                         </button>
@@ -158,7 +158,7 @@
                             @else 
                                 <div class="d-flex flex-wrap mb-2 available_power_capacity-input">
                                     <input type="text" name="available_power_capacity[0]" class="form-control w-75" id="available_power_capacity" placeholder="Available Power Capacity" value="">
-                                    <div class="input-group-btns ms-2">
+                                    <div class="input-group-btns ms-1">
                                         <button type="button" class="btn btn-primary addNewRow">
                                             +
                                         </button>
@@ -189,6 +189,8 @@
                     </div>
                 </div>
 
+            </div>
+            <div class="row border-top py-2 categoryFiltersOptions">
             </div>
         </div>
         
@@ -338,6 +340,8 @@ $(document).ready(function(){
         }
     });
     
+    let CategoryFilterOption = @json($product->filter_option_info);
+    
     function changeBrandByCatgeory(categoryId) {
         let brandSelect = $('#brand');
         brandSelect.attr('disabled', true).empty().append('<option>Loading...</option>');
@@ -351,22 +355,74 @@ $(document).ready(function(){
                 },
                 success: function (response) {
                     brandSelect.empty();
-                    if (response.success && response.brands.length > 0) {
-                        brandSelect.append('<option value="">--- Select a Brand ---</option>');
-                        $.each(response.brands, function (index, brand) {
-                            let selected = (brand.id == brandName) ? 'selected' : '';
-                            brandSelect.append('<option value="' + brand.id + '" ' + selected + '>' + brand.name + '</option>');
-                        });
-                    } else {
-                        brandSelect.append('<option value="">No brands found</option>');
+                    if (response.success) {
+                        if(response.brands.length > 0) {
+                            brandSelect.append('<option value="">--- Select a Brand ---</option>');
+                            $.each(response.brands, function (index, brand) {
+                                let selected = (brand.id == brandName) ? 'selected' : '';
+                                brandSelect.append('<option value="' + brand.id + '" ' + selected + '>' + brand.name + '</option>');
+                            });
+                        } else {
+                            brandSelect.append('<option value="">No brands found</option>');
+                        }
+
+                        let FilterOptionsHtml = '';
+                        if (response.filters_options.length > 0) {
+                            $('.categoryFiltersOptions').empty();
+
+                            $.each(response.filters_options, function (index, FilterOption) {
+                                let multiple = '';
+                                let nameAttr = 'category_filter_option_id[]';
+                                let selected = [];
+
+                                let matches = CategoryFilterOption.filter(opt => parseInt(opt.category_filter_id) === FilterOption.id);
+                                if (matches.length > 0) {
+                                    selected = matches.flatMap(opt => opt.category_filter_option_id.split(','));
+                                }
+                                    
+                                if (FilterOption.selection == 1) {
+                                    multiple = 'multiple';
+                                    nameAttr = `category_filter_option_id[${index}][]`;
+                                }
+
+                                FilterOptionsHtml += `<div class="col-md-4 col-sm-12 dynamicFilterOptions">
+                                    <div class="form-group">
+                                        <input type="hidden" name="category_filter_id[]" value="${FilterOption.id}">
+                                        <label class="c-gr f-500 f-16 w-100 mb-2">${FilterOption.name} : </label>
+                                        <select name="${nameAttr}" class="select2 category_filter_option_id" data-placeholder="--- Select a Option ---" ${multiple}>
+                                            <option value="">--- Select a Option ---</option>`;
+
+                                $.each(FilterOption.options, function (i, Option) {
+                                    const isSelected = selected.includes(Option.id.toString()) ? 'selected' : '';
+                                    
+                                    FilterOptionsHtml += `<option value="${Option.id}" ${isSelected}>${Option.value}</option>`;
+                                });
+
+                                FilterOptionsHtml += `</select>
+                                    </div>
+                                </div>`;
+                            });
+
+                            $('.categoryFiltersOptions').append(FilterOptionsHtml);
+
+                            $('.category_filter_option_id').select2({
+                                width: '100%',
+                                allowClear: true
+                            }).on("load", function (e) {
+                                $(this).prop('tabindex', 0);
+                            }).trigger('load');
+                        }
                     }
-                    brandSelect.attr('disabled', false).trigger('change');
                 },
                 error: function () {
                     brandSelect.empty();
                     brandSelect.attr('disabled', false);
                 }
             });
+        } else {
+            brandSelect.empty();
+            brandSelect.attr('disabled', false);
+            $('.categoryFiltersOptions').empty();
         }
     }
 

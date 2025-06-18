@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CategoryRequest;
+use App\Models\CategoryFilterOptions;
+use App\Models\CategoryFilters;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Helpers\Helper;
@@ -93,11 +95,55 @@ class CategoryController extends Controller
 
     public function store(CategoryRequest $request)
     {
-        $user = new Category();
-        $user->name = $request->name;
-        $user->slug = Helper::slug($request->name);
-        $user->added_by = auth()->user()->id;
-        $user->save();
+
+        $selection_name = $request->input('seclection_name');
+        $selection = $request->input('selection');
+        $selection_value = $request->input('value');
+
+        $category = new Category();
+        $category->name = $request->name;
+        $category->slug = Helper::slug($request->name);
+        $category->added_by = auth()->user()->id;
+        $category->save();
+
+        if(isset($category->id) && !empty($category->id)) {
+            
+            foreach ($selection_name as $key => $Sname) {
+                if(!empty($Sname)) {                 
+                    $category_filters = new CategoryFilters();
+                
+                    $category_filters->category_id = $category->id;
+                    $category_filters->name = $Sname;
+                    
+                    if(isset($selection[$key]) && !empty($selection[$key])) {
+                        $category_filters->selection = $selection[$key];
+                    }
+
+                    $category_filters->save();
+                
+                    if(!empty($category_filters->id)) {
+
+                        $cat_filter_last_id = $category_filters->id;
+
+                        if(isset($selection_value[$key]) && !empty($selection_value[$key])) {
+
+                            foreach ($selection_value[$key] as $Svalue) {
+                                $category_filters_options = new CategoryFilterOptions();
+                                
+                                $category_filters_options->category_filter_id = $cat_filter_last_id;
+                                
+                                if(isset($Svalue) && !empty($Svalue)) {
+                                    $category_filters_options->value = $Svalue;
+                                }
+                                
+                                $category_filters_options->save();
+
+                            }
+                        }
+                    }
+                }
+            } 
+        }
 
         return redirect()->route('categories.index')->with('success', 'Category added successfully.');
     }
@@ -106,18 +152,130 @@ class CategoryController extends Controller
     {
         $moduleName = 'Category';
         $moduleLink = route('categories.index');
-        $category = Category::where('id', decrypt($id))->first();
-
+        $category = Category::with(['filters.options'])->where('id', decrypt($id))->first();
+    
         return view('categories.edit', compact('moduleName', 'id', 'category','moduleLink'));
     }
 
     public function update(CategoryRequest $request, $id)
     {
-        $user = Category::find(decrypt($id));
-        $user->name = $request->name;
-        $user->slug = Helper::slug($request->name);
-        $user->updated_by = auth()->user()->id;
-        $user->save();
+        $category = Category::find(decrypt($id));
+        $category->name = $request->name;
+        $category->slug = Helper::slug($request->name);
+        $category->updated_by = auth()->user()->id;
+        $category->save();
+        
+        $selection_filter_id = $request->input('selection_filter_id');
+        $selection_name = $request->input('seclection_name');
+        $selection = $request->input('selection');
+        $selection_value = $request->input('value');
+        $filter_options_value_id = $request->input('filter_options_value_id');
+        $deleted_selection_id = $request->input('deleted_selection_id');
+        $deleted_values_id = $request->input('deleted_values_id');
+
+
+        if(isset($category->id) && !empty($category->id)) {
+            
+            if (!empty($deleted_selection_id)) {
+                $selection_Delete_ids = array_filter(explode(',', $deleted_selection_id));
+                if (!empty($selection_Delete_ids)) {
+                    CategoryFilters::whereIn('id', $selection_Delete_ids)->delete();
+                }
+            }
+
+            if (!empty($deleted_values_id)) {
+                $Delete_ids = array_filter(explode(',', $deleted_values_id));
+                if (!empty($Delete_ids)) {
+                    CategoryFilterOptions::whereIn('id', $Delete_ids)->delete();
+                }
+            }
+
+            foreach ($selection_name as $key => $Sname) {
+                if(isset($selection_filter_id[$key]) && !empty($selection_filter_id[$key])) {
+
+                    $category_filters = CategoryFilters::find($selection_filter_id[$key]);
+
+                    if(!empty($category_filters) && count($category_filters->toArray()) > 0) {
+                        $category_filters->name = $Sname;
+                        if(isset($selection[$key]) && !empty($selection[$key])) {
+                            $category_filters->selection = $selection[$key];
+                        } else {
+                            $category_filters->selection = 0;
+                        }
+
+                        $category_filters->update();
+                    
+                        if(!empty($category_filters->id)) {
+
+                            if(isset($selection_value[$key]) && !empty($selection_value[$key])) {
+                                foreach ($selection_value[$key] as $valueKey => $Svalue) {
+                                    if(isset($filter_options_value_id[$key][$valueKey]) && !empty($filter_options_value_id[$key][$valueKey])) {
+                                        $category_filters_options = CategoryFilterOptions::find($filter_options_value_id[$key][$valueKey]);
+
+                                        if(!empty($category_filters_options) && count($category_filters_options->toArray()) > 0) {                                            
+                                            if(isset($Svalue) && !empty($Svalue)) {
+                                                $category_filters_options->value = $Svalue;
+                                            }   
+                                        }
+                                        $category_filters_options->update();
+                                    } else {
+                                        $category_filters_options = new CategoryFilterOptions();
+                                
+                                        if(isset($category_filters->id) && !empty(isset($category_filters->id))) {
+                                            $filter_last_id = $category_filters->id;
+                                        } else {
+                                            $filter_last_id = $selection_filter_id[$key][$valueKey];
+                                        }
+
+                                        $category_filters_options->category_filter_id = $filter_last_id;
+                                        
+                                        if(isset($Svalue) && !empty($Svalue)) {
+                                            $category_filters_options->value = $Svalue;
+                                        }
+                                        
+                                        $category_filters_options->save();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if(isset($Sname) && !empty($Sname)) {
+                        if(!isset($selection_filter_id[$key]) && isset($category->id)) {
+                            $category_filters = new CategoryFilters();
+                            
+                            $category_filters->category_id = $category->id;
+                            $category_filters->name = $Sname;
+                            
+                            if(isset($selection[$key]) && !empty($selection[$key])) {
+                                $category_filters->selection = $selection[$key];
+                            }
+                            
+                            $category_filters->save();
+                        }
+                        if(isset($selection_value[$key]) && !empty($selection_value[$key])) {
+                            foreach ($selection_value[$key] as $valueKey => $Svalue) {
+                                $category_filters_options = new CategoryFilterOptions();
+                                
+                                if(isset($category_filters->id) && !empty(isset($category_filters->id))) {
+                                    $filter_last_id = $category_filters->id;
+                                } else {
+                                    $filter_last_id = $selection_filter_id[$key][$valueKey];
+                                }
+                                
+                                $category_filters_options->category_filter_id = $filter_last_id;
+                                
+                                if(isset($Svalue) && !empty($Svalue)) {
+                                    $category_filters_options->value = $Svalue;
+                                }
+                                
+                                $category_filters_options->save();
+                            }
+                        }
+                    }
+                }
+            } 
+        }
 
         return redirect()->route('categories.index')->with('success', 'Category updated successfully.');
     }
@@ -126,8 +284,8 @@ class CategoryController extends Controller
     {
         $moduleName = 'Category';
         $moduleLink = route('categories.index');
-        $category = Category::where('id', decrypt($id))->first();
-
+        $category = Category::with(['filters.options'])->where('id', decrypt($id))->first();
+        
         return view('categories.view', compact('moduleName', 'category','moduleLink'));
     }
 

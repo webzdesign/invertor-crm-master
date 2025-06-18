@@ -72,7 +72,6 @@
                 </div>
             </div>
             <div class="row">
-
                 <div class="col-md-3 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Product Detail URL : <span class="text-danger">*</span></label>
@@ -143,7 +142,7 @@
                             <label class="c-gr f-500 f-16 w-100 mb-2">Available Power Capacity :</label>
                             <div class="d-flex flex-wrap mb-2 available_power_capacity-input">
                                 <input type="text" name="available_power_capacity[0]" class="form-control w-75" id="available_power_capacity" placeholder="Available Power Capacity">
-                                <div class="input-group-btns ms-2">
+                                <div class="input-group-btns ms-1">
                                     <button type="button" class="btn btn-primary addNewRow">
                                         +
                                     </button>
@@ -172,6 +171,8 @@
                         @endif
                     </div>
                 </div>
+            </div>
+            <div class="row border-top py-2 categoryFiltersOptions">
             </div>
         </div>
         
@@ -319,6 +320,7 @@ $(document).ready(function(){
 
     $(document).on('change', '#category', function () {
         let categoryId = $(this).val();
+        let brandSelect = $('#brand');
         
         if (categoryId) {
             $.ajax({
@@ -328,28 +330,75 @@ $(document).ready(function(){
                     category_id: categoryId,
                 },
                 success: function (response) {
-                    let brandSelect = $('#brand');
                     brandSelect.attr('disabled',true);
                     if (response.success) {
-                        brandSelect.empty(); 
-                        brandSelect.append('<option value="">--- Select a Brands ---</option>');
-                        
-                        $.each(response.brands, function (index, brand) {
-                            brandSelect.append('<option value="' + brand.id + '">' + brand.name + '</option>');
-                        });
-                        
-                        brandSelect.attr('disabled', false).trigger('change');
+
+                        if(response.brands) {
+                            brandSelect.empty(); 
+                            brandSelect.append('<option value="">--- Select a Brands ---</option>');
+                            
+                            $.each(response.brands, function (index, brand) {
+                                brandSelect.append('<option value="' + brand.id + '">' + brand.name + '</option>');
+                            });
+                            
+                            brandSelect.attr('disabled', false).trigger('change');
+                        }
+
+                        let FilterOptionsHtml = '';
+
+                        if (response.filters_options) {
+                            $('.categoryFiltersOptions').empty();
+                            
+                            $.each(response.filters_options, function (index, FilterOption) {
+                                let multiple = '';
+                                let nameAttr = 'category_filter_option_id[]';
+                                if(FilterOption.selection == 1) {
+                                    multiple = 'multiple';
+                                    nameAttr = `category_filter_option_id[${index}][]`;
+                                } 
+
+                                FilterOptionsHtml += `<div class="col-md-4 col-sm-12 dynamicFilterOptions">
+                                    <div class="form-group">
+                                        <input type="hidden" name="category_filter_id[]" value="${FilterOption.id}">
+                                        <label class="c-gr f-500 f-16 w-100 mb-2">${FilterOption.name} : </label>
+                                            <select name="${nameAttr}" class="select2 select2-hidden-accessible category_filter_option_id" data-placeholder="--- Select a Option ---" ${multiple}>
+                                            <option value="">--- Select a Option ---</option>`;
+
+                                $.each(FilterOption.options, function (i, Option) {
+                                    FilterOptionsHtml += `<option value="${Option.id}">${Option.value}</option>`;
+                                });
+
+                                FilterOptionsHtml += `</select>
+                                    </div>
+                                </div>`;
+                            });
+
+                            $('.category_filter_option_id').select2({width: '100%', allowClear: true}).val('').trigger('change').on("load", function(e) {}).trigger('load');
+
+                            $('.categoryFiltersOptions').append(FilterOptionsHtml);
+                            
+                            $('.category_filter_option_id').select2({
+                                width: '100%',
+                                allowClear: true
+                            }).on("load", function(e) {
+                                $(this).prop('tabindex',0);
+                            }).trigger('load');
+                        }
+
                     } else {
-                        console.log(response.message || "No brands found.");
+                        console.log(response.message || "Something went wrong while fetching brands.");
                     }
                 },
                 error: function () {
                     console.log("Something went wrong while fetching brands.");
                 }
             });
+        } else {
+            brandSelect.empty();
+            brandSelect.attr('disabled', false);
+            $('.categoryFiltersOptions').empty();
         }
     });
-
 
 });
 </script>
