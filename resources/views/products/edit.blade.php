@@ -357,6 +357,7 @@ $(document).ready(function(){
                     brandSelect.empty();
                     if (response.success) {
                         if(response.brands.length > 0) {
+                            brandSelect.attr('disabled', false);
                             brandSelect.append('<option value="">--- Select a Brand ---</option>');
                             $.each(response.brands, function (index, brand) {
                                 let selected = (brand.id == brandName) ? 'selected' : '';

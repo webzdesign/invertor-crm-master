@@ -334,14 +334,15 @@ $(document).ready(function(){
                     if (response.success) {
 
                         if(response.brands) {
+                            
                             brandSelect.empty(); 
                             brandSelect.append('<option value="">--- Select a Brands ---</option>');
+                            brandSelect.attr('disabled', false).trigger('change');
                             
                             $.each(response.brands, function (index, brand) {
                                 brandSelect.append('<option value="' + brand.id + '">' + brand.name + '</option>');
                             });
                             
-                            brandSelect.attr('disabled', false).trigger('change');
                         }
 
                         let FilterOptionsHtml = '';
