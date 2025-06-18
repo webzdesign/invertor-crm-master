@@ -84,10 +84,9 @@
   Dropzone.autoDiscover = false;
     $(document).ready(function() {
       
-
       new Dropzone("#file-dropzone", {
         url: "{{ route('product-image', $id) }}",
-        acceptedFiles: ".jpeg,.jpg,.png",
+        acceptedFiles: ".jpeg,.jpg,.png,.webp",
         addRemoveLinks: true,
         maxFiles: 10,
         uploadMultiple :true,
@@ -96,7 +95,7 @@
         headers: {'X-CSRF-TOKEN': "{{ csrf_token() }}"},
         init: function() {
             this.on("error", function(file, message){
-              $(".errorContainingImage").html("Only jpeg, jpg and png file format supported.");
+              $(".errorContainingImage").html("Only jpeg, jpg, png, and webp file formats are supported.");
                 $(this).closest('.dz-error-message').remove()
             });
 
