@@ -447,6 +447,8 @@ $(document).ready(function(){
                             }).on("load", function (e) {
                                 $(this).prop('tabindex', 0);
                             }).trigger('load');
+                        } else {
+                            $('.categoryFiltersOptions').empty();
                         }
                     }
                 },

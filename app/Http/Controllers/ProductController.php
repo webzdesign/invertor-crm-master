@@ -16,6 +16,7 @@ use App\Models\PurchaseOrderItem;
 use App\Models\SalesOrderItem;
 use App\Models\Stock;
 use App\Models\Product;
+use Pest\Mutate\Mutators\Arithmetic\PreIncrementToPreDecrement;
 
 class ProductController extends Controller
 {
@@ -381,39 +382,36 @@ class ProductController extends Controller
 
     public function isHotProduct(Request $request) {
        
-        if(isset($request->id) && !empty($request->id) && isset($request->is_hot)) {
+        if (isset($request->id, $request->is_hot) && !empty($request->id)) {
+            $productId = decrypt($request->id);
+            $product = Product::find($productId);
 
-            $isHotProducts = Product::select(['id'])->where('is_hot',1)->where('status',1)->whereNull('deleted_at')->count();
-            if($request->is_hot == 1) {
-                if($isHotProducts < 15) {
-                    $product = Product::find(decrypt($request->id));
-    
-                    if(!empty($product)) {
-                        $product->is_hot = $request->is_hot ? 1 : 0;
-                        $product->update();
-                        
-                        return response()->json(['success' => true, 'is_hot' => $product->is_hot]);
-                    } else {
-                        return response()->json(['success' => false]);
-                    }
-                } else {
-                    return response()->json(['success' => false, 'message' => 'Maximum 15 products allowed as hot offres.']);
-                }
-            } else {
-                $product = Product::find(decrypt($request->id));
-    
-                if(!empty($product)) {
-                    $product->is_hot = $request->is_hot ? 1 : 0;
-                    $product->update();
-                    
-                    return response()->json(['success' => true, 'is_hot' => $product->is_hot]);
-                } else {
-                    return response()->json(['success' => false]);
+            if (!$product) {
+                return response()->json(['success' => false, 'message' => 'Product not found.']);
+            }
+
+            if ($request->is_hot) {
+                $hotProductCount = Product::where('is_hot', 1)
+                    ->where('status', 1)
+                    ->whereNull('deleted_at')
+                    ->count();
+
+                if ($hotProductCount >= config('services.max_hot_product')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Maximum ' . config('services.max_hot_product') . ' products allowed as hot offers.'
+                    ]);
                 }
             }
-        } else {
-            return response()->json(['success' => false]);
+
+            $product->is_hot = $request->is_hot ? 1 : 0;
+            $product->save();
+
+            return response()->json(['success' => true, 'is_hot' => $product->is_hot]);
         }
+
+        return response()->json(['success' => false, 'message' => 'Invalid input.']);
+
     }
     public function getBrandsByCatgeory(Request $request){
 

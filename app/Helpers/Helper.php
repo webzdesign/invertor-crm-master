@@ -5,6 +5,8 @@ namespace App\Helpers;
 use App\Models\{PurchaseOrder, Transaction, Distribution};
 use App\Models\{SalesOrder, Setting, Product, Country,TwilloMessageNotification,TwilloNotificationHistory};
 use App\Models\{State, Stock, City, User};
+use App\Models\PurchaseOrderItem;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Number;
 use Illuminate\Http\Request;
@@ -645,5 +647,55 @@ class Helper {
         }
 
         return $seconds;
+    }
+
+    public static function setProductIsHot($productID)
+    {
+        // Skip if the product is already hot
+        $isHot = Product::where('id', $productID)
+            ->where('is_hot', 1)
+            ->exists();
+
+        if ($isHot) {
+            return false;
+        }
+
+        // Count current hot products
+        $totalHot = Product::where('is_hot', 1)
+                    ->count();
+   
+        if ($totalHot < config('services.max_hot_product')) {
+            // If below max limit, mark this as hot
+            Product::where('id', $productID)
+                ->update(['is_hot' => 1]);
+
+            return false;
+        }
+
+        // Find the current hot product with the smallest stock
+        $lowestStockProduct = Product::select([
+                'id',
+                'status',
+                DB::raw('(SELECT COALESCE(SUM(qty), 0) FROM purchase_order_items WHERE product_id = products.id) AS total_stock')
+            ])
+            ->where('is_hot', 1)
+            // ->where('status', 1)
+            ->orderBy("status", "ASC")
+            ->orderBy('total_stock', 'ASC')
+            ->orderBy("id", "ASC")
+            ->first();
+        
+        if (!$lowestStockProduct) {
+            return false;
+        }
+        
+        // Get total stock for the new product
+        $newProductStock = PurchaseOrderItem::where('product_id', $productID)->sum('qty');
+
+        if ($lowestStockProduct->status == 0 || ($newProductStock > $lowestStockProduct->total_stock)) {
+            Product::where('id', $lowestStockProduct->id)->update(['is_hot' => 0]);
+
+            Product::where('id', $productID)->update(['is_hot' => 1]);
+        } 
     }
 }

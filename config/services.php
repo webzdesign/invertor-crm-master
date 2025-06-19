@@ -35,6 +35,7 @@ return [
     ],
     "timezones" => [
         "europe_chisinau" => "Europe/Chisinau"
-    ]
+    ],
+    "max_hot_product" => 15
 
 ];

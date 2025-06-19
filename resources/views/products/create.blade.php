@@ -360,7 +360,7 @@ $(document).ready(function(){
                     brandSelect.attr('disabled',true);
                     if (response.success) {
 
-                        if(response.brands) {
+                        if(response.brands.length > 0) {
                             
                             brandSelect.empty(); 
                             brandSelect.append('<option value="">--- Select a Brands ---</option>');
@@ -411,6 +411,8 @@ $(document).ready(function(){
                             }).on("load", function(e) {
                                 $(this).prop('tabindex',0);
                             }).trigger('load');
+                        } else {
+                            $('.categoryFiltersOptions').empty();
                         }
 
                     } else {

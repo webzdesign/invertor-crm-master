@@ -229,7 +229,6 @@ class PurchaseOrderController extends Controller
                 foreach ($request->product as $key => $product) {
 
                     $Pqty = intval($request->quantity[$key]) ?? 0;
-                    PurchaseOrder::setProductIsHot($product, $Pqty);
 
                     $poItems[] = [
                         'po_id' => $poId,
@@ -259,6 +258,16 @@ class PurchaseOrderController extends Controller
                 Stock::insert($poItemForStock);
 
                 DB::commit();
+
+                 
+                $products = PurchaseOrderItem::where("po_id", $poId)
+                    ->groupBy('product_id')
+                    ->pluck('product_id');
+
+                foreach($products as $productID) {
+                    Helper::setProductIsHot($productID);
+                }
+                
                 return redirect()->route('purchase-orders.index')->with('success', 'Stock added into storage successfully.');
             } else {
                 DB::rollBack();
