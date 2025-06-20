@@ -43,13 +43,13 @@
                                         <label class="col-sm-2 col-form-label">Name :</label>
                                         <div class="col-sm-10">
                                             <input type="hidden" name="selection_filter_id[]" value="{{ $filter->id }}">
-                                            <input type="text" name="seclection_name[]" class="form-control" value="{{ $filter->name }}" placeholder="Enter name">
+                                            <input type="text" name="seclection_name[]" class="form-control seclection-name" value="{{ $filter->name }}" placeholder="Enter name">
                                         </div>
                                     </div>
                                     <div class="form-group row">
                                         <label class="col-sm-2 col-form-label">Selection :</label>
                                         <div class="col-sm-10">
-                                            <select name="selection[]" class="form-control select2" data-placeholder="--- Select a Selection ---">
+                                            <select name="selection[]" class="form-control select2 selection-selects" data-placeholder="--- Select a Selection ---">
                                                 <option value="">--- Select a Selection ---</option>
                                                 <option value="0" {{ $filter->selection == 0 ? 'selected' : '' }} >Single</option>
                                                 <option value="1" {{ $filter->selection == 1 ? 'selected' : '' }} >Multiple</option>
@@ -67,8 +67,8 @@
                                                 <div class="row align-items-center">
                                                     <label class="col-sm-2 col-form-label">Value:</label>
                                                     <div class="col-sm-9">
-                                                        <input type="hidden" name="filter_options_value_id[{{ $filterKey }}][]" class="filter_options_value_id" value="{{ $option->id }}">
-                                                        <input type="text" name="value[{{ $filterKey }}][]" class="form-control sectionValue" value="{{$option->value}}" placeholder="Enter value">
+                                                        <input type="hidden" name="filter_options_value_id[{{ $filterKey }}][{{$optionKey}}]" class="filter_options_value_id" value="{{ $option->id }}">
+                                                        <input type="text" name="value[{{ $filterKey }}][{{$optionKey}}]" class="form-control sectionValue" value="{{$option->value}}" placeholder="Enter value">
                                                     </div>
                                                     <div class="col-sm-1 text-end">
                                                         <span class="btn btn-primary me-1 add-main-filter-value-section">+</span>
@@ -83,8 +83,8 @@
                                                 <div class="row align-items-center">
                                                     <label class="col-sm-2 col-form-label">Value:</label>
                                                     <div class="col-sm-9">
-                                                        <input type="hidden" name="filter_options_value_id[][]" class="filter_options_value_id" value="">
-                                                        <input type="text" name="value[][]" class="form-control sectionValue" value="" placeholder="Enter value">
+                                                        <input type="hidden" name="filter_options_value_id[0][]" class="filter_options_value_id" value="">
+                                                        <input type="text" name="value[0][]" class="form-control sectionValue" value="" placeholder="Enter value">
                                                     </div>
                                                     <div class="col-sm-1 text-end">
                                                         <span class="btn btn-primary me-1 add-main-filter-value-section">+</span>
@@ -112,13 +112,13 @@
                                 <div class="form-group row">
                                     <label class="col-sm-2 col-form-label">Name :</label>
                                     <div class="col-sm-10">
-                                        <input type="text" name="seclection_name[]" class="form-control" placeholder="Enter name">
+                                        <input type="text" name="seclection_name[]" class="form-control seclection-name" placeholder="Enter name">
                                     </div>
                                 </div>
                                 <div class="form-group row">
                                     <label class="col-sm-2 col-form-label">Selection :</label>
                                     <div class="col-sm-10">
-                                        <select name="selection[]" class="form-control select2" data-placeholder="--- Select a Selection ---">
+                                        <select name="selection[]" class="form-control select2 selection-selects" data-placeholder="--- Select a Selection ---">
                                             <option value="">--- Select a Selection ---</option>
                                             <option value="0">Single</option>
                                             <option value="1">Multiple</option>
@@ -187,31 +187,54 @@ $(document).ready(function(){
                 remote: "This name is already exists.",
             }
         },
+        errorPlacement: function (error, element) {
+            // Handle select2
+            if (element.hasClass('select2-hidden-accessible')) {
+                error.addClass('d-block text-danger');
+                // Insert after the select2 container, not the hidden select
+                error.insertAfter(element.next('.select2'));
+            } else if (
+                element.hasClass("sectionValue") ||
+                element.hasClass("seclection-name") ||
+                element.hasClass("selection-selects")
+            ) {
+                error.addClass('d-block text-danger');
+                error.insertAfter(element);
+            } else {
+                error.insertAfter(element);
+            }
+        },
+        highlight: function (element) {
+            $(element).addClass('is-invalid');
+        },
+        unhighlight: function (element) {
+            $(element).removeClass('is-invalid');
+        },
         submitHandler:function(form) {
             if(!this.beenSubmitted) {
 
                 let isValid = true;
 
-                $('.main-filter-section').each(function (i, section) {
-                    let $section = $(section);
-                    let seclectionName = $section.find('input[name="seclection_name[]"]').val();
+                // $('.main-filter-section').each(function (i, section) {
+                //     let $section = $(section);
+                //     let seclectionName = $section.find('input[name="seclection_name[]"]').val();
 
-                    if (seclectionName.trim() !== '') {
-                        $section.find('.main-filter-value-section').each(function () {
-                            let $valueInput = $(this).find('.sectionValue');
-                            if ($valueInput.val().trim() === '') {
-                                isValid = false;
-                                // $valueInput.addClass('is-invalid');
-                                if ($valueInput.next('.invalid-feedback').length === 0) {
-                                    $valueInput.after('<div class="invalid-feedback d-block">Value is required.</div>');
-                                }
-                            } else {
-                                // $valueInput.removeClass('is-invalid');
-                                $valueInput.next('.invalid-feedback').remove();
-                            }
-                        });
-                    }
-                });
+                //     if (seclectionName.trim() !== '') {
+                //         $section.find('.main-filter-value-section').each(function () {
+                //             let $valueInput = $(this).find('.sectionValue');
+                //             if ($valueInput.val().trim() === '') {
+                //                 isValid = false;
+                //                 // $valueInput.addClass('is-invalid');
+                //                 if ($valueInput.next('.invalid-feedback').length === 0) {
+                //                     $valueInput.after('<div class="invalid-feedback d-block">Value is required.</div>');
+                //                 }
+                //             } else {
+                //                 // $valueInput.removeClass('is-invalid');
+                //                 $valueInput.next('.invalid-feedback').remove();
+                //             }
+                //         });
+                //     }
+                // });
 
                 if (isValid) {
                     this.beenSubmitted = true;
@@ -222,12 +245,30 @@ $(document).ready(function(){
         }
     });
 
+    $.validator.addClassRules('seclection-name', {
+        required: true
+    });
+    $.validator.addClassRules('selection-selects', {
+        required: true
+    });
+    $.validator.addClassRules('sectionValue', {
+        required: true
+    });
+
     $(document).on('click', '.add-main-filter-section', function () {
         let $currentSection = $(this).closest('.main-filter-section');
         let $clonedSection = $currentSection.clone();
 
-        let Srno = $('.main-filter-section').length;
-        $clonedSection.find('.sectionValue').attr('name','value['+Srno+'][]');
+        let MainSrno = $('.main-filter-section').length;
+        let ValueSrno = $('.sectionValue').length;
+        console.log($clonedSection.find('.seclection-name').attr('name', 'seclection_name[' + MainSrno + ']'));
+        
+        $clonedSection.find('.seclection-name').attr('name', 'seclection_name[' + MainSrno + ']');
+        $clonedSection.find('.selection-selects').attr('name', 'selection[' + MainSrno + ']');
+
+        $clonedSection.find('.sectionValue').each(function () {
+            $(this).attr('name', 'value[' + MainSrno + ']['+ValueSrno+']');
+        });
 
         if($clonedSection.find('.main-filter-value-section').length > 1){
             $clonedSection.find('.main-filter-value-section').slice(1).remove();
@@ -235,23 +276,44 @@ $(document).ready(function(){
 
         $clonedSection.find('.invalid-feedback').remove();
         $clonedSection.find('input').removeClass('is-invalid');
+        $clonedSection.find('.error').remove();
         $clonedSection.find('input').val('');
         $clonedSection.find('.select2').select2({width: '100%', allowClear: true}).val('').trigger('change').on("load", function(e) {$(this).prop('tabindex',0);}).trigger('load');
         $clonedSection.find('span:nth-child(3)').remove();
         $clonedSection.find('span:nth-child(3)').remove();
         $currentSection.after($clonedSection);
+
         $('.select2').select2({
             width: '100%',
             allowClear: true
         }).on("load", function(e) {
             $(this).prop('tabindex',0);
         }).trigger('load');
+
+        $clonedSection.find('.seclection-name').each(function () {
+            $(this).rules('add', {
+                required: true
+            });
+        });
+
+        $clonedSection.find('.selection-selects').each(function () {
+            $(this).rules('add', {
+                required: true
+            });
+        });
+
+        $clonedSection.find('.sectionValue').each(function () {
+            $(this).rules('add', {
+                required: true
+            });
+        });
     });
 
     let selectionDeletedIds = [];
     $(document).on('click', '.remove-main-filter-section', function () {
         let $currentSection = $(this).closest('.main-filter-section');
         let id = $currentSection.find('.selection_id').val()
+
         if ($('.main-filter-section').length > 1) {
             if(id) {
                 if (id && !selectionDeletedIds.includes(id)) {
@@ -260,7 +322,23 @@ $(document).ready(function(){
                 }
             }
             $(this).closest('.main-filter-section').remove();
-        }  else {            
+        }  else {  
+            
+            $('.main-filter-section').each(function (mainIndex) {
+                const $section = $(this);
+                $section.find('input').removeClass('is-invalid');
+                $section.find('.error').remove();
+                $section.find('.seclection-name').attr('name', 'seclection_name[' + mainIndex + ']');
+                $section.find('.selection-selects').attr('name', 'selection[' + mainIndex + ']');
+
+                // Update value[] names inside this section
+                $section.find('.sectionValue').attr('name', 'value[' + mainIndex + '][]');
+            });
+            
+            if($currentSection.find('.main-filter-value-section').length > 1){
+                $currentSection.find('.main-filter-value-section').slice(1).remove();
+            }
+
             if(id) {
                 if (id && !selectionDeletedIds.includes(id)) {
                     selectionDeletedIds.push(id);
@@ -285,7 +363,13 @@ $(document).ready(function(){
     $(document).on('click', '.add-main-filter-value-section', function () {
         let $valueRow = $(this).closest('.main-filter-value-section');
         let $clonedRow = $valueRow.clone();
-        $clonedRow.find('.invalid-feedback').remove();
+        
+        let ValueSrno = $('.sectionValue').length;
+        let $section = $(this).closest('.main-filter-section');
+        let sectionIndex = $('.main-filter-section').index($section);
+        $clonedRow.find('.sectionValue').attr('name', 'value[' + sectionIndex + ']['+ValueSrno+']');
+
+        $clonedRow.find('.invalid-feedback, .error').remove();
         $clonedRow.find('input').removeClass('is-invalid');
         $clonedRow.find('input').val('');
         $valueRow.after($clonedRow);

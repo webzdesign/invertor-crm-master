@@ -95,7 +95,6 @@ class CategoryController extends Controller
 
     public function store(CategoryRequest $request)
     {
-
         $selection_name = $request->input('seclection_name');
         $selection = $request->input('selection');
         $selection_value = $request->input('value');
