@@ -61,6 +61,7 @@
                         @endif
                     </div>
                 </div>
+
                 <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="web_sales_old_price">Old Price :</label>
@@ -70,10 +71,11 @@
                         @endif
                     </div>
                 </div>
+
             </div>
             <div class="row">
 
-                <div class="col-md-3 col-sm-12">
+                <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="slug">Product Detail URL :</label>
                         <input type="text" readonly name="slug" id="slug" value="{{ old('slug', $product->slug) }}" class="form-control" placeholder="Product URL">
@@ -81,27 +83,8 @@
                             <span class="text-danger d-block">{{ $errors->first('slug') }}</span>
                         @endif
                     </div>
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2" for="slider_title">Short Title :</label>
-                        <input type="text" name="slider_title" id="slider_title" value="{{ old('slider_title', $product->slider_title) }}" class="form-control" placeholder="Product Short Title">
-                        @if ($errors->has('slider_title'))
-                            <span class="text-danger d-block">{{ $errors->first('slider_title') }}</span>
-                        @endif
-                    </div>
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2" for="slider_content">Short Content :</label>
-                        <input type="text" name="slider_content" id="slider_content" value="{{ old('slider_content', $product->slider_content) }}" class="form-control" placeholder="Product Short Content">
-                        @if ($errors->has('slider_content'))
-                            <span class="text-danger d-block">{{ $errors->first('slider_content') }}</span>
-                        @endif
-                    </div>
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2" for="sku">SKU :</label>
-                        <input type="text" name="sku" id="sku" value="{{ old('sku', $product->sku) }}" class="form-control" placeholder="Product SKU">
-                        @if ($errors->has('sku'))
-                            <span class="text-danger d-block">{{ $errors->first('sku') }}</span>
-                        @endif
-                    </div>
+                </div>
+                <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="brand">Brand :</label>
                         <select name="brand" id="brand" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Brand ---">
@@ -110,6 +93,39 @@
                             <span class="text-danger d-block">{{ $errors->first('brand') }}</span>
                         @endif
                     </div>
+                </div>
+                <div class="col-md col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="slider_title">Short Title :</label>
+                        <input type="text" name="slider_title" id="slider_title" value="{{ old('slider_title', $product->slider_title) }}" class="form-control" placeholder="Product Short Title">
+                        @if ($errors->has('slider_title'))
+                            <span class="text-danger d-block">{{ $errors->first('slider_title') }}</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="col-md col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="slider_content">Short Content :</label>
+                        <input type="text" name="slider_content" id="slider_content" value="{{ old('slider_content', $product->slider_content) }}" class="form-control" placeholder="Product Short Content">
+                        @if ($errors->has('slider_content'))
+                            <span class="text-danger d-block">{{ $errors->first('slider_content') }}</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="col-md col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="sku">SKU :</label>
+                        <input type="text" name="sku" id="sku" value="{{ old('sku', $product->sku) }}" class="form-control" placeholder="Product SKU">
+                        @if ($errors->has('sku'))
+                            <span class="text-danger d-block">{{ $errors->first('sku') }}</span>
+                        @endif
+                    </div>
+                </div>
+                
+            </div>
+
+            <div class="row">
+                <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="gtin">GTIN :</label>
                         <input type="text" name="gtin" id="gtin" value="{{ old('gtin', $product->gtin) }}" class="form-control" placeholder="Product GTIN">
@@ -117,6 +133,8 @@
                             <span class="text-danger d-block">{{ $errors->first('gtin') }}</span>
                         @endif
                     </div>
+                </div>
+                <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="mpn">MPN :</label>
                         <input type="text" name="mpn" id="mpn" value="{{ old('mpn', $product->mpn) }}" class="form-control" placeholder="Product MPN">
@@ -124,6 +142,8 @@
                             <span class="text-danger d-block">{{ $errors->first('mpn') }}</span>
                         @endif
                     </div>
+                </div>
+                <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="youtube_video_url">Youtube Video Url :</label>
                         <input type="text" name="youtube_video_url" id="youtube_video_url" value="{{ old('youtube_video_url',$product->youtube_video_url) }}" class="form-control" placeholder="Youtube Video Url">
@@ -131,13 +151,22 @@
                             <span class="text-danger d-block">{{ $errors->first('youtube_video_url') }}</span>
                         @endif
                     </div>
+                </div>
+                <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="air_conditioner_capacity">Air Conditioner’s Capacity :</label>
-                        <input type="text" name="air_conditioner_capacity" id="air_conditioner_capacity" value="{{ old('air_conditioner_capacity',$product->air_conditioner_capacity) }}" class="form-control" placeholder="Youtube Video Url">
+                        <input type="text" name="air_conditioner_capacity" id="air_conditioner_capacity" value="{{ old('air_conditioner_capacity',$product->air_conditioner_capacity) }}" class="form-control" placeholder="Air Conditioner’s Capacity">
                         @if ($errors->has('air_conditioner_capacity'))
                             <span class="text-danger d-block">{{ $errors->first('air_conditioner_capacity') }}</span>
                         @endif
                     </div>
+                </div>
+                <div class="col-md col-sm-12">
+                </div>
+            </div>
+
+            <div class="row border-top py-2 border-bottom mb-2">
+                <div class="col-md-3">
                     <div id="capacity-container">
                         <div class="form-group capacity-group">
                             <label class="c-gr f-500 f-16 w-100 mb-2">Available Power Capacity :</label>
@@ -171,8 +200,14 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-sm-9">
+                    <div class="row categoryFiltersOptions">
+                    </div>
+                </div>
+            </div>
 
-                <div class="col-9">
+            <div class="row">
+                <div class="col-lg-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Product Description : </label>
                         <textarea name="description" class="form-control ckeditorField" id="description" cols="30" rows="10" placeholder="Enter product description">{{ old('description', $product->description) }}</textarea>
@@ -180,6 +215,8 @@
                             <span class="text-danger d-block">{{ $errors->first('description') }}</span>
                         @endif
                     </div>
+                </div>
+                <div class="col-lg-6">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Shipping & Payment : </label>
                         <textarea name="shipping_and_payment" class="form-control ckeditorField" id="shipping_and_payment" cols="30" rows="10" placeholder="Enter Shipping & Payment Details">{{ old('shipping_and_payment', $product->shipping_and_payment) }}</textarea>
@@ -188,10 +225,8 @@
                         @endif
                     </div>
                 </div>
+            </div>
 
-            </div>
-            <div class="row border-top py-2 categoryFiltersOptions">
-            </div>
         </div>
         
         <div class="cardsFooter d-flex justify-content-center">
@@ -215,7 +250,7 @@ $(document).ready(function(){
 
     $('body').on('keyup', '#name', function(e) {
         var name = $(this).val();
-        var slug = name.replace(/[^a-zA-Z0-9\s\+\-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
+        var slug = name.replace(/[^a-zA-Z0-9\s\+\-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-').toLowerCase();
 
         $('body').find('#slug').val(slug);
     });
@@ -356,8 +391,8 @@ $(document).ready(function(){
                 success: function (response) {
                     brandSelect.empty();
                     if (response.success) {
+                        brandSelect.attr('disabled', false);
                         if(response.brands.length > 0) {
-                            brandSelect.attr('disabled', false);
                             brandSelect.append('<option value="">--- Select a Brand ---</option>');
                             $.each(response.brands, function (index, brand) {
                                 let selected = (brand.id == brandName) ? 'selected' : '';
@@ -412,6 +447,8 @@ $(document).ready(function(){
                             }).on("load", function (e) {
                                 $(this).prop('tabindex', 0);
                             }).trigger('load');
+                        } else {
+                            $('.categoryFiltersOptions').empty();
                         }
                     }
                 },

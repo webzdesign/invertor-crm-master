@@ -227,12 +227,15 @@ class PurchaseOrderController extends Controller
                 $poItemForStock = [];
 
                 foreach ($request->product as $key => $product) {
+
+                    $Pqty = intval($request->quantity[$key]) ?? 0;
+
                     $poItems[] = [
                         'po_id' => $poId,
                         'category_id' => $request->category[$key] ?? '',
                         'product_id' => $product,
                         'price' => floatval($request->price[$key]) ?? 0,
-                        'qty' => intval($request->quantity[$key]) ?? 0,
+                        'qty' => $Pqty,
                         'amount' => (floatval($request->amount[$key])) ?? 0,
                         'remarks' => $request->remarks[$key] ?? '',
                         'added_by' => $userId,
@@ -243,7 +246,7 @@ class PurchaseOrderController extends Controller
                         'product_id' => $product,
                         'type' => 0,
                         'date' => now(),
-                        'qty' => intval($request->quantity[$key]) ?? 0,
+                        'qty' => $Pqty,
                         'added_by' => $userId,
                         'form' => 1,
                         'form_record_id' => $poId,
@@ -255,6 +258,16 @@ class PurchaseOrderController extends Controller
                 Stock::insert($poItemForStock);
 
                 DB::commit();
+
+                 
+                $products = PurchaseOrderItem::where("po_id", $poId)
+                    ->groupBy('product_id')
+                    ->pluck('product_id');
+
+                foreach($products as $productID) {
+                    Helper::setProductIsHot($productID);
+                }
+                
                 return redirect()->route('purchase-orders.index')->with('success', 'Stock added into storage successfully.');
             } else {
                 DB::rollBack();

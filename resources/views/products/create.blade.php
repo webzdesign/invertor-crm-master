@@ -15,14 +15,12 @@
     <div class="cards">
         <div class="cardsBody pb-0">
             <div class="row">
-
                 <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Product Number : </label>
                         <input type="text" class="form-control" value="{{ $prodNo }}" readonly>
                     </div>
                 </div>
-
                 <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Category : <span class="text-danger">*</span></label>
@@ -41,7 +39,6 @@
                         @endif
                     </div>
                 </div>
-
                 <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="name">Product Name : <span class="text-danger">*</span></label>
@@ -51,7 +48,6 @@
                         @endif
                     </div>
                 </div>
-
                 <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="web_sales_price">New Price : </label>
@@ -72,7 +68,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-3 col-sm-12">
+                <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Product Detail URL : <span class="text-danger">*</span></label>
                         <input type="text" readonly name="slug" id="slug" value="{{ old('slug') }}" class="form-control" placeholder="Product URL">
@@ -80,27 +76,8 @@
                             <span class="text-danger d-block">{{ $errors->first('slug') }}</span>
                         @endif
                     </div>
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2" for="slider_title">Short Title :</label>
-                        <input type="text" name="slider_title" id="slider_title" value="{{ old('slider_title') }}" class="form-control" placeholder="Product Short Title">
-                        @if ($errors->has('slider_title'))
-                            <span class="text-danger d-block">{{ $errors->first('slider_title') }}</span>
-                        @endif
-                    </div>
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2" for="slider_content">Short Content :</label>
-                        <input type="text" name="slider_content" id="slider_content" value="{{ old('slider_content') }}" class="form-control" placeholder="Product Short Content">
-                        @if ($errors->has('slider_content'))
-                            <span class="text-danger d-block">{{ $errors->first('slider_content') }}</span>
-                        @endif
-                    </div>
-                    <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2" for="sku">SKU :</label>
-                        <input type="text" name="sku" id="sku" value="{{ old('sku') }}" class="form-control" placeholder="Product SKU">
-                        @if ($errors->has('sku'))
-                            <span class="text-danger d-block">{{ $errors->first('sku') }}</span>
-                        @endif
-                    </div>
+                </div>
+                <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="brand">Brand :</label>
                         <select name="brand" id="brand" class="select2 select2-hidden-accessible" data-placeholder="--- Select a Brand ---">
@@ -109,6 +86,38 @@
                             <span class="text-danger d-block">{{ $errors->first('brand') }}</span>
                         @endif
                     </div>
+                </div>
+                <div class="col-md col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="slider_title">Short Title :</label>
+                        <input type="text" name="slider_title" id="slider_title" value="{{ old('slider_title') }}" class="form-control" placeholder="Product Short Title">
+                        @if ($errors->has('slider_title'))
+                            <span class="text-danger d-block">{{ $errors->first('slider_title') }}</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="col-md col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="slider_content">Short Content :</label>
+                        <input type="text" name="slider_content" id="slider_content" value="{{ old('slider_content') }}" class="form-control" placeholder="Product Short Content">
+                        @if ($errors->has('slider_content'))
+                            <span class="text-danger d-block">{{ $errors->first('slider_content') }}</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="col-md col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="sku">SKU :</label>
+                        <input type="text" name="sku" id="sku" value="{{ old('sku') }}" class="form-control" placeholder="Product SKU">
+                        @if ($errors->has('sku'))
+                            <span class="text-danger d-block">{{ $errors->first('sku') }}</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="gtin">GTIN :</label>
                         <input type="text" name="gtin" id="gtin" value="{{ old('gtin') }}" class="form-control" placeholder="Product GTIN">
@@ -116,6 +125,8 @@
                             <span class="text-danger d-block">{{ $errors->first('gtin') }}</span>
                         @endif
                     </div>
+                </div>
+                <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="mpn">MPN :</label>
                         <input type="text" name="mpn" id="mpn" value="{{ old('mpn') }}" class="form-control" placeholder="Product MPN">
@@ -123,6 +134,8 @@
                             <span class="text-danger d-block">{{ $errors->first('mpn') }}</span>
                         @endif
                     </div>
+                </div>
+                <div class="col-md col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2" for="youtube_video_url">Youtube Video Url :</label>
                         <input type="text" name="youtube_video_url" id="youtube_video_url" value="{{ old('youtube_video_url') }}" class="form-control" placeholder="Youtube Video Url">
@@ -130,14 +143,23 @@
                             <span class="text-danger d-block">{{ $errors->first('youtube_video_url') }}</span>
                         @endif
                     </div>
+                </div>
+                <div class="col-md col-sm-12">
                     <div class="form-group">
-                        <label class="c-gr f-500 f-16 w-100 mb-2" for="air_conditioner_capacity">air conditioner’s capacity :</label>
+                        <label class="c-gr f-500 f-16 w-100 mb-2" for="air_conditioner_capacity">Air Conditioner’s Capacity :</label>
                         <input type="text" name="air_conditioner_capacity" id="air_conditioner_capacity" value="{{ old('air_conditioner_capacity') }}" class="form-control" placeholder="Air Conditioner’s Capacity">
                         @if ($errors->has('air_conditioner_capacity'))
                             <span class="text-danger d-block">{{ $errors->first('air_conditioner_capacity') }}</span>
                         @endif
                     </div>
-                   <div id="capacity-container">
+                </div>
+                <div class="col-md col-sm-12">
+                </div>
+            </div>
+
+            <div class="row border-top border-bottom py-2 mb-2">
+                <div class="col-lg-3">
+                    <div id="capacity-container">
                         <div class="form-group capacity-group">
                             <label class="c-gr f-500 f-16 w-100 mb-2">Available Power Capacity :</label>
                             <div class="d-flex flex-wrap mb-2 available_power_capacity-input">
@@ -154,8 +176,13 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-lg-9">
+                    <div class="row categoryFiltersOptions"></div>
+                </div>
+            </div>
 
-                <div class="col-md-9 col-sm-12">
+            <div class="row">
+                <div class="col-md-6 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Product Description : </label>
                         <textarea name="description" class="form-control ckeditorField" id="description" cols="30" rows="10" placeholder="Enter product description">{{ old('description') }}</textarea>
@@ -163,6 +190,8 @@
                             <span class="text-danger d-block">{{ $errors->first('description') }}</span>
                         @endif
                     </div>
+                </div>
+                <div class="col-md-6 col-sm-12">
                     <div class="form-group">
                         <label class="c-gr f-500 f-16 w-100 mb-2">Shipping & Payment : </label>
                         <textarea name="shipping_and_payment" class="form-control ckeditorField" id="shipping_and_payment" cols="30" rows="10" placeholder="Enter Shipping & Payment Details">{{ old('shipping_and_payment') }}</textarea>
@@ -171,8 +200,6 @@
                         @endif
                     </div>
                 </div>
-            </div>
-            <div class="row border-top py-2 categoryFiltersOptions">
             </div>
         </div>
         
@@ -197,7 +224,7 @@ $(document).ready(function(){
 
     $('body').on('input', '#name', function(e) {
         var name = $(this).val();
-        var slug = name.replace(/[^a-zA-Z0-9\s\+\-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-');
+        var slug = name.replace(/[^a-zA-Z0-9\s\+\-]/g, '').trim().replace(/\s+/g, '-').replace(/-+/g, '-').toLowerCase();
 
         $('body').find('#slug').val(slug);
     });
@@ -333,7 +360,7 @@ $(document).ready(function(){
                     brandSelect.attr('disabled',true);
                     if (response.success) {
 
-                        if(response.brands) {
+                        if(response.brands.length > 0) {
                             
                             brandSelect.empty(); 
                             brandSelect.append('<option value="">--- Select a Brands ---</option>');
@@ -384,6 +411,8 @@ $(document).ready(function(){
                             }).on("load", function(e) {
                                 $(this).prop('tabindex',0);
                             }).trigger('load');
+                        } else {
+                            $('.categoryFiltersOptions').empty();
                         }
 
                     } else {

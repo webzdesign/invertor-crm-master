@@ -37,13 +37,13 @@
                             <div class="form-group row">
                                 <label class="col-sm-2 col-form-label">Name :</label>
                                 <div class="col-sm-10">
-                                    <input type="text" name="seclection_name[]" class="form-control" placeholder="Enter name">
+                                    <input type="text" name="seclection_name[]" class="form-control seclection-name" placeholder="Enter name">
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-2 col-form-label">Selection :</label>
                                 <div class="col-sm-10">
-                                    <select name="selection[]" class="form-control select2" data-placeholder="--- Select a Selection ---">
+                                    <select name="selection[]" class="form-control select2 selection-selects" data-placeholder="--- Select a Selection ---">
                                         <option value="">--- Select a Selection ---</option>
                                         <option value="0">Single</option>
                                         <option value="1">Multiple</option>
@@ -109,8 +109,17 @@ $(document).ready(function(){
             }
         },
         errorPlacement: function (error, element) {
-            // Place error after the element
-            if (element.hasClass("sectionValue")) {
+            // Handle select2
+            if (element.hasClass('select2-hidden-accessible')) {
+                error.addClass('d-block text-danger');
+                // Insert after the select2 container, not the hidden select
+                error.insertAfter(element.next('.select2'));
+            } else if (
+                element.hasClass("sectionValue") ||
+                element.hasClass("seclection-name") ||
+                element.hasClass("selection-selects")
+            ) {
+                error.addClass('d-block text-danger');
                 error.insertAfter(element);
             } else {
                 error.insertAfter(element);
@@ -127,26 +136,26 @@ $(document).ready(function(){
 
                 let isValid = true;
 
-                $('.main-filter-section').each(function (i, section) {
-                    let $section = $(section);
-                    let seclectionName = $section.find('input[name="seclection_name[]"]').val();
+                // $('.main-filter-section').each(function (i, section) {
+                //     let $section = $(section);
+                //     let seclectionName = $section.find('input[name="seclection_name[]"]').val();
 
-                    if (seclectionName.trim() !== '') {
-                        $section.find('.main-filter-value-section').each(function () {
-                            let $valueInput = $(this).find('.sectionValue');
-                            if ($valueInput.val().trim() === '') {
-                                isValid = false;
-                                // $valueInput.addClass('is-invalid');
-                                if ($valueInput.next('.invalid-feedback').length === 0) {
-                                    $valueInput.after('<div class="invalid-feedback d-block">Value is required.</div>');
-                                }
-                            } else {
-                                // $valueInput.removeClass('is-invalid');
-                                $valueInput.next('.invalid-feedback').remove();
-                            }
-                        });
-                    }
-                });
+                //     if (seclectionName.trim() === '') {
+                //         $section.find('.main-filter-value-section').each(function () {
+                //             let $valueInput = $(this).find('.sectionValue');
+                //             if ($valueInput.val().trim() === '') {
+                //                 isValid = false;
+                //                 // $valueInput.addClass('is-invalid');
+                //                 if ($valueInput.next('.invalid-feedback').length === 0) {
+                //                     $valueInput.after('<div class="invalid-feedback d-block">Value is required.</div>');
+                //                 }
+                //             } else {
+                //                 // $valueInput.removeClass('is-invalid');
+                //                 $valueInput.next('.invalid-feedback').remove();
+                //             }
+                //         });
+                //     }
+                // });
 
                 if (isValid) {
                     this.beenSubmitted = true;
@@ -157,19 +166,37 @@ $(document).ready(function(){
         }
     });
 
+    $.validator.addClassRules('seclection-name', {
+        required: true
+    });
+    $.validator.addClassRules('selection-selects', {
+        required: true
+    });
+    $.validator.addClassRules('sectionValue', {
+        required: true
+    });
+
     $(document).on('click', '.add-main-filter-section', function () {
         let $currentSection = $(this).closest('.main-filter-section');
         let $clonedSection = $currentSection.clone();
 
-        let Srno = $('.main-filter-section').length;
-        $clonedSection.find('.sectionValue').attr('name','value['+Srno+'][]');
+        let MainSrno = $('.main-filter-section').length;
+        let ValueSrno = $('.sectionValue').length;
+
+        $clonedSection.find('.seclection-name').attr('name', 'seclection_name[' + MainSrno + ']');
+        $clonedSection.find('.selection-selects').attr('name', 'selection[' + MainSrno + ']');
+
+        $clonedSection.find('.sectionValue').each(function () {
+            $(this).attr('name', 'value[' + MainSrno + ']['+ValueSrno+']');
+        });
 
         if($clonedSection.find('.main-filter-value-section').length > 1){
             $clonedSection.find('.main-filter-value-section').slice(1).remove();
         }
 
         $clonedSection.find('.invalid-feedback').remove();
-        // $clonedSection.find('input').removeClass('is-invalid');
+        $clonedSection.find('input').removeClass('is-invalid');
+        $clonedSection.find('.error').remove();
         $clonedSection.find('input').val('');
         $clonedSection.find('.select2').select2({width: '100%', allowClear: true}).val('').trigger('change').on("load", function(e) {$(this).prop('tabindex',0);}).trigger('load');
         $clonedSection.find('span:nth-child(3)').remove();
@@ -181,22 +208,72 @@ $(document).ready(function(){
         }).on("load", function(e) {
             $(this).prop('tabindex',0);
         }).trigger('load');
+        
+        $clonedSection.find('.seclection-name').each(function () {
+            $(this).rules('remove');
+            $(this).rules('add', {
+                required: true
+            });
+        });
+
+        $clonedSection.find('.selection-selects').each(function () {
+            $(this).rules('remove');
+            $(this).rules('add', {
+                required: true
+            });
+        });
+
+        $clonedSection.find('.sectionValue').each(function () {
+            $(this).rules('remove');
+            $(this).rules('add', {
+                required: true
+            });
+        });
     });
 
 
     $(document).on('click', '.remove-main-filter-section', function () {
+        let $currentSection = $(this).closest('.main-filter-section');
+
         if ($('.main-filter-section').length > 1) {
-            $(this).closest('.main-filter-section').remove();
+            $currentSection.remove();
+        } else {
+             $('.main-filter-section').each(function (mainIndex) {
+                const $section = $(this);
+                $section.find('input').removeClass('is-invalid');
+                $section.find('.error').remove();
+                $section.find('.seclection-name').attr('name', 'seclection_name[' + mainIndex + ']');
+                $section.find('.selection-selects').attr('name', 'selection[' + mainIndex + ']');
+
+                // Update value[] names inside this section
+                $section.find('.sectionValue').attr('name', 'value[' + mainIndex + '][]');
+            });
+            if($currentSection.find('.main-filter-value-section').length > 1){
+                $currentSection.find('.main-filter-value-section').slice(1).remove();
+            }
         }
     });
 
     $(document).on('click', '.add-main-filter-value-section', function () {
         let $valueRow = $(this).closest('.main-filter-value-section');
         let $clonedRow = $valueRow.clone();
+
+        let ValueSrno = $('.sectionValue').length;
+        let $section = $(this).closest('.main-filter-section');
+        let sectionIndex = $('.main-filter-section').index($section);
+         $clonedRow.find('.sectionValue').attr('name', 'value[' + sectionIndex + ']['+ValueSrno+']');
+
+        // $clonedRow.find('.sectionValue').attr('name','value['+ValueSrno+'][]');
         $clonedRow.find('.invalid-feedback').remove();
-        // $clonedRow.find('input').removeClass('is-invalid');
+        $clonedRow.find('input').removeClass('is-invalid');
+        $clonedRow.find('.error').remove();
         $clonedRow.find('input').val('');
         $valueRow.after($clonedRow);
+        $clonedRow.find('.sectionValue').each(function () {
+            $(this).rules('add', {
+                required: true
+            });
+        });
     });
 
     $(document).on('click', '.remove-main-filter-value-section', function () {
