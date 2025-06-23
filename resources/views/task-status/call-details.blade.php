@@ -9,7 +9,7 @@
                 </div>
                 <div class="col-12">
                     <label for="c-gr f-500 f-16 w-100 mb-2"><strong>Customer Phone Number</strong></label> :
-                    <span> {!! ($call->from_user->phone !="") ? '<a href="tel:'.trim($call->from_user->country_dial_code) . trim($call->from_user->phone).'">'. \App\Helpers\Helper::getNumberFormated($call->from_user->phone) .'</a>' : '-' !!}</span>
+                    <span> {!! ($call->from_user->phone !="") ? '<a href="tel:'.trim($call->from_user->country_dial_code) . trim($call->from_user->phone).'">'. $call->from_user->country_dial_code.$call->from_user->phone .'</a>' : '-' !!}</span>
                 </div>
                 <div class="col-12">
                     <label for="c-gr f-500 f-16 w-100 mb-2"><strong>Address Line</strong></label> :

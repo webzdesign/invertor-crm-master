@@ -22,8 +22,26 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
+        'status',
+        'profile',
+        'lat',
+        'long',
+        'phone',
+        'country_dial_code',
+        'country_iso_code',
         'password',
+        'added_by',
+        'updated_by',
+        'address_line_1',
+        'address_line_2',
+        'country_id',
+        'state_id',
+        'state_id',
+        'ext',
+        'connected_user_id',
+        'approvedDate',
     ];
 
     /**
@@ -173,5 +191,10 @@ class User extends Authenticatable
 
     public static function isSellerManager() {
         return in_array(Role::where('slug', 'seller-manager')->first()->id ?? 0, auth()->user()->roles->pluck('id')->toArray());
+    }
+
+    public function connectedUser()
+    {
+        return $this->belongsTo(User::class, 'connected_user_id');
     }
 }

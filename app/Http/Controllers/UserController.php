@@ -184,12 +184,29 @@ class UserController extends Controller
 
         try {
 
+            /* create moldcell user when manager role select */
+            if ($request->role == 6) {
+                $mobileNum = str_replace(' ', '', $request->country_dial_code.$request->phone);
+                $data = (object)['username' => $request->username, 'name' => $request->name, 'password' => $request->password, "email" => $request->email, "mobile" => $mobileNum];
+                $response = MoldcellController::createMoldcellEmployee($data);
+
+                if ($response->status == 200) {
+                } else {
+                    $message = 'Moldcell Error : Something went wrong when create user in Moldcell, Please try again.';
+                    if (isset($response->response->errors[0]->message)) {
+                        $message = 'Moldcell Error : User '.$response->response->errors[0]->message;
+                    }
+                    return redirect()->route('users.create')->with('warning', $message);
+                }
+            }
+
             $user = new User();
             $user->name = $request->name;
+            $user->username = $request->username;
             $user->email = $request->email;
             $user->password = Hash::make($request->password);
             $user->address_line_1 = $request->address_line_1;
-            $user->phone = $request->phone;
+            $user->phone = str_replace(' ', '', $request->phone);
             $user->country_dial_code = $request->country_dial_code;
             $user->country_iso_code = $request->country_iso_code;
             $user->country_id = $request->country;
@@ -344,6 +361,23 @@ class UserController extends Controller
         try {
 
             $user = User::withoutGlobalScope('ApprovedScope')->find(decrypt($id));
+
+            /* create moldcell user when manager role select */
+            if ($request->role == 6) {
+                $mobileNum = str_replace(' ', '', $request->country_dial_code.$request->phone);
+                $data = (object)['username' => $request->username, 'name' => $request->name, 'password' => $request->password, "email" => $request->email, "mobile" => $mobileNum];
+                $response = MoldcellController::updateMoldcellEmployee($data);
+
+                if ($response->status == 200) {
+                } else {
+                    $message = 'Moldcell Error : Something went wrong when update user in Moldcell, Please try again.';
+                    if (isset($response->response->errors[0]->message)) {
+                        $message = 'Moldcell Error : User '.$response->response->errors[0]->message;
+                    }
+                    return redirect()->route('users.edit', $id)->with('warning', $message);
+                }
+            }
+
             $documents = RequiredDocument::where('role_id', $request->role)->orderBy('sequence', 'ASC')->get();
 
             if (in_array('3', $user->roles->pluck('id')->toArray()) && $request->role != '3') {
@@ -355,7 +389,7 @@ class UserController extends Controller
 
                     $user->name = $request->name;
                     $user->email = $request->email;
-                    $user->phone = $request->phone;
+                    $user->phone = str_replace(' ', '', $request->phone);
                     $user->country_dial_code = $request->country_dial_code;
                     $user->country_iso_code = $request->country_iso_code;
                     $user->country_id = $request->country;
@@ -461,7 +495,7 @@ class UserController extends Controller
 
                 $user->name = $request->name;
                 $user->email = $request->email;
-                $user->phone = $request->phone;
+                $user->phone = str_replace(' ', '', $request->phone);
                 $user->country_dial_code = $request->country_dial_code;
                 $user->country_iso_code = $request->country_iso_code;
                 $user->country_id = $request->country;
@@ -562,6 +596,10 @@ class UserController extends Controller
         try {
 
             $user = User::withoutGlobalScope('ApprovedScope')->find(decrypt($id));
+
+            if (in_array(6, $user->roles->pluck('id')->toArray())) {
+                MoldcellController::deleteMoldcellEmployee($user->username);
+            }
 
             if (Deliver::where('user_id', $user->id)->whereIn('status', [0, 1])->exists()) {
                 DB::rollBack();
@@ -834,4 +872,16 @@ class UserController extends Controller
 
         return response()->json($response);
     }
+
+    public function checkUsername(Request $request)
+    {
+        $user = User::withoutGlobalScope('ApprovedScope')->where('username', trim($request->username));
+
+        if ($request->has('id') && !empty(trim($request->id))) {
+            $user = $user->where('id', '!=', decrypt($request->id));
+        }
+
+        return response()->json($user->doesntExist());
+    }
+
 }

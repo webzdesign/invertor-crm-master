@@ -26,22 +26,15 @@ class CallTaskStatusController extends Controller
     public function index(Request $request) {
 
         $moduleName = 'Tasks';
-        $statuses = CallTaskStatus::sequence()
-            ->custom()
-            ->orderBy('sequence', 'ASC')
-            ->get();
+        $statuses = CallTaskStatus::sequence()->get();
 
         $tasks = [];
         foreach ($statuses as $status) {
-            $query = CallHistory::query()
-                ->where('status_id', $status->id);
+            $query = CallHistory::query()->where('status_id', $status->id);
 
-            if (User::isAdmin()) {
-
-            } else {
+            if (!User::isAdmin()) {
                 $query->where("assigned_user_id", auth()->user()->id);
             }
-
 
             $callHistories = $query->orderBy('start', 'DESC')
                 ->get()

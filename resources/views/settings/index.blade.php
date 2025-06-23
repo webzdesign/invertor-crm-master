@@ -136,6 +136,34 @@
                     </div>
                 </div>
 
+                <div class="col-md-4 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2"> Moldcell Url : <span class="text-danger">*</span></label>
+                        <input type="url" name="moldcell_url" id="moldcell_url" value="{{ old('moldcell_url', $settings->moldcell_url) }}" class="form-control" placeholder="Enter Moldcell Url">
+                        @if ($errors->has('moldcell_url'))
+                            <span class="text-danger d-block">{{ $errors->first('moldcell_url') }}</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2"> Moldcell (Key for authorization in PBX) : <span class="text-danger">*</span></label>
+                        <input type="text" name="moldcell_auth_pbx_key" id="moldcell_auth_pbx_key" value="{{ old('moldcell_auth_pbx_key', $settings->moldcell_auth_pbx_key) }}" class="form-control" placeholder="Enter Moldcell PBX Key">
+                        @if ($errors->has('moldcell_auth_pbx_key'))
+                            <span class="text-danger d-block">{{ $errors->first('moldcell_auth_pbx_key') }}</span>
+                        @endif
+                    </div>
+                </div>
+                <div class="col-md-4 col-sm-12">
+                    <div class="form-group">
+                        <label class="c-gr f-500 f-16 w-100 mb-2"> Moldcell (Key for authorization in your CRM) : <span class="text-danger">*</span></label>
+                        <input type="text" name="moldcell_auth_crm_key" id="moldcell_auth_crm_key" value="{{ old('moldcell_auth_crm_key', $settings->moldcell_auth_crm_key) }}" class="form-control" placeholder="Enter Moldcell CRM Key">
+                        @if ($errors->has('moldcell_auth_crm_key'))
+                            <span class="text-danger d-block">{{ $errors->first('moldcell_auth_crm_key') }}</span>
+                        @endif
+                    </div>
+                </div>
+
                 <!-- social icon links -->
                 <div class="col-md-4 col-sm-12">
                     <div class="form-group">
@@ -186,6 +214,8 @@
                         @endif
                     </div>
                 </div>
+
+                
 
             </div>
         </div>
@@ -276,7 +306,16 @@ $(document).ready(function(){
             },
             twilloTemplateUrl:{
                 required: true
-            }
+            },
+            moldcell_url: {
+                required: true
+            },
+            moldcell_auth_pbx_key: {
+                required: true
+            },
+            moldcell_auth_crm_key: {
+                required: true
+            },
         },
         messages: {
             name: {
@@ -302,7 +341,16 @@ $(document).ready(function(){
             },
             twilloTemplateUrl: {
                 required: "Twilio template url is required"
-            }
+            },
+            moldcell_url: {
+                required: "Moldcell url is required"
+            },
+            moldcell_auth_pbx_key: {
+                required: "Moldcell PBX key is required"
+            },
+            moldcell_auth_crm_key: {
+                required: "Moldcell CRM key is required"
+            },
         }
     });
 

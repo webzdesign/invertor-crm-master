@@ -11,10 +11,10 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Helper;
 
 class MoldcellController extends Controller
 {
-
     public static function createMoldcellEmployee($data)
     {
         if (config('services.moldcell.api_status')) {
@@ -186,6 +186,89 @@ class MoldcellController extends Controller
             'status' => 500,
             'response' => "Something went wrong, Please try again."
         ];
+    }
+
+    public static function getMoldcellEmployee()
+    {
+        if (config('services.moldcell.api_status')) {
+            try {
+                $role = Role::where('slug', 'seller-manager')->first();
+                $setting = Setting::select(['moldcell_url', 'moldcell_auth_pbx_key', 'moldcell_auth_crm_key'])->first();
+
+                $start = 0;
+                $limit = 100;
+
+                do {
+
+                    $url = $setting->moldcell_url . "/crmapi/v1/users?start={$start}&limit={$limit}";
+
+                    $curl = curl_init();
+                    curl_setopt_array($curl, array(
+                        CURLOPT_URL => $url,
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_SSL_VERIFYHOST => false,
+                        CURLOPT_SSL_VERIFYPEER => false,
+                        CURLOPT_ENCODING => '',
+                        CURLOPT_MAXREDIRS => 10,
+                        CURLOPT_TIMEOUT => 0,
+                        CURLOPT_FOLLOWLOCATION => true,
+                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                        CURLOPT_CUSTOMREQUEST => 'GET',
+                        CURLOPT_HTTPHEADER => array(
+                            'X-API-KEY: '.$setting->moldcell_auth_pbx_key
+                        ),
+                    ));
+
+                    $response = curl_exec($curl);
+                    curl_close($curl);
+                    $responses = json_decode($response);
+
+                    if (!isset($responses->items) || empty($responses->items)) {
+                        break;
+                    }
+                    
+                    foreach ($responses->items as $response) {
+                        $mobile = NULL;
+                        $countryDialCode = NULL;
+                        $countryIsoCode = NULL;
+                        if ($response->mobile != '') {
+                            $parsePhoneNumber = Helper::parsePhoneNumber($response->mobile);
+                            $mobile = $parsePhoneNumber->phone;
+                            $countryDialCode = $parsePhoneNumber->dial_code;
+                            $countryIsoCode = $parsePhoneNumber->iso_code;
+                        }
+
+                        $checkUser = User::where('username', $response->login)->first();
+                        if ($checkUser) {
+                            echo "Updated :- {$checkUser->username}\n";
+                            User::find($checkUser->id)->update(['name' => $response->name, 'email' => $response->email, 'ext' => $response->ext, 'phone' => $mobile, 'country_dial_code' => $countryDialCode, 'country_iso_code' => $countryIsoCode]);
+                        } else {
+                            $user = new User();
+                            $user->username = $response->login;
+                            $user->name = $response->name;
+                            $user->email = $response->email;
+                            $user->ext = $response->ext;
+                            $user->phone = $mobile;
+                            $user->password = bcrypt($mobile);
+                            $user->country_dial_code = $countryDialCode;
+                            $user->country_iso_code = $countryIsoCode;
+                            $user->added_by = 1;
+                            $user->save();
+
+                            if ($role) {
+                                $user->roles()->attach($role);
+                            }
+
+                            echo "Added :- {$user->username}\n";
+                        }
+                    }
+
+                    $start += $limit;
+                } while ($start < ($responses->info->total ?? 0));
+            } catch (\Exception $e) {
+                echo "Error :- {$e->getMessage()}\n";
+            }
+        }
     }
 
     public static function getMoldcellCallHistory($cmd = 0, $period = "today", $type = "in")
