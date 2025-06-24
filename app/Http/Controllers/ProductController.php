@@ -177,7 +177,6 @@ class ProductController extends Controller
 
     public function store(ProductRequest $request)
     {
-
         $category_filter_id = $request->input('category_filter_id');
         $category_filter_option_id = $request->input('category_filter_option_id');
         
@@ -271,6 +270,7 @@ class ProductController extends Controller
             $productID = $product->id;
 
             $deleteProductFilterOption = ProductCategoryFilters::where('product_id',$productID);
+
             if($deleteProductFilterOption->exists()) {
                 $deleteProductFilterOption->delete();
             }
@@ -418,7 +418,7 @@ class ProductController extends Controller
         if(!empty($request->category_id)){
             $brands = Brands::where('category_id',$request->category_id)->where('status',1)->get();
             
-            $filters = CategoryFilters::with(['options'])->where('category_id', $request->category_id)->get(); 
+            $filters = CategoryFilters::with(['options'])->where('category_id', $request->category_id)->whereNull('deleted_at')->get(); 
 
             if(!empty($brands) && !empty($filters)) {
                 return response()->json([

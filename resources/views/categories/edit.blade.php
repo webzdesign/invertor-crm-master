@@ -30,7 +30,7 @@
                    
                     @foreach ($category->filters as $filterKey => $filter)
                     <div class="col-12 main-filter-section">
-                            <input type="hidden" name="selection_id" class="selection_id" value="{{ $filter->id }}">
+                            <input type="hidden" name="selection_id[{{$filterKey}}]" class="selection_id" value="{{ $filter->id }}">
                             <div class="form-group border rounded-2 p-3">
                                 <label class="c-gr f-500 f-16 w-100 mb-2 border-bottom pb-3">
                                     Filter Options :
@@ -40,16 +40,16 @@
 
                                 <div class="filter-row pt-3">
                                     <div class="form-group row">
-                                        <label class="col-sm-2 col-form-label">Name :</label>
+                                        <label class="col-sm-2 col-form-label">Name : <span class="text-danger">*</span></label>
                                         <div class="col-sm-10">
-                                            <input type="hidden" name="selection_filter_id[]" value="{{ $filter->id }}">
-                                            <input type="text" name="seclection_name[]" class="form-control seclection-name" value="{{ $filter->name }}" placeholder="Enter name">
+                                            <input type="hidden" name="selection_filter_id[{{$filterKey}}]" class="selection_filter_id" value="{{ $filter->id }}">
+                                            <input type="text" name="seclection_name[{{$filterKey}}]" class="form-control seclection-name" value="{{ $filter->name }}" placeholder="Enter name">
                                         </div>
                                     </div>
                                     <div class="form-group row">
-                                        <label class="col-sm-2 col-form-label">Selection :</label>
+                                        <label class="col-sm-2 col-form-label">Selection : <span class="text-danger">*</span></label>
                                         <div class="col-sm-10">
-                                            <select name="selection[]" class="form-control select2 selection-selects" data-placeholder="--- Select a Selection ---">
+                                            <select name="selection[{{$filterKey}}]" class="form-control select2 selection-selects" data-placeholder="--- Select a Selection ---">
                                                 <option value="">--- Select a Selection ---</option>
                                                 <option value="0" {{ $filter->selection == 0 ? 'selected' : '' }} >Single</option>
                                                 <option value="1" {{ $filter->selection == 1 ? 'selected' : '' }} >Multiple</option>
@@ -65,7 +65,7 @@
                                             
                                             <div class="filter-row mb-3 main-filter-value-section">
                                                 <div class="row align-items-center">
-                                                    <label class="col-sm-2 col-form-label">Value:</label>
+                                                    <label class="col-sm-2 col-form-label">Value : <span class="text-danger">*</span></label>
                                                     <div class="col-sm-9">
                                                         <input type="hidden" name="filter_options_value_id[{{ $filterKey }}][{{$optionKey}}]" class="filter_options_value_id" value="{{ $option->id }}">
                                                         <input type="text" name="value[{{ $filterKey }}][{{$optionKey}}]" class="form-control sectionValue" value="{{$option->value}}" placeholder="Enter value">
@@ -81,7 +81,7 @@
                                     @else
                                             <div class="filter-row mb-3 main-filter-value-section">
                                                 <div class="row align-items-center">
-                                                    <label class="col-sm-2 col-form-label">Value:</label>
+                                                    <label class="col-sm-2 col-form-label">Value : <span class="text-danger">*</span></label>
                                                     <div class="col-sm-9">
                                                         <input type="hidden" name="filter_options_value_id[0][]" class="filter_options_value_id" value="">
                                                         <input type="text" name="value[0][]" class="form-control sectionValue" value="" placeholder="Enter value">
@@ -110,13 +110,13 @@
 
                             <div class="filter-row pt-3">
                                 <div class="form-group row">
-                                    <label class="col-sm-2 col-form-label">Name :</label>
+                                    <label class="col-sm-2 col-form-label">Name : <span class="text-danger">*</span></label>
                                     <div class="col-sm-10">
                                         <input type="text" name="seclection_name[]" class="form-control seclection-name" placeholder="Enter name">
                                     </div>
                                 </div>
                                 <div class="form-group row">
-                                    <label class="col-sm-2 col-form-label">Selection :</label>
+                                    <label class="col-sm-2 col-form-label">Selection : <span class="text-danger">*</span></label>
                                     <div class="col-sm-10">
                                         <select name="selection[]" class="form-control select2 selection-selects" data-placeholder="--- Select a Selection ---">
                                             <option value="">--- Select a Selection ---</option>
@@ -130,7 +130,7 @@
                             <div class="border-top pt-3">
                                 <div class="filter-row mb-3 main-filter-value-section">
                                     <div class="row align-items-center">
-                                        <label class="col-sm-2 col-form-label">Value:</label>
+                                        <label class="col-sm-2 col-form-label">Value : <span class="text-danger">*</span></label>
                                         <div class="col-sm-9">
                                             <input type="text" name="value[0][]" class="form-control sectionValue" placeholder="Enter value">
                                         </div>
@@ -212,35 +212,9 @@ $(document).ready(function(){
         },
         submitHandler:function(form) {
             if(!this.beenSubmitted) {
-
-                let isValid = true;
-
-                // $('.main-filter-section').each(function (i, section) {
-                //     let $section = $(section);
-                //     let seclectionName = $section.find('input[name="seclection_name[]"]').val();
-
-                //     if (seclectionName.trim() !== '') {
-                //         $section.find('.main-filter-value-section').each(function () {
-                //             let $valueInput = $(this).find('.sectionValue');
-                //             if ($valueInput.val().trim() === '') {
-                //                 isValid = false;
-                //                 // $valueInput.addClass('is-invalid');
-                //                 if ($valueInput.next('.invalid-feedback').length === 0) {
-                //                     $valueInput.after('<div class="invalid-feedback d-block">Value is required.</div>');
-                //                 }
-                //             } else {
-                //                 // $valueInput.removeClass('is-invalid');
-                //                 $valueInput.next('.invalid-feedback').remove();
-                //             }
-                //         });
-                //     }
-                // });
-
-                if (isValid) {
-                    this.beenSubmitted = true;
-                    $('button[type="submit"]').attr('disabled', true);
-                    form.submit();
-                }
+                this.beenSubmitted = true;
+                $('button[type="submit"]').attr('disabled', true);
+                form.submit();
             }
         }
     });
@@ -260,14 +234,19 @@ $(document).ready(function(){
         let $clonedSection = $currentSection.clone();
 
         let MainSrno = $('.main-filter-section').length;
-        let ValueSrno = $('.sectionValue').length;
-        console.log($clonedSection.find('.seclection-name').attr('name', 'seclection_name[' + MainSrno + ']'));
+        let ValueSrno = $clonedSection.closest('.sectionValue').length;
         
+        $clonedSection.find('.selection_id').attr('name', 'selection_id[' + MainSrno + ']');
+        $clonedSection.find('.selection_filter_id').attr('name', 'selection_filter_id[' + MainSrno + ']');
         $clonedSection.find('.seclection-name').attr('name', 'seclection_name[' + MainSrno + ']');
         $clonedSection.find('.selection-selects').attr('name', 'selection[' + MainSrno + ']');
 
         $clonedSection.find('.sectionValue').each(function () {
-            $(this).attr('name', 'value[' + MainSrno + ']['+ValueSrno+']');
+            $(this).attr('name', 'value[' + MainSrno + ']['+ ValueSrno +']');
+        });
+
+        $clonedSection.find('.filter_options_value_id').each(function () {
+            $(this).attr('name', 'filter_options_value_id[' + MainSrno + ']['+ ValueSrno +']');
         });
 
         if($clonedSection.find('.main-filter-value-section').length > 1){
@@ -281,7 +260,7 @@ $(document).ready(function(){
         $clonedSection.find('.select2').select2({width: '100%', allowClear: true}).val('').trigger('change').on("load", function(e) {$(this).prop('tabindex',0);}).trigger('load');
         $clonedSection.find('span:nth-child(3)').remove();
         $clonedSection.find('span:nth-child(3)').remove();
-        $currentSection.after($clonedSection);
+        $('.main-filter-section').last().after($clonedSection);
 
         $('.select2').select2({
             width: '100%',
@@ -363,16 +342,20 @@ $(document).ready(function(){
     $(document).on('click', '.add-main-filter-value-section', function () {
         let $valueRow = $(this).closest('.main-filter-value-section');
         let $clonedRow = $valueRow.clone();
+        let $currentMainSection = $(this).closest('.main-filter-section');
+
+        let ValueSrno = $(this).closest('.main-filter-section').find('.main-filter-value-section').length;
         
-        let ValueSrno = $('.sectionValue').length;
         let $section = $(this).closest('.main-filter-section');
         let sectionIndex = $('.main-filter-section').index($section);
-        $clonedRow.find('.sectionValue').attr('name', 'value[' + sectionIndex + ']['+ValueSrno+']');
+        
+        $clonedRow.find('.filter_options_value_id').attr('name', 'filter_options_value_id[' + sectionIndex + ']['+ ValueSrno +']');
+        $clonedRow.find('.sectionValue').attr('name', 'value[' + sectionIndex + ']['+ ValueSrno +']');
 
         $clonedRow.find('.invalid-feedback, .error').remove();
         $clonedRow.find('input').removeClass('is-invalid');
         $clonedRow.find('input').val('');
-        $valueRow.after($clonedRow);
+        $currentMainSection.find('.main-filter-value-section').last().after($clonedRow);
     });
 
     let deletedIds = [];

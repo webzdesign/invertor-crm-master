@@ -158,6 +158,9 @@ class CategoryController extends Controller
 
     public function update(CategoryRequest $request, $id)
     {
+        // echo '<pre>';
+        // print_r($request->all());
+        // exit;
         $category = Category::find(decrypt($id));
         $category->name = $request->name;
         $category->slug = Helper::slug($request->name);
@@ -171,7 +174,6 @@ class CategoryController extends Controller
         $filter_options_value_id = $request->input('filter_options_value_id');
         $deleted_selection_id = $request->input('deleted_selection_id');
         $deleted_values_id = $request->input('deleted_values_id');
-
 
         if(isset($category->id) && !empty($category->id)) {
             

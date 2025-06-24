@@ -164,9 +164,9 @@
                 <div class="col-md col-sm-12">
                 </div>
             </div>
-
-            <div class="row border-top py-2 border-bottom mb-2">
-                <div class="col-md-3">
+            <hr>
+            <div class="row py-2 mb-2">
+                <div class="col-md-3 border-end">
                     <div id="capacity-container">
                         <div class="form-group capacity-group">
                             <label class="c-gr f-500 f-16 w-100 mb-2">Available Power Capacity :</label>
@@ -205,7 +205,7 @@
                     </div>
                 </div>
             </div>
-
+            <hr>
             <div class="row">
                 <div class="col-lg-6">
                     <div class="form-group">
@@ -226,7 +226,7 @@
                     </div>
                 </div>
             </div>
-
+            <input type="hidden" name="is_options_deleted" class="is_options_deleted" value="0">
         </div>
         
         <div class="cardsFooter d-flex justify-content-center">
@@ -377,6 +377,12 @@ $(document).ready(function(){
     
     let CategoryFilterOption = @json($product->filter_option_info);
     
+    $.validator.addClassRules('category_filter_option_id', {
+        required: true
+    });
+
+    let ProductID = @json($product->id);
+
     function changeBrandByCatgeory(categoryId) {
         let brandSelect = $('#brand');
         brandSelect.attr('disabled', true).empty().append('<option>Loading...</option>');
@@ -403,19 +409,20 @@ $(document).ready(function(){
                         }
 
                         let FilterOptionsHtml = '';
+                        
                         if (response.filters_options.length > 0) {
                             $('.categoryFiltersOptions').empty();
 
                             $.each(response.filters_options, function (index, FilterOption) {
                                 let multiple = '';
-                                let nameAttr = 'category_filter_option_id[]';
+                                let nameAttr = `category_filter_option_id[${index}]`;
                                 let selected = [];
 
-                                let matches = CategoryFilterOption.filter(opt => parseInt(opt.category_filter_id) === FilterOption.id);
+                                let matches = CategoryFilterOption.filter(opt => (parseInt(opt.category_filter_id) === FilterOption.id && parseInt(opt.product_id) === ProductID));
                                 if (matches.length > 0) {
                                     selected = matches.flatMap(opt => opt.category_filter_option_id.split(','));
                                 }
-                                    
+
                                 if (FilterOption.selection == 1) {
                                     multiple = 'multiple';
                                     nameAttr = `category_filter_option_id[${index}][]`;
@@ -427,7 +434,7 @@ $(document).ready(function(){
                                         <label class="c-gr f-500 f-16 w-100 mb-2">${FilterOption.name} : </label>
                                         <select name="${nameAttr}" class="select2 category_filter_option_id" data-placeholder="--- Select a Option ---" ${multiple}>
                                             <option value="">--- Select a Option ---</option>`;
-
+                                            
                                 $.each(FilterOption.options, function (i, Option) {
                                     const isSelected = selected.includes(Option.id.toString()) ? 'selected' : '';
                                     
@@ -447,8 +454,20 @@ $(document).ready(function(){
                             }).on("load", function (e) {
                                 $(this).prop('tabindex', 0);
                             }).trigger('load');
+
+                            $('.category_filter_option_id').each(function () {
+                                $(this).rules('remove');
+                                $(this).rules('add', {
+                                    required: true,
+                                    messages: {
+                                        required: "This field is required."
+                                    }
+                                });
+                            });
+                            $('.is_options_deleted').val(0);
                         } else {
                             $('.categoryFiltersOptions').empty();
+                            $('.is_options_deleted').val(1);
                         }
                     }
                 },
@@ -461,6 +480,7 @@ $(document).ready(function(){
             brandSelect.empty();
             brandSelect.attr('disabled', false);
             $('.categoryFiltersOptions').empty();
+            $('.is_options_deleted').val(1);
         }
     }
 

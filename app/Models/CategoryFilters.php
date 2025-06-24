@@ -33,6 +33,6 @@ class CategoryFilters extends Model
 
     public function options()
     {
-        return $this->hasMany(CategoryFilterOptions::class, 'category_filter_id', 'id');
+        return $this->hasMany(CategoryFilterOptions::class, 'category_filter_id', 'id')->whereNull('deleted_at');
     }
 }
