@@ -9,3 +9,4 @@ Schedule::command('add:data-to-sheet')->everyFiveMinutes();
 // Schedule::command('twillo-template:get')->hourly();
 // Schedule::command('moldcell:get-call-history')->everyMinute();
 Schedule::command('call-task:trigger')->everyMinute();
+Schedule::command('app:auto-translate-attributes')->hourly();

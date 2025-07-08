@@ -264,6 +264,7 @@ class ProductController extends Controller
         $product->air_conditioner_capacity = $request->air_conditioner_capacity ?? '';
         $product->available_power_capacity = (is_array($request->available_power_capacity) && !empty($request->available_power_capacity) ? implode(',',array_filter($request->available_power_capacity)) : '');
         $product->updated_by = auth()->user()->id;
+        $product->is_translated = 0;
         $product->save();
 
         if(isset($product->id) && !empty($product->id)) {
